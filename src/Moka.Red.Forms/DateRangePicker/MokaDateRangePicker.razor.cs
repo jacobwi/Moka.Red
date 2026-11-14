@@ -25,16 +25,21 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 	private ElementReference _root;
 	private bool _selectingEnd;
 
-	// The range the picker shows. StartDate and EndDate only replace it when the parent passes new
-	// values, so a re-render that passes the old ones cannot undo a pick (gotcha #9).
-	private DateOnly? _start;
-	private DateOnly? _end;
-	private DateOnly? _lastStartParameter;
-	private DateOnly? _lastEndParameter;
+	// The range the picker shows, apart from StartDate and EndDate, each owned by a parent that passes it and listens:
+	// a pick shows before the parent answers, and a re-render that passes the old dates cannot undo it (gotcha #9).
+	private readonly MokaInputValue<DateOnly?> _startDate;
+	private readonly MokaInputValue<DateOnly?> _endDate;
 
 	// The input is the control, so it takes the consumer's Id and the unmatched attributes, and the
 	// label follows the Id.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
+	/// <summary>Creates the picker. It shows its own range until the parent passes one.</summary>
+	public MokaDateRangePicker()
+	{
+		_startDate = new MokaInputValue<DateOnly?>(StateHasChanged, DispatchExceptionAsync);
+		_endDate = new MokaInputValue<DateOnly?>(StateHasChanged, DispatchExceptionAsync);
+	}
 
 	/// <summary>The start date of the range. Two-way bindable.</summary>
 	[Parameter]
@@ -102,19 +107,23 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 
 	private DateTime RightMonth => _leftMonth.AddMonths(1);
 
+	private DateOnly? ShownStart => _startDate.Shown;
+
+	private DateOnly? ShownEnd => _endDate.Shown;
+
 	private string DisplayValue
 	{
 		get
 		{
-			if (_start.HasValue && _end.HasValue)
+			if (ShownStart.HasValue && ShownEnd.HasValue)
 			{
 				return
-					$"{_start.Value.ToString(Format, CultureInfo.InvariantCulture)} - {_end.Value.ToString(Format, CultureInfo.InvariantCulture)}";
+					$"{ShownStart.Value.ToString(Format, CultureInfo.InvariantCulture)} - {ShownEnd.Value.ToString(Format, CultureInfo.InvariantCulture)}";
 			}
 
-			if (_start.HasValue)
+			if (ShownStart.HasValue)
 			{
-				return $"{_start.Value.ToString(Format, CultureInfo.InvariantCulture)} - ...";
+				return $"{ShownStart.Value.ToString(Format, CultureInfo.InvariantCulture)} - ...";
 			}
 
 			return "";
@@ -170,25 +179,25 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 		}
 
+		_startDate.Stop();
+		_endDate.Stop();
 		await base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
+		_startDate.Take(parameters, nameof(StartDate));
+		_endDate.Take(parameters, nameof(EndDate));
+		return base.SetParametersAsync(parameters);
+	}
 
-		if (StartDate != _lastStartParameter)
-		{
-			_lastStartParameter = StartDate;
-			_start = StartDate;
-		}
-
-		if (EndDate != _lastEndParameter)
-		{
-			_lastEndParameter = EndDate;
-			_end = EndDate;
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_startDate.AfterRender();
+		_endDate.AfterRender();
 	}
 
 	private void ToggleCalendar()
@@ -202,9 +211,9 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 		if (_isOpen)
 		{
 			_selectingEnd = false;
-			if (_start.HasValue)
+			if (ShownStart.HasValue)
 			{
-				_leftMonth = new DateTime(_start.Value.Year, _start.Value.Month, 1);
+				_leftMonth = new DateTime(ShownStart.Value.Year, ShownStart.Value.Month, 1);
 			}
 			else
 			{
@@ -242,15 +251,15 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 
 	private bool IsInRange(DateOnly day)
 	{
-		if (_start.HasValue && _end.HasValue)
+		if (ShownStart.HasValue && ShownEnd.HasValue)
 		{
-			return day >= _start.Value && day <= _end.Value;
+			return day >= ShownStart.Value && day <= ShownEnd.Value;
 		}
 
-		if (_start.HasValue && _selectingEnd && _hoverDate.HasValue)
+		if (ShownStart.HasValue && _selectingEnd && _hoverDate.HasValue)
 		{
 			DateOnly rangeEnd = _hoverDate.Value;
-			DateOnly rangeStart = _start.Value;
+			DateOnly rangeStart = ShownStart.Value;
 			if (rangeEnd < rangeStart)
 			{
 				(rangeStart, rangeEnd) = (rangeEnd, rangeStart);
@@ -265,47 +274,44 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 	private string DayCssClass(DateOnly day, DateTime monthContext) => new CssBuilder("moka-daterange__day")
 		.AddClass("moka-daterange__day--other-month", day.Month != monthContext.Month)
 		.AddClass("moka-daterange__day--today", day == DateOnly.FromDateTime(DateTime.Today))
-		.AddClass("moka-daterange__day--start", _start.HasValue && day == _start.Value)
-		.AddClass("moka-daterange__day--end", _end.HasValue && day == _end.Value)
+		.AddClass("moka-daterange__day--start", ShownStart.HasValue && day == ShownStart.Value)
+		.AddClass("moka-daterange__day--end", ShownEnd.HasValue && day == ShownEnd.Value)
 		.AddClass("moka-daterange__day--in-range", IsInRange(day))
 		.AddClass("moka-daterange__day--disabled", IsDayDisabled(day))
 		.Build();
 
-	private async Task SelectDay(DateOnly day)
+	private void SelectDay(DateOnly day)
 	{
 		if (IsDayDisabled(day))
 		{
 			return;
 		}
 
-		if (!_selectingEnd || !_start.HasValue)
+		if (!_selectingEnd || ShownStart is not { } start)
 		{
-			// Selecting start date
-			_start = day;
-			_end = null;
 			_selectingEnd = true;
-			await StartDateChanged.InvokeAsync(_start);
-			await EndDateChanged.InvokeAsync(_end);
+			Commit(day, null);
+			return;
 		}
-		else
-		{
-			// Selecting end date
-			if (day < _start.Value)
-			{
-				// Swap: user clicked before start
-				_end = _start;
-				_start = day;
-			}
-			else
-			{
-				_end = day;
-			}
 
-			_selectingEnd = false;
-			_isOpen = false;
-			_hoverDate = null;
-			await StartDateChanged.InvokeAsync(_start);
-			await EndDateChanged.InvokeAsync(_end);
+		// A day before the start becomes the start.
+		_selectingEnd = false;
+		_isOpen = false;
+		_hoverDate = null;
+		Commit(day < start ? day : start, day < start ? start : day);
+	}
+
+	// Only an end that moved is reported, the start first.
+	private void Commit(DateOnly? start, DateOnly? end)
+	{
+		if (start != ShownStart)
+		{
+			_startDate.Pick(start, StartDateChanged);
+		}
+
+		if (end != ShownEnd)
+		{
+			_endDate.Pick(end, EndDateChanged);
 		}
 	}
 
@@ -315,14 +321,12 @@ public partial class MokaDateRangePicker : MokaVisualComponentBase
 		? EventCallback.Factory.Create(this, () => _hoverDate = day)
 		: default;
 
-	private async Task ClearRange()
+	private void ClearRange()
 	{
-		_start = null;
-		_end = null;
 		_selectingEnd = false;
-		await StartDateChanged.InvokeAsync(null);
-		await EndDateChanged.InvokeAsync(null);
+		Commit(null, null);
 	}
+
 
 	private ElementReference _triggerRef;
 

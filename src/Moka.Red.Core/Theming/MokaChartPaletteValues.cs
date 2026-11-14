@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Globalization;
+using Moka.Red.Core.Colors;
 
 namespace Moka.Red.Core.Theming;
 
@@ -111,17 +113,37 @@ internal static class MokaChartPaletteValues
 
 	private static readonly string[] MatrixValues = BuildMatrixValues();
 
-	/// <summary>Every chart token's name, in the order <see cref="Tokens" /> writes them.</summary>
+	private const int GateCacheSize = 64;
+
+	private static readonly ConcurrentDictionary<GateKey, string[]> GateCache = new();
+
+	// Every chart token's name, in the order Values gives them.
 	internal static IReadOnlyList<string> TokenNames => Names;
 
-	/// <summary>Every chart token of a theme, as names and values.</summary>
-	internal static IEnumerable<(string Name, string Value)> Tokens(MokaTheme theme)
+	// Every chart token's value for a theme, in the order of TokenNames.
+	internal static IReadOnlyList<string> Values(MokaTheme theme)
 	{
-		string[] values = theme.Look == MokaLook.Gate ? GateValues(theme) : MatrixValues;
-		for (int i = 0; i < Names.Length; i++)
+		if (theme.Look != MokaLook.Gate)
 		{
-			yield return (Names[i], values[i]);
+			return MatrixValues;
 		}
+
+		var key = new GateKey(theme.ChartPalette, theme.IsDark, theme.Palette.Primary);
+		if (GateCache.TryGetValue(key, out string[]? cached))
+		{
+			return cached;
+		}
+
+		// Few keys repeat in practice, so a full cache is emptied rather than tracked; an app that makes a theme for every
+		// accent a slider passes through never holds more than this.
+		if (GateCache.Count >= GateCacheSize)
+		{
+			GateCache.Clear();
+		}
+
+		string[] values = GateValues(theme);
+		GateCache[key] = values;
+		return values;
 	}
 
 	/// <summary>The eight series colors a palette gives on the new design.</summary>
@@ -159,8 +181,8 @@ internal static class MokaChartPaletteValues
 			return null;
 		}
 
-		(double _, double chroma, double hue) = Oklch(r, g, b);
-		return Ramp(chroma, hue, lightness);
+		MokaOklch oklch = MokaSrgb.FromBytes(r, g, b).ToOklch();
+		return Ramp(oklch.C, oklch.H, lightness);
 	}
 
 	/// <summary>
@@ -168,15 +190,7 @@ internal static class MokaChartPaletteValues
 	///     made this way from the light accent's hue and the larger of its two chromas.
 	/// </summary>
 	internal static string[] Ramp(double chroma, double hue, IReadOnlyList<double> lightness) =>
-		[.. lightness.Select(step => InGamut(step, chroma, hue))];
-
-	/// <summary>The OKLab lightness, chroma and hue (in degrees) of an sRGB color.</summary>
-	internal static (double Lightness, double Chroma, double Hue) Oklch(int r, int g, int b)
-	{
-		(double l, double a, double bb) = Oklab(Linear(r), Linear(g), Linear(b));
-		double hue = Math.Atan2(bb, a) * 180 / Math.PI;
-		return (l, Math.Sqrt((a * a) + (bb * bb)), ((hue % 360) + 360) % 360);
-	}
+		[.. lightness.Select(step => new MokaOklch(step, chroma, hue).ReduceChromaToFit().ToSrgb().ToHex(uppercase: true))];
 
 	private static AccentValues? ValuesFor(string primary, bool isDark) =>
 		Accents.FirstOrDefault(values => string.Equals(values.Accent.For(isDark).Color, primary, StringComparison.OrdinalIgnoreCase));
@@ -196,8 +210,8 @@ internal static class MokaChartPaletteValues
 			return reference;
 		}
 
-		(double _, double chroma, double hue) = Oklch(r, g, b);
-		if (chroma < ChromaFloor)
+		MokaOklch accent = MokaSrgb.FromBytes(r, g, b).ToOklch();
+		if (accent.C < ChromaFloor)
 		{
 			return reference;
 		}
@@ -206,7 +220,7 @@ internal static class MokaChartPaletteValues
 		int nearest = 0;
 		for (int i = 1; i < hues.Length; i++)
 		{
-			if (HueDistance(hues[i], hue) < HueDistance(hues[nearest], hue))
+			if (HueDistance(hues[i], accent.H) < HueDistance(hues[nearest], accent.H))
 			{
 				nearest = i;
 			}
@@ -216,7 +230,7 @@ internal static class MokaChartPaletteValues
 	}
 
 	private static double HueOf(string hex) =>
-		MokaColorMath.TryParseHex(hex, out int r, out int g, out int b) ? Oklch(r, g, b).Hue : 0;
+		MokaColorMath.TryParseHex(hex, out int r, out int g, out int b) ? MokaSrgb.FromBytes(r, g, b).ToOklch().H : 0;
 
 	private static string[] GateValues(MokaTheme theme)
 	{
@@ -311,68 +325,7 @@ internal static class MokaChartPaletteValues
 		return distance > 180 ? 360 - distance : distance;
 	}
 
-	private static double Linear(int channel)
-	{
-		double c = channel / 255.0;
-		return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-	}
-
-	private static double Gamma(double c)
-	{
-		c = Math.Clamp(c, 0, 1);
-		return c <= 0.0031308 ? 12.92 * c : (1.055 * Math.Pow(c, 1 / 2.4)) - 0.055;
-	}
-
-	private static (double L, double A, double B) Oklab(double r, double g, double b)
-	{
-		double l = Math.Cbrt((0.4122214708 * r) + (0.5363325363 * g) + (0.0514459929 * b));
-		double m = Math.Cbrt((0.2119034982 * r) + (0.6806995451 * g) + (0.1073969566 * b));
-		double s = Math.Cbrt((0.0883024619 * r) + (0.2817188376 * g) + (0.6299787005 * b));
-		return ((0.2104542553 * l) + (0.7936177850 * m) - (0.0040720468 * s),
-			(1.9779984951 * l) - (2.4285922050 * m) + (0.4505937099 * s),
-			(0.0259040371 * l) + (0.7827717662 * m) - (0.8086757660 * s));
-	}
-
-	private static (double R, double G, double B) LinearFromOklch(double lightness, double chroma, double hue)
-	{
-		double a = chroma * Math.Cos(hue * Math.PI / 180);
-		double b = chroma * Math.Sin(hue * Math.PI / 180);
-		double l = Math.Pow(lightness + (0.3963377774 * a) + (0.2158037573 * b), 3);
-		double m = Math.Pow(lightness - (0.1055613458 * a) - (0.0638541728 * b), 3);
-		double s = Math.Pow(lightness - (0.0894841775 * a) - (1.2914855480 * b), 3);
-		return ((4.0767416621 * l) - (3.3077115913 * m) + (0.2309699292 * s),
-			(-1.2684380046 * l) + (2.6097574011 * m) - (0.3413193965 * s),
-			(-0.0041960863 * l) - (0.7034186147 * m) + (1.7076147010 * s));
-	}
-
-	private static bool Fits((double R, double G, double B) c) =>
-		c.R is >= -1e-4 and <= 1 + 1e-4 && c.G is >= -1e-4 and <= 1 + 1e-4 && c.B is >= -1e-4 and <= 1 + 1e-4;
-
-	private static string InGamut(double lightness, double chroma, double hue)
-	{
-		(double R, double G, double B) color = LinearFromOklch(lightness, chroma, hue);
-		if (!Fits(color))
-		{
-			double low = 0, high = chroma;
-			for (int i = 0; i < 30; i++)
-			{
-				double middle = (low + high) / 2;
-				if (Fits(LinearFromOklch(lightness, middle, hue)))
-				{
-					low = middle;
-				}
-				else
-				{
-					high = middle;
-				}
-			}
-
-			color = LinearFromOklch(lightness, low, hue);
-		}
-
-		int Byte(double c) => (int)Math.Round(Gamma(c) * 255, MidpointRounding.AwayFromZero);
-		return string.Create(CultureInfo.InvariantCulture, $"#{Byte(color.R):X2}{Byte(color.G):X2}{Byte(color.B):X2}");
-	}
+	private readonly record struct GateKey(MokaChartPalette Palette, bool IsDark, string Primary);
 
 	private sealed record AccentValues(
 		MokaAccent Accent,

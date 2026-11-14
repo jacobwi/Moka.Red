@@ -1,0 +1,271 @@
+@page "/theme/tokens"
+@using Moka.Red.Showcase.Components.Library
+
+<PageTitle>Tokens - Moka.Red</PageTitle>
+
+<div class="tk-page" @ref="_page">
+	<MokaPageHeader Eyebrow="Foundation" Title="Theme tokens" Said="@Said" Actions="ViewSwitch"
+	                Lead="Every --moka-* custom property the theme writes or moka.css declares. Switch the theme in the Look panel and the values follow."/>
+
+	@switch (_view)
+	{
+		case PurposeView:
+			@foreach (Purpose purpose in Purposes)
+			{
+				<section @key="purpose.Title" class="tk-purpose" aria-labelledby="@purpose.Id">
+					<div class="tk-purpose-head">
+						<MokaHeading Level="2" Micro Id="@purpose.Id">@purpose.Title</MokaHeading>
+						<MokaText Mono Size="MokaSize.Xs" Class="tk-muted">@purpose.Hint</MokaText>
+					</div>
+					@foreach (Strip strip in purpose.Strips)
+					{
+						IReadOnlyList<TokenInfo> tokens = Present(strip.Names);
+						if (tokens.Count == 0)
+						{
+							continue;
+						}
+
+						if (strip.Label is not null)
+						{
+							<MokaCaption Class="tk-strip-label">@strip.Label</MokaCaption>
+						}
+						<div class="tk-strip">
+							@foreach (TokenInfo token in tokens)
+							{
+								<MokaCopyButton @key="token.Name" Text="@token.Name" Class="tk-tile"
+								                TooltipText="@($"Copy {token.Name}")" CopiedText="@($"Copied {token.Name}")">
+									<span class="@($"tk-smp tk-smp--{strip.Sample}")" style="@token.SampleStyle" aria-hidden="true">
+										@if (strip.Sample == "ink")
+										{
+											<span>Aa</span>
+										}
+									</span>
+									<span class="tk-tile-name">@Trim(token.Short, purpose.Prefix)</span>
+									<span class="tk-tile-value">@ValueOf(token)</span>
+								</MokaCopyButton>
+							}
+						</div>
+					}
+				</section>
+			}
+			break;
+
+		case CompareView:
+			<div class="tk-compare-pick">
+				<MokaSegmentedControl Value="@_compare" ValueChanged="PickCompare" AriaLabel="Compare" Size="MokaSize.Sm">
+					<MokaSegment Value="@ComparePresets" Text="Two presets"/>
+					<MokaSegment Value="@CompareModes" Text="Dark and light"/>
+				</MokaSegmentedControl>
+				@if (_compare == ComparePresets)
+				{
+					<MokaNativeSelect TValue="string" Label="Left" Items="PresetNames" TextSelector="n => n" @bind-Value="_left"/>
+					<MokaNativeSelect TValue="string" Label="Right" Items="PresetNames" TextSelector="n => n" @bind-Value="_right"/>
+				}
+				else
+				{
+					<MokaNativeSelect TValue="string" Label="Preset" Items="FamilyNames" TextSelector="n => n" @bind-Value="_family"/>
+				}
+			</div>
+			<div class="tk-compare">
+				@foreach ((string name, MokaTheme theme) in ComparedThemes)
+				{
+					<MokaThemeProvider @key="name" Theme="theme">
+						<div class="tk-pane">
+							<div class="tk-pane-head">
+								<span class="tk-pane-dot" aria-hidden="true"></span>
+								<span class="tk-pane-name">@name</span>
+								<MokaTag Size="MokaSize.Xs" Text="@(theme.IsDark ? "Dark" : "Light")"/>
+							</div>
+							<div class="tk-pane-surfaces" aria-hidden="true">
+								<span style="--tok: var(--moka-color-background)"></span>
+								<span style="--tok: var(--moka-color-surface)"></span>
+								<span style="--tok: var(--moka-color-surface-variant)"></span>
+								<span style="--tok: var(--moka-color-surface-raised)"></span>
+								<span style="--tok: var(--moka-color-primary)"></span>
+							</div>
+							<MokaCard Title="Backups" Subtitle="Last run 2 min ago">
+								<div class="tk-pane-card">
+									<MokaTextField @bind-Value="_host" Label="Host" Mono/>
+									<div class="tk-pane-row">
+										<MokaButton Variant="MokaVariant.Filled">Run now</MokaButton>
+										<MokaButton Variant="MokaVariant.Outlined">Edit</MokaButton>
+									</div>
+									<MokaSwitch @bind-Value="_nightly" Label="Every night"/>
+								</div>
+							</MokaCard>
+							<div class="tk-pane-selected">Selected row</div>
+							<div class="tk-pane-row">
+								<MokaTag Color="MokaColor.Success" Icon="MokaIcons.Status.CheckCircle" Text="Online"/>
+								<MokaTag Color="MokaColor.Warning" Icon="MokaIcons.Status.Warning" Text="Slow"/>
+								<MokaTag Color="MokaColor.Error" Icon="MokaIcons.Status.Error" Text="Failed"/>
+							</div>
+							<div class="tk-pane-values">
+								@foreach ((string token, string value) in PaneValues(theme))
+								{
+									<MokaKeyValue @key="token" Label="@token" Value="@value" LabelWidth="9rem" Truncate/>
+								}
+							</div>
+						</div>
+					</MokaThemeProvider>
+				}
+			</div>
+			<MokaCaption>@CompareNote</MokaCaption>
+			break;
+
+		case SeedView:
+			<DemoSection Id="a-theme-from-a-seed" Title="A theme from a seed" Description="MokaTheme.FromSeed works a whole theme out of an accent and a neutral: surfaces, borders and text in OKLCH, each text color meeting its contrast target. It sits next to the Red preset here, each in its own MokaThemeProvider, in the page's scheme, with what CheckContrast measured.">
+				<div class="tk-compare-pick">
+					<MokaColorSwatch Colors="SeedAccents" SelectedColor="@_seedAccent" SelectedColorChanged="PickSeedAccent" AriaLabel="Accent" Columns="6"/>
+					<MokaColorSwatch Colors="SeedNeutrals" SelectedColor="@_seedNeutral" SelectedColorChanged="PickSeedNeutral" AriaLabel="Neutral" Columns="6"/>
+				</div>
+				<div class="tk-compare">
+					@foreach ((string name, MokaTheme theme) in SeedThemes)
+					{
+						<MokaThemeProvider @key="name" Theme="theme">
+							<div class="tk-pane">
+								<div class="tk-pane-head">
+									<span class="tk-pane-dot" aria-hidden="true"></span>
+									<span class="tk-pane-name">@name</span>
+								</div>
+								<MokaCard Title="Backups" Subtitle="Last run 2 min ago">
+									<div class="tk-pane-card">
+										<div class="tk-pane-row">
+											<MokaButton Variant="MokaVariant.Filled">Run now</MokaButton>
+											<MokaButton Variant="MokaVariant.Outlined">Edit</MokaButton>
+										</div>
+										<MokaSwitch @bind-Value="_nightly" Label="Every night"/>
+									</div>
+								</MokaCard>
+								<div class="tk-pane-row">
+									<MokaTag Color="MokaColor.Success" Icon="MokaIcons.Status.CheckCircle" Text="Online"/>
+									<MokaTag Color="MokaColor.Warning" Icon="MokaIcons.Status.Warning" Text="Slow"/>
+									<MokaTag Color="MokaColor.Error" Icon="MokaIcons.Status.Error" Text="Failed"/>
+								</div>
+							</div>
+						</MokaThemeProvider>
+					}
+				</div>
+				<MokaCaption>@SeedContrastSummary</MokaCaption>
+			</DemoSection>
+			break;
+
+		default:
+			<div class="tk-filters">
+				<MokaSearchInput Value="@_filter" ValueChanged="SetFilter" Debounce="0" Clearable
+				                 Label="Filter tokens" HideLabel Placeholder="Filter by name or value" autocomplete="off"/>
+				<MokaSegmentedControl Value="@_kind" ValueChanged="SetKind" AriaLabel="Kind" Size="MokaSize.Sm">
+					<MokaSegment Value="@AllKinds" Text="All" Count="@_tokens.Count"/>
+					@foreach (TokenKind kind in KindsPresent)
+					{
+						<MokaSegment @key="kind" Value="@KindValue(kind)" Text="@TokenCatalog.Label(kind)" Count="@KindCount(kind)"/>
+					}
+				</MokaSegmentedControl>
+			</div>
+			<MokaTable TItem="TokenRow" Items="_rows" ItemKey="r => r.Token.Name" Label="Tokens" ItemsName="tokens"
+			           ShowToolbar="false" ShowPagination="false" Class="tk-table">
+				<EmptyContent>
+					<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="No token matches that"
+					                Description="Try part of a name, such as radius, or a value, such as 8px." Live/>
+				</EmptyContent>
+				<ChildContent>
+					<MokaColumn TItem="TokenRow" Title="Sample" Sortable="false" Resizable="false" Width="4.5rem"
+					            Phone="MokaColumnPhone.Trailing">
+						<CellTemplate Context="r">
+							<span class="@($"tk-smp tk-smp--{r.Sample}")" style="@r.Token.SampleStyle" aria-hidden="true">
+								@SampleText(r)
+							</span>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Token" Field="r => r.Token.Name" Phone="MokaColumnPhone.Primary">
+						<CellTemplate Context="r">
+							<MokaCopyable Text="@r.Token.Reference" CopyLabel="@($"Copy {r.Token.Reference}")">@r.Token.Name</MokaCopyable>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Value" Field="r => r.Value" Mono Phone="MokaColumnPhone.Secondary">
+						<CellTemplate Context="r">
+							<span class="tk-value">
+								<span class="tk-value-now">@r.Value</span>
+								@if (!string.Equals(r.Value, r.Token.Written, StringComparison.Ordinal))
+								{
+									<span class="tk-value-written">@r.Token.Written</span>
+								}
+							</span>
+						</CellTemplate>
+					</MokaColumn>
+					<MokaColumn TItem="TokenRow" Title="Kind" Field="r => r.KindLabel" Width="7rem" Phone="MokaColumnPhone.Hidden"/>
+					<MokaColumn TItem="TokenRow" Title="From" Field="r => r.Source" Mono Width="7rem"
+					            Phone="MokaColumnPhone.Hidden"/>
+				</ChildContent>
+			</MokaTable>
+			break;
+	}
+</div>
+
+@code {
+	private RenderFragment ViewSwitch => @<MokaSegmentedControl Value="@_view" ValueChanged="PickView" AriaLabel="Token view" Size="MokaSize.Sm">
+		<MokaSegment Value="@TableView" Text="Table"/>
+		<MokaSegment Value="@PurposeView" Text="By purpose"/>
+		<MokaSegment Value="@CompareView" Text="Side by side"/>
+		<MokaSegment Value="@SeedView" Text="From a seed"/>
+	</MokaSegmentedControl>;
+
+	private static readonly string[] SeedAccents = ["#0f766e", "#7c3aed", "#c2410c", "#2563eb", "#be185d", "#4d7c0f"];
+
+	private static readonly string[] SeedNeutrals = ["#64748b", "#78716c", "#6b7280", "#57534e"];
+
+	private string _seedAccent = SeedAccents[0];
+
+	private string _seedNeutral = SeedNeutrals[0];
+
+	private MokaTheme? _seeded;
+
+	private MokaContrastReport? _seededContrast;
+
+	private bool SeedDark => (Theme ?? MokaTheme.Default).IsDark;
+
+	// Derived again only when a seed color or the page's scheme changes, so the provider isn't handed a new theme on
+	// every render.
+	private MokaTheme Seeded
+	{
+		get
+		{
+			if (_seeded is null || _seeded.IsDark != SeedDark)
+			{
+				_seeded = MokaTheme.FromSeed(new MokaThemeSeed { Accent = _seedAccent, Neutral = _seedNeutral }, SeedDark);
+				_seededContrast = _seeded.CheckContrast();
+			}
+
+			return _seeded;
+		}
+	}
+
+	private IEnumerable<(string Name, MokaTheme Theme)> SeedThemes =>
+	[
+		("From the seed", Seeded),
+		(SeedDark ? "Red" : "RedLight", SeedDark ? MokaTheme.Red : MokaTheme.RedLight)
+	];
+
+	private string SeedContrastSummary
+	{
+		get
+		{
+			MokaContrastReport report = _seededContrast ?? Seeded.CheckContrast();
+			int failing = report.Failures.Count();
+			return failing == 0
+				? $"CheckContrast measured {report.Checks.Count} pairs, and every one meets what it has to."
+				: $"CheckContrast measured {report.Checks.Count} pairs, and {failing} miss: {string.Join(", ", report.Failures.Take(3).Select(check => $"{check.Foreground} on {check.Background}"))}.";
+		}
+	}
+
+	private void PickSeedAccent(string? color)
+	{
+		_seedAccent = color ?? SeedAccents[0];
+		_seeded = null;
+	}
+
+	private void PickSeedNeutral(string? color)
+	{
+		_seedNeutral = color ?? SeedNeutrals[0];
+		_seeded = null;
+	}
+}

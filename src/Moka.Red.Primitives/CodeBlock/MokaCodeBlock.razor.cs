@@ -1,30 +1,41 @@
+using System.Collections.Frozen;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Clipboard;
+using Moka.Red.Core.Code;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Primitives.CodeBlock;
 
 /// <summary>
-///     A styled code display block with optional line numbers, language label, and copy button.
+///     A styled code display block with optional line numbers, language label, copy button and coloring.
 ///     Unlike <c>MokaCode</c> which is an inline code element, this renders a full
 ///     <c>&lt;pre&gt;&lt;code&gt;</c> block suitable for multi-line code snippets.
 /// </summary>
 /// <remarks>
 ///     The browser copies inside the click, reading the lines already on the page, because Safari, iOS and Firefox
 ///     refuse a copy made once the click is over. .NET only hears how it went, and the lines don't redraw for it.
+///     The copy reads the lines' text, so colored code copies as plain text.
 /// </remarks>
 public partial class MokaCodeBlock
 {
 	private static readonly TimeSpan ResetDelay = TimeSpan.FromSeconds(2);
 
+	private static readonly FrozenDictionary<MokaCodeTokenKind, string> TokenClasses = Enum.GetValues<MokaCodeTokenKind>()
+		.Where(static kind => kind != MokaCodeTokenKind.Plain)
+		.ToFrozenDictionary(static kind => kind, static kind => new CssBuilder("moka-code-block__token")
+			.AddClass($"moka-code-block__token--{MokaEnumHelpers.ToCssClass(kind)}")
+			.Build());
+
 	private bool _copied;
 	private int _copyCount;
 	private bool _disposed;
 	private string? _drawnCode;
+	private Func<string, IEnumerable<MokaCodeSpan>>? _drawnHighlighter;
 	private string? _drawnMaxHeight;
 	private bool _drawnNumbers;
 	private string[] _lines = [string.Empty];
+	private MokaCodeSpan[][]? _lineTokens;
 	private int _listingVersion;
 	private ITimer? _resetTimer;
 
@@ -60,6 +71,16 @@ public partial class MokaCodeBlock
 	[Parameter]
 	public bool Wrap { get; set; }
 
+	/// <summary>
+	///     Colors the code: given the whole code, it returns the stretches to color, with indexes into it. One of
+	///     <see cref="MokaCodeHighlighters" />, such as <see cref="MokaCodeHighlighters.CSharp" />, or the app's own.
+	///     Stretches can come in any order; overlaps and anything past the end are ignored. It runs when the code or the
+	///     highlighter changes, so pass the same delegate each render rather than a new lambda. Null, the default, draws
+	///     plain text, and <see cref="Language" /> never picks one.
+	/// </summary>
+	[Parameter]
+	public Func<string, IEnumerable<MokaCodeSpan>>? Highlighter { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-code-block";
 
@@ -67,6 +88,7 @@ public partial class MokaCodeBlock
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-code-block--line-numbers", ShowLineNumbers)
 		.AddClass("moka-code-block--wrap", Wrap)
+		.AddClass("moka-code-block--highlighted", _lineTokens is not null)
 		.AddClass(Class)
 		.Build();
 
@@ -91,7 +113,8 @@ public partial class MokaCodeBlock
 		base.OnParametersSet();
 
 		string code = Code ?? string.Empty;
-		if (_drawnCode == code && _drawnNumbers == ShowLineNumbers && _drawnMaxHeight == MaxHeight)
+		if (_drawnCode == code && _drawnNumbers == ShowLineNumbers && _drawnMaxHeight == MaxHeight
+		    && ReferenceEquals(_drawnHighlighter, Highlighter))
 		{
 			return;
 		}
@@ -99,9 +122,76 @@ public partial class MokaCodeBlock
 		_drawnCode = code;
 		_drawnNumbers = ShowLineNumbers;
 		_drawnMaxHeight = MaxHeight;
-		_lines = code.Split('\n');
+		_drawnHighlighter = Highlighter;
+		// Text with \r\n split on \n alone kept a \r on every line, drawn as a trailing space and copied with the line.
+		string text = code.ReplaceLineEndings("\n");
+		_lines = text.Split('\n');
+		_lineTokens = Highlighter is null ? null : SplitIntoLines(_lines, MokaCodeHighlighters.Normalize(text, Highlighter(text)));
 		_listingVersion++;
 	}
+
+	// Each line's spans, from its own start, so a span that crosses a line break is cut at every break. Plain spans
+	// draw as text.
+	private static MokaCodeSpan[][] SplitIntoLines(string[] lines, MokaCodeSpan[] spans)
+	{
+		MokaCodeSpan[][] perLine = new MokaCodeSpan[lines.Length][];
+		List<MokaCodeSpan> line = [];
+		int next = 0;
+		int lineStart = 0;
+		for (int i = 0; i < lines.Length; i++)
+		{
+			int lineEnd = lineStart + lines[i].Length;
+			while (next < spans.Length && spans[next].Start < lineEnd)
+			{
+				MokaCodeSpan span = spans[next];
+				int spanEnd = span.Start + span.Length;
+				int start = Math.Max(span.Start, lineStart);
+				int end = Math.Min(spanEnd, lineEnd);
+				if (end > start && TokenClasses.ContainsKey(span.Kind))
+				{
+					line.Add(new MokaCodeSpan(start - lineStart, end - start, span.Kind));
+				}
+
+				if (spanEnd > lineEnd)
+				{
+					break;
+				}
+
+				next++;
+			}
+
+			perLine[i] = [.. line];
+			line.Clear();
+			lineStart = lineEnd + 1;
+		}
+
+		return perLine;
+	}
+
+	// Built in C#, so the spans carry no scope attribute and the stylesheet reaches them through ::deep.
+	private RenderFragment LineTokens(int index) => builder =>
+	{
+		string line = _lines[index];
+		int position = 0;
+		foreach (MokaCodeSpan token in _lineTokens![index])
+		{
+			if (token.Start > position)
+			{
+				builder.AddContent(0, line[position..token.Start]);
+			}
+
+			builder.OpenElement(1, "span");
+			builder.AddAttribute(2, "class", TokenClasses[token.Kind]);
+			builder.AddContent(3, line.Substring(token.Start, token.Length));
+			builder.CloseElement();
+			position = token.Start + token.Length;
+		}
+
+		if (position < line.Length)
+		{
+			builder.AddContent(4, line[position..]);
+		}
+	};
 
 	private void HandleCopied(MokaCopyEventArgs args)
 	{

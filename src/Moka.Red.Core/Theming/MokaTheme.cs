@@ -1,6 +1,6 @@
-using System.Globalization;
-using System.Text;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Data.Table;
 
 namespace Moka.Red.Core.Theming;
 
@@ -10,6 +10,10 @@ namespace Moka.Red.Core.Theming;
 /// </summary>
 public sealed record MokaTheme
 {
+	// The accent's alpha in the original dark design's borders, so WithAccent re-tints them as MokaPalette.Dark has them.
+	private const double MatrixDarkOutline = 0.12;
+	private const double MatrixDarkOutlineVariant = 0.06;
+
 	/// <summary>The theme's colors, written as the <c>--moka-color-*</c> tokens.</summary>
 	public required MokaPalette Palette { get; init; }
 
@@ -74,6 +78,12 @@ public sealed record MokaTheme
 	///     look reads it.
 	/// </summary>
 	public MokaStatusBarLook StatusBar { get; init; } = MokaStatusBarLook.Standard;
+
+	/// <summary>
+	///     How dock layouts are drawn, for layouts that don't set a look of their own. Only the <see cref="MokaLook.Gate" />
+	///     look reads it.
+	/// </summary>
+	public MokaDockLook Docks { get; init; } = MokaDockLook.Classic;
 
 	/// <summary>
 	///     How toasts are drawn, unless a toast host sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
@@ -173,6 +183,18 @@ public sealed record MokaTheme
 	public MokaChartPrint ChartPrint { get; init; } = MokaChartPrint.AsShown;
 
 	/// <summary>
+	///     How tables draw their rows, for tables that don't set a look of their own. Null, the default, keeps the
+	///     table's own, <see cref="MokaTableLook.Lined" />. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaTableLook? Tables { get; init; }
+
+	/// <summary>
+	///     How tightly tables space their rows, for tables whose state and parameters don't say. Null, the default, keeps
+	///     each look's own spacing. Only the <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaTableDensity? TableDensity { get; init; }
+
+	/// <summary>
 	///     Whether text saying what a thing is for shows (<c>class="moka-about"</c>). Text saying what is so right
 	///     now always shows. Only the <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -191,6 +213,34 @@ public sealed record MokaTheme
 	///     Multiplier applied to every font-size token. 1.0 keeps the dense 13px base scale.
 	/// </summary>
 	public double FontScale { get; init; } = 1.0;
+
+	/// <summary>
+	///     Tokens held at values of their own (see <see cref="WithToken" />), by name, whatever the palette and style
+	///     choices give them. They stay through every other <c>With</c> call, including a change of scheme or accent.
+	/// </summary>
+	public IReadOnlyDictionary<string, string> Pins => PinnedTokens;
+
+	private MokaPinnedTokens PinnedTokens { get; init; } = MokaPinnedTokens.Empty;
+
+	/// <summary>
+	///     The colors this theme was derived from by <see cref="FromSeed" />, <see cref="WithSeed" /> or
+	///     <see cref="WithNeutral" />, which <see cref="WithDark" />, <see cref="WithHighContrast" /> and
+	///     <see cref="WithAccent(string)" /> derive it again from. Null for a theme with a palette of its own.
+	/// </summary>
+	public MokaThemeSeed? Seed { get; init; }
+
+	/// <summary>
+	///     The accent <see cref="WithAccent(string)" /> tinted this theme with, which <see cref="WithDark" /> puts back in the
+	///     other scheme. Null for a theme that keeps its palette's own accent. On the <see cref="MokaLook.Matrix" /> look a
+	///     color given as a string is kept as it is, so both of its schemes' shades are that color.
+	/// </summary>
+	public MokaAccent? Accent { get; init; }
+
+	/// <summary>
+	///     The palette as it was before <see cref="WithHighContrast" /> turned high contrast on, which turning it off gives
+	///     back exactly. Null while high contrast is off, and on a theme from a seed, which is derived again instead.
+	/// </summary>
+	public MokaPalette? PaletteBeforeHighContrast { get; init; }
 
 	/// <summary>
 	///     The original design on light surfaces, exactly as it has always rendered. Uppercase, small and outlined,
@@ -499,6 +549,15 @@ public sealed record MokaTheme
 		Look == MokaLook.Gate ? this with { StatusBar = look } : this;
 
 	/// <summary>
+	///     Creates a new theme whose dock layouts are drawn this way, unless a layout sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look, which draws <see cref="MokaDockLook.Classic" />.
+	/// </summary>
+	/// <param name="look">How dock layouts are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithDocks(MokaDockLook look) =>
+		Look == MokaLook.Gate ? this with { Docks = look } : this;
+
+	/// <summary>
 	///     Creates a new theme whose charts are drawn this way, unless a chart sets its own look. No effect on the
 	///     <see cref="MokaLook.Matrix" /> look.
 	/// </summary>
@@ -535,6 +594,24 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithChartPrint(MokaChartPrint print) =>
 		Look == MokaLook.Gate ? this with { ChartPrint = print } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tables draw their rows this way, unless a table sets its own look. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look, where tables draw <see cref="MokaTableLook.Lined" />.
+	/// </summary>
+	/// <param name="look">How tables draw their rows.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTables(MokaTableLook look) =>
+		Look == MokaLook.Gate ? this with { Tables = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose tables space their rows this tightly, unless a table's state or parameters say
+	///     otherwise. No effect on the <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="density">How tightly tables space their rows.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithTableDensity(MokaTableDensity density) =>
+		Look == MokaLook.Gate ? this with { TableDensity = density } : this;
 
 	/// <summary>
 	///     Creates a new theme whose toasts are drawn this way, unless a toast host sets its own look. No effect on the
@@ -716,26 +793,38 @@ public sealed record MokaTheme
 		Look == MokaLook.Gate ? this with { Descriptions = show } : this;
 
 	/// <summary>
-	///     Creates a new theme with dark mode toggled, staying in the same <see cref="Look" />. This replaces the
-	///     whole palette, so call it before <see cref="WithAccent(string)" />.
+	///     Creates a new theme in the other color scheme, staying in the same <see cref="Look" /> and keeping its style
+	///     choices, accent, high contrast and pinned tokens. A theme from a seed is derived again from its seed; any other
+	///     takes its preset palette for that scheme with the accent <see cref="WithAccent(string)" /> gave it put back.
 	/// </summary>
+	/// <param name="isDark">Whether the new theme is dark.</param>
+	/// <returns>The new theme.</returns>
 	public MokaTheme WithDark(bool isDark)
 	{
-		if (Look == MokaLook.Gate)
+		if (Seed is not null)
 		{
-			MokaPalette palette = MokaPalette.ForSurfaces(Surfaces, isDark);
-			return this with { Palette = palette.WithGateContrast(HighContrast, isDark, Surfaces), IsDark = isDark };
+			return this with { IsDark = isDark, Palette = MokaSeedPalette.Derive(Seed, isDark, HighContrast) };
 		}
 
-		return isDark
-			? this with { Palette = MokaPalette.Dark, IsDark = true }
-			: this with { Palette = MokaPalette.Light, IsDark = false };
+		MokaPalette palette = Look == MokaLook.Gate
+			? MokaPalette.ForSurfaces(Surfaces, isDark)
+			: isDark ? MokaPalette.Dark : MokaPalette.Light;
+		MokaTheme rebuilt = this with { IsDark = isDark, Palette = palette, PaletteBeforeHighContrast = null };
+		if (Accent is not null)
+		{
+			rebuilt = rebuilt.WithAccent(Accent);
+		}
+
+		return HighContrast && Look == MokaLook.Gate ? rebuilt.TurnOnHighContrast() : rebuilt;
 	}
 
 	/// <summary>
-	///     Creates a new theme on other surface colors, keeping its accent. It has no effect on the
-	///     <see cref="MokaLook.Matrix" /> look, which has one set of surfaces.
+	///     Creates a new theme on other surface colors, keeping its accent. On a theme from a seed the seed's neutral
+	///     becomes that family's surface color. It has no effect on the <see cref="MokaLook.Matrix" /> look, which has one
+	///     set of surfaces.
 	/// </summary>
+	/// <param name="surfaces">The surface colors.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithSurfaces(MokaSurfaces surfaces)
 	{
 		if (Look != MokaLook.Gate)
@@ -743,27 +832,37 @@ public sealed record MokaTheme
 			return this;
 		}
 
-		var accent = new MokaAccentShades(Palette.Primary, Palette.PrimaryLight, Palette.PrimaryBg);
-		return this with
+		if (Seed is not null)
 		{
-			Surfaces = surfaces,
-			Palette = MokaPalette.ForSurfaces(surfaces, IsDark)
-				.WithGateAccent(accent, IsDark)
-				.WithGateContrast(HighContrast, IsDark, surfaces)
-		};
+			MokaThemeSeed seed = Seed with { Neutral = MokaPalette.ForSurfaces(surfaces, true).Surface, NeutralChroma = null };
+			return this with { Surfaces = surfaces, Seed = seed, Palette = MokaSeedPalette.Derive(seed, IsDark, HighContrast) };
+		}
+
+		var accent = new MokaAccentShades(Palette.Primary, Palette.PrimaryLight, Palette.PrimaryBg);
+		MokaPalette normal = MokaPalette.ForSurfaces(surfaces, IsDark).WithGateAccent(accent, IsDark);
+		MokaTheme rebuilt = this with { Surfaces = surfaces, Palette = normal, PaletteBeforeHighContrast = null };
+		return HighContrast ? rebuilt.TurnOnHighContrast() : rebuilt;
 	}
 
 	/// <summary>
-	///     Creates a new theme re-tinted around the given accent color (#rrggbb or #rgb). On the
-	///     <see cref="MokaLook.Matrix" /> look the color becomes the primary as given, its light and dark variants
-	///     mix toward white and black, every glow and border token takes the standard alpha tiers, and dark
-	///     themes also get accent-tinted outlines and shadow rings. On the <see cref="MokaLook.Gate" /> look it is
-	///     read as a hue and a saturation (see <see cref="MokaAccent.FromColor" />), so every shade keeps its
-	///     contrast and the primary may differ from the color you passed.
+	///     Creates a new theme re-tinted around the given accent color. On a theme from a seed it is any CSS color, and the
+	///     theme is derived again with it as the seed's accent. Otherwise it is a hex color (#rrggbb or #rgb): on the
+	///     <see cref="MokaLook.Matrix" /> look the color becomes the primary as given, its light and dark variants mix
+	///     toward white and black, every glow and border token takes the standard alpha tiers, and dark themes also get
+	///     accent-tinted outlines and shadow rings. On the <see cref="MokaLook.Gate" /> look it is read as a hue and a
+	///     saturation (see <see cref="MokaAccent.FromColor" />), so every shade keeps its contrast and the primary may
+	///     differ from the color you passed. The theme remembers it, so <see cref="WithDark" /> keeps it.
 	/// </summary>
-	/// <exception cref="ArgumentException">Thrown when <paramref name="color" /> is not a hex color.</exception>
+	/// <param name="color">The accent color.</param>
+	/// <returns>The new theme.</returns>
+	/// <exception cref="ArgumentException">Thrown when <paramref name="color" /> is not a color this theme can take.</exception>
 	public MokaTheme WithAccent(string color)
 	{
+		if (Seed is not null)
+		{
+			return WithSeed(Seed with { Accent = color });
+		}
+
 		if (!MokaColorMath.TryParseHex(color, out int r, out int g, out int b))
 		{
 			throw new ArgumentException($"Accent must be a hex color like #ef5350, got '{color}'.", nameof(color));
@@ -774,53 +873,153 @@ public sealed record MokaTheme
 			return WithAccent(MokaAccent.FromColor(color));
 		}
 
-		MokaPalette palette = Palette with
+		var exact = new MokaAccentShades(color, color, color);
+		return this with { Palette = MatrixAccentPalette(color, r, g, b), Accent = new MokaAccent("custom", "Custom", exact, exact) };
+	}
+
+	// The original design's accent: the color as given, its light and dark shades mixed toward white and black, every
+	// glow and border at the standard tiers, and on dark the outlines tinted too.
+	private MokaPalette MatrixAccentPalette(string color, int r, int g, int b)
+	{
+		MokaPalette palette = MokaAccentTiers.Matrix.ApplyTo(Palette, color) with
 		{
 			Primary = color,
-			PrimaryLight = MokaColorMath.Mix(r, g, b, 255, 0.30),
-			PrimaryDark = MokaColorMath.Mix(r, g, b, 0, 0.30),
-			PrimaryGlow = MokaColorMath.Rgba(r, g, b, 0.08),
-			PrimaryGlowMd = MokaColorMath.Rgba(r, g, b, 0.15),
-			PrimaryGlowStrong = MokaColorMath.Rgba(r, g, b, 0.25),
-			PrimaryGlowFaint = MokaColorMath.Rgba(r, g, b, 0.03),
-			PrimaryBorder = MokaColorMath.Rgba(r, g, b, 0.20),
-			PrimaryBorderDim = MokaColorMath.Rgba(r, g, b, 0.08)
+			PrimaryLight = MokaColorMath.Mix(r, g, b, MokaSrgb.White, MokaColorMath.MatrixShadeMix),
+			PrimaryDark = MokaColorMath.Mix(r, g, b, MokaSrgb.Black, MokaColorMath.MatrixShadeMix)
 		};
 
-		if (IsDark)
-		{
-			palette = palette with
+		return IsDark
+			? palette with
 			{
-				Outline = MokaColorMath.Rgba(r, g, b, 0.12),
-				OutlineVariant = MokaColorMath.Rgba(r, g, b, 0.06)
-			};
-		}
-
-		return this with { Palette = palette };
+				Outline = MokaColorMath.Rgba(r, g, b, MatrixDarkOutline),
+				OutlineVariant = MokaColorMath.Rgba(r, g, b, MatrixDarkOutlineVariant)
+			}
+			: palette;
 	}
 
 	/// <summary>
 	///     Creates a new theme with this accent's shades for the theme's color scheme. On the
 	///     <see cref="MokaLook.Matrix" /> look only the accent's main color is used, as
-	///     <see cref="WithAccent(string)" /> would.
+	///     <see cref="WithAccent(string)" /> would. On a theme from a seed the shade for the theme's scheme becomes the
+	///     seed's accent. The theme remembers it, so <see cref="WithDark" /> takes the accent's other shades.
 	/// </summary>
+	/// <param name="accent">The accent.</param>
+	/// <returns>The new theme.</returns>
 	public MokaTheme WithAccent(MokaAccent accent)
 	{
 		ArgumentNullException.ThrowIfNull(accent);
 
 		MokaAccentShades shades = accent.For(IsDark);
-		return Look == MokaLook.Gate
-			? this with { Palette = Palette.WithGateAccent(shades, IsDark) }
-			: WithAccent(shades.Color);
+		if (Seed is not null)
+		{
+			return WithSeed(Seed with { Accent = shades.Color });
+		}
+
+		if (Look == MokaLook.Gate)
+		{
+			return this with { Palette = Palette.WithGateAccent(shades, IsDark), Accent = accent };
+		}
+
+		if (!MokaColorMath.TryParseHex(shades.Color, out int r, out int g, out int b))
+		{
+			throw new ArgumentException($"An accent's shades must be hex colors like #ef5350, got '{shades.Color}'.", nameof(accent));
+		}
+
+		return this with { Palette = MatrixAccentPalette(shades.Color, r, g, b), Accent = accent };
 	}
 
 	/// <summary>
-	///     Creates a new theme with stronger secondary text and borders, or back to the normal ones. It has no
-	///     effect on the <see cref="MokaLook.Matrix" /> look, which has no high contrast palette.
+	///     Creates a new theme with stronger secondary text and borders, or back to exactly what it had before. A theme
+	///     from a seed is derived again with high contrast. It has no effect on the <see cref="MokaLook.Matrix" /> look,
+	///     which has no high contrast palette.
 	/// </summary>
-	public MokaTheme WithHighContrast(bool highContrast = true) => Look == MokaLook.Gate
-		? this with { HighContrast = highContrast, Palette = Palette.WithGateContrast(highContrast, IsDark, Surfaces) }
-		: this;
+	/// <param name="highContrast">Whether the theme has high contrast.</param>
+	/// <returns>The new theme, or this one when nothing changes.</returns>
+	public MokaTheme WithHighContrast(bool highContrast = true)
+	{
+		if (Look != MokaLook.Gate || highContrast == HighContrast)
+		{
+			return this;
+		}
+
+		if (Seed is not null)
+		{
+			return this with { HighContrast = highContrast, Palette = MokaSeedPalette.Derive(Seed, IsDark, highContrast) };
+		}
+
+		if (highContrast)
+		{
+			return TurnOnHighContrast();
+		}
+
+		MokaPalette normal = PaletteBeforeHighContrast ?? MokaPalette.ForSurfaces(Surfaces, IsDark);
+		return this with { HighContrast = false, PaletteBeforeHighContrast = null, Palette = Palette.WithContrastOf(normal) };
+	}
+
+	/// <summary>
+	///     A theme on the new design (<see cref="MokaLook.Gate" />) derived from a few colors: the accent, a neutral for the
+	///     surfaces, and optionally the meanings (see <see cref="MokaThemeSeed" />). Surfaces, borders and text are worked
+	///     out in OKLCH, and every text color meets its contrast target on what it sits on. It takes every style choice like
+	///     a preset, and <see cref="WithDark" />, <see cref="WithHighContrast" /> and <see cref="WithAccent(string)" />
+	///     derive it again from its seed.
+	/// </summary>
+	/// <param name="seed">The colors to start from.</param>
+	/// <param name="dark">Whether the theme is dark.</param>
+	/// <returns>The theme.</returns>
+	/// <exception cref="ArgumentException">Thrown when a seed color isn't a CSS color, or the accent isn't solid.</exception>
+	public static MokaTheme FromSeed(MokaThemeSeed seed, bool dark)
+	{
+		ArgumentNullException.ThrowIfNull(seed);
+		return new MokaTheme
+		{
+			Look = MokaLook.Gate,
+			Typography = MokaTypography.Gate,
+			Spacing = MokaSpacing.Gate,
+			IsDark = dark,
+			Seed = seed,
+			Palette = MokaSeedPalette.Derive(seed, dark, highContrast: false)
+		};
+	}
+
+	/// <summary>
+	///     Creates a new theme with its colors derived from <paramref name="seed" />, keeping its scheme, high contrast,
+	///     style choices and pinned tokens. A theme on the original design moves to the new one, which seeds belong to,
+	///     with the new design's type and sizes.
+	/// </summary>
+	/// <param name="seed">The colors to start from.</param>
+	/// <returns>The new theme.</returns>
+	/// <exception cref="ArgumentException">Thrown when a seed color isn't a CSS color, or the accent isn't solid.</exception>
+	public MokaTheme WithSeed(MokaThemeSeed seed)
+	{
+		ArgumentNullException.ThrowIfNull(seed);
+		MokaTheme gate = Look == MokaLook.Gate
+			? this
+			: this with { Look = MokaLook.Gate, Typography = MokaTypography.Gate, Spacing = MokaSpacing.Gate, Density = 1.0 };
+		return gate with
+		{
+			Seed = seed,
+			Accent = null,
+			PaletteBeforeHighContrast = null,
+			Palette = MokaSeedPalette.Derive(seed, IsDark, gate.HighContrast)
+		};
+	}
+
+	/// <summary>
+	///     Creates a new theme whose surfaces, borders and greys take the hue and chroma of <paramref name="color" />,
+	///     keeping its accent and style choices. A theme without a seed gets one, with its current primary color as the
+	///     accent.
+	/// </summary>
+	/// <param name="color">Any CSS color; its lightness doesn't matter.</param>
+	/// <returns>The new theme.</returns>
+	/// <exception cref="ArgumentException">Thrown when the color, or the theme's primary color, isn't a CSS color.</exception>
+	public MokaTheme WithNeutral(string color)
+	{
+		MokaThemeSeed seed = Seed ?? new MokaThemeSeed { Accent = MokaSeedPalette.Read(Palette.Primary, "accent").ToHex(uppercase: true) };
+		return WithSeed(seed with { Neutral = color });
+	}
+
+	private MokaTheme TurnOnHighContrast() =>
+		this with { HighContrast = true, PaletteBeforeHighContrast = Palette, Palette = Palette.WithHighContrast(IsDark, Surfaces) };
 
 	/// <summary>
 	///     Creates a new theme with the spacing density changed (0.75 compact, 1.0 cozy, 1.15 comfy). On the
@@ -835,511 +1034,83 @@ public sealed record MokaTheme
 	public MokaTheme WithFontScale(double fontScale) => this with { FontScale = fontScale };
 
 	/// <summary>
-	///     Generates CSS custom property declarations for all theme tokens.
-	///     Output is suitable for use as an inline style attribute value or inside a CSS rule.
-	///     A token whose value holds any of <c>; { } &lt; &gt; \</c> (see <see cref="CssValues.IsSafe" />), or
-	///     leaves a string, bracket or comment open (see <see cref="CssValues.IsSelfContained" />), is left
-	///     out, so the <c>moka.css</c> default for it applies instead.
+	///     Creates a new theme that holds one token at <paramref name="value" />, whatever its palette and style choices
+	///     give it. The pin stays through every other <c>With</c> call, including <see cref="WithDark" />,
+	///     <see cref="WithHighContrast" /> and <see cref="WithAccent(string)" />, until <see cref="WithoutToken" /> lets it go.
+	///     A pinned value is written as it is: it doesn't move with the scheme, so pin a color that reads on both or pin it
+	///     again after a change of scheme.
 	/// </summary>
-	public string ToCssVariables()
+	/// <param name="name">The token, such as <c>--moka-color-primary</c>; see <see cref="MokaTokens.All" />.</param>
+	/// <param name="value">The CSS value, checked against the token's kind (see <see cref="MokaToken.Accepts" />).</param>
+	/// <returns>The new theme.</returns>
+	/// <exception cref="ArgumentException">
+	///     Thrown when no token has that name, or the value isn't one the token takes or could end its declaration.
+	/// </exception>
+	public MokaTheme WithToken(string name, string value)
 	{
-		bool gate = Look == MokaLook.Gate;
-		var sb = new StringBuilder(14336);
-
-		// Palette
-		AppendVar(sb, "--moka-color-primary", Palette.Primary);
-		AppendVar(sb, "--moka-color-primary-light", Palette.PrimaryLight);
-		AppendVar(sb, "--moka-color-primary-dark", Palette.PrimaryDark);
-		AppendVar(sb, "--moka-color-on-primary", Palette.OnPrimary);
-
-		AppendVar(sb, "--moka-color-secondary", Palette.Secondary);
-		AppendVar(sb, "--moka-color-secondary-light", Palette.SecondaryLight);
-		AppendVar(sb, "--moka-color-secondary-dark", Palette.SecondaryDark);
-		AppendVar(sb, "--moka-color-on-secondary", Palette.OnSecondary);
-
-		AppendVar(sb, "--moka-color-surface", Palette.Surface);
-		AppendVar(sb, "--moka-color-surface-variant", Palette.SurfaceVariant);
-		AppendVar(sb, "--moka-color-on-surface", Palette.OnSurface);
-		AppendVar(sb, "--moka-color-on-surface-variant", Palette.OnSurfaceVariant);
-		AppendVar(sb, "--moka-color-background", Palette.Background);
-		AppendVar(sb, "--moka-color-on-background", Palette.OnBackground);
-
-		AppendVar(sb, "--moka-color-error", Palette.Error);
-		AppendVar(sb, "--moka-color-on-error", Palette.OnError);
-		AppendVar(sb, "--moka-color-warning", Palette.Warning);
-		AppendVar(sb, "--moka-color-on-warning", Palette.OnWarning);
-		AppendVar(sb, "--moka-color-success", Palette.Success);
-		AppendVar(sb, "--moka-color-on-success", Palette.OnSuccess);
-		AppendVar(sb, "--moka-color-info", Palette.Info);
-		AppendVar(sb, "--moka-color-on-info", Palette.OnInfo);
-
-		// Semantic dim fills (chips, pills, soft badges)
-		AppendVar(sb, "--moka-color-error-dim", Palette.ErrorDim);
-		AppendVar(sb, "--moka-color-warning-dim", Palette.WarningDim);
-		AppendVar(sb, "--moka-color-success-dim", Palette.SuccessDim);
-		AppendVar(sb, "--moka-color-info-dim", Palette.InfoDim);
-
-		AppendVar(sb, "--moka-color-outline", Palette.Outline);
-		AppendVar(sb, "--moka-color-outline-variant", Palette.OutlineVariant);
-
-		// Extended surface scale
-		AppendVar(sb, "--moka-color-surface-hover", Palette.SurfaceHover);
-		AppendVar(sb, "--moka-color-surface-2", Palette.Surface2);
-		AppendVar(sb, "--moka-color-surface-3", Palette.Surface3);
-
-		// Accent glow tokens (focus rings, selected states, hover glows)
-		AppendVar(sb, "--moka-color-primary-glow", Palette.PrimaryGlow);
-		AppendVar(sb, "--moka-color-primary-glow-md", Palette.PrimaryGlowMd);
-		AppendVar(sb, "--moka-color-primary-glow-strong", Palette.PrimaryGlowStrong);
-		AppendVar(sb, "--moka-color-primary-border", Palette.PrimaryBorder);
-		AppendVar(sb, "--moka-color-primary-border-dim", Palette.PrimaryBorderDim);
-		AppendVar(sb, "--moka-color-primary-glow-faint", Palette.PrimaryGlowFaint);
-
-		// Text scale (tertiary/quaternary)
-		AppendVar(sb, "--moka-color-on-surface-tertiary", Palette.OnSurfaceTertiary);
-		AppendVar(sb, "--moka-color-on-surface-quaternary", Palette.OnSurfaceQuaternary);
-
-		// Surfaces, borders and text the Gate look tells apart
-		AppendVar(sb, "--moka-color-surface-raised", Palette.SurfaceRaised);
-		AppendVar(sb, "--moka-color-neutral-bg", Palette.NeutralBg);
-		AppendVar(sb, "--moka-color-outline-strong", Palette.OutlineStrong);
-		AppendVar(sb, "--moka-color-outline-hover", Palette.OutlineHover);
-		AppendVar(sb, "--moka-color-on-surface-2", Palette.OnSurface2);
-		AppendVar(sb, "--moka-color-icon", Palette.Icon);
-		AppendVar(sb, "--moka-color-lift", Palette.Lift);
-		AppendVar(sb, "--moka-color-knob", Palette.Knob);
-		AppendVar(sb, "--moka-shadow-knob", Palette.KnobShadow);
-		AppendVar(sb, "--moka-color-paper", Palette.Paper);
-		AppendVar(sb, "--moka-color-paper-edge", Palette.PaperEdge);
-
-		// The accent's selected shades
-		AppendVar(sb, "--moka-color-primary-bg", Palette.PrimaryBg);
-		AppendVar(sb, "--moka-color-primary-row", Palette.PrimaryRow);
-		AppendVar(sb, "--moka-color-primary-ring", Palette.PrimaryRing);
-		AppendVar(sb, "--moka-color-primary-pill", Palette.PrimaryPill);
-		AppendVar(sb, "--moka-color-primary-focus", Palette.PrimaryFocus);
-		AppendVar(sb, "--moka-color-primary-text", Palette.PrimaryText);
-
-		// Each meaning's tint, ink, text and line
-		AppendVar(sb, "--moka-color-success-bg", Palette.SuccessBg);
-		AppendVar(sb, "--moka-color-success-ink", Palette.SuccessInk);
-		AppendVar(sb, "--moka-color-success-text", Palette.SuccessText);
-		AppendVar(sb, "--moka-color-success-line", Palette.SuccessLine);
-		AppendVar(sb, "--moka-color-warning-bg", Palette.WarningBg);
-		AppendVar(sb, "--moka-color-warning-ink", Palette.WarningInk);
-		AppendVar(sb, "--moka-color-warning-text", Palette.WarningText);
-		AppendVar(sb, "--moka-color-warning-line", Palette.WarningLine);
-		AppendVar(sb, "--moka-color-error-bg", Palette.ErrorBg);
-		AppendVar(sb, "--moka-color-error-ink", Palette.ErrorInk);
-		AppendVar(sb, "--moka-color-error-text", Palette.ErrorText);
-		AppendVar(sb, "--moka-color-error-line", Palette.ErrorLine);
-		AppendVar(sb, "--moka-color-error-soft", Palette.ErrorSoft);
-		AppendVar(sb, "--moka-color-info-bg", Palette.InfoBg);
-		AppendVar(sb, "--moka-color-info-ink", Palette.InfoInk);
-		AppendVar(sb, "--moka-color-info-text", Palette.InfoText);
-		AppendVar(sb, "--moka-color-info-line", Palette.InfoLine);
-
-		sb.Append(MokaLabelPalette.Tokens(gate ? LabelTone : MokaLabelTone.Vivid, IsDark));
-
-		foreach ((string name, string value) in MokaChartPaletteValues.Tokens(this))
+		if (!MokaTokens.TryFind(name, out MokaToken? token))
 		{
-			AppendVar(sb, name, value);
+			throw new ArgumentException($"No theme token is called '{name}'.", nameof(name));
 		}
 
-		// Typography
-		AppendVar(sb, "--moka-font-family", Typography.FontFamily);
-		AppendVar(sb, "--moka-font-family-mono", Typography.FontFamilyMono);
-		AppendVar(sb, "--moka-font-family-display", Typography.FontFamilyDisplay);
-		AppendVar(sb, "--moka-font-family-number", Typography.FontFamilyNumber);
-		AppendVar(sb, "--moka-font-family-figure", Typography.FontFamilyFigure);
-		AppendVar(sb, "--moka-font-size-xxs", ScaleSize(Typography.FontSizeXxs, FontScale));
-		AppendVar(sb, "--moka-font-size-xs", ScaleSize(Typography.FontSizeXs, FontScale));
-		AppendVar(sb, "--moka-font-size-sm", ScaleSize(Typography.FontSizeSm, FontScale));
-		AppendVar(sb, "--moka-font-size-base", ScaleSize(Typography.FontSizeBase, FontScale));
-		AppendVar(sb, "--moka-font-size-md", ScaleSize(Typography.FontSizeMd, FontScale));
-		AppendVar(sb, "--moka-font-size-lg", ScaleSize(Typography.FontSizeLg, FontScale));
-		AppendVar(sb, "--moka-font-size-xl", ScaleSize(Typography.FontSizeXl, FontScale));
-		AppendVar(sb, "--moka-font-size-xxl", ScaleSize(Typography.FontSizeXxl, FontScale));
-		AppendVar(sb, "--moka-font-size-display", ScaleSize(Typography.FontSizeDisplay, FontScale));
-		AppendVar(sb, "--moka-font-size-root", ScaleSize(Typography.FontSizeRoot, FontScale));
-		AppendVar(sb, "--moka-font-size-heading", ScaleSize(Typography.FontSizeHeading, FontScale));
-		AppendVar(sb, "--moka-font-size-card-title", ScaleSize(Typography.FontSizeCardTitle, FontScale));
-		AppendVar(sb, "--moka-font-size-dialog", ScaleSize(Typography.FontSizeDialog, FontScale));
-		AppendVar(sb, "--moka-font-size-menu", ScaleSize(Typography.FontSizeMenu, FontScale));
-		AppendVar(sb, "--moka-font-size-mono", ScaleSize(Typography.FontSizeMono, FontScale));
-		AppendVar(sb, "--moka-line-height-tight", Typography.LineHeightTight);
-		AppendVar(sb, "--moka-line-height-base", Typography.LineHeightBase);
-		AppendVar(sb, "--moka-line-height-relaxed", Typography.LineHeightRelaxed);
-		AppendVar(sb, "--moka-font-weight-light", Typography.FontWeightLight);
-		AppendVar(sb, "--moka-font-weight-normal", Typography.FontWeightNormal);
-		AppendVar(sb, "--moka-font-weight-medium", Typography.FontWeightMedium);
-		AppendVar(sb, "--moka-font-weight-semibold", Typography.FontWeightSemibold);
-		AppendVar(sb, "--moka-font-weight-bold", Typography.FontWeightBold);
-		AppendVar(sb, "--moka-font-weight-heading", Typography.FontWeightHeading);
-		AppendVar(sb, "--moka-control-case", Typography.ControlCase);
-		AppendVar(sb, "--moka-control-tracking", Typography.ControlTracking);
-		AppendVar(sb, "--moka-title-case", Typography.TitleCase);
-		AppendVar(sb, "--moka-title-tracking", Typography.TitleTracking);
-		AppendVar(sb, "--moka-heading-tracking", Typography.HeadingTracking);
-		AppendVar(sb, "--moka-card-title-case", Typography.CardTitleCase);
-		AppendVar(sb, "--moka-card-title-tracking", Typography.CardTitleTracking);
-		AppendVar(sb, "--moka-chart-title-tracking", Typography.ChartTitleTracking);
-		AppendVar(sb, "--moka-number-tracking", Typography.NumberTracking);
-
-		// Spacing (scaled by density)
-		AppendVar(sb, "--moka-spacing-xxs", ScaleSize(Spacing.Xxs, Density));
-		AppendVar(sb, "--moka-spacing-xs", ScaleSize(Spacing.Xs, Density));
-		AppendVar(sb, "--moka-spacing-sm", ScaleSize(Spacing.Sm, Density));
-		AppendVar(sb, "--moka-spacing-md", ScaleSize(Spacing.Md, Density));
-		AppendVar(sb, "--moka-spacing-lg", ScaleSize(Spacing.Lg, Density));
-		AppendVar(sb, "--moka-spacing-xl", ScaleSize(Spacing.Xl, Density));
-		AppendVar(sb, "--moka-spacing-xxl", ScaleSize(Spacing.Xxl, Density));
-
-		// Scale factors, exposed for consumer CSS (calc(Npx * var(--moka-density)))
-		AppendVar(sb, "--moka-density", Density.ToString("0.###", CultureInfo.InvariantCulture));
-		AppendVar(sb, "--moka-font-scale", FontScale.ToString("0.###", CultureInfo.InvariantCulture));
-
-		// Border radius
-		AppendVar(sb, "--moka-radius-none", Spacing.RadiusNone);
-		AppendVar(sb, "--moka-radius-sm", Spacing.RadiusSm);
-		AppendVar(sb, "--moka-radius-md", Spacing.RadiusMd);
-		AppendVar(sb, "--moka-radius-lg", Spacing.RadiusLg);
-		AppendVar(sb, "--moka-radius-xl", Spacing.RadiusXl);
-		AppendVar(sb, "--moka-radius-full", Spacing.RadiusFull);
-		AppendVar(sb, "--moka-radius-card", Spacing.RadiusCard);
-		AppendVar(sb, "--moka-radius-popup", Spacing.RadiusPopup);
-
-		// Layout, which components read to follow density
-		AppendVar(sb, "--moka-page-gap", Spacing.PageGap);
-		AppendVar(sb, "--moka-card-padding", Spacing.CardPadding);
-		AppendVar(sb, "--moka-card-gap", Spacing.CardGap);
-		AppendVar(sb, "--moka-grid-gap", Spacing.GridGap);
-		AppendVar(sb, "--moka-panel-padding", Spacing.PanelPadding);
-		AppendVar(sb, "--moka-inner-padding", Spacing.InnerPadding);
-		AppendVar(sb, "--moka-row-padding", Spacing.RowPadding);
-		AppendVar(sb, "--moka-item-padding", Spacing.ItemPadding);
-		AppendVar(sb, "--moka-control-height", Spacing.ControlHeight);
-		AppendVar(sb, "--moka-main-padding", Spacing.MainPadding);
-		(string mainTop, string mainBottom) = PaddingEnds(Spacing.MainPadding);
-		AppendVar(sb, "--moka-main-padding-top", mainTop);
-		AppendVar(sb, "--moka-main-padding-bottom", mainBottom);
-		AppendVar(sb, "--moka-menu-row", Spacing.MenuRow);
-		AppendVar(sb, "--moka-button-height", Spacing.ButtonHeight);
-		AppendVar(sb, "--moka-button-height-sm", Spacing.ButtonHeightSm);
-		AppendVar(sb, "--moka-button-height-lg", Spacing.ButtonHeightLg);
-		AppendVar(sb, "--moka-button-padding", Spacing.ButtonPadding);
-		AppendVar(sb, "--moka-button-padding-sm", Spacing.ButtonPaddingSm);
-		AppendVar(sb, "--moka-input-padding", Spacing.InputPadding);
-		AppendVar(sb, "--moka-segment-height", Spacing.SegmentHeight);
-		AppendVar(sb, "--moka-cell-padding", Spacing.CellPadding);
-		AppendVar(sb, "--moka-pill-padding", Spacing.PillPadding);
-
-		// Elevation / box-shadow. Dark Matrix shadows are accent-tinted glow rings: recompute them
-		// from the primary color when it parses as hex so WithAccent() re-tints them too;
-		// otherwise fall back to the interned red constants. The Gate look has real drop shadows,
-		// and on dark only for what floats.
-		string shadow1 = Shadows.Light1, shadow2 = Shadows.Light2, shadow3 = Shadows.Light3, shadow4 = Shadows.Light4;
-		string shadowPopup = Shadows.LightPopup, shadowPopupLg = Shadows.LightPopupLg;
-		string shadowModal = Shadows.LightModal, shadowSubtle = Shadows.LightSubtle;
-
-		if (gate)
+		string trimmed = value?.Trim() ?? "";
+		if (!token.Accepts(trimmed))
 		{
-			shadow1 = IsDark ? "none" : Shadows.GateLightCard;
-			shadow2 = IsDark ? "none" : Shadows.GateLightRaised;
-			shadow3 = IsDark ? Shadows.GateDarkPopup : Shadows.GateLightPopup;
-			shadow4 = IsDark ? Shadows.GateDarkBar : Shadows.GateLightBar;
-			shadowPopup = IsDark ? Shadows.GateDarkPopup : Shadows.GateLightPopup;
-			shadowPopupLg = IsDark ? Shadows.GateDarkBar : Shadows.GateLightBar;
-			shadowModal = IsDark ? Shadows.GateDarkModal : Shadows.GateLightModal;
-			shadowSubtle = IsDark ? "none" : Shadows.GateLightCard;
-
-			if (Elevation != MokaElevation.Shadow)
+			string kind = token.Kind switch
 			{
-				(shadow3, shadow4, shadowPopup, shadowPopupLg, shadowModal) = FloatingShadows(Elevation, IsDark);
-			}
-		}
-		else if (IsDark)
-		{
-			if (MokaColorMath.TryParseHex(Palette.Primary, out int ar, out int ag, out int ab))
-			{
-				shadow1 = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.06)}";
-				shadow2 = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.12)}";
-				shadow3 = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.12)}, 0 0 12px {MokaColorMath.Rgba(ar, ag, ab, 0.08)}";
-				shadow4 = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.20)}, 0 0 24px {MokaColorMath.Rgba(ar, ag, ab, 0.12)}";
-				shadowPopup = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.12)}, 0 0 16px {MokaColorMath.Rgba(ar, ag, ab, 0.08)}";
-				shadowPopupLg = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.16)}, 0 0 24px {MokaColorMath.Rgba(ar, ag, ab, 0.12)}";
-				shadowModal = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.20)}, 0 0 32px {MokaColorMath.Rgba(ar, ag, ab, 0.15)}";
-				shadowSubtle = $"0 0 0 1px {MokaColorMath.Rgba(ar, ag, ab, 0.06)}";
-			}
-			else
-			{
-				shadow1 = Shadows.Dark1;
-				shadow2 = Shadows.Dark2;
-				shadow3 = Shadows.Dark3;
-				shadow4 = Shadows.Dark4;
-				shadowPopup = Shadows.DarkPopup;
-				shadowPopupLg = Shadows.DarkPopupLg;
-				shadowModal = Shadows.DarkModal;
-				shadowSubtle = Shadows.DarkSubtle;
-			}
+				MokaTokenKind.Color => "a color",
+				MokaTokenKind.Length => "a length",
+				_ => "a CSS value"
+			};
+			throw new ArgumentException($"'{value}' is not a value {name} can take: it needs {kind} that can't end its declaration.", nameof(value));
 		}
 
-		AppendVar(sb, "--moka-shadow-0", "none");
-		AppendVar(sb, "--moka-shadow-1", shadow1);
-		AppendVar(sb, "--moka-shadow-2", shadow2);
-		AppendVar(sb, "--moka-shadow-3", shadow3);
-		AppendVar(sb, "--moka-shadow-4", shadow4);
-		AppendVar(sb, "--moka-shadow-popup", shadowPopup);
-		AppendVar(sb, "--moka-shadow-popup-lg", shadowPopupLg);
-		AppendVar(sb, "--moka-shadow-modal", shadowModal);
-		AppendVar(sb, "--moka-shadow-subtle", shadowSubtle);
-
-		// Transitions - fast and subtle, 120-200ms
-		AppendVar(sb, "--moka-transition-fast", gate ? "120ms ease-out" : "120ms ease");
-		AppendVar(sb, "--moka-transition-normal", gate ? "150ms ease-out" : "150ms ease");
-		AppendVar(sb, "--moka-transition-slow", gate ? "200ms ease-out" : "200ms ease");
-
-		// Component heights
-		AppendVar(sb, "--moka-height-statusbar", Spacing.StatusBarHeight);
-		AppendVar(sb, "--moka-height-toolbar", Spacing.ToolbarHeight);
-		AppendVar(sb, "--moka-height-toolbar-dense", Spacing.ToolbarHeightDense);
-
-		// Z-index scale
-		AppendVar(sb, "--moka-z-dropdown", "1000");
-		AppendVar(sb, "--moka-z-sticky", "1020");
-		AppendVar(sb, "--moka-z-fixed", "1030");
-		AppendVar(sb, "--moka-z-modal-backdrop", "1040");
-		AppendVar(sb, "--moka-z-modal", "1050");
-		AppendVar(sb, "--moka-z-popover", "1060");
-		AppendVar(sb, "--moka-z-tooltip", "1070");
-		// Above other fixed bars, below every overlay: 1100 drew the app bar over open dialogs.
-		AppendVar(sb, "--moka-z-appbar", "1035");
-
-		// Semantic state tokens
-		AppendVar(sb, "--moka-opacity-disabled", gate ? "0.55" : "0.4");
-		AppendVar(sb, "--moka-about-display", Descriptions ? "block" : "none");
-		AppendVar(sb, "--moka-opacity-hover", "0.08");
-		AppendVar(sb, "--moka-focus-color", "var(--moka-color-primary)");
-		AppendVar(sb, "--moka-focus-width", "2px");
-		AppendVar(sb, "--moka-border-width", "1px");
-
-		// Focus ring - the signature red-glow interaction on the Matrix look. The Gate look draws it in its
-		// own token, because components use the glow tokens for hover backgrounds and keep those low.
-		AppendVar(sb, "--moka-focus-ring",
-			gate
-				? Selection == MokaSelection.Glow
-					? "0 0 0 3px var(--moka-color-primary-focus), inset 0 0 12px var(--moka-color-primary-glow)"
-					: "0 0 0 3px var(--moka-color-primary-focus)"
-			: IsDark ? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
-			: "0 0 0 3px var(--moka-color-primary-glow)");
-		AppendVar(sb, "--moka-focus-ring-error", "0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)");
-
-		// Selected state - inset glow (for list rows, tabs, active items)
-		AppendVar(sb, "--moka-selected-glow",
-			gate
-				? Selection switch
-				{
-					MokaSelection.Flat => "none",
-					MokaSelection.Glow => "inset 0 0 20px var(--moka-color-primary-glow-md), 0 0 12px var(--moka-color-primary-glow-md)",
-					_ => "inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)"
-				}
-			: IsDark ? "inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)"
-			: "0 0 0 2px var(--moka-color-primary-glow-md)");
-
-		// The bar along a selected table row
-		AppendVar(sb, "--moka-selected-bar", gate && Selection != MokaSelection.Flat
-			? "inset 2px 0 0 var(--moka-color-primary)"
-			: "none");
-
-		// Where you are in the app. Ring is the look of a selected row, so a theme that never asks keeps it. On the
-		// dark scheme the solid fill's text is the accent's dark ink: white on the dark accent is about 3:1.
-		bool solidPlace = gate && CurrentPlace is MokaCurrentPlace.Solid or MokaCurrentPlace.SolidInset;
-		AppendVar(sb, "--moka-current-bg", solidPlace ? "var(--moka-color-primary)" : "var(--moka-color-primary-row)");
-		AppendVar(sb, "--moka-current-color", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-on-surface)");
-		AppendVar(sb, "--moka-current-icon", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary-light)");
-		AppendVar(sb, "--moka-current-shadow", !solidPlace
-			? "var(--moka-selected-glow)"
-			: CurrentPlace == MokaCurrentPlace.SolidInset
-				? Shadows.InsetPlace
-				: "0 0 24px color-mix(in srgb, var(--moka-color-primary) 25%, transparent)");
-		AppendVar(sb, "--moka-current-edge", solidPlace ? "var(--moka-color-on-primary)" : "var(--moka-color-primary)");
-		AppendVar(sb, "--moka-current-pill-ring", solidPlace ? "0 0 0 2px var(--moka-color-on-primary)" : "none");
-
-		// A primary button. Only the Gate look reads these.
-		(string buttonBg, string buttonColor, string buttonBorder, string buttonHoverBg, string buttonHoverBorder) = MainButton switch
-		{
-			MokaMainButton.Tinted => ("var(--moka-color-primary-bg)", "var(--moka-color-primary-light)", "var(--moka-color-primary-ring)",
-				"var(--moka-color-primary-pill)", "var(--moka-color-primary)"),
-			MokaMainButton.Outline => ("transparent", "var(--moka-color-primary)", "var(--moka-color-primary-ring)",
-				"var(--moka-color-primary-row)", "var(--moka-color-primary)"),
-			_ => ("var(--moka-color-primary)", "var(--moka-color-on-primary)", "var(--moka-color-primary)",
-				"color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))",
-				"color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))")
-		};
-		AppendVar(sb, "--moka-button-primary-bg", buttonBg);
-		AppendVar(sb, "--moka-button-primary-color", buttonColor);
-		AppendVar(sb, "--moka-button-primary-border", buttonBorder);
-		AppendVar(sb, "--moka-button-primary-hover-bg", buttonHoverBg);
-		AppendVar(sb, "--moka-button-primary-hover-border", buttonHoverBorder);
-
-		// A text button left at the primary color. Only the Gate look reads these.
-		bool neutralText = gate && TextButtons == MokaTextButtonColor.Neutral;
-		AppendVar(sb, "--moka-button-text-color", neutralText ? "var(--moka-color-on-surface-2)" : "var(--moka-color-primary-light)");
-		AppendVar(sb, "--moka-button-text-hover-color", neutralText ? "var(--moka-color-primary-light)" : "var(--moka-color-on-surface)");
-
-		// Callouts and alerts mix their own severity colors by these amounts, since a token can't name a color only the
-		// component knows: how much of the filled look shows, how wide the edge is, and the corners beside it.
-		bool edgeCallouts = gate && Callouts == MokaCalloutLook.Edge;
-		AppendVar(sb, "--moka-callout-fill", edgeCallouts ? "0%" : "100%");
-		AppendVar(sb, "--moka-callout-edge", edgeCallouts ? "3px" : "0px");
-		AppendVar(sb, "--moka-callout-edge-radius", edgeCallouts ? "var(--moka-radius-sm)" : "var(--moka-radius-lg)");
-
-		// A switch that is on. Its track carries the switch's color as currentColor, which a token keeps as a keyword
-		// for the element to resolve, where a var() would resolve here on the root.
-		bool tintedSwitch = gate && Switches == MokaSwitchLook.Tinted;
-		AppendVar(sb, "--moka-switch-on-track", tintedSwitch ? "color-mix(in srgb, currentColor 18%, transparent)" : "currentColor");
-		AppendVar(sb, "--moka-switch-on-ring", tintedSwitch ? "inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent)" : "none");
-		AppendVar(sb, "--moka-switch-on-knob", tintedSwitch ? "currentColor" : "var(--moka-color-knob)");
-		AppendVar(sb, "--moka-switch-on-knob-shadow", tintedSwitch
-			? "0 0 8px color-mix(in srgb, currentColor 45%, transparent)"
-			: "var(--moka-shadow-knob)");
-
-		// Behind modal overlays: the theme's background at 85% unless the palette says otherwise, so a
-		// dark theme dims the page and a light one frosts it. The strong and frosted mixes back the
-		// dialog's selectable backdrop effects; each resolves var(--moka-color-background) where it is
-		// declared, so they follow the theme the same way the base backdrop does.
-		AppendVar(sb, "--moka-color-backdrop", Palette.Backdrop);
-		AppendVar(sb, "--moka-backdrop-blur", "8px");
-		AppendVar(sb, "--moka-color-backdrop-strong", "color-mix(in srgb, var(--moka-color-background) 92%, transparent)");
-		AppendVar(sb, "--moka-color-backdrop-frosted", "color-mix(in srgb, var(--moka-color-background) 55%, transparent)");
-		AppendVar(sb, "--moka-backdrop-blur-strong", "16px");
-
-		return sb.ToString();
+		return this with { PinnedTokens = PinnedTokens.With(name, trimmed) };
 	}
 
-	// MokaThemeProvider writes this output into a <style> element, where a semicolon or a brace in a
-	// value would add declarations or whole rules for the page, and < could end the element. An open
-	// string or bracket would swallow every token after it.
-	// The top and bottom of a padding shorthand, by CSS's own rule: one value is every side, and from three values on
-	// the third is the bottom. Split at the top level, so a var() or calc() stays one value.
-	private static (string Top, string Bottom) PaddingEnds(string shorthand)
+	/// <summary>Creates a new theme that lets a token pinned by <see cref="WithToken" /> go back to what the theme gives it.</summary>
+	/// <param name="name">The token.</param>
+	/// <returns>The new theme, or this one when the token isn't pinned.</returns>
+	public MokaTheme WithoutToken(string name) =>
+		PinnedTokens.ContainsKey(name) ? this with { PinnedTokens = PinnedTokens.Without(name) } : this;
+
+	/// <summary>
+	///     The CSS custom property declarations of every token, as <c>name: value; </c> in the order of
+	///     <see cref="MokaTokens.All" />, for an inline style attribute or a CSS rule. A token whose value holds any of
+	///     <c>; { } &lt; &gt; \</c> (see <see cref="CssValues.IsSafe" />), or leaves a string, bracket or comment open (see
+	///     <see cref="CssValues.IsSelfContained" />), is left out, so the <c>moka.css</c> default for it applies instead.
+	///     Worked out once per theme, and shared by equal themes.
+	/// </summary>
+	/// <returns>The declarations.</returns>
+	public string ToCssVariables() => MokaThemeTokens.For(this).Css;
+
+	/// <summary>
+	///     Every token's value, by name: what <see cref="ToCssVariables" /> writes, with <see cref="Pins" /> in place. A value
+	///     <see cref="ToCssVariables" /> leaves out is missing here too. Worked out once per theme, and shared by equal themes.
+	/// </summary>
+	/// <returns>The values by token name.</returns>
+	public IReadOnlyDictionary<string, string> ToTokenMap() => MokaThemeTokens.For(this).Map;
+
+	/// <summary>
+	///     Works a color out over this theme's tokens the way a browser would: a token name (<c>--moka-color-surface</c>), a
+	///     <c>var()</c>, a <c>color-mix()</c> in srgb or oklab, or any color <see cref="MokaCssColor" /> reads. A value that
+	///     depends on the element it is drawn on, such as <c>currentColor</c>, doesn't resolve.
+	/// </summary>
+	/// <param name="value">A token name or a CSS color value.</param>
+	/// <param name="color">The color, when it resolved.</param>
+	/// <returns><c>true</c> when the value resolved to one color.</returns>
+	public bool TryResolveColor(string value, out MokaSrgb color)
 	{
-		List<string> values = [];
-		int depth = 0;
-		int start = 0;
-		for (int i = 0; i <= shorthand.Length; i++)
-		{
-			char c = i < shorthand.Length ? shorthand[i] : ' ';
-			if (c == '(')
-			{
-				depth++;
-			}
-			else if (c == ')')
-			{
-				depth = Math.Max(0, depth - 1);
-			}
-			else if (char.IsWhiteSpace(c) && depth == 0)
-			{
-				if (i > start)
-				{
-					values.Add(shorthand[start..i]);
-				}
-
-				start = i + 1;
-			}
-		}
-
-		return values.Count switch
-		{
-			0 => ("0", "0"),
-			1 or 2 => (values[0], values[0]),
-			_ => (values[0], values[2])
-		};
+		ArgumentNullException.ThrowIfNull(value);
+		return new MokaTokenResolver(ToTokenMap()).TryResolve(value, out color);
 	}
 
-	// A ring and a faint glow in the accent, as the original design draws on dark, or nothing past the panel's own
-	// border. Light takes the fainter glow, since the stronger one reads as a stain on white.
-	private static (string Raised, string Bar, string Popup, string PopupLarge, string Modal) FloatingShadows(MokaElevation elevation, bool dark)
-	{
-		if (elevation == MokaElevation.Line)
-		{
-			return ("none", "none", "none", "none", "none");
-		}
-
-		string glow = dark ? "var(--moka-color-primary-glow-md)" : "var(--moka-color-primary-glow)";
-		string popup = $"0 0 0 1px var(--moka-color-primary-ring), 0 0 24px {glow}";
-		string large = $"0 0 0 1px var(--moka-color-primary-ring), 0 0 32px {glow}";
-		return (popup, large, popup, large, large);
-	}
-
-	private static void AppendVar(StringBuilder sb, string name, string value)
-	{
-		if (!CssValues.IsSafe(value) || !CssValues.IsSelfContained(value))
-		{
-			return;
-		}
-
-		sb.Append(name);
-		sb.Append(": ");
-		sb.Append(value);
-		sb.Append("; ");
-	}
-
-	private static string ScaleSize(string value, double factor)
-	{
-		if (factor == 1.0 || string.IsNullOrEmpty(value))
-		{
-			return value;
-		}
-
-		int unitStart = 0;
-		while (unitStart < value.Length && (char.IsAsciiDigit(value[unitStart]) || value[unitStart] == '.'))
-		{
-			unitStart++;
-		}
-
-		if (unitStart == 0 ||
-		    !double.TryParse(value[..unitStart], NumberStyles.Float, CultureInfo.InvariantCulture, out double size))
-		{
-			return value;
-		}
-
-		return string.Create(CultureInfo.InvariantCulture, $"{size * factor:0.####}{value[unitStart..]}");
-	}
-
-	/// <summary>Compile-time interned shadow string constants. Zero runtime allocation.</summary>
-	private static class Shadows
-	{
-		public const string Light1 = "0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)";
-		public const string Light2 = "0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06)";
-		public const string Light3 = "0 10px 15px rgba(0, 0, 0, 0.07), 0 4px 6px rgba(0, 0, 0, 0.05)";
-		public const string Light4 = "0 20px 25px rgba(0, 0, 0, 0.08), 0 8px 10px rgba(0, 0, 0, 0.04)";
-		public const string LightPopup = "0 4px 12px rgba(0, 0, 0, 0.15)";
-		public const string LightPopupLg = "0 4px 16px rgba(0, 0, 0, 0.12)";
-		public const string LightModal = "0 8px 32px rgba(0, 0, 0, 0.2)";
-		public const string LightSubtle = "0 1px 4px rgba(0, 0, 0, 0.1)";
-
-		// Dark mode: glow rings instead of drop shadows (matrix aesthetic)
-		public const string Dark1 = "0 0 0 1px rgba(239, 83, 80, 0.06)";
-		public const string Dark2 = "0 0 0 1px rgba(239, 83, 80, 0.12)";
-		public const string Dark3 = "0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 12px rgba(239, 83, 80, 0.08)";
-		public const string Dark4 = "0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 24px rgba(239, 83, 80, 0.12)";
-		public const string DarkPopup = "0 0 0 1px rgba(239, 83, 80, 0.12), 0 0 16px rgba(239, 83, 80, 0.08)";
-		public const string DarkPopupLg = "0 0 0 1px rgba(239, 83, 80, 0.16), 0 0 24px rgba(239, 83, 80, 0.12)";
-		public const string DarkModal = "0 0 0 1px rgba(239, 83, 80, 0.20), 0 0 32px rgba(239, 83, 80, 0.15)";
-		public const string DarkSubtle = "0 0 0 1px rgba(239, 83, 80, 0.06)";
-
-		public const string GateDarkPopup = "0 18px 40px rgba(0, 0, 0, 0.45)";
-		public const string GateDarkBar = "0 18px 50px rgba(0, 0, 0, 0.55)";
-		public const string GateDarkModal = "0 3px 6px 2px rgba(0, 0, 0, 0.3)";
-
-		public const string GateLightCard = "0 1px 2px rgba(22, 30, 48, 0.05)";
-		public const string GateLightRaised = "0 2px 6px rgba(22, 30, 48, 0.08)";
-		public const string GateLightPopup = "0 16px 36px rgba(22, 30, 48, 0.14), 0 2px 6px rgba(22, 30, 48, 0.06)";
-		public const string GateLightBar = "0 14px 40px rgba(22, 30, 48, 0.16), 0 2px 6px rgba(22, 30, 48, 0.06)";
-		public const string GateLightModal = "0 8px 28px rgba(22, 30, 48, 0.18)";
-
-		// The solid current place's glow held inside the row: a light rim on the accent, in both schemes.
-		public const string InsetPlace = "inset 0 0 12px rgba(255, 255, 255, 0.14)";
-	}
+	/// <summary>
+	///     Measures every text-on-background and line-on-background pair the library draws from this theme's tokens: body
+	///     and secondary text on each surface, links, the accent's and meanings' text, code colors, label inks and the
+	///     lines of controls, with each pair's WCAG ratio, APCA Lc and what it has to meet. Pins count, so the report says
+	///     what a page would show.
+	/// </summary>
+	/// <returns>The report.</returns>
+	public MokaContrastReport CheckContrast() => MokaContrastReport.For(this);
 }

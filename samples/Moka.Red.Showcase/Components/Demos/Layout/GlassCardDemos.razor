@@ -1,0 +1,28 @@
+<DemoSection Id="over-grid-background" Title="Over grid background" Description="A translucent card that blurs what is behind it.">
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="300px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 260px;" Wrap>
+			<MokaGlassCard Title="Glassmorphism" Subtitle="Translucent card" Style="width: 220px;">
+				<MokaText>Backdrop blur with grid visible through the frosted glass.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="With Glow" Glow Style="width: 220px;">
+				<MokaText>Subtle red glow ring around the card edges.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="Clickable" Clickable Glow Style="width: 220px;">
+				<MokaText>Hover and click to see interaction effects.</MokaText>
+			</MokaGlassCard>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="custom-tint" Title="Custom tint">
+	<MokaGridBackground Pattern="MokaGridPattern.Dots" MinHeight="200px" CellSize="24" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 160px;" Wrap>
+			<MokaGlassCard Title="Blue Tint" Tint="#42a5f5" BackgroundOpacity="12" GlowColor="#42a5f5" Glow Style="width: 200px;">
+				<MokaText>Custom blue tint glass.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="Green Tint" Tint="#00e676" BackgroundOpacity="12" GlowColor="#00e676" Glow Style="width: 200px;">
+				<MokaText>Custom green tint glass.</MokaText>
+			</MokaGlassCard>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>

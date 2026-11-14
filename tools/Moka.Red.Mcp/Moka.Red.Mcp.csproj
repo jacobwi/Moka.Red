@@ -34,6 +34,7 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="..\..\docs\docs\components\*.md" LogicalName="docs/components/%(Filename)%(Extension)" />
+		<EmbeddedResource Include="..\..\docs\docs\layout\*.md" LogicalName="docs/layout/%(Filename)%(Extension)" />
 		<EmbeddedResource Include="..\..\docs\docs\getting-started\*.md" LogicalName="docs/getting-started/%(Filename)%(Extension)" />
 	</ItemGroup>
 

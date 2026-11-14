@@ -350,12 +350,18 @@ p {
 	--moka-label-slate: #64748B;
 	--moka-label-slate-bg: color-mix(in srgb, #64748B 16%, var(--moka-color-surface));
 	--moka-label-slate-ink: #3E4856;
+
+	/* Read the same in both schemes, so declared on :root only. */
+	--moka-button-primary-color: var(--moka-color-on-primary);
+
+	/* Code colors. Tags take the dark accent shade here and the light one under .moka-dark. */
+	--moka-code-tag: var(--moka-color-primary-dark);
 }
 
 /* Tokens that read other tokens. A custom property resolves its var() where it is declared, so these are
    declared for both schemes or a dark root would inherit what they resolved to on the light one. */
 :root,
-.moka-dark {
+.moka-dark:not(.moka-root) {
 	--moka-color-surface-raised: var(--moka-color-surface-hover);
 	--moka-color-neutral-bg: var(--moka-color-surface-3);
 	--moka-color-outline-strong: var(--moka-color-outline);
@@ -389,7 +395,6 @@ p {
 	--moka-color-info-text: var(--moka-color-on-surface);
 	--moka-color-info-line: color-mix(in srgb, var(--moka-color-info) 30%, transparent);
 	--moka-button-primary-bg: var(--moka-color-primary);
-	--moka-button-primary-color: var(--moka-color-on-primary);
 	--moka-button-primary-border: var(--moka-color-primary);
 	--moka-button-primary-hover-bg: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
 	--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
@@ -426,19 +431,30 @@ p {
 	--moka-chart-ord-4: color-mix(in srgb, var(--moka-color-primary) 40%, transparent);
 	--moka-chart-ord-5: color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
 	--moka-chart-zero: var(--moka-color-outline-variant);
+
+	/* Code colors, for highlighted code. They read the theme's colors and the label inks. */
+	--moka-code-text: var(--moka-color-on-surface);
+	--moka-code-attribute: var(--moka-color-on-surface-variant);
+	--moka-code-string: var(--moka-label-green-ink);
+	--moka-code-keyword: var(--moka-label-violet-ink);
+	--moka-code-type: var(--moka-label-cyan-ink);
+	--moka-code-number: var(--moka-label-amber-ink);
+	--moka-code-comment: var(--moka-color-on-surface-tertiary);
+	--moka-code-punctuation: var(--moka-color-on-surface-tertiary);
+	--moka-code-directive: var(--moka-color-primary);
 }
 
 /* ===== Dark mode overrides ===== */
-/* Applied when .moka-dark class is on .moka-root - allows pure-CSS dark targeting */
+/* For dark markup without a theme provider. A provider's root takes its tokens from the provider: its :root rule
+   and, on a nested root, what differs from the provider around it. */
 
-.moka-dark {
+.moka-dark:not(.moka-root) {
 	/* Matrix dark palette - near-black surfaces, red accent, red-tinted borders */
 	--moka-color-primary: #ef5350;
 	--moka-color-primary-light: #ff6b68;
 	--moka-color-primary-dark: #c62828;
-	--moka-color-on-primary: #ffffff;
 	--moka-color-secondary: #a0a0aa;
-	--moka-color-secondary-light: #c4c4cc;
+	--moka-color-secondary-light: #e8e8ec;
 	--moka-color-secondary-dark: #6a6a74;
 	--moka-color-on-secondary: #060608;
 	--moka-color-surface: #0c0c10;
@@ -448,7 +464,6 @@ p {
 	--moka-color-background: #060608;
 	--moka-color-on-background: #e8e8ec;
 	--moka-color-error: #ef5350;
-	--moka-color-on-error: #ffffff;
 	--moka-color-warning: #ffab40;
 	--moka-color-on-warning: #060608;
 	--moka-color-success: #00e676;
@@ -488,7 +503,6 @@ p {
 	--moka-current-icon: var(--moka-color-primary-light);
 	--moka-current-shadow: var(--moka-selected-glow);
 	--moka-current-edge: var(--moka-color-primary);
-	--moka-current-pill-ring: none;
 
 	--moka-color-backdrop: color-mix(in srgb, var(--moka-color-background) 85%, transparent);
 	--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent);
@@ -505,10 +519,8 @@ p {
 	--moka-shadow-subtle: 0 0 0 1px rgba(239, 83, 80, 0.06);
 
 	/* Label colors */
-	--moka-label-red: #EF4444;
 	--moka-label-red-bg: color-mix(in srgb, #EF4444 20%, var(--moka-color-surface));
 	--moka-label-red-ink: #F69898;
-	--moka-label-rose: #F43F5E;
 	--moka-label-rose-bg: color-mix(in srgb, #F43F5E 20%, var(--moka-color-surface));
 	--moka-label-rose-ink: #F995A6;
 	--moka-label-orange: #F97316;
@@ -538,24 +550,20 @@ p {
 	--moka-label-sky: #0EA5E9;
 	--moka-label-sky-bg: color-mix(in srgb, #0EA5E9 20%, var(--moka-color-surface));
 	--moka-label-sky-ink: #7ACEF3;
-	--moka-label-blue: #3B82F6;
 	--moka-label-blue-bg: color-mix(in srgb, #3B82F6 20%, var(--moka-color-surface));
 	--moka-label-blue-ink: #93BAFA;
-	--moka-label-indigo: #6366F1;
 	--moka-label-indigo-bg: color-mix(in srgb, #6366F1 20%, var(--moka-color-surface));
 	--moka-label-indigo-ink: #A9ABF7;
-	--moka-label-violet: #8B5CF6;
 	--moka-label-violet-bg: color-mix(in srgb, #8B5CF6 20%, var(--moka-color-surface));
 	--moka-label-violet-ink: #BFA5FA;
-	--moka-label-purple: #A855F7;
 	--moka-label-purple-bg: color-mix(in srgb, #A855F7 20%, var(--moka-color-surface));
 	--moka-label-purple-ink: #CFA2FB;
-	--moka-label-pink: #EC4899;
 	--moka-label-pink-bg: color-mix(in srgb, #EC4899 20%, var(--moka-color-surface));
 	--moka-label-pink-ink: #F59AC7;
-	--moka-label-slate: #64748B;
 	--moka-label-slate-bg: color-mix(in srgb, #64748B 20%, var(--moka-color-surface));
 	--moka-label-slate-ink: #AAB3BF;
+
+	--moka-code-tag: var(--moka-color-primary-light);
 }
 
 /* ===== Gate look ===== */

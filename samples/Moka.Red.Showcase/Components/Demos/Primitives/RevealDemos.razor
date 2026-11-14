@@ -1,0 +1,71 @@
+<DemoSection Id="basics" Title="Basics" Description="Animates its content when it scrolls into view.">
+	<MokaReveal Animation="MokaRevealAnimation.FadeUp">
+		<MokaCard Title="Revealed Card" Outlined>
+			<ChildContent>
+				<MokaText>This card fades up into view when you scroll to it.</MokaText>
+			</ChildContent>
+		</MokaCard>
+	</MokaReveal>
+</DemoSection>
+
+<DemoSection Id="in-view-and-out-of-it" Title="In view and out of it" Description="Each tile is a MokaReveal with no animation that loads its picture on OnEnter and lets it go on OnLeave, after 120 ms in view, so a fast scroll loads nothing. Only the crossings reach .NET. A tile removed while in view raises OnLeave too.">
+	<MokaSwitch @bind-Value="_evenOnly" Label="Only even tiles"/>
+	<p class="page-desc">
+		Loaded now: <strong>@_loaded.Count</strong>. Enters heard: <strong>@_enters</strong>. Leaves heard: <strong>@_leaves</strong>.
+	</p>
+	<div style="height: 18rem; overflow: auto; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md);"
+	     tabindex="0" aria-label="Tiles">
+		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: var(--moka-spacing-sm);">
+			@foreach (int tile in Tiles)
+			{
+				<MokaReveal @key="tile" Animation="MokaRevealAnimation.None" Once="false" Debounce="120"
+				            OnEnter="() => Enter(tile)" OnLeave="() => Leave(tile)">
+					<div data-loaded="@(_loaded.Contains(tile) ? "true" : "false")" style="@TileStyle(tile)">
+						@(_loaded.Contains(tile) ? $"Picture {tile + 1}" : "")
+					</div>
+				</MokaReveal>
+			}
+		</div>
+	</div>
+	<div style="margin-top: var(--moka-spacing-lg);">
+		<MokaReveal Animation="MokaRevealAnimation.FadeUp" OnEnter="() => _animatedSeen = true">
+			<MokaCallout Type="MokaCalloutType.Note" Title="An animation and a listener">
+				This one still fades up, and raised <code>OnEnter</code> once: @(_animatedSeen ? "heard" : "not yet").
+			</MokaCallout>
+		</MokaReveal>
+	</div>
+</DemoSection>
+
+@code {
+	private const int TileCount = 60;
+
+	private readonly HashSet<int> _loaded = [];
+
+	private int _enters;
+
+	private int _leaves;
+
+	private bool _animatedSeen;
+
+	private bool _evenOnly;
+
+	private IEnumerable<int> Tiles => Enumerable.Range(0, TileCount).Where(tile => !_evenOnly || tile % 2 == 0);
+
+	private void Enter(int tile)
+	{
+		_enters++;
+		_loaded.Add(tile);
+	}
+
+	private void Leave(int tile)
+	{
+		_leaves++;
+		_loaded.Remove(tile);
+	}
+
+	private string TileStyle(int tile) =>
+		"display: grid; place-items: center; height: 5rem; border-radius: var(--moka-radius-md); font-size: var(--moka-font-size-sm); " +
+		(_loaded.Contains(tile)
+			? $"background: var(--moka-chart-{tile % 8 + 1}); color: var(--moka-color-on-primary);"
+			: "background: var(--moka-color-surface-variant);");
+}

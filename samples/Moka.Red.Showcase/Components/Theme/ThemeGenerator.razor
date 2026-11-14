@@ -1,0 +1,13 @@
+@page "/theme/generator"
+@using Moka.Red.ThemeGen
+
+<PageTitle>Theme generator - Moka.Red</PageTitle>
+
+<MokaPageHeader Eyebrow="Theme" Title="Theme generator"
+                Said="Start from a preset or from seed colors, pin any token, check contrast, and export the theme as C#, JSON or CSS."/>
+
+<MokaThemeStudio @bind-Themes="_themes"/>
+
+@code {
+	private MokaThemePair _themes = MokaThemePair.From(MokaTheme.Default);
+}

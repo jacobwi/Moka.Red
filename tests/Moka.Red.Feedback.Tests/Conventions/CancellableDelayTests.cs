@@ -32,6 +32,35 @@ public class CancellableDelayTests
 		Assert.Empty(offenders);
 	}
 
+	// A toast's countdown is the animation its host draws, paused in the browser while it can't be read, so nothing in
+	// the toast service or its records waits in .NET: no timer, no delay, no sleep. The one timer in the folder is the
+	// host's render gap, which spaces out progress draws and never ends a toast.
+	[Fact]
+	public void Toasts_KeepNoTimeInDotNet_ButTheHostsRenderGap()
+	{
+		MethodBase[] waiters = typeof(Toast.MokaToastService).Assembly.GetTypes()
+			.Where(type => type.Namespace == typeof(Toast.MokaToastService).Namespace)
+			.SelectMany(type => type.GetMethods(Everything).Concat<MethodBase>(type.GetConstructors(Everything)))
+			.Where(method => Calls(method).Any(IsWait))
+			.ToArray();
+
+		Assert.All(waiters, method =>
+		{
+			Assert.StartsWith(typeof(Toast.MokaToastHost).FullName!, method.DeclaringType!.FullName, StringComparison.Ordinal);
+			Assert.DoesNotContain(Calls(method), callee => IsWait(callee) && callee.DeclaringType != typeof(TimeProvider));
+		});
+		Assert.DoesNotContain(waiters, method => method.DeclaringType == typeof(Toast.MokaToastService));
+		Assert.Contains(waiters, method => method.DeclaringType == typeof(Toast.MokaToastHost));
+	}
+
+	private static bool IsWait(MethodBase callee) =>
+		(callee.DeclaringType == typeof(Task) && callee.Name == nameof(Task.Delay)) ||
+		(callee.DeclaringType == typeof(Thread) && callee.Name == nameof(Thread.Sleep)) ||
+		(callee.DeclaringType == typeof(TimeProvider) && callee.Name == nameof(TimeProvider.CreateTimer)) ||
+		(callee is ConstructorInfo && callee.DeclaringType == typeof(Timer)) ||
+		(callee is ConstructorInfo && callee.DeclaringType == typeof(System.Timers.Timer)) ||
+		(callee is ConstructorInfo && callee.DeclaringType == typeof(PeriodicTimer));
+
 	[Fact]
 	public void TheScan_TellsADelayWithATokenFromOneWithout()
 	{

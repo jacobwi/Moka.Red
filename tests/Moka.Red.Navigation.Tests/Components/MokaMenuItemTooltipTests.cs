@@ -11,6 +11,8 @@ namespace Moka.Red.Navigation.Tests.Components;
 // showed instead of Moka's. The collapsed menu is a column, so the name opens beside it.
 public class MokaMenuItemTooltipTests : BunitContext
 {
+	public MokaMenuItemTooltipTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+
 	[Fact]
 	public void ACollapsedLink_IsNamedByATooltipBesideTheMenu()
 	{

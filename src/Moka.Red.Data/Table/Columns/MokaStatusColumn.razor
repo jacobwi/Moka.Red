@@ -1,0 +1,73 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.StatusDot
+@using Moka.Red.Primitives.Tag
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's status as its name ("Running"): what the column draws, sorts, filters, searches and exports.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Status { get; set; }
+
+	/// <summary>The label color of a status's tag, from the status. It wins over <see cref="Tone" /> on a tag.</summary>
+	[Parameter]
+	public Func<TItem, MokaLabelColor?>? LabelColor { get; set; }
+
+	/// <summary>The tone of a status: the tag's color without a label color, and the dot's color.</summary>
+	[Parameter]
+	public Func<TItem, MokaColor?>? Tone { get; set; }
+
+	/// <summary>Whether a status is a tag or a dot with its name. Default a tag.</summary>
+	[Parameter]
+	public MokaStatusLook Look { get; set; }
+
+	/// <summary>Writes a status into a row and returns the row, for editing. See <see cref="MokaColumn{TItem}.SetField" />.</summary>
+	[Parameter]
+	public Func<TItem, string?, TItem>? SetStatus { get; set; }
+
+	/// <inheritdoc />
+	protected internal override Type EditValueType(TItem item) => typeof(string);
+
+	/// <inheritdoc />
+	protected internal override MokaColumnEditor AutoEditor(TItem item) => MokaColumnEditor.Select;
+
+	/// <inheritdoc />
+	protected internal override bool CanWrite => SetStatus is not null || base.CanWrite;
+
+	/// <inheritdoc />
+	protected internal override TItem WriteValue(TItem item, object? value) =>
+		SetStatus is null ? base.WriteValue(item, value) : SetStatus(item, value as string);
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Status is not null;
+
+	/// <inheritdoc />
+	/// <remarks>Statuses read as a list: a filter picks any of them.</remarks>
+	protected internal override MokaColumnFilterType AutoFilterType => MokaColumnFilterType.MultiSelect;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string? status = Status?.Invoke(item);
+		if (string.IsNullOrEmpty(status))
+		{
+			return static _ => { };
+		}
+
+		return Look == MokaStatusLook.Dot
+			? @<MokaStatusDot Label="@status" Color="@Tone?.Invoke(item)"/>
+			: @<MokaTag Text="@status" Label="@LabelColor?.Invoke(item)" Color="@Tone?.Invoke(item)" Size="MokaSize.Sm"/>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => Look;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Status?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Status?.Invoke(item) ?? string.Empty;
+}

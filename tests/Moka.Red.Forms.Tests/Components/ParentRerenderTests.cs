@@ -40,7 +40,9 @@ public class ParentRerenderTests : BunitContext
 	[Fact]
 	public async Task DateRangePicker_KeepsARange_WhenTheParentPassesTheOldDatesAgain()
 	{
-		IRenderedComponent<MokaDateRangePicker> cut = Render<MokaDateRangePicker>();
+		IRenderedComponent<MokaDateRangePicker> cut = Render<MokaDateRangePicker>(p => p
+			.Add(x => x.StartDate, null)
+			.Add(x => x.EndDate, null));
 
 		await cut.Find("input").ClickAsync(new MouseEventArgs());
 		IReadOnlyList<IElement> days = cut.FindAll(".moka-daterange__day:not(.moka-daterange__day--other-month)");

@@ -1,17 +1,43 @@
 @namespace Moka.Red.Data.Table
 @inherits MokaVisualComponentBase
 @typeparam TItem
+@using Moka.Red.Navigation.Tabs
+@using Moka.Red.Primitives.SegmentedControl
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.Core.Clipboard
 
 @* Row markup lives in one template so the plain and virtualized body paths cannot drift apart. *@
 @{
+	// The columns and the pager part join while the first render is drawn; every render after it knows them.
+	if (_firstRenderDrawn)
+	{
+		_partsKnown = true;
+	}
+
+	_firstRenderDrawn = true;
+	_virtualizeDrawn = false;
+
 	// One list per render, so the header, the filter row and every body row agree on the columns
 	// and their positions.
 	var columns = VisibleColumnsInOrder();
+	FindPinEdges(columns);
 
 	// Null until a column names a phone slot, so a table with none renders as it always did.
 	_phoneSlots = PhoneSlots();
 	_firstTabColumn = FirstTabColumn(columns);
 	var rowColumns = RowColumns(columns);
+
+	// Under column virtualization the rows draw the columns in view and a gap for each run out of view; the header draws
+	// every heading, from whose widths the table lays its columns out.
+	var drawRowColumns = Windowed(rowColumns);
+	var drawColumns = Windowed(columns);
+	var groupRuns = DrawHeader ? HeaderGroupRuns(columns) : null;
+	var filterRow = DrawHeader && ShowFilterRow(columns);
+	_columnFilterControlsDrawn = (FilterControls & (MokaTableFilterControls.Row | MokaTableFilterControls.Menus)) != 0
+	                             && columns.Exists(static entry => entry.Col is { Filterable: true, Title: not null });
+	var groupLead = IsGrouped ? GroupLeadSpan(columns) : -1;
+	PrepareAria(groupRuns is not null, filterRow);
+	var highlight = HighlightSearch && _searchTerm is not null;
 
 	// The drop marker under the pointer comes from moka-table.js, which also allows the drop. The
 	// row and cell handlers are attached only when something listens: every event that reaches a
@@ -19,18 +45,24 @@
 	// one listener in moka-table.js, since a handler per cell made every render replace them all.
 	RenderFragment<MokaTableRow<TItem>> rowTemplate = row =>
 		@<tr class="@RowCssClass(row)" style="@RowStyle?.Invoke(row.Item)" role="@AriaRole("row")"
-		     data-row-index="@(row.Index.ToString(CultureInfo.InvariantCulture))"
+		     data-row-index="@IndexText(row.Index)"
+		     aria-rowindex="@AriaRowIndexOf(row)" aria-selected="@AriaSelectedOf(row)" aria-level="@AriaLevelOfRow"
 		     @key="row.Key"
 		     @onclick="RowClickHandler(row.Index)"
+		     @ondblclick="RowDoubleClickHandler(row.Index)"
 		     @oncontextmenu:preventDefault="OnRowContextMenu.HasDelegate"
 		     @oncontextmenu="RowContextMenuHandler(row.Index)"
 		     @ondrop="RowDropHandler(row.Index)">
+			@if (ShowRowNumbers)
+			{
+				<td class="moka-table-cell--rownum" role="@AriaRole("gridcell")" aria-hidden="true">@RowNumber(row)</td>
+			}
 			@if (ExpandAtStart)
 			{
-				<td class="moka-table-cell--expand" role="@AriaRole("cell")">
+				<td class="moka-table-cell--expand" role="@AriaRole("gridcell")" aria-colindex="@IndexText(1)">
 					@* The toggles make a column, so the name opens beside it, over the row. *@
-					<MokaTooltip Text="Toggle detail" Position="MokaTooltipPosition.Right">
-						<button class="@ExpandButtonClass(row.Item)" type="button" aria-label="Toggle detail"
+					<MokaTooltip Text="@Words.ToggleDetail" Position="MokaTooltipPosition.Right">
+						<button class="@ExpandButtonClass(row.Item)" type="button" aria-label="@Words.ToggleDetail"
 						        @onclick="HandlersFor(row.Index).Expand" @onclick:stopPropagation="true">
 							<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="12px"/>
 						</button>
@@ -39,18 +71,12 @@
 			}
 			@if (Selectable)
 			{
-				<td class="moka-table-cell--checkbox" role="@AriaRole("cell")">
-					<input type="checkbox" checked="@_selectedItems.Contains(row.Item)"
-					       aria-label="@RowBoxLabel(row.Item)"
-					       @onclick="RowBoxClickHandler"
-					       @onclick:stopPropagation="true"
-					       @onchange="HandlersFor(row.Index).Select"/>
-				</td>
+				<td class="moka-table-cell--checkbox" role="@AriaRole("gridcell")" aria-colindex="@IndexText(SelectColumnIndex)">@RowBox(row)</td>
 			}
 			@if (RowReorderable)
 			{
 				<td class="@ReorderCellClass" draggable="@RowDraggable" aria-description="@ReorderOffReason"
-				    role="@AriaRole("cell")"
+				    role="@AriaRole("gridcell")"
 				    @onclick:stopPropagation="true"
 				    @ondragstart="HandlersFor(row.Index).DragStart"
 				    @ondragend="HandleRowDragEnd">
@@ -68,25 +94,26 @@
 					}
 				</td>
 			}
-			@foreach (var (col, colIdx) in rowColumns)
+			@foreach (var (col, colIdx) in drawRowColumns)
 			{
-				<td class="@DataCellClass(col, colIdx)" style="@DataCellStyle(col)" role="@AriaRole("cell")"
-				    data-col-index="@(colIdx >= 0 ? colIdx.ToString(CultureInfo.InvariantCulture) : null)"
+				if (col is ColumnGap gap)
+				{
+					<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true" @key="WindowKey(gap)"></td>
+					continue;
+				}
+				var editing = IsEditingCell(row, col);
+				<td class="@DataCellClass(col, colIdx, editing)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")"
+				    @key="WindowKey(col)"
+				    data-col-index="@(colIdx >= 0 ? IndexText(colIdx) : null)"
+				    aria-colindex="@(colIdx >= 0 ? IndexText(AriaColumnOf(colIdx)) : null)"
 				    data-activates-row="@(ActivatesRow(col) ? "true" : null)"
 				    data-editable="@(col.Editable ? "true" : null)"
+				    data-editing="@(editing ? EditingKind : null)"
 				    tabindex="@(colIdx >= 0 ? CellTabIndex(row.Index, colIdx) : null)"
 				    @ondblclick="CellDoubleClickHandler(row.Index, col)">
-					@if (IsEditing(row.Item, col))
+					@if (editing)
 					{
-						<input type="text" class="moka-table-edit-input"
-						       @bind:get="_editValue"
-						       @bind:set="HandleEditInput"
-						       @bind:event="oninput"
-						       @onblur="() => CommitEdit(row.Item, col)"
-						       @onkeydown="e => HandleEditKeyDown(row.Item, col, e)"
-						       @onkeydown:stopPropagation="true"
-						       @onclick:stopPropagation="true"
-						       @ondblclick:stopPropagation="true"/>
+						<MokaTableCellEditor TItem="TItem" Table="this" Column="col"/>
 					}
 					else if (col.CellTemplate is not null)
 					{
@@ -94,15 +121,25 @@
 							@col.CellTemplate(row.Item)
 						</div>
 					}
+					else if (col.CellContent is { } kindCell)
+					{
+						<div class="moka-table-cell-template">
+							@kindCell(row.Item)
+						</div>
+					}
+					else if (highlight)
+					{
+						@CellText(col.TextOf(row.Item))
+					}
 					else
 					{
-						@GetCellValue(col, row.Item)
+						@col.TextOf(row.Item)
 					}
 				</td>
 			}
 			@if (RowActions is not null)
 			{
-				<td class="moka-table-cell--actions" role="@AriaRole("cell")" @onclick:stopPropagation="true">
+				<td class="moka-table-cell--actions" role="@AriaRole("gridcell")" @onclick:stopPropagation="true">
 					<div class="moka-table-row-actions">
 						@RowActions(row.Item)
 					</div>
@@ -112,7 +149,7 @@
 			{
 				@* No tooltip on purpose: a chevron at every row's end that turns when the row opens says what it does, and a
 				   tooltip per row was asked against. The name carries the row's own name. *@
-				<td class="moka-table-cell--more" role="@AriaRole("cell")">
+				<td class="moka-table-cell--more" role="@AriaRole("gridcell")">
 					<button type="button" class="moka-table-more-btn"
 					        aria-expanded="@(IsExpanded(row.Item) ? "true" : "false")" aria-label="@ExpandLabel(row.Item)"
 					        @onclick="HandlersFor(row.Index).Expand" @onclick:stopPropagation="true">
@@ -123,14 +160,27 @@
 		</tr>;
 
 	RenderFragment<MokaTableRow<TItem>> detailTemplate = row =>
-		@<tr class="moka-table-detail-row" role="@AriaRole("row")" @key="DetailRowKey(row)">
-			<td colspan="@ColSpan" role="@AriaRole("cell")">
+		@<tr class="moka-table-detail-row" role="@AriaRole("row")" aria-rowindex="@AriaDetailIndexOf(row)" @key="DetailRowKey(row)">
+			<td colspan="@ColSpan" role="@AriaRole("gridcell")">
 				@if (DetailTemplate is not null)
 				{
 					@DetailTemplate(row.Item)
 				}
 			</td>
 		</tr>;
+
+	// What a validator or the app's save said about the whole row being edited, under its editors.
+	RenderFragment editProblems = builder =>
+	{
+		<tr class="moka-table-edit-problems" role="@AriaRole("row")">
+			<td colspan="@ColSpan" role="@AriaRole("gridcell")">
+				<div class="moka-table-edit-problem" role="alert">
+					<MokaIcon Icon="MokaIcons.Status.AlertCircle" SizeValue="14px"/>
+					<span>@string.Join(" ", _edit!.RowErrors)</span>
+				</div>
+			</td>
+		</tr>
+	};
 
 	// Writes a row, and its detail row when open, straight into the builder it is given. Calling a
 	// template as @rowTemplate(row) would wrap each row in its own render-tree region, and @key only
@@ -139,48 +189,235 @@
 	RenderFragment<MokaTableRow<TItem>> rowGroup = row => builder =>
 	{
 		rowTemplate(row)(builder);
+		if (_edit is { IsNew: false, RowErrors.Count: > 0 } && IsEditingRow(row))
+		{
+			editProblems(builder);
+		}
+
 		if (Expandable && IsExpanded(row.Item))
 		{
 			detailTemplate(row)(builder);
 		}
 	};
 
-	RenderFragment<MokaTableGroupRows> groupHeaderContent = group => builder =>
-	{
-		@if (GroupHeaderTemplate is not null)
-		{
-			@GroupHeaderTemplate(GroupContext(group))
-		}
-		else
-		{
-			<span class="moka-table-group-key">@group.Key</span>
-			<span class="moka-table-group-count">@group.Rows.Count</span>
-		}
-	};
-
-	RenderFragment<MokaTableGroupRows> groupHeaderRow = group => builder =>
-	{
-		<tr class="moka-table-group-row" role="@AriaRole("row")">
-			<td colspan="@ColSpan" class="moka-table-group-cell" role="@AriaRole("cell")">
-				@if (GroupsCollapsible)
+	// A row held at the top or the bottom: the columns' cells, with nothing to select, open or drag.
+	RenderFragment<(TItem Item, string Ref, bool Top, int Index)> pinnedRow = pinned =>
+		@<tr class="@PinnedRowClass(pinned.Top)" role="@AriaRole("row")" data-pinned-row="@pinned.Ref"
+		     aria-rowindex="@PinnedRowIndex(pinned.Top, pinned.Index)">
+			@if (LeadingControlCells > 0)
+			{
+				<td colspan="@LeadingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+			}
+			@foreach (var (col, colIdx) in drawRowColumns)
+			{
+				if (col is ColumnGap gap)
 				{
-					@* The button carries the whole heading, so the row is one target rather than a label
-					   beside a small chevron. *@
-					<button type="button"
-					        class="moka-table-group-toggle"
-					        aria-expanded="@(IsGroupCollapsed(group.Key) ? "false" : "true")"
-					        @onclick="() => ToggleGroupAsync(group.Key)">
-						<MokaIcon Icon="@(IsGroupCollapsed(group.Key) ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)"
-						          SizeValue="14px"
-						          Class="moka-table-group-chevron"/>
-						@groupHeaderContent(group)
-					</button>
+					<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true" @key="WindowKey(gap)"></td>
+					continue;
+				}
+				<td class="@DataCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")" @key="WindowKey(col)">
+					@if (col.CellTemplate is not null)
+					{
+						<div class="moka-table-cell-template">@col.CellTemplate(pinned.Item)</div>
+					}
+					else if (col.CellContent is { } pinnedCell)
+					{
+						<div class="moka-table-cell-template">@pinnedCell(pinned.Item)</div>
+					}
+					else
+					{
+						@col.TextOf(pinned.Item)
+					}
+				</td>
+			}
+			@if (TrailingControlCells > 0)
+			{
+				<td colspan="@TrailingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+			}
+		</tr>;
+
+	// A failed load in place of the rows, or a broken stream's under the rows that came, with Retry.
+	RenderFragment<string> failureRow = rowIndex =>
+		@<tr role="@AriaRole("row")" aria-rowindex="@rowIndex">
+			<td colspan="@ColSpan" class="@StateCellClass(ErrorContent is not null)" role="@AriaRole("gridcell")">
+				@if (ErrorContent is not null)
+				{
+					@ErrorContent(Failure)
 				}
 				else
 				{
-					<span class="moka-table-group-static">@groupHeaderContent(group)</span>
+					<div class="moka-table-failure" role="alert">
+						<MokaIcon Icon="MokaIcons.Status.AlertCircle" SizeValue="20px" Class="moka-table-failure-icon"/>
+						<div class="moka-table-failure-text">
+							<span class="moka-table-failure-title">@Words.LoadFailed(ItemsName)</span>
+							<span class="moka-table-failure-message">@_loadError!.Message</span>
+						</div>
+						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+						            StartIcon="MokaIcons.Action.Refresh" OnClick="RetryAsync">@Words.Retry</MokaButton>
+					</div>
 				}
 			</td>
+		</tr>;
+
+	// A row still on its way from the server under remote virtualization: a bar in each column, and a word for screen
+	// readers.
+	RenderFragment<PlaceholderContext> placeholderRow = context =>
+		@<tr class="moka-table-placeholder-row" style="@PlaceholderRowStyle(context.Size)" role="@AriaRole("row")"
+		     aria-rowindex="@PlaceholderRowIndex(context.Index)">
+			@if (LeadingControlCells > 0)
+			{
+				<td colspan="@LeadingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+			}
+			@for (var c = 0; c < drawRowColumns.Count; c++)
+			{
+				var (col, colIdx) = drawRowColumns[c];
+				if (col is ColumnGap gap)
+				{
+					<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true" @key="WindowKey(gap)"></td>
+					continue;
+				}
+				<td class="@SkeletonCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
+					@if (c == 0)
+					{
+						<span class="moka-visually-hidden">@Words.LoadingRow</span>
+					}
+					<div class="moka-table-skeleton-box moka-table-skeleton-box--bar" aria-hidden="true"
+					     style="@SkeletonBarStyle(context.Index, Math.Max(colIdx, 0))"></div>
+				</td>
+			}
+			@if (TrailingControlCells > 0)
+			{
+				<td colspan="@TrailingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+			}
+		</tr>;
+
+	// The row the Add button opened, every editable cell with its editor, above or under the other rows.
+	RenderFragment newRow = builder =>
+	{
+		@if (_edit is { IsNew: true } added)
+		{
+			<tr class="moka-table-row--new" role="@AriaRole("row")" aria-rowindex="@NewRowIndex" data-new-row="n">
+				@if (LeadingControlCells > 0)
+				{
+					<td colspan="@LeadingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+				}
+				@foreach (var (col, colIdx) in drawRowColumns)
+				{
+					if (col is ColumnGap gap)
+					{
+						<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true" @key="WindowKey(gap)"></td>
+						continue;
+					}
+					<td class="@DataCellClass(col, colIdx, col.Editable)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")"
+					    @key="WindowKey(col)"
+					    data-col-index="@(colIdx >= 0 ? IndexText(colIdx) : null)" data-editing="@(col.Editable ? "row" : null)">
+						@if (col.Editable)
+						{
+							<MokaTableCellEditor TItem="TItem" Table="this" Column="col"/>
+						}
+						else if (col.CellContent is { } addedCell)
+						{
+							<div class="moka-table-cell-template">@addedCell(added.Draft)</div>
+						}
+						else if (col.CellTemplate is null)
+						{
+							@col.TextOf(added.Draft)
+						}
+					</td>
+				}
+				@if (TrailingControlCells > 0)
+				{
+					<td colspan="@TrailingControlCells" class="moka-table-cell--controls" role="@AriaRole("gridcell")"></td>
+				}
+			</tr>
+			@if (added.RowErrors.Count > 0)
+			{
+				@editProblems
+			}
+		}
+	};
+
+	RenderFragment<TableGroupNode<TItem>> groupHeaderContent = node => builder =>
+	{
+		@if (GroupHeaderTemplate is not null)
+		{
+			@GroupHeaderTemplate(GroupContext(node))
+		}
+		else
+		{
+			<span class="moka-table-group-key">@node.Key</span>
+			<span class="moka-table-group-count">@CountText(node.Count)</span>
+		}
+	};
+
+	RenderFragment<TableGroupNode<TItem>> groupHeading = node => builder =>
+	{
+		@if (GroupsCollapsible)
+		{
+			@* The button carries the whole heading, so the row is one target rather than a label
+			   beside a small chevron. *@
+			<button type="button"
+			        class="moka-table-group-toggle"
+			        aria-expanded="@(IsGroupCollapsed(node.Id) ? "false" : "true")"
+			        @onclick="() => ToggleGroupAsync(node.Id)">
+				<MokaIcon Icon="@(IsGroupCollapsed(node.Id) ? MokaIcons.Navigation.ChevronRight : MokaIcons.Navigation.ChevronDown)"
+				          SizeValue="14px"
+				          Class="moka-table-group-chevron"/>
+				@groupHeaderContent(node)
+			</button>
+		}
+		else
+		{
+			<span class="moka-table-group-static">@groupHeaderContent(node)</span>
+		}
+	};
+
+	// A heading's row: one cell over the row, or with totals one cell for the heading and one per column after it.
+	RenderFragment<(TableGroupNode<TItem> Node, int Line)> groupHeaderRow = heading => builder =>
+	{
+		var node = heading.Node;
+		<tr class="@GroupRowClass(node)" role="@AriaRole("row")" aria-rowindex="@AriaLineIndexOf(heading.Line)"
+		    aria-level="@AriaLevelOf(node)" aria-expanded="@AriaGroupExpanded(node)">
+			@if (groupLead < 0)
+			{
+				<td colspan="@ColSpan" class="moka-table-group-cell" style="@GroupCellStyle(node)" role="@AriaRole("gridcell")">
+					@groupHeading(node)
+				</td>
+			}
+			else
+			{
+				<td colspan="@(LeadingControlCells + groupLead)" class="moka-table-group-cell" style="@GroupCellStyle(node)"
+				    role="@AriaRole("gridcell")">
+					@groupHeading(node)
+				</td>
+				@* Under column virtualization a run of columns out of view is one empty cell, cut where the heading ends. *@
+				@foreach (var (col, colIdx) in drawColumns)
+				{
+					if (col is ColumnGap gap)
+					{
+						var after = colIdx + gap.Span - Math.Max(colIdx, groupLead);
+						if (after > 0)
+						{
+							<td class="moka-table-col-gap" colspan="@after" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+						}
+						continue;
+					}
+					if (colIdx < groupLead)
+					{
+						continue;
+					}
+					<td class="@AggregateCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
+						@if (col.Aggregate != MokaAggregateType.None)
+						{
+							<span class="moka-table-group-total">@GroupTotalText(node, col)</span>
+						}
+					</td>
+				}
+				@if (TrailingControlCells > 0)
+				{
+					<td colspan="@TrailingControlCells" role="@AriaRole("gridcell")"></td>
+				}
+			}
 		</tr>
 	};
 
@@ -194,33 +431,140 @@
 
 	RenderFragment groupedBodyRows = builder =>
 	{
-		foreach (var group in _displayGroups)
+		for (var i = 0; i < _displayLines.Count; i++)
 		{
-			groupHeaderRow(group)(builder);
-
-			if (IsGroupCollapsed(group.Key))
+			var line = _displayLines[i];
+			if (line.Group is { } node)
 			{
-				continue;
+				groupHeaderRow((node, i))(builder);
 			}
-
-			foreach (var row in group.Rows)
+			else
 			{
-				rowGroup(row)(builder);
+				rowGroup(_displayRows[line.Row])(builder);
 			}
 		}
+	};
+
+	// The jump and cursor pagers, the same above the rows and below them.
+	RenderFragment<bool> pagerNav = top => builder =>
+	{
+		@if (PagerLook == MokaPagerLook.Jump)
+		{
+			<div class="@PagerClass(top)" role="navigation" aria-label="@PagerWords.Label">
+				<MokaTooltip Text="@PagerWords.PreviousPage" Position="PagerTooltip(top)">
+					<button type="button" class="moka-table-pager-btn" disabled="@(_currentPage <= 1)"
+					        aria-label="@PagerWords.PreviousPage" @onclick="PreviousPageAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+				<label class="moka-table-pager-jump">
+					<span>@PagerWords.PageWord</span>
+					<input type="number" class="moka-table-pager-jump-input" min="1" max="@(_totalKnown ? PageCount : null)"
+					       aria-label="@PagerWords.GoToPage" @bind:get="_currentPage" @bind:set="JumpToPageAsync"/>
+					<span>@JumpPagesText</span>
+				</label>
+				<MokaTooltip Text="@PagerWords.NextPage" Position="PagerTooltip(top)">
+					<button type="button" class="moka-table-pager-btn" disabled="@(_currentPage >= PageCount)"
+					        aria-label="@PagerWords.NextPage" @onclick="NextPageAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
+					</button>
+				</MokaTooltip>
+			</div>
+		}
+		else if (PagerLook == MokaPagerLook.Cursor)
+		{
+			<div class="@PagerClass(top)" role="navigation" aria-label="@PagerWords.Label">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+				            StartIcon="MokaIcons.Navigation.ChevronLeft" Disabled="@(!CanGoNewer)" OnClick="NewerAsync">@PagerWords.Newer</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+				            EndIcon="MokaIcons.Navigation.ChevronRight" Disabled="@(!CanGoOlder)" OnClick="OlderAsync">@PagerWords.Older</MokaButton>
+			</div>
+		}
+	};
+
+	// The pager above the rows: the numbered pager draws its compact form there, the entries pager its page size.
+	RenderFragment pagerTop = builder =>
+	{
+		@if (PagerLook == MokaPagerLook.Entries)
+		{
+			<div class="@PagerClass(top: true)">
+				<label class="moka-table-pager-size">
+					<span>@PagerWords.Show</span>
+					<select class="moka-table-pager-select" @bind:get="_pageSize" @bind:set="HandlePageSizeChange">
+						@foreach (int option in Pager.PageSizeOptions)
+						{
+							<option value="@option">@option</option>
+						}
+					</select>
+					<span>@PagerWords.EntriesWord</span>
+				</label>
+			</div>
+		}
+		else if (PagerLook is MokaPagerLook.Numbered or MokaPagerLook.Compact)
+		{
+			<MokaPagination TotalItems="_pageTotal" HasMore="PagerHasMore" PageSize="_pageSize" CurrentPage="_currentPage"
+			                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
+			                PageSizeOptions="Pager.PageSizeOptions" Compact="true" Text="PagerWords"
+			                Sticky="Pager.Sticky" StickyPosition="MokaPaginationStickyPosition.Top"/>
+		}
+		else
+		{
+			@pagerNav(true)
+		}
+	};
+
+	RenderFragment pagerBottom = builder =>
+	{
+		@if (PagerLook == MokaPagerLook.Numbered)
+		{
+			<MokaPagination TotalItems="_pageTotal" HasMore="PagerHasMore" PageSize="_pageSize" CurrentPage="_currentPage"
+			                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
+			                PageSizeOptions="Pager.PageSizeOptions" ShowPageSizeSelector="Pager.ShowPageSize"
+			                ShowFirstLast="Pager.ShowFirstLast" ShowPageInfo="Pager.ShowPageInfo"
+			                MaxVisiblePages="Pager.MaxVisiblePages" Text="PagerWords"
+			                Sticky="Pager.Sticky" StickyPosition="MokaPaginationStickyPosition.Bottom"/>
+		}
+		else if (PagerLook == MokaPagerLook.Compact)
+		{
+			<MokaPagination TotalItems="_pageTotal" HasMore="PagerHasMore" PageSize="_pageSize" CurrentPage="_currentPage"
+			                CurrentPageChanged="HandlePageChange" Compact="true" Text="PagerWords"
+			                Sticky="Pager.Sticky" StickyPosition="MokaPaginationStickyPosition.Bottom"/>
+		}
+		else if (PagerLook == MokaPagerLook.Entries)
+		{
+			<div class="@PagerClass(top: false)" role="navigation" aria-label="@PagerWords.Label">
+				<span class="moka-table-pager-info">@EntriesText</span>
+				<span class="moka-table-pager-buttons">
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            Disabled="@(_currentPage <= 1)" OnClick="PreviousPageAsync">@PagerWords.Previous</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            Disabled="@(_currentPage >= PageCount)" OnClick="NextPageAsync">@PagerWords.Next</MokaButton>
+				</span>
+			</div>
+		}
+		else
+		{
+			@pagerNav(false)
+		}
+	};
+
+	// Copies the picked rows inside its click: moka-copy.js asks for the text and writes it as it arrives.
+	RenderFragment copyRowsButton = builder =>
+	{
+		<button type="button" class="moka-table-copy-rows" data-moka-copy-ask @ref="_copyRowsRef"
+		        @onmokacopyask="AnswerCopyRowsAsync" @onmokacopied="e => NoteRowsCopied(e.Copied)">
+			<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+			<span>@CopyRowsText</span>
+		</button>
 	};
 
 	// The part a Framed table draws its card around. It is the same markup either way, and a table that isn't framed
 	// gets no extra element around it.
 	RenderFragment tableArea = builder =>
 	{
-		@* Top pagination *@
 		@if (ShowTopPagination)
 		{
-			<MokaPagination TotalItems="_totalItems" PageSize="_pageSize" CurrentPage="_currentPage"
-			                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
-			                PageSizeOptions="PageSizeOptions" Compact="true"
-			                Sticky="StickyPagination" StickyPosition="MokaPaginationStickyPosition.Top"/>
+			@pagerTop
 		}
 
 		@if (BulkActions is not null)
@@ -240,19 +584,23 @@
 						}
 					</div>
 					<div class="moka-table-bulk-actions">
+						@if (ShowCopyRows)
+						{
+							@copyRowsButton
+						}
 						@BulkActions(picked)
 					</div>
 					@if (BulkClearIcon)
 					{
-						<MokaTooltip Text="Clear the selection" Position="MokaTooltipPosition.BottomEnd">
-							<MokaButton Quiet StartIcon="MokaIcons.Navigation.Close" aria-label="Clear the selection"
+						<MokaTooltip Text="@Words.ClearSelection" Position="MokaTooltipPosition.BottomEnd">
+							<MokaButton Quiet StartIcon="MokaIcons.Navigation.Close" aria-label="@Words.ClearSelection"
 							            OnClick="ClearSelection"/>
 						</MokaTooltip>
 					}
 					else
 					{
 						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-						            OnClick="ClearSelection">Clear</MokaButton>
+						            OnClick="ClearSelection">@Words.Clear</MokaButton>
 					}
 				</div>
 			}
@@ -265,24 +613,60 @@
 
 		@* Table *@
 		<div class="@ContainerClass" style="@ContainerStyle">
-			<table class="@TableClasses" style="@TableStyle" role="@AriaRole("table")" aria-label="@Label"
-			       aria-busy="@(Loading ? "true" : null)">
-				@if (ShowHeader)
+			<table class="@TableClasses" style="@TableStyle" role="@GridRole" aria-label="@Label"
+			       aria-rowcount="@IndexText(_ariaRowCount)" aria-colcount="@IndexText(AriaColumnCount)"
+			       aria-multiselectable="@GridMultiselectable" aria-busy="@(Loading || _isLoading ? "true" : null)"
+			       data-row-count="@IndexText(RemoteRows ? _totalItems : _displayRows.Count)"
+			       data-moka-undo="@(_lastSave is not null ? "" : null)" data-moka-copy-rows="@(ShowCopyRows ? "" : null)">
+				@if (DrawHeader)
 				{
 				<thead class="@HeadClass" role="@AriaRole("rowgroup")">
-				<tr role="@AriaRole("row")">
+				@if (groupRuns is not null)
+				{
+					<tr class="moka-table-group-heading-row" role="@AriaRole("row")" aria-rowindex="@IndexText(1)">
+						@if (LeadingControlCells > 0)
+						{
+							<th colspan="@LeadingControlCells" class="moka-table-group-heading moka-table-group-heading--none"
+							    role="@AriaRole("columnheader")" aria-hidden="true"></th>
+						}
+						@foreach (var run in groupRuns)
+						{
+							<th colspan="@run.Span" class="@GroupRunClass(run)" style="@GroupRunStyle(run)" scope="colgroup"
+							    role="@AriaRole("columnheader")" aria-hidden="@(run.Group is null ? "true" : null)">@run.Group?.Title</th>
+						}
+						@if (TrailingControlCells > 0)
+						{
+							<th colspan="@TrailingControlCells" class="moka-table-group-heading moka-table-group-heading--none"
+							    role="@AriaRole("columnheader")" aria-hidden="true"></th>
+						}
+					</tr>
+				}
+				<tr role="@AriaRole("row")" aria-rowindex="@IndexText(groupRuns is null ? 1 : 2)">
+					@if (ShowRowNumbers)
+					{
+						<th class="moka-table-cell--rownum" role="@AriaRole("columnheader")" aria-hidden="true">#</th>
+					}
 					@if (ExpandAtStart)
 					{
-						<th class="moka-table-cell--expand" role="@AriaRole("columnheader")"></th>
+						<th class="moka-table-cell--expand" role="@AriaRole("columnheader")" aria-colindex="@IndexText(1)">
+							@if (DrawExpandAll)
+							{
+								<MokaTooltip Text="@ExpandAllLabel" Position="MokaTooltipPosition.Right">
+									<button type="button" class="moka-table-expand-all" aria-label="@ExpandAllLabel"
+									        @onclick="ToggleExpandAllAsync">
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronsUpDown" SizeValue="12px"/>
+									</button>
+								</MokaTooltip>
+							}
+						</th>
 					}
 					@if (Selectable)
 					{
-						<th class="moka-table-cell--checkbox" role="@AriaRole("columnheader")">
+						<th class="moka-table-cell--checkbox" role="@AriaRole("columnheader")" aria-colindex="@IndexText(SelectColumnIndex)">
 							@if (!SingleSelect)
 							{
 								<input type="checkbox" @ref="_selectAllRef" aria-label="@SelectAllLabel"
-								       checked="@AllDisplayedRowsSelected"
-								       @onchange="e => HandleSelectAll((bool)(e.Value ?? false))"/>
+								       @bind:get="AllDisplayedRowsSelected" @bind:set="HandleSelectAll"/>
 							}
 						</th>
 					}
@@ -302,11 +686,16 @@
 							continue;
 						}
 
-						<th class="@HeaderCellClass(col)"
-						    style="@HeaderCellStyle(col)"
+						var filterButton = HasControl(MokaTableFilterControls.Menus) && col.Filterable && col.Title is not null;
+						<th class="@HeaderCellClass(col, colIdx)"
+						    style="@HeaderCellStyle(col, colIdx)"
 						    role="@AriaRole("columnheader")"
+						    aria-colindex="@IndexText(AriaColumnOf(colIdx))"
+						    data-col-index="@IndexText(colIdx)"
 						    aria-sort="@AriaSort(col)"
 						    draggable="@ColumnDraggableFor(col)"
+						    data-pin-at="@(PinSide(col, colIdx) is null ? null : colIdx.ToString(CultureInfo.InvariantCulture))"
+						    data-moka-head="@(ColumnMenu ? col.ActionKey.ToString(CultureInfo.InvariantCulture) : null)"
 						    @ondragstart="ColumnDragStartHandler(col)"
 						    @ondrop="ColumnDropHandler(col)"
 						    @ondragend="ColumnDragEndHandler"
@@ -317,7 +706,7 @@
 							}
 							@if (CanSort(col))
 							{
-								var sortDesc = GetSortDescriptor(col.Title);
+								var sortDesc = SortOf(col.Title);
 								@* With a HeaderTemplate the button holds only the icon, so no control from the
 								   template ends up inside it. *@
 								<button type="button" class="moka-table-sort-button" aria-label="@SortButtonLabel(col)">
@@ -339,15 +728,49 @@
 											<MokaIcon Icon="MokaIcons.Content.SortNeutral" SizeValue="12px" Class="moka-table-sort-neutral"/>
 										}
 									</span>
-									@if (MultiSort && sortDesc is not null && _sortDescriptors.Count > 1)
+									@if (MultiSort && sortDesc is not null && _sorts.Count > 1)
 									{
-										<span class="moka-table-sort-priority" aria-hidden="true">@sortDesc.Priority</span>
+										<span class="moka-table-sort-priority" aria-hidden="true">@SortPriority(sortDesc)</span>
 									}
 								</button>
 							}
 							else if (col.HeaderTemplate is null)
 							{
 								<span class="moka-table-header-text">@col.Title</span>
+							}
+							@if (filterButton || ColumnMenu)
+							{
+								@* The filter and menu buttons stop their click at themselves, or it would sort. *@
+								<span class="moka-table-header-tools">
+									@if (filterButton)
+									{
+										var filterLabel = FilterButtonLabel(col);
+										var filterOpen = ReferenceEquals(_filterColumn, col);
+										<MokaTooltip Text="@(filterOpen ? null : filterLabel)" Position="MokaTooltipPosition.Bottom">
+											<button type="button" class="@FilterButtonClass(col)"
+											        data-moka-filter-for="@col.ActionKey.ToString(CultureInfo.InvariantCulture)"
+											        aria-label="@filterLabel" aria-haspopup="dialog"
+											        aria-expanded="@(filterOpen ? "true" : "false")"
+											        @onclick="HandlersFor(col).Filter" @onclick:stopPropagation="true">
+												<MokaIcon Icon="MokaIcons.Content.Filter" SizeValue="12px"/>
+											</button>
+										</MokaTooltip>
+									}
+									@if (ColumnMenu)
+									{
+										var menuLabel = ColumnMenuLabel(col);
+										var menuOpen = ReferenceEquals(_menuColumn, col);
+										<MokaTooltip Text="@(menuOpen ? null : menuLabel)" Position="MokaTooltipPosition.BottomEnd">
+											<button type="button" class="moka-table-menu-btn"
+											        data-moka-menu-for="@col.ActionKey.ToString(CultureInfo.InvariantCulture)"
+											        aria-label="@menuLabel" aria-haspopup="menu"
+											        aria-expanded="@(menuOpen ? "true" : "false")"
+											        @onclick="HandlersFor(col).Menu" @onclick:stopPropagation="true">
+												<MokaIcon Icon="MokaIcons.Navigation.MoreVertical" SizeValue="14px"/>
+											</button>
+										</MokaTooltip>
+									}
+								</span>
 							}
 							@if (col.Resizable)
 							{
@@ -360,68 +783,125 @@
 					}
 					@if (RowActions is not null)
 					{
-						<th class="moka-table-cell--actions" style="@ActionsHeaderStyle" role="@AriaRole("columnheader")">@ActionsColumnTitle</th>
+						<th class="moka-table-cell--actions" style="@ActionsHeaderStyle" role="@AriaRole("columnheader")">@Words.Actions</th>
 					}
 					@if (ExpandAtEnd)
 					{
 						<th class="moka-table-cell--more" role="@AriaRole("columnheader")">
-							<span class="moka-visually-hidden">More</span>
+							@if (DrawExpandAll)
+							{
+								<MokaTooltip Text="@ExpandAllLabel" Position="MokaTooltipPosition.BottomEnd">
+									<button type="button" class="moka-table-expand-all" aria-label="@ExpandAllLabel"
+									        @onclick="ToggleExpandAllAsync">
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronsUpDown" SizeValue="12px"/>
+									</button>
+								</MokaTooltip>
+							}
+							else
+							{
+								<span class="moka-visually-hidden">@Words.More</span>
+							}
 						</th>
 					}
 				</tr>
-				@if (ShowFilters)
+				@if (filterRow)
 				{
-					<tr class="moka-table-filter-row" role="@AriaRole("row")">
+					<tr class="moka-table-filter-row" role="@AriaRole("row")" aria-rowindex="@IndexText(_ariaHeaderRows)">
+						@if (ShowRowNumbers)
+						{
+							<td class="moka-table-cell--rownum" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+						}
 						@if (ExpandAtStart)
 						{
-							<td class="moka-table-cell--expand" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--expand" role="@AriaRole("gridcell")"></td>
 						}
 						@if (Selectable)
 						{
-							<td class="moka-table-cell--checkbox" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--checkbox" role="@AriaRole("gridcell")"></td>
 						}
 						@if (RowReorderable)
 						{
-							<td class="moka-table-cell--reorder" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--reorder" role="@AriaRole("gridcell")"></td>
 						}
-						@foreach (var (col, _) in columns)
+						@foreach (var (col, colIdx) in drawColumns)
 						{
-							<td class="@FilterCellClass(col)" style="@DataCellStyle(col)" role="@AriaRole("cell")">
+							if (col is ColumnGap gap)
+							{
+								<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+								continue;
+							}
+							<td class="@FilterCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
 								@if (col.Filterable && col.Title is not null)
 								{
-									@if (col.FilterType == MokaColumnFilterType.Select)
+									var kind = FilterKindOf(col);
+									@if (kind is TableFilterKind.Select or TableFilterKind.YesNo)
 									{
-										<select class="moka-table-filter-select" value="@GetColumnFilter(col)"
-										        aria-label="@($"Filter by {col.Title}")"
-										        @onchange="NonRendering.Callback<ChangeEventArgs>(e => HandleColumnFilter(col, e))">
-											<option value="">All</option>
-											@foreach (string option in GetDistinctValues(col))
+										<select class="moka-table-filter-select" aria-label="@Words.FilterBy(col.Title)"
+										        @bind:get="RowChoiceStart(col)" @bind:set="value => SetRowChoiceAsync(col, value)">
+											<option value="">@Words.All</option>
+											@foreach (var option in ChoicesFor(col))
 											{
-												<option value="@option">@option</option>
+												<option value="@option.Value">@option.Text</option>
 											}
 										</select>
 									}
+									else if (kind == TableFilterKind.MultiSelect)
+									{
+										<button type="button" class="moka-table-filter-choices"
+										        data-moka-filter-row="@col.ActionKey.ToString(CultureInfo.InvariantCulture)"
+										        aria-label="@Words.FilterBy(col.Title)" aria-haspopup="dialog"
+										        aria-expanded="@(ReferenceEquals(_filterColumn, col) ? "true" : "false")"
+										        @onclick="HandlersFor(col).RowFilter">
+											<span class="moka-table-filter-choices-text">@RowChoicesText(col)</span>
+											<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12px"/>
+										</button>
+									}
+									else if (kind is TableFilterKind.Number or TableFilterKind.Date)
+									{
+										var inputType = kind == TableFilterKind.Number ? "number" : "date";
+										<span class="moka-table-filter-range" @key="_filterBoxVersion">
+											<input type="@inputType" class="moka-table-filter-input moka-table-filter-input--range"
+											       step="@(kind == TableFilterKind.Number ? "any" : null)"
+											       value="@RowBoxStart(col)" placeholder="@Words.RangeFrom"
+											       aria-label="@Words.FilterFrom(col.Title)"
+											       @oninput="HandlersFor(col).RowText"/>
+											<input type="@inputType" class="moka-table-filter-input moka-table-filter-input--range"
+											       step="@(kind == TableFilterKind.Number ? "any" : null)"
+											       value="@RowBoxStart(col, second: true)" placeholder="@Words.RangeTo"
+											       aria-label="@Words.FilterTo(col.Title)"
+											       @oninput="HandlersFor(col).RowRangeEnd"/>
+										</span>
+									}
 									else
 									{
-										<input type="text" class="moka-table-filter-input" value="@FilterBoxStart(col)" @key="_filterBoxVersion"
-										       placeholder="Filter"
-										       aria-label="@($"Filter by {col.Title}")"
-										       @oninput="NonRendering.Callback<ChangeEventArgs>(e => HandleColumnFilter(col, e))"/>
+										<input type="text" class="moka-table-filter-input" value="@RowBoxStart(col)" @key="_filterBoxVersion"
+										       placeholder="@Words.Filter"
+										       aria-label="@Words.FilterBy(col.Title)"
+										       @oninput="HandlersFor(col).RowText"/>
 									}
 								}
 							</td>
 						}
 						@if (RowActions is not null)
 						{
-							<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--actions" role="@AriaRole("gridcell")"></td>
 						}
 						@if (ExpandAtEnd)
 						{
-							<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--more" role="@AriaRole("gridcell")"></td>
 						}
 					</tr>
 				}
 				</thead>
+				}
+				@if (PinnedTop is { Count: > 0 } pinnedTop && ShownPinnedTop > 0)
+				{
+					<tbody class="moka-table-pinned-body moka-table-pinned-body--top" role="@AriaRole("rowgroup")">
+					@for (var i = 0; i < pinnedTop.Count; i++)
+					{
+						@pinnedRow((pinnedTop[i], PinnedRowRef(true, i), true, i))
+					}
+					</tbody>
 				}
 				<tbody role="@AriaRole("rowgroup")">
 				@if (Loading && LoadingContent is null)
@@ -430,35 +910,44 @@
 					{
 						var rowIdx = i;
 						<tr class="@SkeletonRowClass" role="@AriaRole("row")" aria-hidden="true">
+							@if (ShowRowNumbers)
+							{
+								<td class="moka-table-cell--rownum" role="@AriaRole("gridcell")"></td>
+							}
 							@if (ExpandAtStart)
 							{
-								<td class="moka-table-cell--expand" role="@AriaRole("cell")">
+								<td class="moka-table-cell--expand" role="@AriaRole("gridcell")">
 									<MokaSkeleton Shape="MokaSkeletonShape.Rectangle" Width="1.125rem" Height="1.125rem"/>
 								</td>
 							}
 							@if (Selectable)
 							{
-								<td class="moka-table-cell--checkbox" role="@AriaRole("cell")">
+								<td class="moka-table-cell--checkbox" role="@AriaRole("gridcell")">
 									<MokaSkeleton Shape="MokaSkeletonShape.Rectangle" Width="1.125rem" Height="1.125rem"/>
 								</td>
 							}
 							@if (RowReorderable)
 							{
-								<td class="moka-table-cell--reorder" role="@AriaRole("cell")"></td>
+								<td class="moka-table-cell--reorder" role="@AriaRole("gridcell")"></td>
 							}
-							@foreach (var (col, colIdx) in rowColumns)
+							@foreach (var (col, colIdx) in drawRowColumns)
 							{
-								<td class="@SkeletonCellClass(col, colIdx)" style="@DataCellStyle(col)" role="@AriaRole("cell")">
+								if (col is ColumnGap gap)
+								{
+									<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+									continue;
+								}
+								<td class="@SkeletonCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
 									<MokaSkeleton Width="@LoadingCellWidth(rowIdx)"/>
 								</td>
 							}
 							@if (RowActions is not null)
 							{
-								<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
+								<td class="moka-table-cell--actions" role="@AriaRole("gridcell")"></td>
 							}
 							@if (ExpandAtEnd)
 							{
-								<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+								<td class="moka-table-cell--more" role="@AriaRole("gridcell")"></td>
 							}
 						</tr>
 					}
@@ -467,8 +956,8 @@
 				{
 					@if (LoadingContent is not null)
 					{
-						<tr role="@AriaRole("row")">
-							<td colspan="@ColSpan" class="moka-table-state-cell" role="@AriaRole("cell")">
+						<tr role="@AriaRole("row")" aria-rowindex="@StateRowIndex">
+							<td colspan="@ColSpan" class="moka-table-state-cell" role="@AriaRole("gridcell")">
 								@LoadingContent
 							</td>
 						</tr>
@@ -478,41 +967,50 @@
 						@for (var i = 0; i < SkeletonRows; i++)
 						{
 							var rowIdx = i;
-							<tr class="@SkeletonRowClass" role="@AriaRole("row")">
+							<tr class="@SkeletonRowClass" role="@AriaRole("row")" aria-hidden="true">
+								@if (ShowRowNumbers)
+								{
+									<td class="moka-table-cell--rownum" role="@AriaRole("gridcell")"></td>
+								}
 								@if (ExpandAtStart)
 								{
-									<td class="moka-table-cell--expand" role="@AriaRole("cell")">
+									<td class="moka-table-cell--expand" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
 								@if (Selectable)
 								{
-									<td class="moka-table-cell--checkbox" role="@AriaRole("cell")">
+									<td class="moka-table-cell--checkbox" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
 								@if (RowReorderable)
 								{
-									<td class="moka-table-cell--reorder" role="@AriaRole("cell")">
+									<td class="moka-table-cell--reorder" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
-								@foreach (var (col, colIdx) in rowColumns)
+								@foreach (var (col, colIdx) in drawRowColumns)
 								{
-									<td class="@SkeletonCellClass(col, colIdx)" style="@DataCellStyle(col)" role="@AriaRole("cell")">
+									if (col is ColumnGap gap)
+									{
+										<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+										continue;
+									}
+									<td class="@SkeletonCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--bar"
 										     style="@SkeletonBarStyle(rowIdx, Math.Max(colIdx, 0))"></div>
 									</td>
 								}
 								@if (RowActions is not null)
 								{
-									<td class="moka-table-cell--actions" role="@AriaRole("cell")">
+									<td class="moka-table-cell--actions" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
 								@if (ExpandAtEnd)
 								{
-									<td class="moka-table-cell--more" role="@AriaRole("cell")">
+									<td class="moka-table-cell--more" role="@AriaRole("gridcell")">
 										<div class="moka-table-skeleton-box moka-table-skeleton-box--icon"></div>
 									</td>
 								}
@@ -521,20 +1019,43 @@
 					}
 					else
 					{
-						<tr role="@AriaRole("row")">
-							<td colspan="@ColSpan" class="moka-table-state-cell" role="@AriaRole("cell")">
+						<tr role="@AriaRole("row")" aria-rowindex="@StateRowIndex">
+							<td colspan="@ColSpan" class="moka-table-state-cell" role="@AriaRole("gridcell")">
 								<div class="moka-table-loading">
 									<MokaSpinner Size="MokaSize.Sm"/>
-									<span>Loading...</span>
+									<span>@Words.Loading</span>
 								</div>
 							</td>
 						</tr>
 					}
 				}
-				else if (_displayRows.Count == 0)
+				else if (FailureReplacesRows)
 				{
-					<tr role="@AriaRole("row")">
-						<td colspan="@ColSpan" class="@EmptyCellClass" role="@AriaRole("cell")">
+					@failureRow(StateRowIndex)
+				}
+				else if (HasNothingToShow && ShowNoResults)
+				{
+					<tr role="@AriaRole("row")" aria-rowindex="@StateRowIndex">
+						<td colspan="@ColSpan" class="@StateCellClass(NoResults is not null)" role="@AriaRole("gridcell")">
+							@if (NoResults is not null)
+							{
+								@NoResults
+							}
+							else
+							{
+								<div class="moka-table-no-results" role="status">
+									<span class="moka-table-no-results-text">@NoResultsText</span>
+									<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+									            OnClick="ClearSearchAndFiltersAsync">@Words.ClearSearchAndFilters</MokaButton>
+								</div>
+							}
+						</td>
+					</tr>
+				}
+				else if (HasNothingToShow)
+				{
+					<tr role="@AriaRole("row")" aria-rowindex="@StateRowIndex">
+						<td colspan="@ColSpan" class="@EmptyCellClass" role="@AriaRole("gridcell")">
 							@if (Empty is not null)
 							{
 								@Empty
@@ -549,26 +1070,94 @@
 							}
 							else
 							{
-								<div class="moka-table-empty">No data available</div>
+								<div class="moka-table-empty">@Words.NoData</div>
 							}
 						</td>
 					</tr>
 				}
 				else if (IsGrouped)
 				{
+					@if (NewRowAtTop)
+					{
+						@newRow
+					}
 					@groupedBodyRows
+					@if (NewRowAtBottom)
+					{
+						@newRow
+					}
 				}
 				else if (Virtualize)
 				{
-					@* Virtualize writes each item straight into its own builder, so the rows stay siblings. *@
-					<Virtualize TItem="MokaTableRow<TItem>" Items="_displayRows" ItemContent="rowGroup"
-					            ItemSize="VirtualRowHeight" SpacerElement="tr"/>
+					_virtualizeDrawn = true;
+					@if (NewRowAtTop)
+					{
+						@newRow
+					}
+					@* Virtualize writes each item straight into its own builder, so the rows stay siblings. Under ServerData it
+					   asks for the rows a window at a time, drawing a placeholder row for each still on its way. *@
+					@if (RemoteRows)
+					{
+						<Virtualize TItem="MokaTableRow<TItem>" ItemsProvider="RowProvider" ItemContent="rowGroup"
+						            Placeholder="placeholderRow" ItemSize="VirtualRowHeight" SpacerElement="tr" @ref="_virtualize"/>
+						@* Virtualize draws nothing until it knows the count, so the first window waits under placeholder rows. *@
+						@if (!_remoteLoaded)
+						{
+							@for (var i = 0; i < Math.Max(SkeletonRows, 1); i++)
+							{
+								@placeholderRow(new PlaceholderContext(i, VirtualRowHeight))
+							}
+						}
+					}
+					else
+					{
+						<Virtualize TItem="MokaTableRow<TItem>" Items="_displayRows" ItemContent="rowGroup"
+						            ItemSize="VirtualRowHeight" SpacerElement="tr"/>
+					}
+					@if (NewRowAtBottom)
+					{
+						@newRow
+					}
 				}
 				else
 				{
+					@if (NewRowAtTop)
+					{
+						@newRow
+					}
 					@bodyRows
+					@if (NewRowAtBottom)
+					{
+						@newRow
+					}
+				}
+				@if (FailureBelowRows)
+				{
+					@failureRow(BelowRowsIndex)
+				}
+				else if (StreamMoreShown)
+				{
+					<tr class="moka-table-stream-row" role="@AriaRole("row")" aria-rowindex="@BelowRowsIndex">
+						<td colspan="@ColSpan" role="@AriaRole("gridcell")">
+							<div class="moka-table-stream">
+								<MokaSpinner Size="MokaSize.Xs"/>
+								<span class="moka-table-stream-text" aria-live="polite">@StreamText</span>
+								<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+								            OnClick="StopStreaming">@Words.StopLoading</MokaButton>
+							</div>
+						</td>
+					</tr>
 				}
 				</tbody>
+				@if (PinnedBottom is { Count: > 0 } pinnedBottom && ShownPinnedBottom > 0)
+				{
+					<tbody class="moka-table-pinned-body moka-table-pinned-body--bottom" role="@AriaRole("rowgroup")">
+					@for (var i = 0; i < pinnedBottom.Count; i++)
+					{
+						@pinnedRow((pinnedBottom[i], PinnedRowRef(false, i), false, i))
+					}
+					</tbody>
+				}
 				@if (FooterContent is not null)
 				{
 					<tfoot class="moka-table-footer" role="@AriaRole("rowgroup")">
@@ -579,21 +1168,30 @@
 				{
 					<tfoot class="moka-table-footer" role="@AriaRole("rowgroup")">
 					<tr role="@AriaRole("row")">
+						@if (ShowRowNumbers)
+						{
+							<td class="moka-table-cell--rownum" role="@AriaRole("gridcell")"></td>
+						}
 						@if (ExpandAtStart)
 						{
-							<td class="moka-table-cell--expand" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--expand" role="@AriaRole("gridcell")"></td>
 						}
 						@if (Selectable)
 						{
-							<td class="moka-table-cell--checkbox" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--checkbox" role="@AriaRole("gridcell")"></td>
 						}
 						@if (RowReorderable)
 						{
-							<td class="moka-table-cell--reorder" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--reorder" role="@AriaRole("gridcell")"></td>
 						}
-						@foreach (var (col, _) in columns)
+						@foreach (var (col, colIdx) in drawColumns)
 						{
-							<td class="@AggregateCellClass(col)" style="@DataCellStyle(col)" role="@AriaRole("cell")">
+							if (col is ColumnGap gap)
+							{
+								<td class="moka-table-col-gap" colspan="@gap.Span" role="@AriaRole("gridcell")" aria-hidden="true"></td>
+								continue;
+							}
+							<td class="@AggregateCellClass(col, colIdx)" style="@DataCellStyle(col, colIdx)" role="@AriaRole("gridcell")">
 								@if (col.Aggregate != MokaAggregateType.None)
 								{
 									<span class="moka-table-aggregate-label">@AggregateLabel(col)</span>
@@ -603,11 +1201,11 @@
 						}
 						@if (RowActions is not null)
 						{
-							<td class="moka-table-cell--actions" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--actions" role="@AriaRole("gridcell")"></td>
 						}
 						@if (ExpandAtEnd)
 						{
-							<td class="moka-table-cell--more" role="@AriaRole("cell")"></td>
+							<td class="moka-table-cell--more" role="@AriaRole("gridcell")"></td>
 						}
 					</tr>
 					</tfoot>
@@ -615,16 +1213,50 @@
 			</table>
 		</div>
 
-		@* Bottom pagination *@
-		@if (ShowBottomPagination)
+		@if (_edit is { } openEdit && Validators is not null && openEdit.EditContext(wanted: true) is { } editContext)
 		{
-			<MokaPagination TotalItems="_totalItems" PageSize="_pageSize" CurrentPage="_currentPage"
-			                CurrentPageChanged="HandlePageChange" PageSizeChanged="HandlePageSizeChange"
-			                PageSizeOptions="PageSizeOptions"
-			                Sticky="StickyPagination" StickyPosition="MokaPaginationStickyPosition.Bottom"/>
+			@* Drawn against the open row's copy, again for each copy a record's setter makes: a validator takes one
+			   EditContext for its whole life. *@
+			_validatorsDrawnFor = editContext;
+			<CascadingValue TValue="EditContext" Value="editContext" IsFixed="true" @key="editContext">
+				@Validators
+			</CascadingValue>
 		}
 
-		@if (ShowMoreFoot)
+		@if (OnRowSave.HasDelegate)
+		{
+			<span class="moka-visually-hidden" role="status">@UndoStatus</span>
+			@if (ShowUndo && UndoStatus is not null)
+			{
+				<div class="moka-table-undo">
+					<span class="moka-table-undo-text">@UndoStatus</span>
+					@if (_lastSave is not null)
+					{
+						<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+						            StartIcon="MokaIcons.Action.Undo" OnClick="UndoAsync">@Words.Undo</MokaButton>
+					}
+					<MokaTooltip Text="@Words.DismissSaved" Position="MokaTooltipPosition.TopEnd">
+						<MokaButton Quiet StartIcon="MokaIcons.Navigation.Close" aria-label="@Words.DismissSaved"
+						            OnClick="DismissUndo"/>
+					</MokaTooltip>
+				</div>
+			}
+		}
+
+		@if (ShowBottomPagination)
+		{
+			@pagerBottom
+		}
+
+		@if (ShowMoreFoot && PagerLook == MokaPagerLook.Endless)
+		{
+			<div class="moka-table-foot moka-table-foot--endless" data-moka-endless @ref="_endlessRef">
+				<span class="moka-table-foot-count" aria-live="polite">@ShowMoreCountText</span>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+				            OnClick="ShowMoreRowsAsync">@ShowMoreButtonText</MokaButton>
+			</div>
+		}
+		else if (ShowMoreFoot)
 		{
 			<div class="moka-table-foot">
 				<span class="moka-table-foot-count" aria-live="polite">@ShowMoreCountText</span>
@@ -641,21 +1273,45 @@
 		}
 	};
 
+	// The rows, beside the facet panel when the table has one.
+	RenderFragment mainArea = builder =>
+	{
+		@if (ShowFacets)
+		{
+			<div class="moka-table-faceted">
+				<MokaTableFacets TItem="TItem" Table="this"/>
+				<div class="moka-table-faceted-main">@tableArea</div>
+			</div>
+		}
+		else
+		{
+			@tableArea
+		}
+	};
+
 	// The toolbar, the selection bar and the chooser: above the frame, or its first rows with ToolbarInFrame.
 	RenderFragment toolbarArea = builder =>
 	{
+		_viewNow = ShowViews ? ViewOf(BuildState()) : null;
 		@* Selection action bar - replaces toolbar when items are selected *@
-		@if (_selectedItems.Count > 0 && SelectionActions is not null && BulkActions is null)
+		@if (SelectionBarShown)
 		{
 			<div class="moka-table-selection-bar">
-				<span class="moka-table-selection-count">@_selectedItems.Count selected</span>
+				<span class="moka-table-selection-count">@Words.SelectedCount(_selectedItems.Count)</span>
 				<div class="moka-table-selection-actions">
-					@SelectionActions(SelectionCopy)
+					@if (ShowCopyRows)
+					{
+						@copyRowsButton
+					}
+					@if (SelectionActions is not null)
+					{
+						@SelectionActions(SelectionCopy)
+					}
 				</div>
-				<button type="button" class="moka-table-selection-clear" @onclick="ClearSelection">Clear</button>
+				<button type="button" class="moka-table-selection-clear" @onclick="ClearSelection">@Words.Clear</button>
 			</div>
 		}
-		else if (ShowToolbar && (Title is not null || TitleContent is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews))
+		else if (ShowToolbar && (Title is not null || TitleContent is not null || Searchable || ToolbarContent is not null || Exportable || ShowColumnToggle || ShowRefresh || ShowDensityToggle || ShowColumnChooser || ShowViews || CanAddRows || HasControl(MokaTableFilterControls.Builder)))
 		{
 			@* Toolbar *@
 			<div class="@ToolbarClass">
@@ -671,14 +1327,14 @@
 				@if (Searchable)
 				{
 					<div class="moka-table-search">
-						<input type="text" class="@SearchInputClass"
-						       placeholder="@SearchPlaceholder"
+						<input type="text" class="@SearchInputClass" value="@_searchBoxStart"
+						       placeholder="@Words.SearchPlaceholder"
 						       @key="_searchBoxVersion"
 						       @oninput="NonRendering.Callback<ChangeEventArgs>(HandleSearchInput)"/>
 						@if (!string.IsNullOrEmpty(_searchTerm))
 						{
-							<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
-								<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="Clear search">
+							<MokaTooltip Text="@Words.ClearSearch" Position="MokaTooltipPosition.Bottom" Class="moka-table-search-clear-tip">
+								<button class="moka-table-search-clear" @onclick="ClearSearch" type="button" aria-label="@Words.ClearSearch">
 									<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 								</button>
 							</MokaTooltip>
@@ -686,12 +1342,26 @@
 					</div>
 					@if (!string.IsNullOrEmpty(_searchTerm))
 					{
-						<span class="moka-table-search-count">@_totalItems results</span>
+						<span class="moka-table-search-count">@Words.SearchResults(_totalItems)</span>
 					}
+				}
+				@if (CanAddRows)
+				{
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            StartIcon="MokaIcons.Action.Add" Class="moka-table-add" Disabled="@IsSavingEdit"
+					            OnClick="AddRowAsync">@Words.AddRow</MokaButton>
+				}
+				@if (HasControl(MokaTableFilterControls.Builder))
+				{
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+					            StartIcon="MokaIcons.Content.Filter" Class="moka-table-builder-toggle"
+					            aria-expanded="@(_builderOpen ? "true" : "false")"
+					            aria-controls="@(_builderOpen ? _builderId : null)"
+					            OnClick="ToggleBuilder">@Words.FiltersButton(_filters.Count)</MokaButton>
 				}
 				@if (ShowViews)
 				{
-					<div class="moka-table-views" role="group" aria-label="Saved views">
+					<div class="moka-table-views" role="group" aria-label="@Words.SavedViews">
 						@foreach (MokaTableView view in Views ?? [])
 						{
 							<span class="@ViewClass(view)">
@@ -700,8 +1370,8 @@
 								        @onclick="() => PickViewAsync(view)">@view.Name</button>
 								@if (CanForgetView(view))
 								{
-									<MokaTooltip Text="@($"Forget the view {view.Name}")" Position="MokaTooltipPosition.Bottom">
-										<button type="button" class="moka-table-view-forget" aria-label="@($"Forget the view {view.Name}")"
+									<MokaTooltip Text="@Words.ForgetView(view.Name)" Position="MokaTooltipPosition.Bottom">
+										<button type="button" class="moka-table-view-forget" aria-label="@Words.ForgetView(view.Name)"
 										        @onclick="() => ForgetViewAsync(view)">
 											<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 										</button>
@@ -713,16 +1383,16 @@
 						{
 							<span class="moka-table-view-new">
 								<input type="text" class="moka-table-view-name"
-								       maxlength="@MaxViewNameLength" placeholder="Name this view" aria-label="Name for this view"
+								       maxlength="@MaxViewNameLength" placeholder="@Words.NameThisView" aria-label="@Words.NameForView"
 								       aria-invalid="@(_viewNameProblem is null ? null : "true")"
 								       @ref="_viewNameRef"
 								       @oninput="NonRendering.Callback<ChangeEventArgs>(e => _viewName = e.Value?.ToString())"
 								       @onkeydown="NonRendering.Callback<KeyboardEventArgs>(HandleViewNameKey)"
 								       @onkeydown:stopPropagation="true"/>
 								<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
-								            OnClick="SaveViewAsync">Save</MokaButton>
+								            OnClick="SaveViewAsync">@Words.Save</MokaButton>
 								<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-								            OnClick="CancelNamingView">Cancel</MokaButton>
+								            OnClick="CancelNamingView">@Words.Cancel</MokaButton>
 								@if (_viewNameProblem is not null)
 								{
 									<span class="moka-table-view-problem" role="alert">@_viewNameProblem</span>
@@ -732,7 +1402,7 @@
 						else if (ViewSaved.HasDelegate)
 						{
 							<button type="button" class="moka-table-view-save" title="@SaveViewHint"
-							        disabled="@(!CanSaveView)" @onclick="StartNamingView">Save this view</button>
+							        disabled="@(!CanSaveView)" @onclick="StartNamingView">@Words.SaveThisView</button>
 						}
 					</div>
 				}
@@ -748,9 +1418,9 @@
 				{
 					<div class="moka-table-column-toggle" @ref="_columnToggleRef">
 						@* No tooltip while the menu is open: it would cover the menu under the pointer. *@
-						<MokaTooltip Text="@(_showColumnMenu ? null : "Toggle columns")" Position="ToolbarTooltip(ToolbarButton.Columns)">
+						<MokaTooltip Text="@(_showColumnMenu ? null : Words.ToggleColumns)" Position="ToolbarTooltip(ToolbarButton.Columns)">
 							<button type="button" class="moka-table-column-toggle-btn" @onclick="() => _showColumnMenu = !_showColumnMenu"
-							        aria-label="Toggle columns" aria-expanded="@(_showColumnMenu ? "true" : "false")">
+							        aria-label="@Words.ToggleColumns" aria-expanded="@(_showColumnMenu ? "true" : "false")">
 								<MokaIcon Icon="MokaIcons.Content.Columns" SizeValue="14px"/>
 							</button>
 						</MokaTooltip>
@@ -760,8 +1430,8 @@
 								@foreach (var col in _columns.Where(static c => !c.Fixed))
 								{
 									<label class="moka-table-column-menu-item" @key="col">
-										<input type="checkbox" checked="@IsColumnVisible(col)" @onchange="() => ToggleColumnVisibilityAsync(col)"/>
-										@(col.Title ?? "Unnamed")
+										<input type="checkbox" @bind:get="IsColumnVisible(col)" @bind:set="show => SetColumnVisibleAsync(col, show)"/>
+										@ColumnName(col)
 									</label>
 								}
 							</div>
@@ -770,27 +1440,59 @@
 				}
 				@if (Exportable)
 				{
-					<MokaTooltip Text="Export" Position="ToolbarTooltip(ToolbarButton.Export)">
-						<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" aria-label="Export">
-							<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
-						</button>
-					</MokaTooltip>
+					<div class="moka-table-export" @ref="_exportToggleRef">
+						<MokaTooltip Text="@(_showExportMenu ? null : Words.Export)" Position="ToolbarTooltip(ToolbarButton.Export)">
+							<button type="button" class="moka-table-toolbar-btn" @onclick="HandleExport" aria-label="@Words.Export"
+							        aria-haspopup="@(ExportMenu ? "menu" : null)"
+							        aria-expanded="@(ExportMenu ? (_showExportMenu ? "true" : "false") : null)">
+								<MokaIcon Icon="MokaIcons.Action.Download" SizeValue="14px"/>
+							</button>
+						</MokaTooltip>
+						@if (_showExportMenu && ExportMenu)
+						{
+							<div class="moka-table-export-menu" popover="manual" data-moka-popup role="menu" aria-label="@Words.Export"
+							     @ref="_exportMenuRef">
+								<button type="button" class="moka-table-export-item" role="menuitem"
+								        @onclick="() => ExportAsync(MokaTableExportFormat.Csv)">@Words.ExportCsv</button>
+								<button type="button" class="moka-table-export-item" role="menuitem"
+								        @onclick="() => ExportAsync(MokaTableExportFormat.Excel)">@Words.ExportExcel</button>
+							</div>
+						}
+					</div>
 				}
 				@if (ShowRefresh)
 				{
-					<MokaTooltip Text="Refresh" Position="ToolbarTooltip(ToolbarButton.Refresh)">
-						<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" aria-label="Refresh">
+					<MokaTooltip Text="@Words.Refresh" Position="ToolbarTooltip(ToolbarButton.Refresh)">
+						<button type="button" class="moka-table-toolbar-btn" @onclick="HandleRefresh" aria-label="@Words.Refresh">
 							<MokaIcon Icon="MokaIcons.Action.Refresh" SizeValue="14px"/>
 						</button>
 					</MokaTooltip>
 				}
 				@if (ShowDensityToggle)
 				{
-					<MokaTooltip Text="@DensityLabel" Position="ToolbarTooltip(ToolbarButton.Density)">
-						<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensity" aria-label="@DensityLabel">
-							<MokaIcon Icon="@(_dense ? MokaIcons.Content.RowsComfortable : MokaIcons.Content.RowsDense)" SizeValue="14px"/>
-						</button>
-					</MokaTooltip>
+					<div class="moka-table-density" @ref="_densityToggleRef">
+						@* No tooltip while the menu is open: it would cover the menu under the pointer. *@
+						<MokaTooltip Text="@(_showDensityMenu ? null : Words.Density)" Position="ToolbarTooltip(ToolbarButton.Density)">
+							<button type="button" class="moka-table-toolbar-btn" @onclick="ToggleDensityMenu"
+							        aria-label="@Words.Density" aria-expanded="@(_showDensityMenu ? "true" : "false")">
+								<MokaIcon Icon="DensityIcon" SizeValue="14px"/>
+							</button>
+						</MokaTooltip>
+						@if (_showDensityMenu)
+						{
+							<div class="moka-table-density-menu" popover="manual" data-moka-popup @ref="_densityMenuRef"
+							     role="radiogroup" aria-label="@Words.Density">
+								@foreach (var density in Densities)
+								{
+									<label class="moka-table-density-item" @key="density">
+										<input type="radio" name="@_densityGroupName" checked="@(density == _density)"
+										       @onchange="() => PickDensityAsync(density)"/>
+										@DensityName(density)
+									</label>
+								}
+							</div>
+						}
+					</div>
 				}
 				@if (ToolbarContent is not null)
 				{
@@ -804,9 +1506,9 @@
 		@if (ShowColumnChooser && _chooserOpen)
 		{
 			var chooserColumns = ChooserColumns();
-			<div class="moka-table-chooser" id="@_chooserId" role="group" aria-label="Columns"
+			<div class="moka-table-chooser" id="@_chooserId" role="group" aria-label="@Words.ColumnsGroup"
 			     @onkeydown="HandleChooserKey" @onkeydown:stopPropagation="true">
-				<span class="moka-table-chooser-note">Show, hide and order the columns. On the table itself, a heading's right edge drags to resize it, and the left and right arrow keys move a focused edge.</span>
+				<span class="moka-table-chooser-note">@Words.ChooserNote</span>
 				<ol class="moka-table-chooser-list">
 					@for (var i = 0; i < chooserColumns.Count; i++)
 					{
@@ -816,8 +1518,8 @@
 						var widthText = ColumnWidthText(col);
 						<li class="moka-table-chooser-item" @key="col">
 							<label class="moka-table-chooser-show">
-								<input type="checkbox" checked="@IsColumnVisible(col)" aria-label="@($"Show {col.Title}")"
-								       @onchange="() => ToggleColumnVisibilityAsync(col)"/>
+								<input type="checkbox" aria-label="@Words.ShowColumn(col.Title!)"
+								       @bind:get="IsColumnVisible(col)" @bind:set="show => SetColumnVisibleAsync(col, show)"/>
 								<span>@col.Title</span>
 							</label>
 							@if (widthText is not null)
@@ -826,12 +1528,12 @@
 								            OnClick="() => ResetColumnWidthAsync(col)">@widthText</MokaButton>
 							}
 							<span class="moka-table-chooser-moves">
-								<MokaTooltip Text="@($"Move {col.Title} earlier")" Position="MokaTooltipPosition.Top">
-									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowUp" aria-label="@($"Move {col.Title} earlier")"
+								<MokaTooltip Text="@Words.MoveEarlier(col.Title!)" Position="MokaTooltipPosition.Top">
+									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowUp" aria-label="@Words.MoveEarlier(col.Title!)"
 									            Disabled="@(earlier is null)" OnClick="() => MoveInChooserAsync(col, earlier!, earlier: true)"/>
 								</MokaTooltip>
-								<MokaTooltip Text="@($"Move {col.Title} later")" Position="MokaTooltipPosition.Top">
-									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowDown" aria-label="@($"Move {col.Title} later")"
+								<MokaTooltip Text="@Words.MoveLater(col.Title!)" Position="MokaTooltipPosition.Top">
+									<MokaButton Quiet StartIcon="MokaIcons.Navigation.ArrowDown" aria-label="@Words.MoveLater(col.Title!)"
 									            Disabled="@(later is null)" OnClick="() => MoveInChooserAsync(col, later!, earlier: false)"/>
 								</MokaTooltip>
 							</span>
@@ -840,26 +1542,107 @@
 				</ol>
 				<div class="moka-table-chooser-foot">
 					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
-					            Disabled="@(!CanResetLayout)" OnClick="ResetArrangementAsync">Put the columns back as they were</MokaButton>
+					            Disabled="@(!CanResetLayout)" OnClick="ResetArrangementAsync">@Words.PutColumnsBack</MokaButton>
 					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
-					            OnClick="CloseChooser">Done</MokaButton>
+					            OnClick="CloseChooser">@Words.Done</MokaButton>
 				</div>
+			</div>
+		}
+
+		@if (_builderOpen && HasControl(MokaTableFilterControls.Builder))
+		{
+			<MokaTableFilterBuilder TItem="TItem" Table="this" Id="@_builderId"/>
+		}
+
+		@if (QuickFilters is { Count: > 0 } quickFilters)
+		{
+			<div class="moka-table-quick">
+				@if (QuickFilterLook == MokaQuickFilterLook.Tabs)
+				{
+					<MokaTabs Items="QuickTabs(quickFilters)" Active="@(_quickFilter ?? AllQuickKey)"
+					          ActiveChanged="PickQuickSegmentAsync" Label="@Words.QuickFilters"/>
+				}
+				else
+				{
+					<MokaSegmentedControl Value="@(_quickFilter ?? AllQuickKey)" ValueChanged="PickQuickSegmentAsync"
+					                      AriaLabel="@Words.QuickFilters" Controlled="true">
+						<MokaSegment Value="@AllQuickKey" Text="@Words.AllRows" Count="AllRowsCount"/>
+						@foreach (var quick in quickFilters)
+						{
+							<MokaSegment Value="@quick.Name" Text="@quick.Name" Count="QuickCountOf(quick.Name)" @key="quick.Name"/>
+						}
+					</MokaSegmentedControl>
+				}
+			</div>
+		}
+
+		@if (ShowChips)
+		{
+			<div class="moka-table-chips" role="group" aria-label="@Words.FiltersInForce">
+				@foreach (var filter in _filters)
+				{
+					var summary = FilterSummary(filter);
+					<span class="moka-table-chip">
+						<span class="moka-table-chip-text">@summary</span>
+						<MokaTooltip Text="@Words.RemoveFilter(summary)" Position="MokaTooltipPosition.Bottom">
+							<button type="button" class="moka-table-chip-remove" aria-label="@Words.RemoveFilter(summary)"
+							        @onclick="() => RemoveFilterAsync(filter)">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+							</button>
+						</MokaTooltip>
+					</span>
+				}
+				@if (_filterJoin == MokaFilterJoin.Any && _filters.Count > 1)
+				{
+					<span class="moka-table-chips-join">@Words.MatchingAny</span>
+				}
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+				            OnClick="ClearFiltersAsync">@Words.ClearAll</MokaButton>
+			</div>
+		}
+
+		@if (ShowGroupBar)
+		{
+			<div class="moka-table-group-bar" role="group" aria-label="@Words.Grouping">
+				<span class="moka-table-group-bar-label">@Words.GroupedBy</span>
+				@foreach (var col in GroupColumns())
+				{
+					<span class="moka-table-chip">
+						<span class="moka-table-chip-text">@col.Title</span>
+						<MokaTooltip Text="@Words.StopGrouping(col.Title!)" Position="MokaTooltipPosition.Bottom">
+							<button type="button" class="moka-table-chip-remove" aria-label="@Words.StopGrouping(col.Title!)"
+							        @onclick="() => StopGroupingAsync(col.Title!)">
+								<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+							</button>
+						</MokaTooltip>
+					</span>
+				}
+				<span class="moka-table-toolbar-spacer"></span>
+				@if (GroupsCollapsible)
+				{
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+					            OnClick="ExpandAllGroupsAsync">@Words.ExpandAllGroups</MokaButton>
+					<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+					            OnClick="CollapseAllGroupsAsync">@Words.CollapseAllGroups</MokaButton>
+				}
 			</div>
 		}
 	};
 }
 
-<CascadingValue Value="this" IsFixed="true">
-	@* Hidden - column definitions are captured via CascadingParameter *@
-	<div style="display:none">@ChildContent</div>
-</CascadingValue>
+@* The columns, the pager part and the column groups find the table through the one cascade. It is handed the table's
+   own ChildContent, so it and the parts draw again only when the parent passes new ones, not on every render of the
+   table. *@
+<div style="display:none">
+	<CascadingValue TValue="IMokaTablePartHost" Value="this" IsFixed="true" ChildContent="ChildContent"/>
+</div>
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_wrapperRef" @attributes="AdditionalAttributes">
 @if (ToolbarInsideFrame)
 {
 	<div class="moka-table-frame">
 		@toolbarArea
-		@tableArea
+		@mainArea
 	</div>
 }
 else
@@ -867,11 +1650,26 @@ else
 	@toolbarArea
 	@if (Framed)
 	{
-		<div class="moka-table-frame">@tableArea</div>
+		<div class="moka-table-frame">@mainArea</div>
 	}
 	else
 	{
-		@tableArea
+		@mainArea
 	}
+}
+@foreach (var col in _columns)
+{
+	if (col.Overlay is { } overlay)
+	{
+		@overlay
+	}
+}
+@if (_menuColumn is { } menuColumn)
+{
+	<MokaTableColumnMenu TItem="TItem" Table="this" Column="menuColumn" @key="menuColumn"/>
+}
+@if (_filterColumn is { } filterColumn)
+{
+	<MokaTableFilterPopup TItem="TItem" Table="this" Column="filterColumn" Anchor="@_filterAnchor" @key="filterColumn"/>
 }
 </div>

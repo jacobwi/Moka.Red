@@ -13,7 +13,7 @@
 		</span>
 		<input class="@InputCssClass" style="@InputStyle"
 		       type="search"
-		       @bind:get="_value"
+		       @bind:get="Text"
 		       @bind:set="HandleInput"
 		       @bind:event="oninput"
 		       placeholder="@Placeholder"
@@ -26,7 +26,7 @@
 				<MokaIcon Icon="MokaIcons.Status.Loading" SizeValue="14px" Class="moka-search-spinner-svg"/>
 			</span>
 		}
-		else if (Clearable && !string.IsNullOrEmpty(_value))
+		else if (Clearable && !string.IsNullOrEmpty(Text))
 		{
 			<MokaTooltip Text="Clear search" Position="MokaTooltipPosition.BottomEnd" Class="moka-search-clear-tip">
 				<button type="button"
@@ -38,7 +38,7 @@
 				</button>
 			</MokaTooltip>
 		}
-		else if (ShowShortcut && string.IsNullOrEmpty(_value))
+		else if (ShowShortcut && string.IsNullOrEmpty(Text))
 		{
 			<MokaKbd Class="moka-search-shortcut" aria-hidden="true">/</MokaKbd>
 		}

@@ -16,12 +16,10 @@ namespace Moka.Red.Forms.TreeSelect;
 /// <typeparam name="TValue">The type of the selectable value.</typeparam>
 public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 {
-	// What the select shows. Value and SelectedValues only replace it when the parent passes new
-	// values, so a re-render that passes the old ones cannot undo a pick (gotcha #9).
-	private TValue? _value;
-	private TValue? _lastValueParameter;
-	private IReadOnlyList<TValue>? _selectedValues;
-	private IReadOnlyList<TValue>? _lastSelectedValuesParameter;
+	// What the select shows, apart from Value and SelectedValues: a pick shows before the parent answers, and a
+	// re-render that passes the old values cannot undo it (gotcha #9). Two lists with the same values are the same.
+	private readonly MokaInputValue<IReadOnlyList<TValue>?> _selected;
+	private readonly MokaInputValue<TValue?> _value;
 
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
@@ -34,6 +32,14 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 	private bool _watchingSide;
 	private ElementReference _root;
 	private string _searchText = string.Empty;
+
+	/// <summary>Creates the select. It shows its own choice until the parent passes one.</summary>
+	public MokaTreeSelect()
+	{
+		_value = new MokaInputValue<TValue?>(StateHasChanged, DispatchExceptionAsync);
+		_selected = new MokaInputValue<IReadOnlyList<TValue>?>(StateHasChanged, DispatchExceptionAsync,
+			comparer: MokaSequenceComparer<TValue>.Default);
+	}
 
 	/// <summary>The currently selected value in single-selection mode.</summary>
 	[Parameter]
@@ -150,26 +156,30 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
+	private TValue? Chosen => _value.Shown;
+
+	private IReadOnlyList<TValue> ChosenList => _selected.Shown ?? [];
+
 	private string DisplayText
 	{
 		get
 		{
-			if (Multiple && _selectedValues is { Count: > 0 })
+			if (Multiple && ChosenList.Count > 0)
 			{
-				return $"{_selectedValues.Count} selected";
+				return $"{ChosenList.Count} selected";
 			}
 
-			if (_value is not null)
+			if (Chosen is { } chosen)
 			{
-				MokaTreeSelectItem<TValue>? item = FindItem(Items, _value);
-				return item?.Text ?? _value.ToString() ?? string.Empty;
+				MokaTreeSelectItem<TValue>? item = FindItem(Items, chosen);
+				return item?.Text ?? chosen.ToString() ?? string.Empty;
 			}
 
 			return Placeholder ?? string.Empty;
 		}
 	}
 
-	private bool HasValue => Multiple ? _selectedValues is { Count: > 0 } : _value is not null;
+	private bool HasValue => Multiple ? ChosenList.Count > 0 : Chosen is not null;
 
 	/// <summary>Tree select has internal open/expand/search state that changes independently of parameters.</summary>
 	protected override bool ShouldRender() => true;
@@ -225,25 +235,25 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 		}
 
+		_value.Stop();
+		_selected.Stop();
 		await base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
+		_value.Take(parameters, nameof(Value));
+		_selected.Take(parameters, nameof(SelectedValues));
+		return base.SetParametersAsync(parameters);
+	}
 
-		if (!EqualityComparer<TValue>.Default.Equals(Value, _lastValueParameter))
-		{
-			_lastValueParameter = Value;
-			_value = Value;
-		}
-
-		if (!ReferenceEquals(SelectedValues, _lastSelectedValuesParameter))
-		{
-			_lastSelectedValuesParameter = SelectedValues;
-			_selectedValues = SelectedValues;
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_value.AfterRender();
+		_selected.AfterRender();
 	}
 
 	private void ToggleDropdown()
@@ -266,7 +276,7 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 		_searchText = string.Empty;
 	}
 
-	private async Task SelectItemAsync(MokaTreeSelectItem<TValue> item)
+	private void SelectItem(MokaTreeSelectItem<TValue> item)
 	{
 		if (item.Disabled)
 		{
@@ -275,7 +285,7 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 
 		if (Multiple)
 		{
-			List<TValue> current = _selectedValues?.ToList() ?? [];
+			List<TValue> current = [.. ChosenList];
 			if (current.Any(v => EqualityComparer<TValue>.Default.Equals(v, item.Value)))
 			{
 				current.RemoveAll(v => EqualityComparer<TValue>.Default.Equals(v, item.Value));
@@ -285,14 +295,15 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 				current.Add(item.Value);
 			}
 
-			_selectedValues = current;
-			await SelectedValuesChanged.InvokeAsync(_selectedValues);
+			_selected.Pick(current, SelectedValuesChanged);
 		}
 		else
 		{
-			_value = item.Value;
-			await ValueChanged.InvokeAsync(_value);
 			CloseDropdown();
+			if (!EqualityComparer<TValue>.Default.Equals(Chosen, item.Value))
+			{
+				_value.Pick(item.Value, ValueChanged);
+			}
 		}
 	}
 
@@ -310,10 +321,11 @@ public partial class MokaTreeSelect<TValue> : MokaVisualComponentBase
 	{
 		if (Multiple)
 		{
-			return _selectedValues?.Any(v => EqualityComparer<TValue>.Default.Equals(v, value)) ?? false;
+			return ChosenList.Any(v => EqualityComparer<TValue>.Default.Equals(v, value));
 		}
 
-		return EqualityComparer<TValue>.Default.Equals(_value, value);
+		return EqualityComparer<TValue>.Default.Equals(Chosen, value);
+
 	}
 
 	private bool MatchesSearch(MokaTreeSelectItem<TValue> item)

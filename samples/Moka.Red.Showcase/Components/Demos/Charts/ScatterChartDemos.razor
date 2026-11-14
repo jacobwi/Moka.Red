@@ -1,0 +1,163 @@
+@using System.Globalization
+@using Moka.Red.Core.Charts
+
+<DemoSection Id="scatter" Title="Scatter">
+	<MokaScatterChart Title="Devices by connections and data used" Subtitle="Last 24 hours, one dot per device"
+	                  Series="@Devices" XName="connections" YName="used" Unit="Gb"
+	                  Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="bubble" Title="Bubble">
+	<MokaScatterChart Title="Services by load and errors" Subtitle="Last hour. Area is CPU cores in use"
+	                  Series="@Services" XName="requests/min" YName="errors" SizeName="CPU cores"
+	                  Unit="MokaChartUnit.Percent" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="many-points" Title="Many points" Description="Past 2,000 points a series keeps one dot per 2 px cell; brush or Ctrl and the wheel to zoom.">
+	<MokaSegmentedControl Value="@_points.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetPoints" AriaLabel="Points">
+		<MokaSegment Value="1000" Text="1,000 points"/>
+		<MokaSegment Value="100000" Text="100,000"/>
+	</MokaSegmentedControl>
+	<MokaScatterChart Title="Requests by size and time" Series="@_bigScatter" XName="KB" YName="response time"
+	                  Unit="MokaChartUnit.Milliseconds" DataVersion="@_points" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
+	                  Controls="Tools"/>
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export | MokaChartControls.ResetZoom;
+
+	private static readonly MokaChartUnit Gb = MokaChartUnit.Of("GB");
+
+	private static readonly MokaScatterSeries[] Devices = DeviceSeries();
+
+	private static MokaScatterSeries[] DeviceSeries()
+	{
+		Random random = new(31);
+		MokaScatterPoint[] Make(string prefix, int count, double connections, double connectionSpread, double gb, double gbSpread) =>
+		[
+			.. Enumerable.Range(0, count).Select(i => new MokaScatterPoint(
+				Math.Max(8, Math.Round(connections + connectionSpread * Gauss(random))),
+				Math.Max(0.1, Math.Round(gb + gbSpread * Gauss(random), 1)), null,
+				$"{prefix}-{(i + 1).ToString("00", CultureInfo.InvariantCulture)}"))
+		];
+		MokaScatterPoint[] iot = [.. Make("iot", 13, 290, 55, 0.9, 0.7), new(214, 26.4, null, "tv-living-room")];
+		return
+		[
+			new("Laptops", Make("laptop", 13, 190, 50, 11, 3.6)),
+			new("Phones", Make("phone", 14, 80, 32, 3.2, 1.4)),
+			new("IoT", iot)
+		];
+	}
+
+	private static double Gauss(Random random)
+	{
+		double u = 1 - random.NextDouble();
+		double v = random.NextDouble();
+		return Math.Sqrt(-2 * Math.Log(u)) * Math.Cos(2 * Math.PI * v);
+	}
+
+	private static readonly MokaScatterSeries[] Services =
+	[
+		new("Services",
+		[
+			new(4200, 0.4, 6, "api"), new(2600, 1.1, 8, "search"), new(2100, 1.8, 3, "sync"), new(1800, 0.2, 2, "auth"),
+			new(1200, 0.6, 3, "files"), new(900, 2.4, 4, "thumbs"), new(450, 0.1, 1, "billing"), new(300, 0.9, 1, "mail")
+		])
+	];
+
+	private static string Percent(double value) => value.ToString("0.##", CultureInfo.CurrentCulture) + "%";
+
+	private static readonly DateTimeOffset Midnight = new(2026, 11, 11, 0, 0, 0, TimeSpan.Zero);
+
+	private static readonly DateTimeOffset Night = Midnight.AddMinutes(310);
+
+	private string _preset = "Red";
+
+	private bool _dark = true;
+
+	private MokaChartLook _look = MokaChartLook.Quiet;
+
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+
+	private MokaChartTexture _texture = MokaChartTexture.None;
+
+	private int _rows = 1000;
+
+	private int _points = 100_000;
+
+	private MokaTheme _theme = MokaTheme.Red;
+
+	private MokaGanttRow[] _longJobs = [];
+
+	private MokaDotPlotRow[] _longDots = [];
+
+	private MokaScatterSeries[] _bigScatter = [];
+
+	protected override void OnInitialized()
+	{
+		BuildTheme();
+		BuildRows();
+		BuildPoints();
+	}
+
+	private void SetPoints(string value)
+	{
+		_points = int.Parse(value, CultureInfo.InvariantCulture);
+		BuildPoints();
+	}
+
+	private void BuildTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Matrix" => _dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void BuildRows()
+	{
+		Random random = new(7);
+		string[] kinds = ["backup", "sync", "scan", "thumbs", "report", "index"];
+		_longJobs =
+		[
+			.. Enumerable.Range(0, _rows).Select(i =>
+			{
+				DateTimeOffset start = Midnight.AddMinutes(i * (14d * 60 / _rows) + random.NextDouble() * 30);
+				double minutes = 3 + random.NextDouble() * 80;
+				double roll = random.NextDouble();
+				MokaGanttStatus status = roll < 0.06 ? MokaGanttStatus.Failed : roll < 0.1 ? MokaGanttStatus.Skipped : MokaGanttStatus.Done;
+				bool running = start.AddMinutes(minutes) > Night.AddHours(14);
+				return new MokaGanttRow($"{kinds[i % kinds.Length]}-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}", start)
+				{
+					End = running ? null : start.AddMinutes(minutes),
+					Status = running ? MokaGanttStatus.Running : status
+				};
+			})
+		];
+		_longDots =
+		[
+			.. Enumerable.Range(0, _rows).Select(i => new MokaDotPlotRow(
+				$"device-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}.lan", Math.Round(4 + Math.Exp(random.NextDouble() * 5), 1)))
+		];
+	}
+
+	private void BuildPoints()
+	{
+		Random random = new(11);
+		MokaScatterPoint[] Cluster(int count, double size, double sizeSpread, double time, double timeSpread) =>
+		[
+			.. Enumerable.Range(0, count).Select(_ => new MokaScatterPoint(
+				Math.Max(0.1, size * Math.Exp(sizeSpread * Gauss(random))), Math.Max(1, time + timeSpread * Gauss(random))))
+		];
+		_bigScatter =
+		[
+			new MokaScatterSeries("Cached", Cluster(_points * 3 / 4, 40, 0.8, 30, 10)),
+			new MokaScatterSeries("Origin", Cluster(_points / 4, 160, 0.6, 180, 60))
+		];
+	}
+}

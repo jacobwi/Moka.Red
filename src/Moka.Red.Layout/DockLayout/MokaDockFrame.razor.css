@@ -1,0 +1,479 @@
+/* A layout can sit inside another one's panel, but a panel's content is drawn from the hosts beside the main area,
+   never inside it, so anchoring on .moka-dock-main reaches only this layout's own frame. Splits nest, so a split
+   reaches its own gutters and cells with child combinators. */
+
+.moka-dock-main {
+	grid-area: main;
+	position: relative;
+	display: grid;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-dock-split {
+	display: grid;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-dock-split--row {
+	grid-template-rows: minmax(0, 1fr);
+}
+
+.moka-dock-split--column {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.moka-dock-split > .moka-dock-cell {
+	display: grid;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	min-width: 0;
+	min-height: 0;
+}
+
+/* A gutter is the line between two cells; its grab zone reaches a little over both from a pseudo-element, which no
+   ancestor clips (gotcha 26). It sits above the panel hosts, which come later in the document, at local level 1. */
+.moka-dock-split > .moka-dock-gutter {
+	position: relative;
+	z-index: 1;
+	background: var(--moka-color-outline-variant);
+	touch-action: none;
+}
+
+.moka-dock-split > .moka-dock-gutter:not(.moka-dock-gutter--fixed)::before {
+	content: "";
+	position: absolute;
+}
+
+.moka-dock-split--row > .moka-dock-gutter {
+	cursor: col-resize;
+}
+
+.moka-dock-split--row > .moka-dock-gutter::before {
+	inset-block: 0;
+	inset-inline: calc(var(--moka-spacing-xs) * -1);
+}
+
+.moka-dock-split--column > .moka-dock-gutter {
+	cursor: row-resize;
+}
+
+.moka-dock-split--column > .moka-dock-gutter::before {
+	inset-inline: 0;
+	inset-block: calc(var(--moka-spacing-xs) * -1);
+}
+
+.moka-dock-split > .moka-dock-gutter--fixed {
+	cursor: default;
+}
+
+.moka-dock-split > .moka-dock-gutter:not(.moka-dock-gutter--fixed):hover,
+.moka-dock-split > .moka-dock-gutter[data-moka-dragging] {
+	background: var(--moka-color-primary);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-dock-split > .moka-dock-gutter:focus-visible {
+	outline: none;
+	background: var(--moka-color-primary);
+}
+
+.moka-dock-split > .moka-dock-gutter:focus-visible::before {
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* Floating windows sit over the docked groups, in the order the state keeps them, the last in front. The size and
+   place clamp to the layout, so a window stays on screen when the layout shrinks and comes back when it grows. */
+.moka-dock-main > .moka-dock-float {
+	position: absolute;
+	display: grid;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	box-sizing: border-box;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-modal);
+	overflow: hidden;
+}
+
+.moka-dock-main > .moka-dock-float--maximized {
+	inset: 0;
+	border-radius: 0;
+}
+
+.moka-dock-main > .moka-dock-float > .moka-dock-float__edge {
+	position: absolute;
+	z-index: 1;
+	touch-action: none;
+}
+
+.moka-dock-float__edge--n,
+.moka-dock-float__edge--s {
+	inset-inline: var(--moka-spacing-sm);
+	height: var(--moka-spacing-xs);
+	cursor: ns-resize;
+}
+
+.moka-dock-float__edge--n {
+	top: 0;
+}
+
+.moka-dock-float__edge--s {
+	bottom: 0;
+}
+
+.moka-dock-float__edge--e,
+.moka-dock-float__edge--w {
+	inset-block: var(--moka-spacing-sm);
+	width: var(--moka-spacing-xs);
+	cursor: ew-resize;
+}
+
+.moka-dock-float__edge--e {
+	right: 0;
+}
+
+.moka-dock-float__edge--w {
+	left: 0;
+}
+
+.moka-dock-float__edge--ne,
+.moka-dock-float__edge--nw,
+.moka-dock-float__edge--se,
+.moka-dock-float__edge--sw {
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+}
+
+.moka-dock-float__edge--ne {
+	top: 0;
+	right: 0;
+	cursor: nesw-resize;
+}
+
+.moka-dock-float__edge--sw {
+	bottom: 0;
+	left: 0;
+	cursor: nesw-resize;
+}
+
+.moka-dock-float__edge--nw {
+	top: 0;
+	left: 0;
+	cursor: nwse-resize;
+}
+
+.moka-dock-float__edge--se {
+	right: 0;
+	bottom: 0;
+	cursor: nwse-resize;
+}
+
+/* A pinned group opens over the content from its side bar. */
+.moka-dock-main > .moka-dock-flyout {
+	position: absolute;
+	z-index: 2;
+	display: grid;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-modal);
+	animation-duration: var(--moka-transition-normal);
+	animation-fill-mode: backwards;
+}
+
+.moka-dock-flyout--left,
+.moka-dock-flyout--right {
+	inset-block: 0;
+	width: min(var(--_flyout-size), 85%);
+}
+
+.moka-dock-flyout--top,
+.moka-dock-flyout--bottom {
+	inset-inline: 0;
+	height: min(var(--_flyout-size), 85%);
+}
+
+.moka-dock-flyout--left {
+	left: 0;
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	animation-name: moka-dock-from-left;
+}
+
+.moka-dock-flyout--right {
+	right: 0;
+	border-left: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	animation-name: moka-dock-from-right;
+}
+
+.moka-dock-flyout--top {
+	top: 0;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	animation-name: moka-dock-from-top;
+}
+
+.moka-dock-flyout--bottom {
+	bottom: 0;
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	animation-name: moka-dock-from-bottom;
+}
+
+@keyframes moka-dock-from-left {
+	from {
+		translate: -100% 0;
+	}
+}
+
+@keyframes moka-dock-from-right {
+	from {
+		translate: 100% 0;
+	}
+}
+
+@keyframes moka-dock-from-top {
+	from {
+		translate: 0 -100%;
+	}
+}
+
+@keyframes moka-dock-from-bottom {
+	from {
+		translate: 0 100%;
+	}
+}
+
+/* Side bars hold the tabs of pinned groups; beside the main area their text runs down the bar. */
+.moka-dock-sidebar {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface);
+}
+
+.moka-dock-sidebar--left {
+	grid-area: left;
+	flex-direction: column;
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-sidebar--right {
+	grid-area: right;
+	flex-direction: column;
+	border-left: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-sidebar--top {
+	grid-area: top;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-sidebar--bottom {
+	grid-area: bottom;
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-sidebar > .moka-dock-sidebar__tab {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.moka-dock-sidebar--left > .moka-dock-sidebar__tab,
+.moka-dock-sidebar--right > .moka-dock-sidebar__tab {
+	writing-mode: vertical-rl;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-xs);
+}
+
+.moka-dock-sidebar > .moka-dock-sidebar__tab:hover {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-dock-sidebar > .moka-dock-sidebar__tab--open {
+	color: var(--moka-color-primary);
+}
+
+.moka-dock-sidebar > .moka-dock-sidebar__tab:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* The activity bar of the IDE look: an icon for every pinned and every closed panel. */
+.moka-dock-activity {
+	grid-area: left;
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xs);
+	border-right: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-dock-activity:empty {
+	display: none;
+}
+
+.moka-dock-activity ::deep .moka-dock-activity__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--moka-height-toolbar-dense);
+	height: var(--moka-height-toolbar-dense);
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+}
+
+.moka-dock-activity ::deep .moka-dock-activity__button:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-dock-activity ::deep .moka-dock-activity__button--open {
+	color: var(--moka-color-primary);
+	box-shadow: inset calc(var(--moka-border-width) * 2) 0 0 var(--moka-color-primary);
+}
+
+.moka-dock-activity ::deep .moka-dock-activity__button--hidden {
+	opacity: 0.6;
+}
+
+/* Narrow layouts. */
+.moka-dock-main--stack {
+	display: flex;
+	flex-direction: column;
+	overflow: auto;
+}
+
+.moka-dock-main--stack > .moka-dock-stack-cell {
+	display: grid;
+	flex: none;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-main--stack > .moka-dock-stack-cell--open {
+	flex: 1 0 12rem;
+}
+
+.moka-dock-narrow-bar {
+	grid-area: bottom;
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+	overflow-x: auto;
+}
+
+.moka-dock-narrow-bar > .moka-dock-narrow-bar__button {
+	display: inline-flex;
+	flex: 1 0 auto;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	min-width: 4rem;
+	padding: var(--moka-spacing-xs);
+	border: 0;
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+}
+
+.moka-dock-narrow-bar > .moka-dock-narrow-bar__button--open {
+	color: var(--moka-color-primary);
+}
+
+.moka-dock-narrow-bar > .moka-dock-narrow-bar__button:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-dock-main > .moka-dock-flyout {
+		animation: none;
+	}
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dock-main > .moka-dock-float {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-dock-main > .moka-dock-float--maximized {
+	border-radius: 0;
+}
+
+.moka-gate .moka-dock-sidebar > .moka-dock-sidebar__tab {
+	border-radius: var(--moka-radius-md);
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dock-sidebar > .moka-dock-sidebar__tab:hover {
+	background: var(--moka-color-surface-hover);
+}
+
+.moka-gate .moka-dock-sidebar > .moka-dock-sidebar__tab--open {
+	background: var(--moka-color-primary-bg);
+	color: var(--moka-color-primary-text);
+}
+
+/* IDE: hairline splitters that thicken in the accent while dragged. */
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-split > .moka-dock-gutter {
+	background: var(--moka-color-outline-variant);
+}
+
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-split > .moka-dock-gutter:not(.moka-dock-gutter--fixed):hover,
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-split > .moka-dock-gutter[data-moka-dragging] {
+	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary);
+	background: var(--moka-color-primary);
+}
+
+/* Cards: the gutters are gaps of page background between raised groups. */
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-split > .moka-dock-gutter {
+	background: transparent;
+}
+
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-split > .moka-dock-gutter:not(.moka-dock-gutter--fixed):hover,
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-split > .moka-dock-gutter[data-moka-dragging] {
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-gate .moka-dock-layout--cards > .moka-dock-sidebar,
+.moka-gate .moka-dock-layout--cards > .moka-dock-activity {
+	border: 0;
+	background: transparent;
+}
+
+/* Minimal: hairline splitters, nothing more. */
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-split > .moka-dock-gutter {
+	background: var(--moka-color-outline-variant);
+}
+
+/* Terminal: square corners and monospace everywhere. */
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main > .moka-dock-float,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-sidebar > .moka-dock-sidebar__tab,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-narrow-bar > .moka-dock-narrow-bar__button {
+	border-radius: 0;
+	font-family: var(--moka-font-family-mono);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-sidebar > .moka-dock-sidebar__tab {
+	text-transform: uppercase;
+}

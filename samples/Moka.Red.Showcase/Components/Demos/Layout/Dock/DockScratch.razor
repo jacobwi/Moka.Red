@@ -1,0 +1,16 @@
+<div class="dock-scratch">
+	<MokaTextArea @bind-Value="_text" Rows="5" Placeholder="Type here, then move this panel" aria-label="Scratch notes"/>
+	<div class="dock-scratch__row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Add" OnClick="Count">Count</MokaButton>
+		<span class="dock-scratch__count">Counted @_count</span>
+	</div>
+</div>
+
+@code {
+
+	private int _count;
+	private string? _text;
+
+	private void Count() => _count++;
+
+}

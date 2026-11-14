@@ -1,0 +1,23 @@
+<DemoSection Id="single-select" Title="Single select" Description="Buttons that stay pressed, one or several at a time.">
+	<MokaToggleGroup @bind-Value="_toggleGroupValue">
+		<MokaToggleGroupItem Value="list" Text="List"/>
+		<MokaToggleGroupItem Value="grid" Text="Grid"/>
+		<MokaToggleGroupItem Value="board" Text="Board"/>
+	</MokaToggleGroup>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @(_toggleGroupValue ?? "none")</MokaText>
+</DemoSection>
+
+<DemoSection Id="multi-select" Title="Multi select">
+	<MokaToggleGroup @bind-Values="_toggleGroupValues" Multiple="true" Color="MokaColor.Secondary">
+		<MokaToggleGroupItem Value="bold" Text="Bold"/>
+		<MokaToggleGroupItem Value="italic" Text="Italic"/>
+		<MokaToggleGroupItem Value="underline" Text="Underline"/>
+	</MokaToggleGroup>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @string.Join(", ", _toggleGroupValues)</MokaText>
+</DemoSection>
+
+@code {
+	private string? _toggleGroupValue = "list";
+
+	private IReadOnlyList<string> _toggleGroupValues = new[] { "bold" };
+}

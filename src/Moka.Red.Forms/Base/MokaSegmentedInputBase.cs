@@ -30,11 +30,15 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	private string? _generatedId;
 	private int _previousSegmentCount;
 
-	// The boxes follow _value, not Value: typing changes it before the parent answers, and a
-	// parent that passes Value one way must not undo the typing by rendering again (gotcha #9).
-	private string? _value;
-	private string? _lastValueParameter;
-	private bool _valueSeeded;
+	// The boxes follow the value _input shows, not Value: typing changes it before the parent answers, and a parent
+	// that passes Value one way must not undo the typing by rendering again (gotcha #9).
+	private readonly MokaInputValue<string?> _input;
+	private bool _synced;
+	private bool _valueTaken;
+
+	/// <summary>Sets up the value the boxes show, apart from the <see cref="Value" /> parameter.</summary>
+	protected MokaSegmentedInputBase() =>
+		_input = new MokaInputValue<string?>(ShowParentValue, DispatchExceptionAsync, comparer: EmptyMeansEmpty.Instance);
 
 	/// <summary>The complete combined value. Two-way bindable.</summary>
 	[Parameter]
@@ -182,6 +186,20 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_valueTaken |= _input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <summary>Shows the parent's value again when it kept its value through a change. An override calls the base.</summary>
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		// Focus moves between boxes in the browser as well: from .NET it waits for a round trip,
@@ -207,15 +225,10 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 			InputRefs = new ElementReference[count];
 		}
 
-		if (!_valueSeeded || !string.Equals(Value, _lastValueParameter, StringComparison.Ordinal))
+		if (!_synced || _valueTaken || resized)
 		{
-			_valueSeeded = true;
-			_lastValueParameter = Value;
-			_value = Value;
-			SyncFromValue();
-		}
-		else if (resized)
-		{
+			_synced = true;
+			_valueTaken = false;
 			SyncFromValue();
 		}
 	}
@@ -224,7 +237,7 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	///     The value the boxes show: the last one typed, or the last new <see cref="Value" /> the
 	///     parent passed.
 	/// </summary>
-	protected string? CurrentValue => _value;
+	protected string? CurrentValue => _input.Shown;
 
 	/// <summary>
 	///     Splits <see cref="CurrentValue" /> into individual segments.
@@ -232,7 +245,7 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	/// </summary>
 	protected virtual void SyncFromValue()
 	{
-		string val = _value ?? "";
+		string val = CurrentValue ?? "";
 
 		if (string.IsNullOrEmpty(Separator))
 		{
@@ -438,16 +451,10 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	protected async Task UpdateValue()
 	{
 		string? newValue = CombineSegments();
-		// Cleared OTP and PIN inputs give "" while IP and MAC give null. Both mean empty.
-		bool changed = !string.Equals(newValue ?? "", _value ?? "", StringComparison.Ordinal);
-		_value = newValue;
+		bool changed = !EmptyMeansEmpty.Instance.Equals(newValue, CurrentValue);
+		_input.Pick(newValue, ValueChanged);
 
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync(newValue);
-		}
-
-		// After the callback, so the validator reads a model that already holds the new value.
+		// After the callback, so the validator reads a model a bound parent has already given the new value.
 		if (changed && _editContext is not null && _fieldIdentifier is { } bound)
 		{
 			_editContext.NotifyFieldChanged(bound);
@@ -487,8 +494,25 @@ public abstract class MokaSegmentedInputBase : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override ValueTask DisposeAsyncCore()
 	{
+		_input.Stop();
 		DetachEditContext();
 		return base.DisposeAsyncCore();
+	}
+
+	private void ShowParentValue()
+	{
+		SyncFromValue();
+		StateHasChanged();
+	}
+
+	// Cleared OTP and PIN inputs give "" while IP and MAC give null. Both mean empty.
+	private sealed class EmptyMeansEmpty : IEqualityComparer<string?>
+	{
+		public static readonly EmptyMeansEmpty Instance = new();
+
+		public bool Equals(string? x, string? y) => string.Equals(x ?? "", y ?? "", StringComparison.Ordinal);
+
+		public int GetHashCode(string? obj) => (obj ?? "").GetHashCode(StringComparison.Ordinal);
 	}
 
 	private void AttachEditContext()

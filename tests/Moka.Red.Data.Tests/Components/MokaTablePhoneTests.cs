@@ -20,7 +20,8 @@ public class MokaTablePhoneTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Render(Name, Team);
 
-		Assert.Empty(cut.FindAll("[role]"));
+		// The table is a grid; its rows and cells keep the roles their elements give them.
+		Assert.Equal(["grid"], cut.FindAll("[role]").Select(static element => element.GetAttribute("role")));
 		Assert.Empty(cut.FindAll(".moka-table--phone, .moka-table-wrapper--phone, .moka-table-row--phone"));
 		Assert.Empty(cut.FindAll("[class*='moka-table-cell--phone']"));
 		Assert.False(cut.Find("table").HasAttribute("style"));
@@ -32,12 +33,12 @@ public class MokaTablePhoneTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Render(Name with { Phone = MokaColumnPhone.Primary }, Team);
 
-		Assert.Equal("table", cut.Find("table").GetAttribute("role"));
+		Assert.Equal("grid", cut.Find("table").GetAttribute("role"));
 		Assert.Equal("rowgroup", cut.Find("thead").GetAttribute("role"));
 		Assert.Equal("rowgroup", cut.Find("tbody").GetAttribute("role"));
 		Assert.All(cut.FindAll("tr"), row => Assert.Equal("row", row.GetAttribute("role")));
 		Assert.All(cut.FindAll("thead th"), cell => Assert.Equal("columnheader", cell.GetAttribute("role")));
-		Assert.All(cut.FindAll("tbody td"), cell => Assert.Equal("cell", cell.GetAttribute("role")));
+		Assert.All(cut.FindAll("tbody td"), cell => Assert.Equal("gridcell", cell.GetAttribute("role")));
 	}
 
 	[Fact]

@@ -1,0 +1,15 @@
+<DemoSection Id="basics" Title="Basics" Description="The steps of a task, and where you are in them.">
+	<MokaStepper ActiveStep="_activeStep" ActiveStepChanged="v => _activeStep = v">
+		<MokaStep Title="Account" Subtitle="Create account" Completed="@(_activeStep > 0)"/>
+		<MokaStep Title="Profile" Subtitle="Fill details" Completed="@(_activeStep > 1)"/>
+		<MokaStep Title="Review" Subtitle="Confirm" Optional/>
+	</MokaStepper>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm">
+		<MokaButton OnClick="() => _activeStep = Math.Max(0, _activeStep - 1)" Variant="MokaVariant.Outlined" Size="MokaSize.Sm" Disabled="@(_activeStep == 0)">Back</MokaButton>
+		<MokaButton OnClick="() => _activeStep = Math.Min(2, _activeStep + 1)" Size="MokaSize.Sm">Next</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private int _activeStep;
+}

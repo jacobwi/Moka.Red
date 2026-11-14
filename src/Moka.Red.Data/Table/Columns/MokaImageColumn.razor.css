@@ -1,0 +1,22 @@
+.moka-image-cell {
+	display: inline-flex;
+	width: var(--_image-size);
+	height: var(--_image-size);
+	padding: 0;
+	overflow: hidden;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface-variant);
+	cursor: zoom-in;
+	vertical-align: middle;
+}
+
+.moka-image-cell:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-image-cell ::deep .moka-image-cell__img {
+	width: 100%;
+	height: 100%;
+}

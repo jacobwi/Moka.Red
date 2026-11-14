@@ -1,0 +1,27 @@
+<DemoSection Id="default" Title="Default" Description="Icons circling a center.">
+	<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Xl">
+		<MokaOrbitingIcons Icons="_orbitIcons" Radius="100" Duration="15">
+			<div style="width: 48px; height: 48px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px;">M</div>
+		</MokaOrbitingIcons>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="reverse-larger" Title="Reverse, larger">
+	<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Xl">
+		<MokaOrbitingIcons Icons="_orbitIcons" Radius="140" Duration="25" Reverse IconSize="24" IconColor="var(--moka-color-primary)">
+			<MokaIcon Icon="MokaIcons.Action.Settings" SizeValue="32px" />
+		</MokaOrbitingIcons>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private static readonly MokaIconDefinition[] _orbitIcons =
+	[
+		MokaIcons.Action.Save,
+		MokaIcons.Action.Edit,
+		MokaIcons.Action.Delete,
+		MokaIcons.Action.Search,
+		MokaIcons.Navigation.Home,
+		MokaIcons.Status.Info
+	];
+}

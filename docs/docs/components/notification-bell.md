@@ -20,9 +20,8 @@ order: 77
 | `MaxVisible` | `int` | `5` | Maximum notifications visible before scrolling |
 | `Position` | `MokaPopoverPosition` | `BottomEnd` | Dropdown position relative to the bell |
 | `Look` | `MokaNotificationLook?` | `null` | How the list is drawn. Null takes the theme's. See [Looks](#looks) |
-| `TodayText` | `string` | `"Today"` | The heading over today's notifications under `Grouped` |
-| `EarlierText` | `string` | `"Earlier"` | The heading over the rest under `Grouped` |
-| `NewCountText` | `Func<int, string>?` | `"2 new"` | The header's count of `UnreadCount` in `Inbox`, `Grouped` and `Terminal` |
+| `Inline` | `bool` | `false` | Draws the list in place, always open, with no bell. See [Inline](#inline) |
+| `Text` | `MokaNotificationBellText` | English | Every word the bell and its list write. See [Words](#words) |
 | `Size` | `MokaSize` | `Md` | Bell icon size |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -78,6 +77,34 @@ The parameter way:
 ```
 
 The bell's items carry no severity, so the tiles, rings and tags take the accent, and under `Terminal` an unread item is tagged `[NEW]` and a read one `[---]`. `Grouped` sorts the items it shows (up to `MaxVisible`) under "Today" and "Earlier" by the local date of a registered `TimeProvider`, else the system clock, keeping their order within each heading. The header's count reads `UnreadCount`.
+
+## Inline
+
+`Inline` draws the list in place, always open, with no bell to open it, for a page or a card that lists
+notifications. The header, Mark all read, Clear, the items and the looks work as in the panel. Nothing closes it, and
+it stays in the page rather than going to the top layer, so it takes the width its container gives it.
+
+```razor
+<MokaCard Title="Recent">
+    <MokaNotificationBell Inline Notifications="_items" UnreadCount="_unread" OnMarkAllRead="MarkAllRead" />
+</MokaCard>
+```
+
+## Words
+
+`Text` takes a `MokaNotificationBellText` holding every word the bell writes: `Title`, `MarkAllRead`, `Clear`, `Empty`,
+`Unread` (what a screen reader hears after an unread notification), `Today` and `Earlier` (the `Grouped` headings),
+`UnreadTag` and `ReadTag` (the `Terminal` tags, kept the same width), and as functions `NewCount` (the header's count),
+`Bell` (the bell's name from the unread count), `More` (the line saying how many didn't fit) and `Time` (a
+notification's age from its UTC timestamp and the clock's now). Set the ones to change, or all of them to translate it.
+
+```razor
+<MokaNotificationBell Notifications="_items" UnreadCount="_unread"
+                      Text="@(new MokaNotificationBellText { Title = "Avisos", Today = "Hoy", Earlier = "Antes", NewCount = n => $"{n} nuevos" })" />
+```
+
+Up to 0.5 the Grouped headings and the header's count were the parameters `TodayText`, `EarlierText` and
+`NewCountText`. They are `Text.Today`, `Text.Earlier` and `Text.NewCount` now.
 
 ## Keyboard and Screen Readers
 

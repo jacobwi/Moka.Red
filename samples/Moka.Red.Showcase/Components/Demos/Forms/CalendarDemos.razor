@@ -1,0 +1,32 @@
+<DemoSection Id="basic-calendar" Title="Basic calendar" Description="A month to pick a day from.">
+	<div style="max-width: 320px;">
+		<MokaCalendar @bind-Value="_calendarDate" HighlightToday/>
+	</div>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Selected: @(_calendarDate?.ToString("yyyy-MM-dd") ?? "none")
+	</p>
+</DemoSection>
+
+<DemoSection Id="with-min-max-dates" Title="With Min/Max dates">
+	<div style="max-width: 320px;">
+		<MokaCalendar @bind-Value="_calendarDate2"
+		              MinDate="@(DateOnly.FromDateTime(DateTime.Today.AddDays(-14)))"
+		              MaxDate="@(DateOnly.FromDateTime(DateTime.Today.AddDays(14)))"
+		              HighlightToday/>
+	</div>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Selected: @(_calendarDate2?.ToString("yyyy-MM-dd") ?? "none") (restricted to +/- 14 days)
+	</p>
+</DemoSection>
+
+<DemoSection Id="monday-first-day" Title="Monday first day">
+	<div style="max-width: 320px;">
+		<MokaCalendar @bind-Value="_calendarDate" FirstDayOfWeek="DayOfWeek.Monday" Color="MokaColor.Info"/>
+	</div>
+</DemoSection>
+
+@code {
+	private DateOnly? _calendarDate = DateOnly.FromDateTime(DateTime.Today);
+
+	private DateOnly? _calendarDate2;
+}

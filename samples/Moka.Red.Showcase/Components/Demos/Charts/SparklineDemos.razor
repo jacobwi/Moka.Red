@@ -1,0 +1,13 @@
+<DemoSection Id="basics" Title="Basics" Description="A small line without axes, for a trend beside a number.">
+	<MokaFlexbox Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaSparkline Values="_sparkValues" Size="MokaSize.Sm"/>
+		<MokaSparkline Values="_sparkValues" Color="MokaColor.Success"/>
+		<MokaSparkline Values="_sparkValues2" Color="MokaColor.Warning" ShowArea="false" Size="MokaSize.Lg"/>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private static readonly double[] _sparkValues = [3, 7, 4, 8, 5, 9, 6, 11, 8, 12];
+
+	private static readonly double[] _sparkValues2 = [12, 9, 11, 7, 10, 6, 8, 5, 7, 4];
+}

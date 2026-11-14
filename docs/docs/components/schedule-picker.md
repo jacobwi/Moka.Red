@@ -12,8 +12,8 @@ order: 79
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `SelectedSlots` | `IReadOnlyList<MokaTimeSlot>` | `[]` | Currently selected time slots (two-way bindable) |
-| `SelectedSlotsChanged` | `EventCallback<IReadOnlyList<MokaTimeSlot>>` | -- | Callback when selection changes |
+| `SelectedSlots` | `IList<MokaTimeSlot>` | `[]` | Currently selected time slots (two-way bindable). The picker never edits the list you pass |
+| `SelectedSlotsChanged` | `EventCallback<IList<MokaTimeSlot>>` | -- | Receives a new list when the selection changes. Passing `SelectedSlots` and listening makes you the owner: a selection you don't take goes back ([Binding](forms.md#binding)) |
 | `StartHour` | `int` | `9` | First visible hour (0-23) |
 | `EndHour` | `int` | `17` | Last visible hour (0-23) |
 | `SlotDuration` | `int` | `60` | Slot duration in minutes (30 or 60) |

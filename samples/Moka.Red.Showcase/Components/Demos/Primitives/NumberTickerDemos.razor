@@ -1,0 +1,11 @@
+<DemoSection Id="counter-with-increment" Title="Counter with increment" Description="A number that rolls to its new value.">
+	<MokaFlexbox Align="MokaAlign.Center" Gap="MokaSpacingScale.Md">
+		<MokaButton OnClick="() => _tickerValue += 100" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">+100</MokaButton>
+		<MokaNumberTicker Value="_tickerValue" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+		<MokaButton OnClick="() => _tickerValue = 0" Variant="MokaVariant.Text" Size="MokaSize.Sm">Reset</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private double _tickerValue;
+}

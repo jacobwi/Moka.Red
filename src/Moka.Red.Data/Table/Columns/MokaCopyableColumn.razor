@@ -1,0 +1,51 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.Utility
+
+@code {
+	private const string Mask = "••••••••";
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's value: drawn in monospace with a copy button, and what the column sorts, filters and exports.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Value { get; set; }
+
+	/// <summary>
+	///     Draws dots in place of the value and keeps it off the page: the copy button reads it only when pressed. For
+	///     keys and tokens. Default false. A secret column is left out of the search.
+	/// </summary>
+	[Parameter]
+	public bool Secret { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Value is not null;
+
+	// The button copies inside the click, in the browser, as every copy button in the library does.
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string? value = Value?.Invoke(item);
+		if (string.IsNullOrEmpty(value))
+		{
+			return static _ => { };
+		}
+
+		return Secret
+			? @<MokaCopyable Text="@value" Mono="true" Secret="true" Label="@Title">@Mask</MokaCopyable>
+			: @<MokaCopyable Text="@value" Mono="true" CopyLabel="@Words.CopyValue(value)"/>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => Secret;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Value?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Secret ? string.Empty : Value?.Invoke(item) ?? string.Empty;
+
+	/// <inheritdoc />
+	protected internal override string ExportTextOf(TItem item) => Value?.Invoke(item) ?? string.Empty;
+}

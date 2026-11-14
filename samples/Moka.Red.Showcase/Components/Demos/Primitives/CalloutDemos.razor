@@ -1,0 +1,32 @@
+<DemoSection Id="basics" Title="Basics" Description="A boxed note in the flow of a page: a note, tip, warning or caution." Tip="A callout belongs to the page. For something that just happened, use an alert or a toast.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: 8px; max-width: 500px;">
+			<MokaCallout Type="MokaCalloutType.Note">
+				This is a note callout with useful information.
+			</MokaCallout>
+
+			<MokaCallout Type="MokaCalloutType.Tip" Title="Pro Tip">
+				Use keyboard shortcuts to speed up your workflow.
+			</MokaCallout>
+
+			<MokaCallout Type="MokaCalloutType.Important">
+				This feature requires admin permissions to configure.
+			</MokaCallout>
+
+			<MokaCallout Type="MokaCalloutType.Warning">
+				This action cannot be undone. Proceed with caution.
+			</MokaCallout>
+
+			<MokaCallout Type="MokaCalloutType.Caution" Closable>
+				Critical security vulnerability detected in dependency.
+			</MokaCallout>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Type">Note, Tip, Important, Warning, Caution or Info</DemoParam>
+		<DemoParam Name="Title">A heading over the text</DemoParam>
+		<DemoParam Name="Icon">Replaces the icon the type brings</DemoParam>
+		<DemoParam Name="Closable, OnClose">A close button</DemoParam>
+		<DemoParam Name="FixAction">The button that fixes what it describes</DemoParam>
+	</Notes>
+</DemoSection>

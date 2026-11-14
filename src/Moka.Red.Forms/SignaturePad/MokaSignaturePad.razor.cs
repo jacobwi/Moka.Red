@@ -25,13 +25,18 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	private int _drawRequest;
 	private bool _fitted;
 	private bool _initialized;
-	private string? _lastValue;
 	private int _reportCount;
+
+	// The drawing the pad holds, apart from Value: a stroke shows before the parent answers, and a parent that doesn't
+	// own the value can't put the placeholder back over it by rendering again.
+	private readonly MokaInputValue<string?> _input;
 
 	// The value from the parent the canvas shows under the user's strokes. Undoing the last of them
 	// reports no drawing, but the canvas shows this value again.
 	private string? _shownValue;
-	private string? _value;
+
+	/// <summary>Creates the pad. It shows its own drawing until the parent passes a value.</summary>
+	public MokaSignaturePad() => _input = new MokaInputValue<string?>(DrawParentValue, DispatchExceptionAsync);
 
 	/// <summary>
 	///     The signature as a base64 PNG data URL. Two-way bindable. The image has two pixels for every
@@ -125,30 +130,35 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	/// <summary>Override ShouldRender to always return true for canvas state updates.</summary>
 	protected override bool ShouldRender() => true;
 
+	private string? Drawing => _input.Shown;
+
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
-
-		// Value only seeds the state when the parent passes a new value. Copying it on every parent
-		// render put the "Sign here" placeholder back over an unbound pad's signature.
-		if (!string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		// A bound parent passes back the value the pad just reported. That drawing is already on the canvas, and drawing
+		// it again would throw away the strokes undo works through. null and "" both mean an empty pad, so one following
+		// the other clears nothing.
+		bool wasEmpty = string.IsNullOrEmpty(Drawing);
+		if (_input.Take(parameters, nameof(Value)) && !(wasEmpty && string.IsNullOrEmpty(Drawing)))
 		{
-			_lastValue = Value;
-
-			// A bound parent passes back the value the pad just reported. That drawing is already on
-			// the canvas, and drawing it again would throw away the strokes undo works through.
-			if (!string.Equals(_value, Value, StringComparison.Ordinal))
-			{
-				// null and "" both mean an empty pad, so one following the other clears nothing.
-				if (!string.IsNullOrEmpty(_value) || !string.IsNullOrEmpty(Value))
-				{
-					_drawPending = true;
-				}
-
-				_value = Value;
-			}
+			_drawPending = true;
 		}
+
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	// A drawing the parent didn't take goes, with its strokes, and the parent's value is drawn again.
+	private void DrawParentValue()
+	{
+		_drawPending = true;
+		StateHasChanged();
 	}
 
 	/// <inheritdoc />
@@ -170,7 +180,7 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 		if (!_initialized && !ReadOnly && !Disabled)
 		{
 			await InitializeCanvasAsync();
-			if (!firstRender && !string.IsNullOrEmpty(_value))
+			if (!firstRender && !string.IsNullOrEmpty(Drawing))
 			{
 				_drawPending = true;
 			}
@@ -180,7 +190,7 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 		{
 			_drawPending = false;
 			int request = ++_drawRequest;
-			string? value = _value;
+			string? value = Drawing;
 			bool shown = await SafeModuleInvokeAsync<bool>(ModulePath, "showSignature", _canvasRef, value,
 				BackgroundColor);
 
@@ -238,7 +248,7 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 		// A later stroke, undo or clear got here while this one was being read, and it's the one on the canvas.
 		if (report == _reportCount)
 		{
-			await ApplySignatureAsync(dataUrl);
+			ApplySignature(dataUrl);
 		}
 	}
 
@@ -248,21 +258,16 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 	public Task OnSignatureChanged(string? signatureData)
 	{
 		_reportCount++;
-		return ApplySignatureAsync(signatureData);
+		ApplySignature(signatureData);
+		return Task.CompletedTask;
 	}
 
-	private async Task ApplySignatureAsync(string? signatureData)
+	// A call from JS renders nothing by itself, and without a bound parent nothing else would hide the placeholder or
+	// show the parent's value again after a drawing it didn't take, so the pad renders after reporting.
+	private void ApplySignature(string? signatureData)
 	{
-		_value = signatureData ?? _shownValue;
-
-		// A call from JS renders nothing by itself, and without a bound parent nothing else would
-		// hide the placeholder.
+		_input.Pick(signatureData ?? _shownValue, ValueChanged);
 		StateHasChanged();
-
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync(_value);
-		}
 	}
 
 	private async Task HandleClear()
@@ -277,9 +282,8 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 		_drawRequest++;
 		_reportCount++;
 		await SafeModuleInvokeVoidAsync(ModulePath, "clearSignature", _canvasRef, BackgroundColor);
-		_value = null;
 		_shownValue = null;
-		await ValueChanged.InvokeAsync(null);
+		_input.Pick(null, ValueChanged);
 	}
 
 	private async Task HandleUndo()
@@ -302,7 +306,9 @@ public partial class MokaSignaturePad : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(ModulePath, "removeCanvasDraw", _canvasRef);
 		}
 
+		_input.Stop();
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
+
 	}
 }

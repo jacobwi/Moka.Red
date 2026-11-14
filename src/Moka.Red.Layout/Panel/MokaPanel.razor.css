@@ -81,7 +81,7 @@
 .moka-panel-body {
 	display: grid;
 	grid-template-rows: 1fr;
-	transition: grid-template-rows var(--moka-transition-normal) ease;
+	transition: grid-template-rows var(--moka-transition-normal);
 }
 
 .moka-panel--collapsed .moka-panel-body {

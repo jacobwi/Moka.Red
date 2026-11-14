@@ -1,0 +1,81 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.RelativeTime
+
+@code {
+	private RenderFragment<TItem>? _relativeCell;
+
+	/// <summary>The row's moment, or null for none. A <c>DateTime</c> converts by itself.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, DateTimeOffset?>? Value { get; set; }
+
+	/// <summary>
+	///     Writes how long ago or how far off the moment is ("5 minutes ago"), with the exact time in a tooltip, through
+	///     <c>MokaRelativeTime</c>. Default false, which writes the moment with <see cref="MokaColumn{TItem}.Format" />,
+	///     by default the culture's short date and time.
+	/// </summary>
+	[Parameter]
+	public bool Relative { get; set; }
+
+	/// <summary>Keeps relative times up to date as time passes, one timer per cell. Default false.</summary>
+	[Parameter]
+	public bool Live { get; set; }
+
+	/// <summary>How the tooltip of a relative time writes the exact moment. Default the culture's full date and time.</summary>
+	[Parameter]
+	public string TooltipFormat { get; set; } = "F";
+
+	/// <summary>The time zone moments are written in. Null, the default, is the moment's own offset, or the viewer's for relative times.</summary>
+	[Parameter]
+	public TimeZoneInfo? TimeZone { get; set; }
+
+	/// <summary>Writes a moment into a row and returns the row, for editing. See <see cref="MokaColumn{TItem}.SetField" />.</summary>
+	[Parameter]
+	public Func<TItem, DateTimeOffset?, TItem>? SetValue { get; set; }
+
+	/// <inheritdoc />
+	protected internal override Type EditValueType(TItem item) => typeof(DateTimeOffset?);
+
+	/// <inheritdoc />
+	protected internal override MokaColumnEditor AutoEditor(TItem item) => MokaColumnEditor.Date;
+
+	/// <inheritdoc />
+	protected internal override bool CanWrite => SetValue is not null || base.CanWrite;
+
+	/// <inheritdoc />
+	protected internal override TItem WriteValue(TItem item, object? value) =>
+		SetValue is null ? base.WriteValue(item, value) : SetValue(item, value as DateTimeOffset?);
+
+	/// <inheritdoc />
+	/// <remarks>The moment's clock time in the column's time zone: a spreadsheet date has no zone.</remarks>
+	protected internal override object? ExportValueOf(TItem item) => Value?.Invoke(item) is { } moment ? InZone(moment).DateTime : null;
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Value is not null;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem>? CellContent => Relative ? RelativeCell : null;
+
+	/// <inheritdoc />
+	protected override object? KindSettings => (Relative, Live, TooltipFormat, TimeZone);
+
+	private RenderFragment<TItem> RelativeCell => _relativeCell ??= item =>
+		@<MokaRelativeTime Value="@Value?.Invoke(item)" Live="@Live" ShowTooltip="true" TooltipFormat="@TooltipFormat"
+		                   TimeZone="@TimeZone"/>;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Value?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) =>
+		Value?.Invoke(item) is { } moment ? InZone(moment).ToString(Format ?? "g", CultureInfo.CurrentCulture) : string.Empty;
+
+	/// <inheritdoc />
+	/// <remarks>Exports the moment in ISO 8601 with its offset, which spreadsheets and other programs read.</remarks>
+	protected internal override string ExportTextOf(TItem item) =>
+		Value?.Invoke(item) is { } moment ? InZone(moment).ToString("O", CultureInfo.InvariantCulture) : string.Empty;
+
+	private DateTimeOffset InZone(DateTimeOffset moment) => TimeZone is null ? moment : TimeZoneInfo.ConvertTime(moment, TimeZone);
+}

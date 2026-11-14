@@ -2,7 +2,13 @@
 @inherits MokaComponentBase
 
 <CascadingValue Value="this" IsFixed="true">
-	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-		@ChildContent
+	<div @ref="_root" class="@CssClass" style="@Style" id="@Id" data-moka-dock-layout @attributes="AdditionalAttributes">
+		<MokaDockFrame Layout="this"/>
+		<div class="moka-dock-layout__hosts">
+			@ChildContent
+			@MokaDockOpenedPanels.For(this)
+		</div>
+		<div class="moka-dock-drop" popover="manual" aria-hidden="true" data-moka-dock-drop></div>
+		@MokaDockAnnouncer.For(this)
 	</div>
 </CascadingValue>

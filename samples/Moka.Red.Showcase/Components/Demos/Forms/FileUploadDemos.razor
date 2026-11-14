@@ -1,0 +1,320 @@
+@using Microsoft.AspNetCore.Components.Web.HtmlRendering
+@using Moka.Red.Core.Files
+@using Moka.Red.Feedback.ErrorBoundary
+@inject IServiceProvider Services
+@inject ILoggerFactory LoggerFactory
+@implements IDisposable
+
+<DemoSection Id="basics" Title="Basics" Description="Files picked from a dialog or dropped on a zone.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaFileUpload Label="Upload Files" Multiple="true"/>
+		<MokaFileUpload Label="Images Only" Accept="image/*" HelperText="Accepts image files only"/>
+		<MokaFileUpload Label="Compact Mode" Compact="true"/>
+		<MokaFileUpload Label="Disabled" Disabled="true"/>
+	</EditForm>
+</DemoSection>
+
+<DemoSection Id="a-browse-button-in-the-zone" Title="A Browse button in the zone" Description="BrowseLook Button only changes the picture: the file input still covers the zone, so Tab, Enter, Space, a click anywhere and a drop all still pick files.">
+	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: var(--moka-grid-gap);">
+		<MokaFileUpload Label="Standard" BrowseLook="MokaFileUploadBrowseLook.Button" Multiple/>
+		<MokaFileUpload Label="Card list" Look="MokaFileUploadLook.CardList" BrowseLook="MokaFileUploadBrowseLook.Button" Multiple/>
+		<MokaFileUpload Label="Compact" Compact BrowseLook="MokaFileUploadBrowseLook.Button"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="an-apps-own-file-picker" Title="An app's own file picker" Description="FilePicker hands the pick to the app's own picker in place of the browser's dialog, as a MAUI app would over FilePicker.Default. This pretend one waits a moment like a dialog, so a second click while it is open can be tried. Dropped files still arrive through the browser.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">
+		<MokaSwitch @bind-Value="_useApps" Label="Use the app's picker"/>
+		<MokaSwitch Value="@(_picker.Answer == PretendAnswer.Cancel)" ValueChanged="on => Answer(on, PretendAnswer.Cancel)" Label="The picker cancels"/>
+		<MokaSwitch Value="@(_picker.Answer == PretendAnswer.Fail)" ValueChanged="on => Answer(on, PretendAnswer.Fail)" Label="The picker fails"/>
+	</div>
+	<MokaErrorBoundary Compact What="The upload" @ref="_uploadBoundary">
+		<MokaFileUpload Label="Several files" Multiple Accept=".txt,.pdf,image/*"
+		                MaxFileSize="1048576" FilePicker="Picker" OnFilesSelected="files => _uploaded = files.Count"/>
+		<MokaFileUpload Label="One file" Compact FilePicker="Picker"/>
+	</MokaErrorBoundary>
+	<p>Listed in the first: <code>@_uploaded</code></p>
+	<ol style="margin-top: var(--moka-spacing-md);">
+		@foreach (string line in _picker.Log)
+		{
+			<li><code>@line</code></li>
+		}
+	</ol>
+</DemoSection>
+
+<DemoSection Id="try-every-look" Title="Try every look">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+			<MokaCaption Micro="true">Look</MokaCaption>
+			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="v => _look = Enum.Parse<MokaFileUploadLook>(v)" AriaLabel="Look" Size="MokaSize.Sm">
+				@foreach (MokaFileUploadLook look in Enum.GetValues<MokaFileUploadLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+			<MokaCaption Micro="true">While dragging</MokaCaption>
+			<MokaSegmentedControl Value="@_dragLook.ToString()" ValueChanged="v => _dragLook = Enum.Parse<MokaFileUploadDragLook>(v)" AriaLabel="Drag look" Size="MokaSize.Sm">
+				@foreach (MokaFileUploadDragLook look in Enum.GetValues<MokaFileUploadDragLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+			<MokaCaption Micro="true">File list</MokaCaption>
+			<MokaSegmentedControl Value="@_listLook.ToString()" ValueChanged="v => _listLook = Enum.Parse<MokaFileUploadListLook>(v)" AriaLabel="List look" Size="MokaSize.Sm">
+				@foreach (MokaFileUploadListLook look in Enum.GetValues<MokaFileUploadListLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xl); align-items: center;">
+			<MokaSwitch @bind-Value="_multiple" Label="Multiple"/>
+			<MokaSwitch @bind-Value="_check" Label="Check while dragging"/>
+			<MokaSwitch @bind-Value="_previews" Label="Previews"/>
+			<MokaSwitch @bind-Value="_progress" Label="Simulated upload"/>
+			<MokaSwitch @bind-Value="_square" Label="Square picture"/>
+			<MokaSwitch @bind-Value="_disabled" Label="Disabled"/>
+		</div>
+		<div style="max-width: 36rem;">
+			<MokaFileUpload Label="Attachments"
+			                HelperText="PDF, PNG or JPG, up to 10 MB"
+			                Accept=".pdf,.png,.jpg,.jpeg,.svg,.xlsx,.zip"
+			                Multiple="_multiple"
+			                Look="_look"
+			                DragLook="_dragLook"
+			                ListLook="_listLook"
+			                CheckWhileDragging="_check"
+			                Previews="_previews"
+			                PictureShape="@(_square ? MokaPictureShape.RoundedSquare : MokaPictureShape.Circle)"
+			                Disabled="_disabled"
+			                Status="StatusOrNull"
+			                OnFilesSelected="Track"
+			                OnFileRemoved="Forget"
+			                OnRetry="Retry"/>
+		</div>
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Pick or drop files to see a look. The simulated upload moves two files at a time, and every third file fails at
+			60% so Retry shows. Drag a file over the zone to see the drag look, and turn on the check to have it read the
+			dragged files first.
+		</p>
+	</div>
+</DemoSection>
+
+<DemoSection Id="card-list" Title="Card list">
+	<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.CardList" Multiple="true" Previews="true"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+</DemoSection>
+
+<DemoSection Id="field" Title="Field">
+	<MokaTextField Label="Project name" Value="@("Q3 plans")"/>
+	<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.Field" Multiple="true" Style="margin-top: var(--moka-spacing-lg);"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget"/>
+	<MokaFileUpload Label="Cover image" Look="MokaFileUploadLook.Field" Accept="image/*" Style="margin-top: var(--moka-spacing-lg);"/>
+</DemoSection>
+
+<DemoSection Id="picture" Title="Picture">
+	<MokaFileUpload Label="Profile picture" Look="MokaFileUploadLook.Picture" Previews="true"
+	                PictureSource="@_profile" OnPictureRemoved="() => _profile = null"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+	<MokaFileUpload Label="Company logo" Look="MokaFileUploadLook.Picture" PictureShape="MokaPictureShape.RoundedSquare"
+	                Previews="true" HelperText="Square PNG or SVG, at least 256 px. Drop it on the box or click." Style="margin-top: var(--moka-spacing-lg);"/>
+</DemoSection>
+
+<DemoSection Id="gallery" Title="Gallery">
+	<MokaFileUpload Label="Listing photos" Look="MokaFileUploadLook.Gallery" Multiple="true" MaxFiles="12" Previews="true"
+	                HelperText="JPG or PNG, up to 10 MB each. Drop photos anywhere on the grid."
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+</DemoSection>
+
+<DemoSection Id="quiet" Title="Quiet">
+	<MokaTextField Label="Subject" Value="@("Cabinet 4 door hinge is loose")"/>
+	<MokaTextArea Label="Details" Value="@("The left door drops about 5 mm when it opens. Photo of the hinge attached.")" Style="margin-top: var(--moka-spacing-lg);"/>
+	<MokaFileUpload Look="MokaFileUploadLook.Quiet" Multiple="true" aria-label="Attach files"/>
+</DemoSection>
+
+<DemoSection Id="terminal" Title="Terminal">
+	<MokaFileUpload Label="Attachments" Look="MokaFileUploadLook.Terminal" Multiple="true" Accept=".pdf,.png,.jpg"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+</DemoSection>
+
+<DemoSection Id="slot" Title="Slot">
+	<MokaFileUpload Label="Signed contract" Look="MokaFileUploadLook.Slot" Accept=".pdf"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+	<MokaFileUpload Label="Proof of address" Look="MokaFileUploadLook.Slot" Accept=".pdf" Style="margin-top: var(--moka-spacing-lg);"
+	                HelperText="Drop a file on its slot to fill or replace it."/>
+</DemoSection>
+
+<DemoSection Id="rows-with-progress-under-a-standard-zone" Title="Rows with progress under a standard zone">
+	<MokaFileUpload Label="Attachments" ListLook="MokaFileUploadListLook.Progress" DragLook="MokaFileUploadDragLook.Glow" Multiple="true"
+	                Status="StatusOrNull" OnFilesSelected="Track" OnFileRemoved="Forget" OnRetry="Retry"/>
+</DemoSection>
+
+<DemoSection Id="checks-the-files-first" Title="Checks the files first">
+	<MokaFileUpload Label="Attachments" Accept="application/pdf,image/png,image/jpeg" Multiple="true" MaxFiles="3"
+	                CheckWhileDragging="true" HelperText="PDF, PNG or JPG, at most 3"/>
+</DemoSection>
+
+<DemoSection Id="bound-and-emptied-by-the-app" Title="Bound, and emptied by the app">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<MokaFileUpload Label="Backup file" Look="MokaFileUploadLook.Slot" Accept=".json,.txt" @bind-Files="_backup"
+		                OnFilesAdded="@(files => Log($"added {Names(files)}"))"
+		                OnFilesSelected="@(files => Log($"list now {Names(files)}"))"
+		                OnFileRemoved="@(file => Log($"removed {file.Name}"))"
+		                HelperText="Pick a .json file, then a .png: the refused file raises nothing."/>
+		<div>
+			<MokaButton Variant="MokaVariant.Outlined" Disabled="@(_backup.Count == 0)" OnClick="Restore">Restore it</MokaButton>
+		</div>
+		<ol style="margin: 0; padding-inline-start: var(--moka-spacing-xl); font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-variant);">
+			@foreach (string line in _backupLog)
+			{
+				<li>@line</li>
+			}
+		</ol>
+	</div>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+
+	private readonly HashSet<int> _loaded = [];
+
+	private int _enters;
+
+	private void Enter(int tile)
+	{
+		_enters++;
+		_loaded.Add(tile);
+	}
+
+	private const string CodeText = "https://moka.red/picked";
+
+	private readonly PretendFilePicker _picker = new();
+
+	private MokaErrorBoundary? _uploadBoundary;
+
+	private bool _useApps = true;
+
+	private int _uploaded;
+
+	private IMokaFilePicker? Picker => _useApps ? _picker : null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_picker.Changed += Redraw;
+		_picker.CodeImage = await DrawCodeAsync();
+	}
+
+	public void Dispose() => _picker.Changed -= Redraw;
+
+	private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+	private void Answer(bool on, PretendAnswer answer)
+	{
+		_picker.Answer = on ? answer : PretendAnswer.Files;
+		_uploadBoundary?.Recover();
+	}
+
+	// The picture a pretend picker hands the scanner: the library's own QR code, drawn as a standalone SVG file.
+	private async Task<string> DrawCodeAsync()
+	{
+		await using HtmlRenderer renderer = new(Services, LoggerFactory);
+		string html = await renderer.Dispatcher.InvokeAsync(async () =>
+		{
+			Dictionary<string, object?> parameters = new() { [nameof(MokaQRCode.Value)] = CodeText };
+			HtmlRootComponent code = await renderer.RenderComponentAsync<MokaQRCode>(ParameterView.FromDictionary(parameters));
+			return code.ToHtmlString();
+		});
+
+		int start = html.IndexOf("<svg", StringComparison.Ordinal);
+		int end = html.LastIndexOf("</svg>", StringComparison.Ordinal);
+		return start < 0 || end < 0 ? "" : html[start..(end + "</svg>".Length)];
+	}
+
+	private readonly Dictionary<IBrowserFile, Upload> _uploads = new(ReferenceEqualityComparer.Instance);
+
+	private MokaFileUploadLook _look = MokaFileUploadLook.CardList;
+
+	private MokaFileUploadDragLook _dragLook = MokaFileUploadDragLook.Glow;
+
+	private MokaFileUploadListLook _listLook = MokaFileUploadListLook.Progress;
+
+	private bool _multiple = true;
+
+	private bool _check = true;
+
+	private bool _previews = true;
+
+	private bool _progress = true;
+
+	private bool _square;
+
+	private bool _disabled;
+
+	private int _added;
+
+	private Func<IBrowserFile, MokaUploadStatus?> StatusOrNull => file =>
+		_progress && _uploads.TryGetValue(file, out Upload? upload) ? upload.Status : null;
+
+	private void Track(IReadOnlyList<IBrowserFile> files)
+	{
+		foreach (IBrowserFile file in files)
+		{
+			if (!_uploads.ContainsKey(file))
+			{
+				_added++;
+				_uploads[file] = new Upload { FailsAt = _added % 3 == 0 ? 60 : null };
+			}
+		}
+	}
+
+	private void Forget(IBrowserFile file) => _uploads.Remove(file);
+
+	private void Retry(IBrowserFile file)
+	{
+		if (_uploads.TryGetValue(file, out Upload? upload))
+		{
+			upload.Status = new MokaUploadStatus(MokaUploadState.Waiting);
+			upload.FailsAt = null;
+		}
+	}
+
+	private sealed class Upload
+	{
+		public MokaUploadStatus Status { get; set; } = new(MokaUploadState.Waiting);
+
+		public double? FailsAt { get; set; }
+	}
+
+	private string? _profile = "samples/photo-1.svg";
+
+	private IReadOnlyList<IBrowserFile> _backup = [];
+
+	private readonly List<string> _backupLog = [];
+
+	private static string Names(IReadOnlyList<IBrowserFile> files) =>
+		files.Count == 0 ? "(empty)" : string.Join(", ", files.Select(file => file.Name));
+
+	private void Log(string line) => _backupLog.Add(line);
+
+	private void Restore()
+	{
+		Log($"restored {Names(_backup)}, the app empties the slot");
+		_backup = [];
+	}
+}

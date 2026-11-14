@@ -111,7 +111,7 @@
 			<button type="button"
 			        class="moka-tree-select-item"
 			        disabled="@item.Disabled"
-			        @onclick="() => SelectItemAsync(item)">
+			        @onclick="() => SelectItem(item)">
 				@if (DrawsMark)
 				{
 					<span class="@MarkCssClass(selected)" aria-hidden="true">

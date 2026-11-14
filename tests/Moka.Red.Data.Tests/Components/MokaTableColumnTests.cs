@@ -126,9 +126,11 @@ public class MokaTableColumnTests : BunitContext
 			new Col(null, static x => x.City) { HeaderTemplate = Marker("city-header") });
 
 		await OpenColumnMenuAsync(cut);
+		Assert.Equal(["Name", "Column 2", "Column 3"],
+			cut.FindAll(".moka-table-column-menu-item").Select(static item => item.TextContent.Trim()));
 		IElement firstUntitled = cut.FindAll(".moka-table-column-menu-item")
-			.First(item => string.Equals(item.TextContent.Trim(), "Unnamed", StringComparison.Ordinal));
-		await firstUntitled.QuerySelector("input")!.ChangeAsync(new ChangeEventArgs());
+			.First(item => string.Equals(item.TextContent.Trim(), "Column 2", StringComparison.Ordinal));
+		await firstUntitled.QuerySelector("input")!.ChangeAsync(new ChangeEventArgs { Value = false });
 
 		Assert.Empty(cut.FindAll(".team-header"));
 		Assert.NotEmpty(cut.FindAll(".city-header"));
@@ -165,7 +167,7 @@ public class MokaTableColumnTests : BunitContext
 	public async Task HidingAFilteredColumn_DropsItsFilter()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.ShowFilters, true).Add(t => t.ShowColumnToggle, true),
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row).Add(t => t.ShowColumnToggle, true),
 			Name, Team with { Filterable = true }, Age, City);
 		await FilterInput(cut, "Team").InputAsync(new ChangeEventArgs { Value = "Research" });
 		cut.WaitForAssertion(() => Assert.Equal(2, DataRows(cut).Count), Debounce);
@@ -180,15 +182,15 @@ public class MokaTableColumnTests : BunitContext
 	public async Task HidingTheFilterRow_DropsTheFilters()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.ShowFilters, true),
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
 			Name, Team with { Filterable = true }, Age, City);
 		await FilterInput(cut, "Team").InputAsync(new ChangeEventArgs { Value = "Research" });
 		cut.WaitForAssertion(() => Assert.Equal(2, DataRows(cut).Count), Debounce);
 
-		cut.Render(p => p.Add(t => t.ShowFilters, false));
+		cut.Render(p => p.Add(t => t.FilterControls, MokaTableFilterControls.None));
 
 		cut.WaitForAssertion(() => Assert.Equal(People.Length, DataRows(cut).Count), Debounce);
-		cut.Render(p => p.Add(t => t.ShowFilters, true));
+		cut.Render(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row));
 		Assert.Equal("", FilterInput(cut, "Team").GetAttribute("value") ?? "");
 	}
 
@@ -197,8 +199,7 @@ public class MokaTableColumnTests : BunitContext
 	public void ColumnLosingItsTitle_TakesItsSortAlong()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Descending));
+			.Add(t => t.State, SortedBy("Age", MokaSortDirection.Descending)));
 		Assert.Equal(["45", "41", "36", "29"], ColumnTexts(cut, 2));
 
 		cut.Render(p => p.Add(t => t.ChildContent, Columns(Name, Team, Age with { Title = null }, City)));
@@ -209,21 +210,21 @@ public class MokaTableColumnTests : BunitContext
 	[Fact]
 	public async Task ColumnHiddenByTheParent_StopsFilteringServerData()
 	{
-		var requests = new List<MokaTableState>();
+		var requests = new List<MokaTableRequest>();
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
 			.Add(t => t.ServerData, state =>
 			{
 				requests.Add(state);
 				return Task.FromResult(new MokaTableResult<Person> { Items = People, TotalItems = People.Length });
 			})
-			.Add(t => t.ShowFilters, true)
+			.Add(t => t.FilterControls, MokaTableFilterControls.Row)
 			.Add(t => t.ChildContent, Columns(Name, Team with { Filterable = true })));
 		await FilterInput(cut, "Team").InputAsync(new ChangeEventArgs { Value = "Research" });
-		cut.WaitForAssertion(() => Assert.Contains("Team", requests[^1].ColumnFilters.Keys), Debounce);
+		cut.WaitForAssertion(() => Assert.Contains(requests[^1].Filters, filter => filter.Column == "Team"), Debounce);
 
 		cut.Render(p => p.Add(t => t.ChildContent, Columns(Name, Team with { Filterable = true, Visible = false })));
 
-		cut.WaitForAssertion(() => Assert.Empty(requests[^1].ColumnFilters), Debounce);
+		cut.WaitForAssertion(() => Assert.Empty(requests[^1].Filters), Debounce);
 	}
 
 	// Only the header and data cells got these classes, so on a narrow screen the filter and
@@ -232,8 +233,8 @@ public class MokaTableColumnTests : BunitContext
 	public void StickyAndHideOnMobile_ReachTheFilterAndAggregateCells()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.ShowFilters, true),
-			Name with { Sticky = true, Filterable = true, Aggregate = MokaAggregateType.Count },
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
+			Name with { Pin = MokaColumnPin.Start, Filterable = true, Aggregate = MokaAggregateType.Count },
 			Team with { HideOnMobile = true, Filterable = true, Aggregate = MokaAggregateType.Count });
 
 		IReadOnlyList<IElement> filterCells = cut.FindAll(".moka-table-filter-row td");
@@ -251,7 +252,7 @@ public class MokaTableColumnTests : BunitContext
 		var pending = new TaskCompletionSource<MokaTableResult<Person>>();
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
 			.Add(t => t.ServerData, _ => pending.Task)
-			.Add(t => t.ChildContent, Columns(Name with { Sticky = true }, Team with { HideOnMobile = true })));
+			.Add(t => t.ChildContent, Columns(Name with { Pin = MokaColumnPin.Start }, Team with { HideOnMobile = true })));
 
 		IElement[] cells = cut.FindAll(".moka-table-skeleton-row")[0].QuerySelectorAll("td").ToArray();
 		AssertColumnClasses(cells[0], sticky: true, hideOnMobile: false);
@@ -285,7 +286,8 @@ public class MokaTableColumnTests : BunitContext
 	private static async Task ToggleColumnAsync(IRenderedComponent<MokaTable<Person>> cut, string title)
 	{
 		await OpenColumnMenuAsync(cut);
-		await MenuItem(cut, title).QuerySelector("input")!.ChangeAsync(new ChangeEventArgs());
+		IElement box = MenuItem(cut, title).QuerySelector("input")!;
+		await box.ChangeAsync(new ChangeEventArgs { Value = !box.HasAttribute("checked") });
 	}
 
 	private static IElement MenuItem(IRenderedComponent<MokaTable<Person>> cut, string title) =>
@@ -304,7 +306,7 @@ public class MokaTableColumnTests : BunitContext
 
 	private static void AssertColumnClasses(IElement cell, bool sticky, bool hideOnMobile)
 	{
-		Assert.Equal(sticky, cell.ClassList.Contains("moka-table-cell--sticky"));
+		Assert.Equal(sticky, cell.ClassList.Contains("moka-table-cell--pin-start"));
 		Assert.Equal(hideOnMobile, cell.ClassList.Contains("moka-table-cell--hide-mobile"));
 	}
 }

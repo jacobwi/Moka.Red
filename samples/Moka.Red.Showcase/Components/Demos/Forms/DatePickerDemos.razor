@@ -1,0 +1,29 @@
+<DemoSection Id="basics" Title="Basics" Description="A date, typed or picked from a calendar.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaDatePicker @bind-Value="_selectedDate" Label="Date"/>
+		<MokaDatePicker @bind-Value="_selectedDate2" Label="With Min/Max" Min="DateTime.Today.AddDays(-30)" Max="DateTime.Today.AddDays(30)"/>
+		<MokaDatePicker @bind-Value="_selectedDate" Label="Custom Format" Format="dd/MM/yyyy" Placeholder="DD/MM/YYYY"/>
+		<MokaDatePicker @bind-Value="_selectedDate" Label="Disabled" Disabled="true"/>
+		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @(_selectedDate?.ToString("yyyy-MM-dd") ?? "none")</p>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+
+	private DateTime? _selectedDate = DateTime.Today;
+
+	private DateTime? _selectedDate2;
+}

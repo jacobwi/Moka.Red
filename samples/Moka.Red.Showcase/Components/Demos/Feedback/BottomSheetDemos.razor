@@ -1,0 +1,37 @@
+<DemoSection Id="basics" Title="Basics" Description="A panel that slides up from the bottom of the window.">
+	<div class="button-row">
+		<MokaButton OnClick="@(() => _showBottomSheet = true)">Open Bottom Sheet</MokaButton>
+		<MokaButton OnClick="@(() => _showFullBottomSheet = true)" Variant="MokaVariant.Outlined">Full Screen</MokaButton>
+	</div>
+
+	<MokaBottomSheet @bind-Open="_showBottomSheet">
+		<Header>
+			<span>Sheet Title</span>
+		</Header>
+		<ChildContent>
+			<p>This is a bottom sheet. It slides up from the bottom of the screen.</p>
+			<p style="margin-top: var(--moka-spacing-sm);">Useful for mobile-friendly actions, forms, and additional content.</p>
+			<div style="margin-top: var(--moka-spacing-md);">
+				<MokaButton OnClick="@(() => _showBottomSheet = false)" Size="MokaSize.Sm">Close</MokaButton>
+			</div>
+		</ChildContent>
+	</MokaBottomSheet>
+
+	<MokaBottomSheet @bind-Open="_showFullBottomSheet" FullScreen="true">
+		<Header>
+			<span>Full Screen Sheet</span>
+		</Header>
+		<ChildContent>
+			<p>This bottom sheet expands to full screen height.</p>
+			<div style="margin-top: var(--moka-spacing-md);">
+				<MokaButton OnClick="@(() => _showFullBottomSheet = false)" Size="MokaSize.Sm">Close</MokaButton>
+			</div>
+		</ChildContent>
+	</MokaBottomSheet>
+</DemoSection>
+
+@code {
+	private bool _showBottomSheet;
+
+	private bool _showFullBottomSheet;
+}

@@ -66,9 +66,7 @@ public class MokaRatingTests : BunitContext
 	public async Task ArrowKeys_StepTheValueAndStopAtTheTop()
 	{
 		List<int> changes = [];
-		IRenderedComponent<MokaRating> cut = Render<MokaRating>(p => p
-			.Add(x => x.Value, 3)
-			.Add(x => x.ValueChanged, value => changes.Add(value)));
+		IRenderedComponent<MokaRating> cut = Bound(3, changes);
 
 		await PressAsync(cut, "ArrowRight");
 		await PressAsync(cut, "ArrowUp");
@@ -86,10 +84,7 @@ public class MokaRatingTests : BunitContext
 	public async Task HomeAndEnd_JumpToTheEnds()
 	{
 		List<int> changes = [];
-		IRenderedComponent<MokaRating> cut = Render<MokaRating>(p => p
-			.Add(x => x.Value, 2)
-			.Add(x => x.MaxValue, 10)
-			.Add(x => x.ValueChanged, value => changes.Add(value)));
+		IRenderedComponent<MokaRating> cut = Bound(2, changes, p => p.Add(x => x.MaxValue, 10));
 
 		await PressAsync(cut, "End");
 		Assert.Equal("10", cut.Find("[role=slider]").GetAttribute("aria-valuenow"));
@@ -104,10 +99,7 @@ public class MokaRatingTests : BunitContext
 	public async Task WithoutAllowClear_TheKeysStopAtOne()
 	{
 		List<int> changes = [];
-		IRenderedComponent<MokaRating> cut = Render<MokaRating>(p => p
-			.Add(x => x.Value, 2)
-			.Add(x => x.AllowClear, false)
-			.Add(x => x.ValueChanged, value => changes.Add(value)));
+		IRenderedComponent<MokaRating> cut = Bound(2, changes, p => p.Add(x => x.AllowClear, false));
 
 		await PressAsync(cut, "Home");
 		await PressAsync(cut, "ArrowLeft");
@@ -219,6 +211,24 @@ public class MokaRatingTests : BunitContext
 		cut.Render(p => p.Add(x => x.Value, 5));
 
 		Assert.Equal(5, cut.FindAll(".moka-rating-star--filled").Count);
+	}
+
+	// A parent bound to Value, as @bind-Value is: it takes each change and renders the rating again. A parent that
+	// only listens owns the value too, and would put each change back.
+	private IRenderedComponent<MokaRating> Bound(int value, List<int> changes,
+		Action<ComponentParameterCollectionBuilder<MokaRating>>? extra = null)
+	{
+		IRenderedComponent<MokaRating>? cut = null;
+		cut = Render<MokaRating>(p =>
+		{
+			p.Add(x => x.Value, value).Add(x => x.ValueChanged, EventCallback.Factory.Create<int>(this, v =>
+			{
+				changes.Add(v);
+				cut!.Render(q => q.Add(x => x.Value, v));
+			}));
+			extra?.Invoke(p);
+		});
+		return cut;
 	}
 
 	private static Task PressAsync(IRenderedComponent<MokaRating> cut, string key) =>

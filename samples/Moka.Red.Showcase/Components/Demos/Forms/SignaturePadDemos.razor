@@ -1,0 +1,13 @@
+<DemoSection Id="basics" Title="Basics" Description="A signature drawn with the pointer, kept as a PNG.">
+	<MokaSignaturePad @bind-Value="_signatureValue"
+	                  Label="Customer Signature"
+	                  HelperText="Please sign within the box above"
+	                  Height="200px"/>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Has signature: @(!string.IsNullOrEmpty(_signatureValue))
+	</p>
+</DemoSection>
+
+@code {
+	private string? _signatureValue;
+}

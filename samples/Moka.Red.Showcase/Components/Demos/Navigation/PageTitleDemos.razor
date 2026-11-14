@@ -1,0 +1,20 @@
+@using Moka.Red.Core.PageTitle
+
+<DemoSection Id="a-page-names-itself-the-layout-adds-a" Title="A page names itself, the layout adds a count" Description="Each page sets its name with MokaPageTitle; one MokaPageTitleHost in the layout writes the browser's title, with Prefix in front, such as an unread count. Turn it on and watch the browser tab.">
+	<div class="button-row">
+		<MokaSwitch @bind-Value="_on" Label="Write the browser title from here"/>
+		<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="() => _unread++" Disabled="!_on">One more unread</MokaButton>
+		<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="() => _unread = 0" Disabled="!_on">Read them all</MokaButton>
+	</div>
+	@if (_on)
+	{
+		<MokaPageTitleHost Prefix="@(_unread > 0 ? $"({_unread})" : null)" Default="Moka.Red"/>
+		<MokaPageTitle Text="Inbox"/>
+		<MokaCaption>The browser tab reads "@(_unread > 0 ? $"({_unread}) " : string.Empty)Inbox".</MokaCaption>
+	}
+</DemoSection>
+
+@code {
+	private bool _on;
+	private int _unread = 2;
+}

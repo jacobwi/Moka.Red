@@ -1,0 +1,29 @@
+<DemoSection Id="basics" Title="Basics" Description="Scrolls to load 10 items at a time, up to 50.">
+	<div style="height: 250px; overflow-y: auto; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
+		<MokaInfiniteScroll OnLoadMore="LoadMoreItems" Loading="_infiniteLoading" HasMore="_infiniteHasMore">
+			@foreach (var item in _infiniteItems)
+			{
+				<MokaText Style="padding: var(--moka-spacing-xs) var(--moka-spacing-sm); border-bottom: 1px solid var(--moka-color-outline-variant);">@item</MokaText>
+			}
+		</MokaInfiniteScroll>
+	</div>
+</DemoSection>
+
+@code {
+	private readonly List<string> _infiniteItems = Enumerable.Range(1, 10).Select(i => $"Item {i}").ToList();
+
+	private bool _infiniteLoading;
+
+	private bool _infiniteHasMore = true;
+
+	private async Task LoadMoreItems()
+	{
+		_infiniteLoading = true;
+		StateHasChanged();
+		await Task.Delay(600);
+		var next = _infiniteItems.Count;
+		_infiniteItems.AddRange(Enumerable.Range(next + 1, 10).Select(i => $"Item {i}"));
+		_infiniteHasMore = _infiniteItems.Count < 50;
+		_infiniteLoading = false;
+	}
+}

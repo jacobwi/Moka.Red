@@ -1,67 +1,37 @@
 @namespace Moka.Red.Layout.DockLayout
-@inherits MokaComponentBase
+@inherits MokaDockPart
 
-<div @ref="_panelRef" class="@CssClass" style="@CssStyle" id="@Id" inert="@IsInert" @attributes="AdditionalAttributes">
-	@if (HasHeader)
-	{
-		<div @ref="_headerRef" class="moka-dock-panel-header">
-			<div class="moka-dock-panel-title-area">
+@if (Layout is null)
+{
+	<div class="@CssClass" style="@Style" id="@Id" @attributes="AdditionalAttributes">
+		@if (Title is not null || TitleContent is not null || Actions is not null)
+		{
+			<div class="moka-dock-panel-header">
 				@if (TitleContent is not null)
 				{
 					@TitleContent
 				}
-				else if (Title is not null)
+				else
 				{
 					<div class="moka-dock-panel-title">@Title</div>
 				}
+				@Actions
 			</div>
-			<div class="moka-dock-panel-actions">
-				@* A collapsed header shows only the title and the expand button. Anything else ran past
-				   the edge of a strip, out of sight but still in the tab order. The actions stay
-				   mounted behind hidden, like the body, so their components keep their state. *@
-				@if (Actions is not null)
-				{
-					<span class="moka-dock-panel-custom-actions" hidden="@IsCollapsed">@Actions</span>
-				}
-				@if (_floating)
-				{
-					<MokaTooltip Text="Dock" Position="MokaTooltipPosition.BottomEnd">
-						<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button" aria-label="Dock">
-							<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px" Class="moka-dock-panel-icon"/>
-						</button>
-					</MokaTooltip>
-				}
-				else if (!IsCollapsed)
-				{
-					<MokaTooltip Text="Undock" Position="UndockTooltipPosition">
-						<button class="moka-dock-panel-toggle" @onclick="ToggleFloating" type="button" aria-label="Undock">
-							<MokaIcon Icon="MokaIcons.Navigation.Undock" SizeValue="14px" Class="moka-dock-panel-icon"/>
-						</button>
-					</MokaTooltip>
-				}
-				@if (Collapsible && !_floating)
-				{
-					<MokaTooltip Text="@CollapseLabel" Position="CollapseTooltipPosition">
-						<button class="moka-dock-panel-toggle" @onclick="ToggleCollapse" type="button"
-						        aria-label="@CollapseLabel"
-						        aria-expanded="@(IsCollapsed ? "false" : "true")">
-							<MokaIcon Icon="ChevronIcon" SizeValue="12px"/>
-						</button>
-					</MokaTooltip>
-				}
-			</div>
-		</div>
-	}
-
-	@* Collapsing hides the body instead of removing it, so child components keep their state. *@
-	<div class="@BodyClass" hidden="@IsCollapsed">
-		@ChildContent
+		}
+		<div class="@HostClass">@Body</div>
 	</div>
-
-	@if (HasSplitter)
-	{
-		<div @ref="_splitterRef" class="moka-dock-panel-splitter moka-dock-panel-splitter--@SplitterPosition">
-			<div class="moka-dock-panel-splitter-handle"></div>
-		</div>
-	}
-</div>
+}
+else
+{
+	@* The host stays where the markup put it in the render tree, whichever group the state puts the panel in, so its
+	   content keeps its component state across every move; the stylesheet draws it over its group's slot. *@
+	<div id="@HostId" class="@HostClass" style="@HostStyle" hidden="@(!_placement.Visible)"
+	     role="@(_placement.Tabbed ? "tabpanel" : null)" aria-labelledby="@_placement.TabId" tabindex="-1"
+	     data-moka-dock-host="@PanelId" data-moka-dock-in="@_placement.Group" data-moka-dock-anchor="@AnchorAttribute"
+	     @attributes="AdditionalAttributes">
+		@if (RendersContent)
+		{
+			@MokaDockContentGate.For(_contentVersion, Body)
+		}
+	</div>
+}

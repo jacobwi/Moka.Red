@@ -1,0 +1,32 @@
+<DemoSection Id="basics" Title="Basics" Description="A search box with a / shortcut and a loading state.">
+	<div style="max-width: 320px;">
+		<MokaSearchInput @bind-Value="_searchValue" ShowShortcut="true" Loading="_searchLoading" OnSearch="HandleSearchDemo"/>
+	</div>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Search: @_searchValue
+	</p>
+</DemoSection>
+
+<DemoSection Id="a-placeholder-longer-than-its-field" Title="A placeholder longer than its field" Description="Every library input ends a long placeholder in an ellipsis.">
+	<div style="@PathWell">
+		<MokaSearchInput Size="MokaSize.Sm" Placeholder="Search Q4 launch plans and 2026 Lisbon trip" HideLabel Label="Search"/>
+	</div>
+</DemoSection>
+
+@code {
+	private string _searchValue = "";
+
+	private bool _searchLoading;
+
+	private async Task HandleSearchDemo(string query)
+	{
+		_searchLoading = true;
+		StateHasChanged();
+		await Task.Delay(500);
+		_searchLoading = false;
+	}
+
+	private double _crumbWidth = 360;
+
+	private string PathWell => FormattableString.Invariant($"max-width: {Math.Max(80, _crumbWidth / 3)}px; margin-top: var(--moka-spacing-sm);");
+}

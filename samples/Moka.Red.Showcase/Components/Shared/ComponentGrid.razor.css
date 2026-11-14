@@ -1,0 +1,8 @@
+.component-grid ::deep .component-grid__line {
+	color: var(--moka-color-on-surface-variant);
+}
+
+.component-grid ::deep .component-grid__type {
+	margin-block-start: var(--moka-spacing-sm);
+	color: var(--moka-color-on-surface-tertiary);
+}

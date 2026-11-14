@@ -1,0 +1,15 @@
+@inject IMokaCommandPaletteService CommandPalette
+
+<DemoSection Id="basics" Title="Basics" Description="Search for a command and run it from the keyboard.">
+	<p style="font-size: var(--moka-font-size-sm);">
+		Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>K</MokaKbd> to open the command palette, or click the button below.
+	</p>
+	<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
+</DemoSection>
+
+@code {
+	private void OpenCommandPalette()
+	{
+		CommandPalette.Open();
+	}
+}

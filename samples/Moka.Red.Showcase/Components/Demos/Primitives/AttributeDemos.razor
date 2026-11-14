@@ -1,0 +1,112 @@
+<DemoSection Id="variants" Title="Variants" Description="A small labelled value: a status, a version, or a filter you can pick or dismiss.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute Variant="MokaVariant.Filled" Color="MokaColor.Primary">Filled</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Outlined</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary">Soft</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Text" Color="MokaColor.Primary">Text</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="colors-soft" Title="Colors (soft)">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Primary">Primary</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Secondary</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Error">Error</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Warning">Warning</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Success">Success</MokaAttribute>
+		<MokaAttribute Variant="MokaVariant.Soft" Color="MokaColor.Info">Info</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="sizes" Title="Sizes">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaAttribute Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Primary">XS</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Primary">SM</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Md" Variant="MokaVariant.Soft" Color="MokaColor.Primary">MD</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Lg" Variant="MokaVariant.Soft" Color="MokaColor.Primary">LG</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="with-icons" Title="With icons">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute StartIcon="MokaIcons.Status.CheckCircle" Variant="MokaVariant.Soft" Color="MokaColor.Success">Verified</MokaAttribute>
+		<MokaAttribute StartIcon="MokaIcons.File.Code" Variant="MokaVariant.Outlined">C#</MokaAttribute>
+		<MokaAttribute StartIcon="MokaIcons.Toggle.Star" Variant="MokaVariant.Filled" Color="MokaColor.Warning">Featured</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="key-value-pairs" Title="Key-Value pairs">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute Label="Status" Variant="MokaVariant.Soft" Color="MokaColor.Success">Active</MokaAttribute>
+		<MokaAttribute Label="Version" Variant="MokaVariant.Outlined">2.1.0</MokaAttribute>
+		<MokaAttribute Label="Role" Variant="MokaVariant.Soft" Color="MokaColor.Warning">Admin</MokaAttribute>
+		<MokaAttribute Label="Priority" Variant="MokaVariant.Filled" Color="MokaColor.Error">Critical</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="dismissible" Title="Dismissible">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		@foreach ((string name, MokaColor color) in _frameworks)
+		{
+			<MokaAttribute @key="name" Dismissible DismissLabel="@($"Remove {name}")"
+			               OnDismiss="() => _frameworks.RemoveAll(f => f.Name == name)"
+			               Variant="MokaVariant.Soft" Color="color">@name</MokaAttribute>
+		}
+		@if (_frameworks.Count < _frameworkChoices.Length)
+		{
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="() => _frameworks = [.._frameworkChoices]">Put them back</MokaButton>
+		}
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="dismissible-with-an-action" Title="Dismissible with an action">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaAttribute Label="Status" Dismissible Variant="MokaVariant.Soft" Color="MokaColor.Success">Active</MokaAttribute>
+		<MokaAttribute Clickable Dismissible OnClick="() => _attributeClicks++" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Clicked @_attributeClicks</MokaAttribute>
+		<MokaAttribute Selectable @bind-Selected="_dismissibleSelected" Dismissible Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Pinned</MokaAttribute>
+		<MokaAttribute Dismissible Disabled Variant="MokaVariant.Soft">Disabled</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Xs" Dismissible Variant="MokaVariant.Filled" Color="MokaColor.Info">XS</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Sm" Dismissible Variant="MokaVariant.Outlined">SM</MokaAttribute>
+		<MokaAttribute Size="MokaSize.Lg" Dismissible StartIcon="MokaIcons.File.Code" Variant="MokaVariant.Soft" Color="MokaColor.Secondary">LG</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="selectable-filters" Title="Selectable filters">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute Selectable @bind-Selected="_filterAll" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">All</MokaAttribute>
+		<MokaAttribute Selectable @bind-Selected="_filterActive" Variant="MokaVariant.Outlined" Color="MokaColor.Success">Active</MokaAttribute>
+		<MokaAttribute Selectable @bind-Selected="_filterPending" Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Pending</MokaAttribute>
+		<MokaAttribute Selectable @bind-Selected="_filterError" Variant="MokaVariant.Outlined" Color="MokaColor.Error">Error</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="non-pill-square-ish" Title="Non-Pill (Square-ish)">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaAttribute Pill="false" Variant="MokaVariant.Filled" Color="MokaColor.Primary">Tag</MokaAttribute>
+		<MokaAttribute Pill="false" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Badge</MokaAttribute>
+		<MokaAttribute Pill="false" Variant="MokaVariant.Soft" Color="MokaColor.Info">Label</MokaAttribute>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private static readonly (string Name, MokaColor Color)[] _frameworkChoices =
+	[
+		("React", MokaColor.Primary),
+		("Blazor", MokaColor.Info),
+		("Vue", MokaColor.Success)
+	];
+
+	private List<(string Name, MokaColor Color)> _frameworks = [.._frameworkChoices];
+
+	private int _attributeClicks;
+
+	private bool _dismissibleSelected = true;
+
+	private bool _filterActive;
+
+	private bool _filterAll = true;
+
+	private bool _filterError;
+
+	private bool _filterPending;
+}

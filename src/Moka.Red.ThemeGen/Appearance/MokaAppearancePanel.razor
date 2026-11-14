@@ -1,5 +1,6 @@
 @namespace Moka.Red.ThemeGen.Appearance
 @inherits MokaVisualComponentBase
+@using Moka.Red.Data.Table
 @using Moka.Red.Forms.RadioGroup
 @using Moka.Red.Layout.StatusBar
 @using Moka.Red.Primitives.Button
@@ -16,7 +17,7 @@
 	List<ChoiceRow> chartSections = rows.FindAll(row => row.IsSection && row.Group == RowGroup.Charts);
 	List<ChoiceRow> chartRows = rows.FindAll(row => !row.IsSection && row.Group == RowGroup.Charts);
 
-	bool hasColors = ShowsModes || ShowsPalettes || ShowsAccents;
+	bool hasColors = ShowsModes || ShowsPalettes || ShowsAccents || ShowsNeutral;
 	bool hasStyle = StyleIsFixed || styleSections.Count > 0 || styleRows.Count > 0;
 	bool hasComponents = componentSections.Count > 0 || componentRows.Count > 0;
 	bool hasCharts = chartSections.Count > 0 || chartRows.Count > 0;
@@ -98,14 +99,33 @@
 					<span class="moka-micro-label">@Text.Accent</span>
 					<div class="moka-appearance-panel__accent">
 						<MokaColorSwatch Colors="AccentColors" SelectedColor="@SelectedAccentColor" SelectedColorChanged="SetAccentColorAsync" ColorLabel="AccentName" ColorDisabled="AccentDisabled"
-						                 AllowClear Disabled="Disabled" AriaLabel="@Text.Accent"/>
-						@if (SelectedAccent is null)
+						                 AllowClear AllowCustom="CustomColors" Text="Text.Swatches" Disabled="Disabled" AriaLabel="@Text.Accent"/>
+						@if (AccentIsOwn)
 						{
 							<span class="moka-appearance-panel__said">@Text.AccentFromPalette</span>
 						}
 						else
 						{
 							<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UsePaletteAccentAsync">@Text.UsePaletteAccent</MokaButton>
+						}
+					</div>
+				</div>
+			}
+
+			@if (ShowsNeutral)
+			{
+				<div class="moka-appearance-panel__section">
+					<span class="moka-micro-label">@Text.Neutral</span>
+					<div class="moka-appearance-panel__accent">
+						<MokaColorSwatch Colors="NeutralColors" SelectedColor="@_value.CustomNeutral" SelectedColorChanged="SetNeutralAsync" ColorLabel="NeutralName" ColorDisabled="NeutralDisabled"
+						                 AllowClear AllowCustom="CustomColors" Text="Text.Swatches" Disabled="Disabled" AriaLabel="@Text.Neutral"/>
+						@if (_value.CustomNeutral is null)
+						{
+							<span class="moka-appearance-panel__said">@Text.NeutralFromPalette</span>
+						}
+						else
+						{
+							<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UsePaletteNeutralAsync">@Text.UsePaletteNeutral</MokaButton>
 						}
 					</div>
 				</div>
@@ -254,6 +274,39 @@
 			<StartContent><MokaStatusBarItem Text="@Text.StatusBarSampleStart"/></StartContent>
 			<EndContent><MokaStatusBarItem Text="@Text.StatusBarSampleEnd"/></EndContent>
 		</MokaStatusBar>
+	</span>;
+
+	private static RenderFragment DocksArt(MokaDockLook look) =>@<span class="@LookClass("docks", look)">
+		<span class="moka-appearance-panel__dock-activity"><span></span><span></span><span></span></span>
+		<span class="moka-appearance-panel__dock-group moka-appearance-panel__dock-group--side">
+			<span class="moka-appearance-panel__dock-head"><span class="moka-appearance-panel__dock-tab moka-appearance-panel__dock-tab--on"></span></span>
+			<span class="moka-appearance-panel__bar"></span>
+			<span class="moka-appearance-panel__bar moka-appearance-panel__bar--short"></span>
+		</span>
+		<span class="moka-appearance-panel__dock-group moka-appearance-panel__dock-group--main moka-appearance-panel__dock-group--active">
+			<span class="moka-appearance-panel__dock-head">
+				<span class="moka-appearance-panel__dock-tab moka-appearance-panel__dock-tab--on"></span>
+				<span class="moka-appearance-panel__dock-tab"></span>
+			</span>
+			<span class="moka-appearance-panel__bar moka-appearance-panel__bar--strong"></span>
+			<span class="moka-appearance-panel__bar"></span>
+		</span>
+		<span class="moka-appearance-panel__dock-group moka-appearance-panel__dock-group--bottom">
+			<span class="moka-appearance-panel__dock-head"><span class="moka-appearance-panel__dock-tab moka-appearance-panel__dock-tab--on"></span></span>
+			<span class="moka-appearance-panel__bar moka-appearance-panel__bar--short"></span>
+		</span>
+	</span>;
+
+	private static RenderFragment TablesArt(MokaTableLook look) =>@<span class="@LookClass("tables", look)">
+		@for (int row = 0; row < 4; row++)
+		{
+			<span class="@TableRowClass(row)">
+				<span class="moka-appearance-panel__table-num"></span>
+				<span class="moka-appearance-panel__bar"></span>
+				<span class="moka-appearance-panel__bar moka-appearance-panel__bar--short"></span>
+				<span class="moka-appearance-panel__bar moka-appearance-panel__bar--short"></span>
+			</span>
+		}
 	</span>;
 
 	private RenderFragment DensityMock(MokaTheme theme) =>@<MokaThemeProvider Theme="theme" LoadFonts="false" Nonce="@Nonce">

@@ -8,7 +8,7 @@ namespace Moka.Red.Data.Tests.Charts;
 /// </summary>
 public sealed class LinkedZoomScriptTests
 {
-	private static readonly Lazy<JsonElement?> Result = new(() => ChartScriptRunner.Run("linked-zoom.mjs"));
+	private static readonly Lazy<JsonElement?> Result = new(() => ScriptRunner.Run("linked-zoom.mjs"));
 
 	[Fact]
 	public void AKeyZoom_TellsItsOwnChartAndTheLinkedOne_TheSameRangeOnce()

@@ -1,0 +1,29 @@
+<DemoSection Id="basics" Title="Basics" Description="A time, in 24 or 12 hours, in steps.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaTimePicker @bind-Value="_selectedTime" Label="Time (24h)"/>
+		<MokaTimePicker @bind-Value="_selectedTime2" Label="Time (12h)" Format24="false"/>
+		<MokaTimePicker @bind-Value="_selectedTime" Label="15-min Steps" MinuteStep="15"/>
+		<MokaTimePicker @bind-Value="_selectedTime" Label="Disabled" Disabled="true"/>
+		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @(_selectedTime?.ToString(@"hh\:mm") ?? "none")</p>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+
+	private TimeSpan? _selectedTime = new TimeSpan(14, 30, 0);
+
+	private TimeSpan? _selectedTime2;
+}

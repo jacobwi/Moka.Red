@@ -38,10 +38,12 @@ public partial class MokaRating : MokaVisualComponentBase
 	private ElementReference _slider;
 	private bool _keysCancelled;
 
-	// The rating shows _value, not Value: a click or a key changes it before the parent answers,
-	// and a parent that does not bind Value must not undo it by re-rendering.
-	private int _value;
-	private int? _lastValueParameter;
+	// The rating shows what _input holds, not Value: a click or a key changes it before the parent answers, and a
+	// parent that does not bind Value must not undo it by re-rendering.
+	private readonly MokaInputValue<int> _input;
+
+	/// <summary>Creates the rating. It shows its own value until the parent passes one.</summary>
+	public MokaRating() => _input = new MokaInputValue<int>(StateHasChanged, DispatchExceptionAsync);
 
 	// Id goes on the slider, not the wrapper, and the label's id is built from it.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -127,7 +129,7 @@ public partial class MokaRating : MokaVisualComponentBase
 
 	private int HighestValue => Math.Max(MaxValue, 0);
 
-	private int CurrentValue => Math.Clamp(_value, 0, HighestValue);
+	private int CurrentValue => Math.Clamp(_input.Shown, 0, HighestValue);
 
 	// Without AllowClear, 0 only means "not rated yet": the keys, like the mouse, cannot go back to it.
 	private int LowestValue => AllowClear ? 0 : Math.Min(1, HighestValue);
@@ -176,15 +178,24 @@ public partial class MokaRating : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
+		_input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
 
-		if (_lastValueParameter != Value)
-		{
-			_lastValueParameter = Value;
-			_value = Value;
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_input.Stop();
+		return base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
@@ -206,17 +217,17 @@ public partial class MokaRating : MokaVisualComponentBase
 		.AddClass("moka-rating-star--filled", filled)
 		.Build();
 
-	private async Task HandleClick(int star)
+	private void HandleClick(int star)
 	{
 		if (!IsInteractive)
 		{
 			return;
 		}
 
-		await SetValueAsync(AllowClear && star == CurrentValue ? 0 : star);
+		SetValue(AllowClear && star == CurrentValue ? 0 : star);
 	}
 
-	private async Task HandleKeyDown(KeyboardEventArgs e)
+	private void HandleKeyDown(KeyboardEventArgs e)
 	{
 		if (!IsInteractive || e.AltKey || e.CtrlKey || e.MetaKey)
 		{
@@ -240,18 +251,15 @@ public partial class MokaRating : MokaVisualComponentBase
 
 		// The stars follow the keys even while the pointer rests on one.
 		_hoverValue = 0;
-		await SetValueAsync(next.Value);
+		SetValue(next.Value);
 	}
 
-	private async Task SetValueAsync(int value)
+	private void SetValue(int value)
 	{
-		if (value == _value)
+		if (value != _input.Shown)
 		{
-			return;
+			_input.Pick(value, ValueChanged);
 		}
-
-		_value = value;
-		await ValueChanged.InvokeAsync(value);
 	}
 
 	// A list of read-only ratings has nothing to preview. A default EventCallback renders no listener, where

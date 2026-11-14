@@ -161,6 +161,58 @@ public sealed class ServerTests : IAsyncLifetime
 		Assert.Contains("Save, Delete", text, StringComparison.Ordinal);
 	}
 
+	// The version comes from the packages the server carries, so it is always the one the repository builds.
+	[Fact]
+	public void Instructions_NameTheVersionTheRepositoryBuilds()
+	{
+		string targets = File.ReadAllText(Path.Combine(Repository.Root(), "Directory.Build.targets"));
+		string version = System.Text.RegularExpressions.Regex.Match(targets, "<Version>([^<]+)</Version>").Groups[1].Value;
+
+		Assert.Equal(version, MokaRedMcpServer.LibraryVersion);
+		Assert.StartsWith($"Moka.Red {version} is", Client.ServerInstructions, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task GetType_WritesHowAMethodTakesItsParameters()
+	{
+		string tokens = await Call("get_type", new() { ["name"] = "MokaTokens" });
+		string notifier = await Call("get_type", new() { ["name"] = "IMokaSystemNotifier" });
+
+		Assert.Contains("TryFind(string? name, out MokaToken? token)", tokens, StringComparison.Ordinal);
+		Assert.Contains("CancellationToken cancellationToken = default)", notifier, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task GetComponentDocs_GivesTheLayoutPages()
+	{
+		string text = await Call("get_component_docs", new() { ["name"] = "dock-layout-state" });
+
+		Assert.StartsWith("# Dock Layout State", text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task SearchComponents_NamesTheNewPagesAndTypes()
+	{
+		string dock = await Call("search_components", new() { ["query"] = "dock state" });
+		string banner = await Call("search_components", new() { ["query"] = "banner" });
+
+		Assert.Contains("`dock-layout-state`", dock, StringComparison.Ordinal);
+		Assert.Contains("`MokaDockState`", dock, StringComparison.Ordinal);
+		Assert.StartsWith("- MokaBannerHost (Feedback)", banner, StringComparison.Ordinal);
+		Assert.Contains("`IMokaBannerService`", banner, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task ListComponents_LeavesOutTheLibrarysOwnPartsAndRemovedComponents()
+	{
+		string text = await Call("list_components", []);
+
+		Assert.Contains("MokaThemeStudio", text, StringComparison.Ordinal);
+		Assert.DoesNotContain("MokaTableCellEditor", text, StringComparison.Ordinal);
+		Assert.DoesNotContain("MokaChartFrame", text, StringComparison.Ordinal);
+		Assert.DoesNotContain("MokaThemeEditor", text, StringComparison.Ordinal);
+	}
+
 	[Fact]
 	public async Task GetGettingStarted_StartsWithInstallationAndNamesTheOtherTopics()
 	{

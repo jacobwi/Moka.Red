@@ -11,10 +11,15 @@ namespace Moka.Red.Forms.SearchInput;
 public partial class MokaSearchInput : MokaVisualComponentBase
 {
 	private readonly string _generatedId = $"moka-search-{Guid.NewGuid():N}";
+
+	// The text the box shows, apart from Value: what was typed shows before the parent answers, and a parent that
+	// doesn't own the value can't wipe it by rendering again, for example when OnSearch sets Loading.
+	private readonly MokaInputValue<string> _input;
 	private ITimer? _debounceTimer;
-	private string? _lastValue;
 	private int _search;
-	private string _value = "";
+
+	/// <summary>Creates the search box. It shows its own text until the parent passes a value.</summary>
+	public MokaSearchInput() => _input = new MokaInputValue<string>(StateHasChanged, DispatchExceptionAsync, "");
 
 	// Optional, so looked up rather than injected: [Inject] throws when a service is missing.
 	[Inject]
@@ -79,7 +84,7 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-search--loading", Loading)
-		.AddClass("moka-search--has-value", !string.IsNullOrEmpty(_value))
+		.AddClass("moka-search--has-value", !string.IsNullOrEmpty(Text))
 		.AddClass(Class)
 		.Build();
 
@@ -108,34 +113,29 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
-	/// <inheritdoc />
-	protected override void OnParametersSet()
-	{
-		base.OnParametersSet();
+	private string Text => _input.Shown ?? "";
 
-		// Value only seeds the box when the parent passes a new value. Copying it on every parent
-		// render wiped the typed text of an unbound box, for example when OnSearch set Loading.
-		if (!string.Equals(_lastValue, Value, StringComparison.Ordinal))
-		{
-			_lastValue = Value;
-			_value = Value ?? "";
-		}
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
 	}
 
 	private async Task HandleInput(string? typed)
 	{
 		string value = typed ?? "";
-		_value = value;
-
-		// Taken before any await, so an older keystroke that resumes late can't schedule over a newer one.
 		int search = DropWaitingSearch();
+		_input.Pick(value, ValueChanged);
 
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync(value);
-		}
-
-		if (search != _search || !OnSearch.HasDelegate)
+		if (!OnSearch.HasDelegate)
 		{
 			return;
 		}
@@ -155,9 +155,9 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 
 	// Disposing a timer doesn't stop a callback that already fired and is waiting for the renderer, so each
 	// search carries the number it was scheduled under and only the latest one reports. It reports the box as it
-	// is then, which is the parent's value if the parent passed one meanwhile.
+	// is then, which is the parent's value if the parent passed one meanwhile or refused the typed text.
 	private Task SearchAsync(int search) =>
-		search == _search && OnSearch.HasDelegate ? OnSearch.InvokeAsync(_value) : Task.CompletedTask;
+		search == _search && OnSearch.HasDelegate ? OnSearch.InvokeAsync(Text) : Task.CompletedTask;
 
 	private int DropWaitingSearch()
 	{
@@ -168,15 +168,10 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 
 	private async Task HandleClear()
 	{
-		_value = "";
-		int search = DropWaitingSearch();
+		DropWaitingSearch();
+		_input.Pick("", ValueChanged);
 
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync("");
-		}
-
-		if (search == _search && OnSearch.HasDelegate)
+		if (OnSearch.HasDelegate)
 		{
 			await OnSearch.InvokeAsync("");
 		}
@@ -185,7 +180,9 @@ public partial class MokaSearchInput : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		_input.Stop();
 		DropWaitingSearch();
 		await base.DisposeAsyncCore();
 	}
+
 }

@@ -5,6 +5,112 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Breaking
+- **Inputs bound one way.** When a parent passes both `Value` and `ValueChanged`, the parent owns the value: the input
+  shows the pick while the handler runs, then shows whatever the parent passes back, so a refused or clamped change
+  goes back on screen and in the browser. This holds for every input, on the input bases or not. `CurrentValue` and
+  `CurrentValueAsString` on `MokaInputBase` no longer write `Value`, so `Value` read through a component reference is
+  always the parent's. `MokaToggleBase.Toggle()` is now `SetChecked(bool)`. A parent that passed both and never stored
+  the new value now sees the change undone; store it, or use `@bind-Value`. With no `ValueChanged`, or `ValueChanged`
+  without `Value`, an input keeps its own state as before.
+- `MokaCalendar` raises `ValueChanged` before `OnDateClick`, `MokaCreditCardInput` the number before
+  `OnCardTypeDetected`, and `MokaSearchInput` searches without waiting for `ValueChanged`. `MokaSchedulePicker` and
+  `MokaFormBuilder` report new lists and fields and never edit the caller's. `MokaCountrySelect.PickFromGrid` returns
+  `void`. No change callback fires when the value didn't change.
+- `MokaNumericField<TValue>` drops its `struct, INumber<TValue>` constraint and takes the built-in number types and
+  their nullable forms; a nullable field opens empty and posts null. `Min`, `Max` and `Step` now apply.
+- **Toasts.** `Show` and the `ShowX` helpers return a `MokaToastHandle` (`Update`, `Dismiss`). `OnToastAdded` and
+  `OnToastRemoved` are replaced by one `Changed` event and the `Toasts` snapshot. `Remove` is `Dismiss`.
+  `MokaToastOptions.DurationMs` is `Duration` (`TimeSpan?`, null keeps the toast) and `CustomIcon` is `Icon`.
+  `MokaToastMessage` is an immutable record without `Options`, and `CreatedAt` is a `DateTimeOffset`. The action
+  button closes its toast unless `CloseOnAction` is false. Toasts past `MaxVisible` wait without counting down.
+- The words of `MokaNotificationCenter` (`TodayText`, `EarlierText`, `NewCountText`) and `MokaNotificationBell` moved
+  into their `Text` records.
+- `MokaCodeSpan` and `MokaCodeTokenKind` moved to the `Moka.Red.Core.Code` namespace in Core.
+- **Theming.** Theme equality now includes the accent, the seed and pinned tokens; compare `ToCssVariables()` to ask
+  whether two themes draw the same. A nested `MokaThemeProvider` writes only the tokens that differ from its parent,
+  so its root's `style` no longer lists every token. The dark token blocks in `moka.css` no longer apply on a provider
+  root.
+- **ThemeGen.** `MokaThemeEditor`, `MokaPaletteEditor`, `MokaTypographyEditor` and `MokaSpacingEditor` are removed:
+  they edited colors one by one and skipped the derivation that keeps contrast. `MokaThemeStudio` replaces them.
+  `MokaThemePreview` and `MokaThemeImportExport` draw new markup, the C# and CSS exports changed shape (the C# export
+  is now a `With` chain), and ThemeGen references Feedback, Navigation and Data.
+- **MokaTable.** `ServerData` takes a `MokaTableRequest` (`Search`, `Sorts`, typed `Filters`, `Cursor`, `StartIndex`,
+  `Facets`, `Aggregates`, `Groups`) and `MokaTableResult.TotalItems` is `int?`. `SortColumn`, `SortDirection`,
+  `PageSizeChanged`, `Layout`, `LayoutChanged`, `MokaTableLayout`, `ActiveView`, `ViewPicked` and
+  `MokaTableSortDescriptor` are replaced by one bindable `State` and a column's `DefaultSort`. `PageSizeOptions`,
+  `PaginationPosition`, `StickyPagination` and `ShowMore` moved to the `MokaTablePager` part. `Dense` is `Density`.
+  `SearchPlaceholder` and `ActionsColumnTitle` moved into `Text`. `GroupBy` names a column. A view is
+  `MokaTableView(Name, State)`. `ShowFilters` is `FilterControls`. `Sticky` is `Pin`. `OnCellEdit` and the column's
+  `OnCellEdited` are replaced by `OnRowSave`, with typed values. `SelectedItems`, `PageSize` and the pager's
+  `CurrentPage` are owned values (see inputs above). A failed load shows an error with Retry instead of reaching the
+  error boundary. The table is an ARIA grid, exports follow the column order on screen, and search and text filters
+  read the text a cell shows.
+- **MokaDockLayout.** `Size` and `SizeChanged` are text ("320px"), so `@bind-Size` compiles. Several panels on one side
+  become tabs of one group instead of overlapping. The markup is new, floating windows sit inside the layout, headers
+  show Maximize and a menu (set `Controls` for the old row), inactive tabs render lazily, `MokaDockPanel.OnResized`
+  and `OnFloatingMoved` are gone, and Layout references Feedback.
+- **MokaMenu.** An item with both `Href` and children draws a link and an arrow button (the link was ignored before),
+  and its `OnClick` fires only when the link is followed.
+
+### Added
+- **Themes from seeds.** `MokaThemeSeed` (accent, neutral, optional status colors, contrast level, neutral strength)
+  and `MokaTheme.FromSeed` build a dark and light theme in OKLCH whose text meets WCAG AA by construction (AAA with
+  `More`), keeping the accent exactly as given. `WithSeed`, `WithNeutral`, pinned tokens (`WithToken`, `WithoutToken`,
+  `Pins`) and `CheckContrast()`, a report of every text and line pair with its WCAG ratio and APCA Lc.
+- A color library in `Moka.Red.Core.Colors` (sRGB, linear, OKLab, OKLCH, HSL, HSV, CSS parsing and formatting,
+  gamut mapping, `color-mix()` mixing, WCAG and APCA contrast) and a token table, `MokaTokens`, with
+  `theme.ToTokenMap()`.
+- Theme choices `WithTables`, `WithTableDensity` and `WithDocks`, and `--moka-code-*` tokens for code colors.
+- **Syntax highlighting.** `MokaCodeBlock.Highlighter` with `MokaCodeHighlighters` for Razor, C#, HTML, XML, CSS,
+  JSON and shell (`For(language)` picks one). A code block without one renders exactly as before; `MokaCodeEditor`
+  takes the same highlighters.
+- **Notifications.** Toast `Key`, `Repeats` (Count, Stack, Replace), `Track` for a task that turns one toast from
+  loading to success or error, `Progress` with five progress looks, `AlsoInCenter`, swipe to dismiss on touch, and
+  `MokaToast` written in markup. `IMokaAnnouncer` for screen reader messages, banners (`IMokaBannerService`,
+  `MokaBannerHost`, dismissals remembered), notification center items with actions, links and keys, and an opt-in
+  `IMokaSystemNotifier` for the browser's notifications.
+- **MokaThemeStudio**, a theme generator: presets or seeds and every style choice, a sample app in dark, light or
+  both, a contrast report, every token with pinning, and C#, JSON and CSS export. "Show what changed" (off by default)
+  outlines what a change touched. `MokaThemePair`, and custom accent and neutral colors on `MokaAppearancePanel`.
+- **MokaTable.** One savable `State` with `StorageKey`; three densities; seven looks (Lined, Soft stripes, Cards,
+  Sheet, Airy, Framed, List); seven pagers (Numbered, Entries, Compact, Jump to page, Load more, Endless scroll,
+  Cursor); 16 column kinds (Person, Icon and text, Status, Progress, Yes or no, Date, Number, Money, Bytes, Link, Row
+  menu, Actions, Copyable, Sparkline, Rating, Image) and an edit column; five filter UIs (typed row, header menus with
+  chips, quick filters with counts, facets, a builder) with typed filters to the server; bindable search with
+  highlighting; columns pinned on both sides; a column menu; header groups; row click selection, double click,
+  pinned rows and expand all; nested grouping with totals across pages; server totals; distinct no-results and
+  failed-load states; cell and row editing with validation, add, delete and undo; Excel export written without a
+  package; copying rows and cell ranges as a table; the ARIA grid pattern; remote rows loaded window by window; column
+  virtualization; streaming from `IAsyncEnumerable`.
+- **MokaDockLayout.** A tree of rows, columns and tab groups with a savable `MokaDockState`; drag to dock with zone or
+  compass indicators; floating windows that snap and maximize; auto-hide; header icons, close, maximize and menus;
+  keyboard splitters and F6; panels opened from code; named presets; three narrow-screen modes; panels popped out into
+  a browser window on Blazor Server; looks Classic, IDE, Cards, Minimal and Terminal with four tab styles.
+- **Navigation.** `MokaNavEntry.Children`, so an entry can be a page and a group at once. A click on an open group's
+  label while inside it collapses it (`CollapseOnRepeatClick`, on by default). A collapsed rail shows a parent's
+  children in a flyout, and the group holding the current page opens itself.
+- `MokaNotificationBell.Text` and an inline mode.
+
+### Fixed
+- Toasts are announced to screen readers, pause while hovered or focused, listen for clicks only with an `OnClick`,
+  and give their action button a type.
+- An open `MokaMenu` group is no longer cut off at 500 px, and the rail no longer claims a group is expanded while
+  showing nothing.
+- A transition token followed by a second easing made the whole declaration invalid, so `MokaAccordionItem`,
+  `MokaPanel`, `MokaKnob`, `MokaGauge`, `MokaHoverCard`, `MokaRadioItem` and `MokaTreeSelect` never animated. They do.
+- A segmented control's labels are never cut in its default wrapping track, in any browser.
+- A sticky `MokaBannerHost` sits under a fixed app bar instead of sliding beneath it, and code with Windows line
+  endings no longer shows a trailing space on every line.
+- `WithDark` after `WithAccent` keeps the accent, and `WithHighContrast(false)` restores exactly what was there.
+- The theme provider caches by value, so an equal new theme no longer recomputes its tokens.
+- `MokaTable`'s reset raises `StateChanged` and saves; a default sort reaches the first server request.
+- Six `MokaDockLayout` defects: overlapping panels on one side, `@bind-Size` not compiling, floating size and position
+  never reported, unreachable splitters, options a trimmed WebAssembly app could lose, and every panel redrawing on
+  each resize.
+
 ## [0.5.4] - 2026-11-14
 
 ### Added

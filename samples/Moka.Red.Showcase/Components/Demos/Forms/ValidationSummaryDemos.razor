@@ -1,0 +1,34 @@
+@using System.ComponentModel.DataAnnotations
+
+<DemoSection Id="every-message-above-the-form" Title="Every message above the form" Description="It lists what the cascaded EditContext holds and draws nothing while the form is clean. Press Send with the fields empty.">
+	<EditForm Model="_model" OnValidSubmit="() => _sent = true">
+		<DataAnnotationsValidator/>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 360px;">
+			<MokaValidationSummary/>
+			<MokaTextField Label="Name" @bind-Value="_model.Name"/>
+			<MokaTextField Label="Email" @bind-Value="_model.Email"/>
+			<div class="button-row">
+				<MokaButton Type="submit">Send</MokaButton>
+				@if (_sent)
+				{
+					<MokaCaption>Sent.</MokaCaption>
+				}
+			</div>
+		</div>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private readonly Contact _model = new();
+	private bool _sent;
+
+	private sealed class Contact
+	{
+		[Required(ErrorMessage = "Enter a name.")]
+		public string? Name { get; set; }
+
+		[Required(ErrorMessage = "Enter an email address.")]
+		[EmailAddress(ErrorMessage = "That isn't an email address.")]
+		public string? Email { get; set; }
+	}
+}

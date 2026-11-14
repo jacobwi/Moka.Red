@@ -1,0 +1,11 @@
+.scroll-top-demo {
+	height: 14rem;
+	overflow-y: auto;
+	padding-inline: var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+}
+
+.scroll-top-demo p {
+	margin: var(--moka-spacing-xs) 0;
+}

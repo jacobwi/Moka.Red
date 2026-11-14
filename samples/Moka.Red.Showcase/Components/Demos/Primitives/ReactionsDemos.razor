@@ -1,0 +1,55 @@
+@using Moka.Red.Primitives.Emoji
+@using Moka.Red.Primitives.Reactions
+
+<DemoSection Id="basics" Title="Basics">
+	<MokaParagraph>Hover or tab into a message for its bar. Click a count you're part of to take your reaction back.</MokaParagraph>
+	<div style="display: flex; flex-direction: column; gap: 2.5rem; padding-top: 2.25rem;">
+		<MokaReactions Reactions="_first" OnToggle="@(e => _first = Toggle(_first, e))" Options="_options" OptionsChanged="Keep">
+			<b>Mira</b> Release 0.4 is tagged. Notes are in the changelog.
+		</MokaReactions>
+		<MokaReactions Reactions="_second" OnToggle="@(e => _second = Toggle(_second, e))" Options="_options" OptionsChanged="Keep">
+			<b>Jon</b> Docs are live too.
+		</MokaReactions>
+		<div>
+			<MokaCaption Micro>Counts only, no message</MokaCaption>
+			<MokaReactions Reactions="_third" OnToggle="@(e => _third = Toggle(_third, e))" Options="_options" OptionsChanged="Keep"/>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private MokaEmojiOptions _options = new();
+
+	private IReadOnlyList<MokaReaction> _first = [new("\U0001F44D", 3, true), new("\U0001F389", 2, false)];
+
+	private IReadOnlyList<MokaReaction> _second = [];
+
+	private IReadOnlyList<MokaReaction> _third = [new("\u2764\uFE0F", 1, false)];
+
+	private void Keep(MokaEmojiOptions changed) =>
+		_options = _options with { Recent = changed.Recent, SkinTone = changed.SkinTone };
+
+	private static IReadOnlyList<MokaReaction> Toggle(IReadOnlyList<MokaReaction> reactions, string emoji)
+	{
+		List<MokaReaction> list = [.. reactions];
+		int at = list.FindIndex(r => r.Emoji == emoji);
+		if (at < 0)
+		{
+			list.Add(new MokaReaction(emoji, 1, true));
+			return list;
+		}
+
+		MokaReaction current = list[at];
+		MokaReaction next = current with { Mine = !current.Mine, Count = current.Count + (current.Mine ? -1 : 1) };
+		if (next.Count <= 0)
+		{
+			list.RemoveAt(at);
+		}
+		else
+		{
+			list[at] = next;
+		}
+
+		return list;
+	}
+}

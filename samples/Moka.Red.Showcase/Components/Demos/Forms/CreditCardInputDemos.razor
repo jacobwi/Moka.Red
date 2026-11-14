@@ -1,0 +1,22 @@
+<DemoSection Id="basics" Title="Basics" Description="Card number, expiry, CVV and name, with the brand found as you type.">
+	<MokaCreditCardInput @bind-CardNumber="_ccNumber"
+	                     @bind-ExpiryDate="_ccExpiry"
+	                     @bind-Cvv="_ccCvv"
+	                     @bind-CardholderName="_ccName"
+	                     OnCardTypeDetected="t => _ccType = t"/>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Detected: @(_ccType ?? "unknown")
+	</p>
+</DemoSection>
+
+@code {
+	private string _ccNumber = "";
+
+	private string _ccExpiry = "";
+
+	private string _ccCvv = "";
+
+	private string _ccName = "";
+
+	private string? _ccType;
+}

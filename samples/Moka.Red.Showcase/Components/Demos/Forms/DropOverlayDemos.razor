@@ -1,0 +1,93 @@
+<DemoSection Id="basics" Title="Basics" Description="Turn it on, then drag files from your desktop anywhere over the window. It takes .conf, .zip and images, up to three at a time and 1 MB each, and lists what it turned away.">
+	<MokaSwitch @bind-Value="_on" Label="Drop overlay on"/>
+	@if (_on)
+	{
+		<MokaDropOverlay Accept=".conf,.zip,image/*"
+		                 MaxFiles="3"
+		                 MaxFileSize="1048576"
+		                 Title="Drop to import"
+		                 Hint=".conf · .zip · QR image"
+		                 OnFiles="HandleFiles"
+		                 OnRejected="HandleRejected"/>
+	}
+	@if (_lines.Count > 0)
+	{
+		<ul class="drop-demo__list">
+			@foreach (string line in _lines)
+			{
+				<li>@line</li>
+			}
+		</ul>
+	}
+</DemoSection>
+
+<DemoSection Id="whole-window-drop-layer" Title="Whole-window drop layer">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+			<MokaCaption Micro="true">Look</MokaCaption>
+			<MokaSegmentedControl Value="@_overlayLook.ToString()" ValueChanged="v => _overlayLook = Enum.Parse<MokaDropOverlayLook>(v)" AriaLabel="Overlay look" Size="MokaSize.Sm">
+				@foreach (MokaDropOverlayLook look in Enum.GetValues<MokaDropOverlayLook>())
+				{
+					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xl); align-items: flex-end;">
+			<MokaSwitch @bind-Value="_overlayOn" Label="Take drops anywhere on the window"/>
+			<MokaTextField Label="Where the files go" @bind-Value="_destination" Style="max-width: 16rem;"/>
+		</div>
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+			Turn it on, then drag files from your desktop over this window. While it's on it takes every drop on the page,
+			the uploads above included. @_overlaySaid
+		</p>
+	</div>
+	<MokaDropOverlay Look="_overlayLook"
+	                 Disabled="!_overlayOn"
+	                 Accept=".pdf,.png,.jpg"
+	                 Destination="@(string.IsNullOrWhiteSpace(_destination) ? null : _destination)"
+	                 Hint="Anywhere works"
+	                 OnFiles="Dropped"
+	                 OnRejected="Refused"/>
+</DemoSection>
+
+@code {
+	private readonly List<string> _lines = [];
+
+	private bool _on;
+
+	private void HandleFiles(IReadOnlyList<IBrowserFile> files)
+	{
+		foreach (IBrowserFile file in files)
+		{
+			_lines.Insert(0, $"Took {file.Name} ({file.Size:N0} bytes)");
+		}
+	}
+
+	private void HandleRejected(IReadOnlyList<MokaRejectedFile> files)
+	{
+		foreach (MokaRejectedFile file in files)
+		{
+			string why = file.Reason switch
+			{
+				MokaFileRejection.Type => "not a type it takes",
+				MokaFileRejection.Size => "larger than 1 MB",
+				_ => "more than three files"
+			};
+			_lines.Insert(0, $"Turned away {file.File.Name}: {why}");
+		}
+	}
+
+	private MokaDropOverlayLook _overlayLook = MokaDropOverlayLook.Card;
+
+	private bool _overlayOn;
+
+	private string _destination = "Q3 plans";
+
+	private string? _overlaySaid;
+
+	private void Dropped(IReadOnlyList<IBrowserFile> files) =>
+		_overlaySaid = files.Count == 1 ? $"Last drop: {files[0].Name}." : $"Last drop: {files.Count} files.";
+
+	private void Refused(IReadOnlyList<MokaRejectedFile> files) =>
+		_overlaySaid = $"Turned away: {string.Join(", ", files.Select(f => $"{f.File.Name} ({f.Reason})"))}.";
+}

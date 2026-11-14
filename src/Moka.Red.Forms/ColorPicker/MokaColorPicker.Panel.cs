@@ -58,6 +58,7 @@ public partial class MokaColorPicker
 	private string? _formatStatus;
 	private bool _hexCopied;
 	private bool _hexInvalid;
+	private string? _hexText;
 	private MokaColorFormat? _lastFormatParameter;
 	private string? _lastPicked;
 	private IReadOnlyList<string>? _lastRecentParameter;
@@ -536,9 +537,13 @@ public partial class MokaColorPicker
 
 	private static double Finite(double value, double fallback = 0) => double.IsFinite(value) ? value : fallback;
 
-	private void HandlePanelHexInput(ChangeEventArgs e)
+	// Text that isn't a color stays in the box, marked, so it can be put right.
+	private string? PanelHexText => _hexInvalid ? _hexText : CurrentValue;
+
+	private void HandlePanelHexInput(string? value)
 	{
-		string text = e.Value?.ToString()?.Trim() ?? "";
+		string text = value?.Trim() ?? "";
+		_hexText = value;
 		if (MokaColorValues.IsThemeToken(text))
 		{
 			_hexInvalid = false;
@@ -557,14 +562,14 @@ public partial class MokaColorPicker
 		SelectPreset(MokaColorSpace.ToHex(color, withAlpha: true));
 	}
 
-	private void HandleHslInput(char channel, ChangeEventArgs e)
+	private void SetHsl(char channel, int whole)
 	{
-		if (Disabled || ReadOnly ||
-		    !double.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double number) ||
-		    !double.IsFinite(number))
+		if (Disabled || ReadOnly)
 		{
 			return;
 		}
+
+		double number = whole;
 
 		(double h, double s, double l) = MokaColorSpace.HsvToHsl(_pickHue, _pickSat, _pickVal);
 		switch (channel)
@@ -587,16 +592,14 @@ public partial class MokaColorPicker
 		TakePanelColor();
 	}
 
-	private void HandleAlphaPercent(ChangeEventArgs e)
+	private void SetAlphaPercent(int percent)
 	{
-		if (Disabled || ReadOnly ||
-		    !double.TryParse(e.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out double percent) ||
-		    !double.IsFinite(percent))
+		if (Disabled || ReadOnly)
 		{
 			return;
 		}
 
-		_pickAlpha = Math.Clamp(percent, 0, 100) / 100;
+		_pickAlpha = Math.Clamp(percent, 0, 100) / 100d;
 		TakePanelColor();
 	}
 

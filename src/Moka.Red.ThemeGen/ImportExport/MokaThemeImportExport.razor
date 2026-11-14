@@ -1,62 +1,40 @@
 @namespace Moka.Red.ThemeGen.ImportExport
-@using Moka.Red.Core.Clipboard
+@using Moka.Red.Forms.TextArea
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.CodeBlock
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Typography
 
 <div class="moka-theme-import-export">
 	<div class="moka-theme-import-export__section">
-		<h4 class="moka-theme-import-export__title">Export</h4>
-
-		<div class="moka-theme-import-export__tabs">
-			<button type="button"
-			        class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.Json ? "moka-theme-import-export__tab--active" : "")"
-			        @onclick="() => SetExportFormat(ExportFormat.Json)">
-				JSON
-			</button>
-			<button type="button"
-			        class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.Css ? "moka-theme-import-export__tab--active" : "")"
-			        @onclick="() => SetExportFormat(ExportFormat.Css)">
-				CSS
-			</button>
-			<button type="button"
-			        class="moka-theme-import-export__tab @(_exportFormat == ExportFormat.CSharp ? "moka-theme-import-export__tab--active" : "")"
-			        @onclick="() => SetExportFormat(ExportFormat.CSharp)">
-				C#
-			</button>
+		<div class="moka-theme-import-export__bar">
+			<MokaHeading Level="3" Micro>@Text.ExportHeading</MokaHeading>
+			<MokaSegmentedControl Value="@FormatValue" ValueChanged="SetFormatAsync" AriaLabel="@Text.FormatLabel" Size="MokaSize.Sm">
+				<MokaSegment Value="@nameof(MokaThemeExportFormat.CSharp)" Text="@Text.CSharp"/>
+				<MokaSegment Value="@nameof(MokaThemeExportFormat.Json)" Text="@Text.Json"/>
+				<MokaSegment Value="@nameof(MokaThemeExportFormat.Css)" Text="@Text.Css"/>
+			</MokaSegmentedControl>
 		</div>
 
-		<div class="moka-theme-import-export__output-wrapper">
-			<textarea class="moka-theme-import-export__output"
-					  aria-label="@($"Theme exported as {ExportFormatName}")"
-					  readonly
-					  value="@_exportOutput"></textarea>
-			<button type="button" class="moka-theme-import-export__copy-btn"
-			        data-moka-copy-from=".moka-theme-import-export__output"
-			        @onmokacopied="HandleCopied">
-				@CopyLabel
-			</button>
-		</div>
+		<MokaCodeBlock Code="@ExportOutput" Language="@Language" Highlighter="Highlighter" MaxHeight="@MaxHeight" ShowLineNumbers="false"/>
+		<MokaCaption>@Hint</MokaCaption>
 
-		@if (ShowExportCallback)
+		@if (OnExport.HasDelegate)
 		{
-			<button type="button" class="moka-theme-import-export__action-btn" @onclick="HandleExport">
-				Export
-			</button>
+			<div>
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="HandleExport">@Text.Export</MokaButton>
+			</div>
 		}
 	</div>
 
-	<div class="moka-theme-import-export__section">
-		<h4 class="moka-theme-import-export__title">Import JSON</h4>
-		<textarea class="moka-theme-import-export__input"
-				  aria-label="Theme JSON to import"
-				  placeholder="Paste theme JSON here..."
-				  @bind="_importJson"></textarea>
-
-		@if (!string.IsNullOrEmpty(_importError))
-		{
-			<div class="moka-theme-import-export__error" role="alert">@_importError</div>
-		}
-
-		<button type="button" class="moka-theme-import-export__action-btn" @onclick="HandleImport">
-			Apply
-		</button>
-	</div>
+	@if (ShowImport)
+	{
+		<div class="moka-theme-import-export__section">
+			<MokaHeading Level="3" Micro>@Text.ImportHeading</MokaHeading>
+			<MokaTextArea Label="@Text.ImportLabel" Placeholder="@Text.ImportPlaceholder" Rows="4" Mono @bind-Value="_importJson" ErrorText="@_importError"/>
+			<div>
+				<MokaButton Size="MokaSize.Sm" OnClick="HandleImport">@Text.Apply</MokaButton>
+			</div>
+		</div>
+	}
 </div>

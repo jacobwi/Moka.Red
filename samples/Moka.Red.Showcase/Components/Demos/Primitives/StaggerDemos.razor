@@ -1,0 +1,11 @@
+<DemoSection Id="staggered-fade-in" Title="Staggered fade in" Description="Animates a list in one item after another.">
+	<MokaStagger Items="_staggerItems" Context="item">
+		<ItemTemplate>
+			<MokaCallout Type="MokaCalloutType.Note" Title="@item">A staggered item.</MokaCallout>
+		</ItemTemplate>
+	</MokaStagger>
+</DemoSection>
+
+@code {
+	private static readonly string[] _staggerItems = ["Apple", "Banana", "Cherry", "Date"];
+}

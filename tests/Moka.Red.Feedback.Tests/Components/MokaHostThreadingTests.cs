@@ -39,7 +39,7 @@ public class MokaHostThreadingTests : BunitContext
 		cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".moka-toast")));
 
 		Guid id = toasts.Toasts[0].Id;
-		await Task.Run(() => toasts.Remove(id), Xunit.TestContext.Current.CancellationToken);
+		await Task.Run(() => toasts.Dismiss(id), Xunit.TestContext.Current.CancellationToken);
 
 		cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".moka-toast")));
 	}

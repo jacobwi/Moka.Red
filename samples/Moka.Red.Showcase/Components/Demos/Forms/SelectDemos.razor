@@ -1,0 +1,47 @@
+<DemoSection Id="basics" Title="Basics" Description="One choice or several from a list, searchable and clearable." Tip="A null item is a real option, so a list can offer None without a sentinel value.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Country" Placeholder="Select a country..." TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Searchable" Placeholder="Search countries..." Searchable="true" TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Clearable" Placeholder="Select..." Clearable="true" TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="With Error" ErrorText="Please select a country." TValue="string"/>
+			<MokaSelect @bind-Value="_model.Country" Items="@_countries" Label="Disabled" Disabled="true" TValue="string"/>
+
+			<h3>MokaSelect - Multiple</h3>
+			<MokaSelect TValue="string" Items="@_countries" Label="Multi-Select" Placeholder="Choose countries..." Multiple="true" Clearable="true"
+			            SelectedValues="_selectedCountries" SelectedValuesChanged="v => _selectedCountries = v"/>
+			<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @string.Join(", ", _selectedCountries)</p>
+
+			<h3>MokaSelect - Loading</h3>
+			<MokaSelect TValue="string" Items="@_countries" Label="Loading State" Loading="true" Placeholder="Fetching data..."/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items, ValueSelector">The options, of any type, and the text each one shows</DemoParam>
+		<DemoParam Name="Searchable">A search box over the list</DemoParam>
+		<DemoParam Name="Multiple, SelectedValues">Several choices, drawn as chips</DemoParam>
+		<DemoParam Name="Clearable">A button that clears the choice</DemoParam>
+		<DemoParam Name="GroupBy">Headings between groups of options</DemoParam>
+		<DemoParam Name="ItemTemplate, ValueTemplate">How an option and the chosen item look</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private static readonly string[] _countries = ["United States", "United Kingdom", "Canada", "Australia", "Germany", "France", "Japan"];
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+
+	private IList<string> _selectedCountries = new List<string>();
+}

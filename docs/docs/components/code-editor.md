@@ -1,18 +1,21 @@
 ---
 title: Code Editor
-description: A text area for code or settings, with line numbers, coloring and a list of problems, all supplied by the app.
+description: A text area for code or settings, with line numbers, coloring from a built-in or app highlighter, and a list of problems.
 order: 153
 ---
 
 # Code Editor
 
-`MokaCodeEditor` is a text area for code or a configuration file: monospace, with line numbers down the side, coloring from a highlighter the app passes, and problems from a checker the app passes, underlined in place and listed below with a jump to each. Neither the highlighter nor the checker is built in, so it suits any language. It's meant for texts of a few thousand lines at most, since every edit colors the whole text again. For plain text, use [`MokaTextArea`](/components/forms).
+`MokaCodeEditor` is a text area for code or a configuration file: monospace, with line numbers down the side, coloring from a highlighter, and problems from a checker the app passes, underlined in place and listed below with a jump to each. `MokaCodeHighlighters` has highlighters for Razor, C#, HTML, XML, CSS, JSON and shell, and an app can pass its own for any other language. It's meant for texts of a few thousand lines at most, since every edit colors the whole text again. For plain text, use [`MokaTextArea`](/components/forms).
 
 ## Setup
 
 ```razor
 @using Moka.Red.Forms.CodeEditor
+@using Moka.Red.Core.Code
 ```
+
+`MokaCodeSpan` and `MokaCodeTokenKind` live in `Moka.Red.Core.Code` since 0.6.0, beside the highlighters, because `MokaCodeBlock` colors code with them too. Before 0.6.0 they were in `Moka.Red.Forms.CodeEditor`.
 
 ## Parameters
 
@@ -38,7 +41,21 @@ Besides these, it takes what every text input does: `Value` and `@bind-Value`, `
 
 ## Coloring
 
-A `MokaCodeSpan` is a start index into the whole text, a length and a `MokaCodeTokenKind`: `Heading`, `Keyword`, `Key`, `Value`, `Literal`, `Number`, `Constant`, `Comment`, `Punctuation` or `Plain`. The editor picks each kind's color from the theme's tokens, so it follows the preset and the light or dark scheme. Spans can come in any order; where two overlap the earlier one wins, and anything past the end of the text is cut off.
+For a common language, pass one of `MokaCodeHighlighters`. The [code block's page](/components/code-block#syntax-highlighting) lists them and what each colors.
+
+```blazor-preview
+<MokaCodeEditor @bind-Value="_json" Label="appsettings.json" Rows="6" Highlighter="MokaCodeHighlighters.Json" />
+
+@code {
+    private string _json = @"{
+  ""Logging"": { ""LogLevel"": ""Information"" },
+  ""Port"": 8080,
+  ""Secure"": true
+}";
+}
+```
+
+A `MokaCodeSpan` is a start index into the whole text, a length and a `MokaCodeTokenKind`: `Heading`, `Keyword`, `Key`, `Value`, `Literal`, `Number`, `Constant`, `Comment`, `Punctuation`, `Tag`, `Attribute`, `String`, `Type`, `Directive` or `Plain`. The editor picks each kind's color from the theme's tokens, so it follows the preset and the light or dark scheme; `Tag`, `Attribute`, `String`, `Type` and `Directive` read the `--moka-code-*` tokens the code block reads. Spans can come in any order; where two overlap the earlier one wins, and anything past the end of the text is cut off. Pass a static method or a field rather than a lambda written in the markup, which is a new delegate every render and colors the text again each time.
 
 ```razor
 <MokaCodeEditor @bind-Value="_ini" Label="settings.ini" Highlighter="Ini" />

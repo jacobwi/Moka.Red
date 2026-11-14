@@ -1,0 +1,25 @@
+<DemoSection Id="copy-a-value" Title="Copy a value" Description="The copy happens in the browser inside the click, so every browser allows it. The tooltip says Copied for a moment after.">
+	<div class="button-row">
+		<MokaCopyButton Text="ssh admin@files.example.test" TooltipText="Copy the command">
+			<MokaIcon Icon="MokaIcons.Content.Copy" SizeValue="14px"/>
+			<span>Copy the command</span>
+		</MokaCopyButton>
+		<MokaCopyButton Text="7f3a9c21" TooltipText="Copy the id"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="quiet-beside-a-value" Title="Quiet, beside a value" Description="Quiet is a 22 px borderless button for a value in a row or a table.">
+	<span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-xs); font-family: var(--moka-font-family-mono);">
+		report-2026-q3.pdf
+		<MokaCopyButton Quiet Text="report-2026-q3.pdf" TooltipText="Copy the file name"/>
+	</span>
+</DemoSection>
+
+<DemoSection Id="text-read-on-click" Title="Text read on click" Description="TextSource builds the text only when the button is pressed, for text too long to build every render.">
+	<MokaCopyButton Text="" TextSource="BuildReport" TooltipText="Copy the report"/>
+</DemoSection>
+
+@code {
+	private static string BuildReport() =>
+		string.Join('\n', Enumerable.Range(1, 200).Select(row => $"Row {row}: {row * 17 % 100} items"));
+}

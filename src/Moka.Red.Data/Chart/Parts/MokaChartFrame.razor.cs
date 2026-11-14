@@ -303,14 +303,15 @@ public sealed partial class MokaChartFrame : ComponentBase
 
 	// The rows are indices into the chart's table, a page at a time, so a million rows cost one page of DOM. A sort
 	// orders the indices once per sort and data version.
-	private Task<MokaTableResult<int>> LoadRowsAsync(MokaTableState state)
+	private Task<MokaTableResult<int>> LoadRowsAsync(MokaTableRequest state)
 	{
 		if (Chart?.TableModel is not { } model)
 		{
 			return Task.FromResult(new MokaTableResult<int> { Items = [], TotalItems = 0 });
 		}
 
-		int[]? order = Order(model, state.SortColumn, state.SortDirection);
+		MokaTableSort? sort = state.Sorts.Count > 0 ? state.Sorts[0] : null;
+		int[]? order = Order(model, sort?.Column, sort?.Direction ?? MokaSortDirection.None);
 		int size = Math.Max(1, state.PageSize);
 		int start = Math.Clamp((Math.Max(1, state.Page) - 1) * size, 0, model.RowCount);
 		int count = Math.Min(size, model.RowCount - start);

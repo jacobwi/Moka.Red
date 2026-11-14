@@ -217,8 +217,8 @@ public class MokaAppearanceTests : BunitContext
 	}
 
 	[Fact]
-	public void Presets_LeaveOutTheOneThatLooksLikeAnother() =>
-		Assert.DoesNotContain(MokaAppearancePalette.Crisp, MokaAppearancePalette.Presets);
+	public void Presets_OfferCrisp() =>
+		Assert.Contains(MokaAppearancePalette.Crisp, MokaAppearancePalette.Presets);
 
 	[Fact]
 	public void Ember_IsOffered_AndKeepsItsOwnPicks_ForAChoiceLeftUnset()

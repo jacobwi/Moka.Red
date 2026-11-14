@@ -1,0 +1,68 @@
+@using System.Globalization
+
+<DemoSection Id="basics" Title="Basics" Description="Multi-step form wizard with navigation and step indicators.">
+	<MokaWizard OnFinish="@(() => _wizardStatus = "Wizard completed!")">
+		<MokaWizardStep Title="Account">
+			<MokaTextField Label="Email" Placeholder="you@example.com"/>
+			<MokaPasswordField Label="Password" Style="margin-top: var(--moka-spacing-sm);"/>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Profile">
+			<MokaTextField Label="Display Name" Placeholder="Jane Doe"/>
+			<MokaTextArea Label="Bio" Placeholder="Tell us about yourself..." Rows="3" Style="margin-top: var(--moka-spacing-sm);"/>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Confirm">
+			<MokaCallout Type="MokaCalloutType.Tip" Title="Ready to go!">
+				Review your details and click Finish to create your account.
+			</MokaCallout>
+		</MokaWizardStep>
+	</MokaWizard>
+	<MokaText Size="MokaSize.Sm" Style="margin-top: var(--moka-spacing-sm); opacity: 0.6;">@_wizardStatus</MokaText>
+</DemoSection>
+
+<DemoSection Id="a-rail-down-the-side" Title="A rail down the side" Description="Rail puts the steps down the side with what each decided and a problem mark, and the buttons in a bar along the bottom. Under 900 px a progress bar replaces the rail.">
+@* Clip, not hidden: an element that hides overflow would become what the rail and the bar stick to. *@
+<div style="overflow: clip; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-card); background: var(--moka-color-surface);">
+	<MokaWizard Rail ShowSkip="@(_step is 1 or 2 or 3)" @bind-ActiveStep="_step" RailLabel="Setup steps" OnSkip="() => _skips++" OnFinish="() => _finished = true" Style="min-height: 30rem;">
+		<MokaWizardStep Title="Your account" Decided="BC, owner">
+			<h2 style="margin: 0;">Your account</h2>
+			<p style="margin: 0;">This step is done. Go on, then click it in the rail to come back.</p>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Name and time" Decided="The domain looks wrong" HasProblem="true">
+			<h2 style="margin: 0;">Name and time</h2>
+			<p style="margin: 0;">The mark in the rail shows on this step once you have moved off it.</p>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Internet" Decided="@(_port ?? "Choosing a port")" IsValid="@(_port is not null)">
+			<h2 style="margin: 0;">How is the internet connected?</h2>
+			<p style="margin: 0;">Pick the port the cable from your provider goes into. Continue waits for an answer, Skip doesn't.</p>
+			<MokaRadioGroup TValue="string" @bind-Value="_port" AriaLabel="Port">
+				<MokaRadioItem TValue="string" Value="@("Port 1")" Label="Port 1"/>
+				<MokaRadioItem TValue="string" Value="@("Port 2")" Label="Port 2"/>
+			</MokaRadioGroup>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Your network" Decided="@(_step > 3 ? "Home" : "Not yet")">
+			<h2 style="margin: 0;">Your network</h2>
+			<p style="margin: 0;">Narrow the window under 900 px to see the progress bar replace the rail.</p>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Wi-Fi" Decided="Not yet">
+			<h2 style="margin: 0;">Wi-Fi</h2>
+			<p style="margin: 0;">@FinishNote</p>
+		</MokaWizardStep>
+	</MokaWizard>
+</div>
+</DemoSection>
+
+@code {
+	private string _wizardStatus = "";
+
+	private bool _finished;
+
+	private string? _port;
+
+	private int _skips;
+
+	private int _step = 2;
+
+	private string FinishNote => _finished
+		? "Finished."
+		: $"The last step has no Skip. You skipped {_skips.ToString(CultureInfo.CurrentCulture)} so far.";
+}

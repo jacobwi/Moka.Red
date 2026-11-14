@@ -5,6 +5,8 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
+using Moka.Red.Data.Table;
+using Moka.Red.Primitives.ColorSwatch;
 using Moka.Red.Primitives.Utility;
 using Moka.Red.ThemeGen.Appearance;
 
@@ -16,8 +18,8 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 
 	private static readonly string[] StyleGroups =
 	[
-		"Status bar", "Density", "Text size", "Corners", "Depth", "Main button", "Text buttons", "Letter case", "Title font", "Page titles", "Numbers",
-		"Selected items", "Current page", "Descriptions", "Label colors"
+		"Status bar", "Dock layouts", "Tables", "Density", "Text size", "Corners", "Depth", "Main button", "Text buttons", "Letter case", "Title font",
+		"Page titles", "Numbers", "Selected items", "Current page", "Table rows", "Descriptions", "Label colors"
 	];
 
 	private static readonly string[] ComponentGroups =
@@ -40,6 +42,9 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Selection, "Selected items", "Glow", new MokaAppearance { Selection = MokaSelection.Glow } },
 		{ MokaAppearanceRows.CurrentPlace, "Current page", "Solid", new MokaAppearance { CurrentPlace = MokaCurrentPlace.Solid } },
 		{ MokaAppearanceRows.StatusBar, "Status bar", "Terminal", new MokaAppearance { StatusBar = MokaStatusBarLook.Terminal } },
+		{ MokaAppearanceRows.Docks, "Dock layouts", "IDE", new MokaAppearance { Docks = MokaDockLook.Ide } },
+		{ MokaAppearanceRows.Tables, "Tables", "Soft stripes", new MokaAppearance { Tables = MokaTableLook.SoftStripes } },
+		{ MokaAppearanceRows.TableDensity, "Table rows", "Comfortable", new MokaAppearance { TableDensity = MokaTableDensity.Comfortable } },
 		{ MokaAppearanceRows.Descriptions, "Descriptions", "Hidden", new MokaAppearance { Descriptions = false } },
 		{ MokaAppearanceRows.LabelTone, "Label colors", "Pastel", new MokaAppearance { LabelTone = MokaLabelTone.Pastel } },
 		{ MokaAppearanceRows.Toasts, "Toasts", "Tone edge", new MokaAppearance { Toasts = MokaToastLook.ToneEdge } },
@@ -87,7 +92,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
-		Assert.Equal(["Color mode", "Palette", "Accent", .. StyleGroups, .. ComponentGroups, .. ChartGroups], GroupNames(cut));
+		Assert.Equal(["Color mode", "Palette", "Accent", "Neutral", .. StyleGroups, .. ComponentGroups, .. ChartGroups], GroupNames(cut));
 	}
 
 	[Theory]
@@ -508,12 +513,14 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		];
 		MokaAccent[] accents = [MokaAccent.Blue with { Id = "x", Name = "AX" }];
 
-		MokaAppearance[] states = [new(), new() { Accent = "x" }, new() { Palette = "three" }];
+		MokaAppearance[] states = [new(), new() { Accent = "x" }, new() { Palette = "three" }, new() { CustomAccent = "#123456", CustomNeutral = "#654321" }];
 		MokaColorMode[] modes = Enum.GetValues<MokaColorMode>();
 
 		string shown = string.Join(' ', states.Select(state => VisibleText(RenderPanel(p => p
 			.Add(x => x.Value, state)
 			.Add(x => x.Rows, MokaAppearanceRows.All)
+			.Add(x => x.CustomColors, true)
+			.Add(x => x.Neutrals, [new MokaAppearanceNeutral("NX", "#8C8C8C")])
 			.Add(x => x.Palettes, palettes)
 			.Add(x => x.Accents, accents)
 			.Add(x => x.Text, text))))
@@ -534,8 +541,8 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.Rows, MokaAppearanceRows.All));
 
 		Assert.Equal(["Light", "Dark", "System"], OptionsIn(cut, "Color mode"));
-		Assert.Equal(["Red", "Gate", "Matrix", "Ember", "Original"], OptionsIn(cut, "Palette"));
-		Assert.Equal(MokaAccent.Presets.Count, cut.FindAll(".moka-color-swatch-item").Count);
+		Assert.Equal(["Red", "Gate", "Crisp", "Matrix", "Ember", "Original"], OptionsIn(cut, "Palette"));
+		Assert.Equal(MokaAccent.Presets.Count + MokaAppearanceNeutral.Presets.Count, cut.FindAll(".moka-color-swatch-item").Count);
 		Assert.Empty(cut.FindAll("input[type=radio][disabled]"));
 		Assert.Empty(cut.FindAll("input.moka-color-swatch-input[disabled]"));
 	}
@@ -599,7 +606,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	{
 		IRenderedComponent<MokaAppearancePanel> cut = RenderPanel(p => p.Add(x => x.OptionState, option => Hide(option, "original")));
 
-		Assert.Equal(["Red", "Gate", "Matrix", "Ember"], OptionsIn(cut, "Palette"));
+		Assert.Equal(["Red", "Gate", "Crisp", "Matrix", "Ember"], OptionsIn(cut, "Palette"));
 	}
 
 	[Fact]
@@ -1041,10 +1048,17 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 			property.SetValue(text, word);
 		}
 
+		// The color picker's own words show only while it's open, so they're numbered to be told apart but not required.
+		MokaColorSwatchText swatches = new();
+		foreach (PropertyInfo property in typeof(MokaColorSwatchText).GetProperties().Where(p => p.PropertyType == typeof(string)))
+		{
+			property.SetValue(swatches, $"W{900 + property.Name.Length}W");
+		}
+
 		words = used;
-		return text;
+		return text with { Swatches = swatches };
 	}
 
-	[GeneratedRegex(@"W\d+W|P[XYZ]|AX")]
+	[GeneratedRegex(@"W\d+W|P[XYZ]|AX|NX")]
 	private static partial Regex Numbered();
 }

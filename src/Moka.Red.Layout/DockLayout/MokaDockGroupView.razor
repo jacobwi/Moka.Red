@@ -1,0 +1,168 @@
+@namespace Moka.Red.Layout.DockLayout
+@using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Feedback.Popover
+@using Moka.Red.Primitives.Badge
+@inherits ComponentBase
+
+<section class="@FrameClass" style="@FrameStyle" role="region" aria-label="@Name" aria-owns="@OwnedHost"
+         data-moka-dock-group="@Group.Id" data-moka-dock-order="@Order" data-moka-dock-mode="@ModeName">
+	@if (HasHeader)
+	{
+		<div class="moka-dock-panel-header" data-moka-dock-grip="@GripId">
+			@if (Mode == MokaDockGroupMode.Stack)
+			{
+				<button type="button" class="moka-dock-stack-toggle" aria-expanded="@(StackOpen ? "true" : "false")"
+				        @onclick="() => Layout.ToggleStack(Group.Id)">
+					<MokaIcon Icon="@(StackOpen ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronRight)" SizeValue="14px"/>
+					<span class="moka-dock-panel-title">@Name</span>
+				</button>
+			}
+			else if (Tabbed)
+			{
+				<div class="@TabsClass" role="tablist" aria-label="@Words.TabsOf(Name)" data-moka-dock-tabs="@Group.Id">
+					@foreach (string panel in Group.Panels)
+					{
+						string current = panel;
+						bool selected = current == Group.Shown;
+						<div class="@TabWrapClass(selected)" @key="current">
+							<button type="button" role="tab" id="@Layout.TabIdOf(current)" class="@TabClass(selected)"
+							        aria-selected="@(selected ? "true" : "false")" aria-controls="@Layout.HostIdOf(current)"
+							        tabindex="@(selected ? "0" : "-1")" data-moka-dock-tab="@current"
+							        data-moka-dock-closable="@(Layout.IsClosable(current) ? "true" : null)"
+							        @onclick="ActivateHandler(current)">
+								@if (IconOf(current) is { } icon)
+								{
+									<MokaIcon Icon="icon" SizeValue="14px" Class="moka-dock-tab__icon"/>
+								}
+								<span class="moka-dock-tab__text">@Layout.TitleOf(current)</span>
+								@if (Layout.PanelFor(current) is { Badge: { } count } badged)
+								{
+									<MokaBadge Content="@count.ToString(System.Globalization.CultureInfo.CurrentCulture)" Tone="badged.BadgeTone"/>
+								}
+							</button>
+							@if (ShowsTabClose && Layout.IsClosable(current))
+							{
+								<MokaTooltip Text="@Words.CloseTab(Layout.TitleOf(current))" Position="MokaTooltipPosition.Bottom" Class="moka-dock-tab__close-tip">
+									<button type="button" class="moka-dock-tab__close" tabindex="-1" aria-label="@Words.CloseTab(Layout.TitleOf(current))"
+									        @onclick="CloseHandler(current)" @onclick:stopPropagation="true">
+										<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+									</button>
+								</MokaTooltip>
+							}
+						</div>
+					}
+				</div>
+				@if (Group.Panels.Count > 1)
+				{
+					<span class="moka-dock-tabs__more" data-moka-dock-more>
+						<MokaDropdown @bind-Open="_allTabsOpen" Position="MokaPopoverPosition.BottomEnd">
+							<ChildContent>
+								<MokaTooltip Text="@(_allTabsOpen ? null : Words.AllTabs)" Position="MokaTooltipPosition.Bottom">
+									<button type="button" class="moka-dock-panel-toggle" aria-label="@Words.AllTabs">
+										<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="14px"/>
+									</button>
+								</MokaTooltip>
+							</ChildContent>
+							<Items>
+								@foreach (string panel in Group.Panels)
+								{
+									string current = panel;
+									<MokaDropdownItem Text="@Layout.TitleOf(current)" Icon="IconOf(current)"
+									                  OnClick="ActivateHandler(current)"/>
+								}
+							</Items>
+						</MokaDropdown>
+					</span>
+				}
+			}
+			else if (Switcher && Group.Panels.Count > 1)
+			{
+				<div class="moka-dock-switcher">
+					<MokaDropdown @bind-Open="_switcherOpen">
+						<ChildContent>
+							<button type="button" class="moka-dock-switcher__button">
+								@if (Group.Shown is { } shownPanel && IconOf(shownPanel) is { } shownIcon)
+								{
+									<MokaIcon Icon="shownIcon" SizeValue="14px"/>
+								}
+								<span class="moka-dock-panel-title">@Name</span>
+								<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="12px"/>
+							</button>
+						</ChildContent>
+						<Items>
+							@foreach (string panel in Group.Panels)
+							{
+								string current = panel;
+								<MokaDropdownItem Text="@Layout.TitleOf(current)" Icon="IconOf(current)" Disabled="@(current == Group.Shown)"
+								                  OnClick="ActivateHandler(current)"/>
+							}
+						</Items>
+					</MokaDropdown>
+				</div>
+			}
+			else
+			{
+				<div class="moka-dock-panel-title-area">
+					@if (ShownPanel?.TitleContent is { } titleContent)
+					{
+						@titleContent
+					}
+					else if (ShownTitle is not null)
+					{
+						@if (Group.Shown is { } shownPanel && IconOf(shownPanel) is { } titleIcon)
+						{
+							<MokaIcon Icon="titleIcon" SizeValue="14px" Class="moka-dock-panel-title-icon"/>
+						}
+						<div class="moka-dock-panel-title">@ShownTitle</div>
+						@if (ShownPanel is { Badge: { } count } badged)
+						{
+							<MokaBadge Content="@count.ToString(System.Globalization.CultureInfo.CurrentCulture)" Tone="badged.BadgeTone"/>
+						}
+					}
+				</div>
+			}
+			<div class="moka-dock-panel-actions">
+				@if (ShownPanel?.Actions is { } actions)
+				{
+					<span class="moka-dock-panel-custom-actions" hidden="@Collapsed">@actions</span>
+				}
+				@foreach (HeaderButton button in Buttons)
+				{
+					@ButtonMarkup(button)
+				}
+			</div>
+		</div>
+	}
+	<div class="moka-dock-group__slot" style="@SlotStyle" data-moka-dock-slot="@Anchor"></div>
+</section>
+
+@code {
+
+	private RenderFragment ButtonMarkup(HeaderButton button) => button.Kind == HeaderButtonKind.Menu
+		? MenuButton(button.Position)
+		: @<MokaTooltip Text="@LabelOf(button.Kind)" Position="button.Position">
+			<button type="button" class="moka-dock-panel-toggle" aria-label="@LabelOf(button.Kind)"
+			        aria-expanded="@AriaExpanded(button.Kind)" @onclick="() => PressAsync(button.Kind)">
+				<MokaIcon Icon="IconFor(button.Kind)" SizeValue="@IconSize(button.Kind)" Class="moka-dock-panel-icon"/>
+			</button>
+		</MokaTooltip>;
+
+	private RenderFragment MenuButton(MokaTooltipPosition position) =>
+		@<MokaDropdown @bind-Open="_menuOpen" Position="MokaPopoverPosition.BottomEnd">
+			<ChildContent>
+				<MokaTooltip Text="@(_menuOpen ? null : Words.Menu)" Position="position">
+					<button type="button" class="moka-dock-panel-toggle" aria-label="@Words.Menu">
+						<MokaIcon Icon="MokaIcons.Navigation.MoreVertical" SizeValue="14px" Class="moka-dock-panel-icon"/>
+					</button>
+				</MokaTooltip>
+			</ChildContent>
+			<Items>
+				@foreach (MenuItem item in MenuItems())
+				{
+					MenuItem current = item;
+					<MokaDropdownItem Text="@current.Text" Icon="current.Icon" Divider="current.Divider" OnClick="() => current.Run()"/>
+				}
+			</Items>
+		</MokaDropdown>;
+
+}

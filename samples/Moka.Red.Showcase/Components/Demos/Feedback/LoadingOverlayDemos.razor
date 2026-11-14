@@ -1,0 +1,50 @@
+<DemoSection Id="basics" Title="Basics" Description="Covers content while it loads: dimmed, blurred or as a skeleton.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg">
+		<div style="width: 250px;">
+			<MokaCaption>Standard Overlay</MokaCaption>
+			<MokaLoadingOverlay Loading="true" Message="Loading data...">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">This content is under a loading overlay.</p>
+					<p style="font-size: var(--moka-font-size-sm);">You can still see it dimmed below.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+		<div style="width: 250px;">
+			<MokaCaption>Blur Overlay</MokaCaption>
+			<MokaLoadingOverlay Loading="true" Blur="true" Message="Processing..." SpinnerStyle="MokaSpinnerStyle.Dots">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">This content is blurred while loading.</p>
+					<p style="font-size: var(--moka-font-size-sm);">The blur amount is customizable.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+		<div style="width: 250px;">
+			<MokaCaption>Skeleton Mode</MokaCaption>
+			<MokaLoadingOverlay Loading="true" ShowSkeleton="true" SkeletonLines="4">
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">
+					<p style="font-size: var(--moka-font-size-sm);">Content replaced by skeleton.</p>
+				</div>
+			</MokaLoadingOverlay>
+		</div>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="interactive-loading-toggle" Title="Interactive loading toggle">
+	<MokaButton OnClick="() => _demoLoading = !_demoLoading" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">
+		Toggle Loading: @(_demoLoading ? "ON" : "OFF")
+	</MokaButton>
+	<div style="margin-top: var(--moka-spacing-sm);">
+		<MokaLoadingOverlay Loading="_demoLoading" Blur="true" BlurAmount="6px" Message="Please wait...">
+			<MokaGrid Columns="2" Gap="MokaSpacingScale.Sm">
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); text-align: center;">Card A</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); border-radius: var(--moka-radius-md); text-align: center;">Card B</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-success); color: var(--moka-color-on-success); border-radius: var(--moka-radius-md); text-align: center;">Card C</div>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-info); color: var(--moka-color-on-info); border-radius: var(--moka-radius-md); text-align: center;">Card D</div>
+			</MokaGrid>
+		</MokaLoadingOverlay>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _demoLoading;
+}

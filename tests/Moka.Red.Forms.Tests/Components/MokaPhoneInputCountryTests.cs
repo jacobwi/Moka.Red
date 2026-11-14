@@ -14,15 +14,24 @@ public sealed class MokaPhoneInputCountryTests : BunitContext
 {
 	public MokaPhoneInputCountryTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
+	// A parent bound to the number: it takes every change and passes it back.
 	private IRenderedComponent<MokaPhoneInput> Phone(string? country, string? value, Action<string?> report,
-		Action<ComponentParameterCollectionBuilder<MokaPhoneInput>>? extra = null) =>
-		Render<MokaPhoneInput>(p =>
+		Action<ComponentParameterCollectionBuilder<MokaPhoneInput>>? extra = null)
+	{
+		IRenderedComponent<MokaPhoneInput>? cut = null;
+		cut = Render<MokaPhoneInput>(p =>
 		{
 			p.Add(x => x.Country, country)
 				.Add(x => x.Value, value!)
-				.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v => report(v)));
+				.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v =>
+				{
+					report(v);
+					cut!.Render(q => q.Add(x => x.Value, v));
+				}));
 			extra?.Invoke(p);
 		});
+		return cut;
+	}
 
 	private static void Type(IRenderedComponent<MokaPhoneInput> cut, string text)
 	{

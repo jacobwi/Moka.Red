@@ -88,7 +88,7 @@
 .moka-accordion-item-body {
 	display: grid;
 	grid-template-rows: 0fr;
-	transition: grid-template-rows var(--moka-transition-normal) ease;
+	transition: grid-template-rows var(--moka-transition-normal);
 }
 
 .moka-accordion-item--expanded .moka-accordion-item-body {

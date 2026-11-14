@@ -1,0 +1,85 @@
+@using Moka.Red.Primitives.Emoji
+
+<DemoSection Id="basics" Title="Basics" Description="A conversation, with a box to send messages.">
+	<MokaChat Messages="_chatMessages"
+	          OnSend="HandleChatSend"
+	          IsTyping="_chatTyping"
+	          TypingUser="Alice"
+	          Height="350px">
+		<HeaderContent>
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<strong>Chat with Alice</strong>
+				<span style="font-size: 11px; color: var(--moka-color-success);">Online</span>
+			</div>
+		</HeaderContent>
+	</MokaChat>
+</DemoSection>
+
+<DemoSection Id="an-emoji-button" Title="An emoji button" Description="ShowEmoji puts an emoji button in the input; EmojiOptions picks the panel's shape.">
+	<MokaGrid Columns="1" ColumnsMd="2" Gap="MokaSpacingScale.Lg">
+		<div>
+			<MokaCaption Micro>Emoji button, popover</MokaCaption>
+			<MokaChat Messages="_messages" OnSend="Send" ShowEmoji Height="22rem"
+			          EmojiOptions="@(_options with { Shape = MokaEmojiShape.Popover })" EmojiOptionsChanged="Keep"/>
+		</div>
+		<div>
+			<MokaCaption Micro>Composer panel docked over the input</MokaCaption>
+			<MokaChat Messages="_messages" OnSend="Send" ShowEmoji Height="22rem"
+			          EmojiOptions="@(_options with { Shape = MokaEmojiShape.Composer })" EmojiOptionsChanged="Keep"/>
+		</div>
+	</MokaGrid>
+</DemoSection>
+
+@code {
+	private readonly List<MokaChatMessage> _chatMessages =
+	[
+		new() { Id = "1", Text = "Chat started", Author = "System", IsSystem = true, Timestamp = DateTime.UtcNow.AddMinutes(-10) },
+		new() { Id = "2", Text = "Hey! How's the project going?", Author = "Alice", AvatarInitials = "AL", Timestamp = DateTime.UtcNow.AddMinutes(-8) },
+		new() { Id = "3", Text = "Pretty good! Almost done with the new components.", Author = "Me", IsOwn = true, Timestamp = DateTime.UtcNow.AddMinutes(-7), Status = MokaChatMessageStatus.Read },
+		new() { Id = "4", Text = "That's great to hear. Need any help with testing?", Author = "Alice", AvatarInitials = "AL", Timestamp = DateTime.UtcNow.AddMinutes(-5) },
+		new() { Id = "5", Text = "I'll let you know once I'm ready for review!", Author = "Me", IsOwn = true, Timestamp = DateTime.UtcNow.AddMinutes(-4), Status = MokaChatMessageStatus.Delivered }
+	];
+
+	private bool _chatTyping;
+
+	private async Task HandleChatSend(string text)
+	{
+		_chatMessages.Add(new MokaChatMessage
+		{
+			Id = Guid.NewGuid().ToString(),
+			Text = text,
+			Author = "Me",
+			IsOwn = true,
+			Timestamp = DateTime.UtcNow,
+			Status = MokaChatMessageStatus.Sent
+		});
+		StateHasChanged();
+
+		_chatTyping = true;
+		StateHasChanged();
+		await Task.Delay(1500);
+		_chatTyping = false;
+		_chatMessages.Add(new MokaChatMessage
+		{
+			Id = Guid.NewGuid().ToString(),
+			Text = "Got it, thanks!",
+			Author = "Alice",
+			AvatarInitials = "AL",
+			Timestamp = DateTime.UtcNow
+		});
+	}
+
+	private MokaEmojiOptions _options = new();
+
+	private List<MokaChatMessage> _messages =
+	[
+		new() { Id = "1", Author = "Jon", Text = "Is the build green?", Timestamp = DateTime.Now.AddMinutes(-12) },
+		new() { Id = "2", Author = "Mira", Text = "All tests pass on both targets. Tagging now.", Timestamp = DateTime.Now.AddMinutes(-10) }
+	];
+
+	private void Keep(MokaEmojiOptions changed) =>
+		_options = _options with { Recent = changed.Recent, SkinTone = changed.SkinTone };
+
+	private void Send(string text) =>
+		_messages = [.. _messages, new MokaChatMessage { Id = Guid.NewGuid().ToString("N"), Author = "You", Text = text, IsOwn = true, Timestamp = DateTime.Now }];
+}

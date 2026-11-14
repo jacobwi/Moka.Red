@@ -1,0 +1,22 @@
+<DemoSection Id="basic-steps-current-step-2" Title="Basic steps (current: step 2)" Description="A light row of numbered steps that shows where you are.">
+	<MokaSteps Steps="@_stepsLabels" CurrentStep="2"/>
+</DemoSection>
+
+<DemoSection Id="first-step-active" Title="First step active">
+	<MokaSteps Steps="@_stepsLabels" CurrentStep="0" Color="MokaColor.Info"/>
+</DemoSection>
+
+<DemoSection Id="all-completed" Title="All completed">
+	<MokaSteps Steps="@_stepsLabels" CurrentStep="4" Color="MokaColor.Success"/>
+</DemoSection>
+
+<DemoSection Id="clickable-steps" Title="Clickable steps">
+	<MokaSteps Steps="@_stepsLabels" CurrentStep="_clickableStep" Clickable OnStepClick="i => _clickableStep = i"/>
+	<MokaCaption>Click a step above to navigate. Current: @_clickableStep</MokaCaption>
+</DemoSection>
+
+@code {
+	private static readonly string[] _stepsLabels = ["Cart", "Shipping", "Payment", "Confirm"];
+
+	private int _clickableStep = 1;
+}

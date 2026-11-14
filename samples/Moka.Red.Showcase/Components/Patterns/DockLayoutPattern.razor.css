@@ -1,0 +1,97 @@
+.dock-pattern {
+	display: flex;
+	flex-direction: column;
+	height: calc(100dvh - var(--moka-appbar-space, 0px));
+	min-height: 0;
+}
+
+.dock-pattern__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+}
+
+.dock-pattern__control {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.dock-pattern__body {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+.dock-pattern__stage {
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* Below the layout's NarrowBelow (40rem), so it switches to its narrow mode: the layout measures itself, not the window. */
+.dock-pattern__stage--narrow {
+	flex: 0 1 36rem;
+	border-inline-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.dock-pattern__stage ::deep .dock-pattern__dock {
+	height: 100%;
+}
+
+.dock-pattern__stage ::deep .dock-pattern__terminal {
+	height: 100%;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.dock-pattern__pane {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md);
+}
+
+.dock-pattern__aside {
+	display: flex;
+	flex: 0 0 24rem;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-height: 0;
+	padding: var(--moka-spacing-md);
+	overflow: auto;
+	border-inline-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+}
+
+.dock-pattern__keys {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+	margin: 0;
+	font-size: var(--moka-font-size-sm);
+}
+
+.dock-pattern__keys dd {
+	margin: 0;
+	color: var(--moka-color-on-surface-variant);
+}
+
+@media (max-width: 60rem) {
+	.dock-pattern__body {
+		flex-direction: column;
+	}
+
+	.dock-pattern__aside {
+		flex-basis: auto;
+		max-height: 40%;
+		border-inline-start: none;
+		border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	}
+}

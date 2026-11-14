@@ -1,0 +1,26 @@
+<DemoSection Id="basics" Title="Basics" Description="Slides with arrows and dots.">
+	<div style="max-width: 600px;">
+		<MokaCarousel @bind-ActiveIndex="_carouselIndex">
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-primary); color: var(--moka-color-on-primary); font-size: var(--moka-font-size-xl);">
+					Slide 1
+				</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); font-size: var(--moka-font-size-xl);">
+					Slide 2
+				</div>
+			</MokaCarouselSlide>
+			<MokaCarouselSlide>
+				<div style="display: flex; align-items: center; justify-content: center; height: 240px; background: var(--moka-color-success); color: var(--moka-color-on-success); font-size: var(--moka-font-size-xl);">
+					Slide 3
+				</div>
+			</MokaCarouselSlide>
+		</MokaCarousel>
+		<p style="margin-top: var(--moka-spacing-sm); font-size: var(--moka-font-size-sm);">Active index: @_carouselIndex</p>
+	</div>
+</DemoSection>
+
+@code {
+	private int _carouselIndex;
+}

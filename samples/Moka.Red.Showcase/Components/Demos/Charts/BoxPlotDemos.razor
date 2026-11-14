@@ -1,0 +1,42 @@
+@using Moka.Red.Core.Charts
+
+<DemoSection Id="box-plot-with-points" Title="Box plot with points">
+	<MokaBoxPlot Title="Response time by endpoint" Subtitle="70 sampled requests each" Groups="@Endpoints" ShowPoints
+	             Unit="MokaChartUnit.Milliseconds" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="box-plot-tukey-whiskers" Title="Box plot, Tukey whiskers">
+	<MokaBoxPlot Title="Backup time by night of the week" Groups="@Nights" Whiskers="MokaWhiskers.Tukey"
+	             Unit="Minutes" TargetLow="20" TargetHigh="40" Controls="Tools"/>
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export | MokaChartControls.ResetZoom;
+
+	private static readonly MokaBoxPlotGroup[] Endpoints = Groups(23, 70,
+		("/api/login", 110, 0.35), ("/api/search", 210, 0.45), ("/api/files", 160, 0.6), ("/api/feed", 280, 0.3),
+		("/api/thumbs", 70, 0.7));
+
+	private static MokaBoxPlotGroup[] Groups(int seed, int count, params (string Name, double Median, double Spread)[] groups)
+	{
+		Random random = new(seed);
+		return
+		[
+			.. groups.Select(group => new MokaBoxPlotGroup(group.Name,
+				[.. Enumerable.Range(0, count).Select(_ => Math.Round(Math.Exp(Math.Log(group.Median) + group.Spread * Gauss(random)), 1))]))
+		];
+	}
+
+	private static double Gauss(Random random)
+	{
+		double u = 1 - random.NextDouble();
+		double v = random.NextDouble();
+		return Math.Sqrt(-2 * Math.Log(u)) * Math.Cos(2 * Math.PI * v);
+	}
+
+	private static readonly MokaChartUnit Minutes = MokaChartUnit.Of("min");
+
+	private static readonly MokaBoxPlotGroup[] Nights = Groups(5, 40,
+		("Monday", 28, 0.25), ("Tuesday", 31, 0.3), ("Wednesday", 26, 0.2), ("Thursday", 35, 0.35), ("Friday", 44, 0.4),
+		("Saturday", 22, 0.5), ("Sunday", 24, 0.3));
+}

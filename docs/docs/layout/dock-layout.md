@@ -1,318 +1,276 @@
 ---
 title: Dock Layout
-description: CSS Grid-based docking system with resizable, collapsible, and floating panels.
+description: Panels docked around a main area, as in an IDE - tabbed groups in rows and columns, drag to dock, floating windows, side bars, and looks.
 ---
 
 # Dock Layout
 
-`MokaDockLayout` is a CSS Grid-based docking system that arranges panels around a central
-content area, like an IDE shell. Panels snap to the `Left`, `Right`, `Top`, or
-`Bottom` edges, have interactive splitter handles for resizing, and can be collapsed or
-floated as independent windows.
+`MokaDockLayout` arranges panels around a main area, the way an IDE does. Panels sit as tabs in groups; groups sit
+in rows and columns at any depth. The person can drag a tab or a whole group to any edge of any group or of the
+layout, float it in a window, pin it to a side bar, maximize it, and move it back from the keyboard. The layout keeps
+where everything is in a `MokaDockState`, which binds, saves and restores (see
+[Dock Layout State](/layout/dock-layout-state)).
+
+Every panel's content renders once, where the markup declares it, and is drawn over its group's slot with CSS
+anchor positioning. A move changes only which slot it is drawn over, so a panel keeps its component state, its
+scroll position and its focus when it moves to another group, floats, pins to a side bar or comes back.
+
+> The examples on this page use the API added in Moka.Red 0.6.0, so they are shown as code rather than live previews
+> until the docs site's preview package moves to that release.
 
 ## Components
 
 | Component | Purpose |
 |-----------|---------|
-| `MokaDockLayout` | Root container. Manages the CSS grid and panel registry. |
-| `MokaDockPanel` | A panel docked to one edge (or floating). |
-| `MokaDockContent` | The central fill area. Always occupies the remaining space. |
+| `MokaDockLayout` | The root. Holds the state, draws the groups and handles every drag, key and window. |
+| `MokaDockRow`, `MokaDockColumn` | A split: its parts side by side, or one above the other. They nest. |
+| `MokaDockGroup` | Panels that start as tabs in one place. |
+| `MokaDockPanel` | One panel: a tab, with a title, an icon, a badge and its content. |
+| `MokaDockContent` | The main area. It takes the space the groups leave, and panels opened from code land in it. |
 
----
-
-## MokaDockLayout
-
-`MokaDockLayout` accepts `MokaDockPanel` and `MokaDockContent` children and computes a
-`grid-template-areas` / `grid-template-columns` / `grid-template-rows` layout dynamically
-based on which panels are registered and whether they are collapsed.
-
-The grid follows every change to a panel's `Dock`, `Size`, `MinSize`, `MaxSize`, `Collapsed`,
-`CollapsedSize` or `Floating` in the same render, whether it comes from the panel's own header
-buttons, a splitter drag, or a parameter the parent sets (a toolbar button bound to
-`Collapsed`, for example).
-
-Resizing and dragging are handled by a shared JS module (`moka-drag.js`) that is lazy-loaded
-once and disposed with the layout. Panels that render together share that one import. A
-splitter drag rewrites only its own track, so the other panels keep sizes such as
-`min(300px, 30vw)`, `minmax(200px, 25%)` or `calc(100% - 4px)` exactly as written.
-
-### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `ChildContent` | `RenderFragment?` | Panel and content children. |
-| `Class` | `string?` | Additional CSS classes on the root element. |
-| `Style` | `string?` | Additional inline styles. |
-
----
-
-## MokaDockPanel
-
-Each `MokaDockPanel` registers itself with the parent `MokaDockLayout` via a cascading
-parameter. The panel renders a splitter handle (when `Resizable="true"`) that calls back
-into .NET when dragging ends, triggering a grid re-layout without a full page refresh.
-
-### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `Dock` | `MokaDockPosition` | `Left` | Edge to dock to: Left, Right, Top, Bottom. |
-| `Size` | `string` | `"250px"` | Panel size as a CSS value. A new value from the parent replaces a size the user dragged to. |
-| `MinSize` | `string?` | `null` | Minimum size of the panel's track, as a CSS length. A splitter drag stops there too when it is in px, rem, em, % of the layout, vw or vh. |
-| `MaxSize` | `string?` | `null` | Maximum size of the panel's track, with the same rules as `MinSize`. |
-| `Resizable` | `bool` | `true` | Show a splitter handle and allow drag-resizing. |
-| `Collapsible` | `bool` | `false` | Show a collapse toggle button in the header. |
-| `Collapsed` | `bool` | `false` | Whether the panel is currently collapsed. Two-way bindable. The body stays mounted while collapsed. See [Header buttons and bound parameters](#header-buttons-and-bound-parameters). |
-| `CollapsedSize` | `string?` | `"0px"` | Grid track size when collapsed, such as `"32px"` for a strip that keeps the title and the expand button. At a zero size the collapsed panel is inert. See [Collapsed strips](#collapsed-strips). |
-| `Floating` | `bool` | `false` | Undock the panel as a free-floating window. Two-way bindable. Docking again keeps the size the panel had before it floated. |
-| `FloatingX` | `double` | `100` | Floating window X position (px from left). Dragging the header moves the window; a new value from the parent moves it again. |
-| `FloatingY` | `double` | `100` | Floating window Y position (px from top). Same rules as `FloatingX`. |
-| `FloatingWidth` | `string` | `"300px"` | Width when floating. |
-| `FloatingHeight` | `string` | `"400px"` | Height when floating. |
-| `Scrollable` | `bool` | `true` | Scroll the body when its content overflows. Set `false` for content that scrolls itself; see [Content that scrolls itself](#content-that-scrolls-itself). |
-| `Title` | `string?` | - | Plain-text header title. |
-| `TitleContent` | `RenderFragment?` | - | Custom header title (overrides `Title`). |
-| `Actions` | `RenderFragment?` | - | Content rendered at the right of the header. |
-| `SizeChanged` | `EventCallback<double>` | - | Fires with the new pixel size after each resize. |
-
-### CSS modifiers applied by the component
-
-| Class | Condition |
-|-------|-----------|
-| `moka-dock-panel--left/right/top/bottom` | Dock position (docked only) |
-| `moka-dock-panel--collapsed` | Collapsed and docked |
-| `moka-dock-panel--resizable` | Resizable and docked |
-| `moka-dock-panel--floating` | Floating mode |
-| `moka-dock-panel-body--no-scroll` | On the body when `Scrollable="false"` |
-
-While collapsed, the body carries the `hidden` attribute instead of being removed, and so does the
-wrapper around `Actions` (`moka-dock-panel-custom-actions`). The collapse button carries
-`aria-expanded`, and a panel collapsed to a zero size carries `inert`.
-
-`MinSize` and `MaxSize` bound the grid track. A px `Size` between px bounds is clamped up front;
-any other combination becomes CSS `min()`, `max()` or `clamp()` around the size, such as
-`clamp(6rem, 240px, 40%)`. A `Size` that is not a length, such as `minmax(200px, 30%)`, is used
-as written. Up to 0.1.12 the bounds went on the panel element as `min-width` and
-`max-width`, where a percentage resolves against the panel's own track, so `MaxSize="40%"` left a
-gap between the panel and the content.
-
-### Header buttons and bound parameters
-
-The collapse, undock and dock buttons change the panel's own state and report it through
-`CollapsedChanged` and `FloatingChanged`. The panel keeps that state until the parent passes a
-different value, so the buttons work with `@bind-Collapsed`, with a one-way `Collapsed="@x"`,
-and with no binding at all. Up to 0.1.12 a parent render that repeated a one-way value undid the
-button, so the collapse button seemed to do nothing.
-
-A one-way value goes stale after a click: the parent's field still says `false` while the panel
-is collapsed, and setting `false` again changes nothing. When the parent also sets the value,
-bind it, or update the field in `CollapsedChanged`:
+## An IDE layout
 
 ```razor
-<MokaDockPanel Dock="MokaDockPosition.Left" Title="Explorer" Collapsible="true"
-               Collapsed="_collapsed" CollapsedChanged="v => _collapsed = v">
-    <FileTree />
-</MokaDockPanel>
-
-<MokaButton OnClick="() => _collapsed = !_collapsed">Toggle explorer</MokaButton>
-
-@code {
-    private bool _collapsed;
-}
+<MokaDockLayout StorageKey="ide">
+    <MokaDockRow>
+        <MokaDockGroup Id="side" Size="260px" MinSize="160px">
+            <MokaDockPanel Id="explorer" Title="Explorer" Icon="MokaIcons.File.Folder">
+                <FileTree />
+            </MokaDockPanel>
+            <MokaDockPanel Id="search" Title="Search" Icon="MokaIcons.Action.Search" Badge="3">
+                <SearchPane />
+            </MokaDockPanel>
+        </MokaDockGroup>
+        <MokaDockColumn>
+            <MokaDockContent>
+                <WelcomePage />
+            </MokaDockContent>
+            <MokaDockGroup Id="output" Size="200px">
+                <MokaDockPanel Id="terminal" Title="Terminal" Scrollable="false">
+                    <MokaTerminal Lines="_lines" />
+                </MokaDockPanel>
+                <MokaDockPanel Id="problems" Title="Problems">
+                    <ProblemList />
+                </MokaDockPanel>
+            </MokaDockGroup>
+        </MokaDockColumn>
+    </MokaDockRow>
+</MokaDockLayout>
 ```
 
-Docking a floating panel again, from its header button or from the parent, keeps the size the
-panel had before it floated. A new `Size` from the parent is the only thing that replaces a size
-the user dragged the splitter to. Up to 0.1.12 the header button reset it to `Size`.
+A size is a CSS length (`260px`, `25%`, `12rem`) or a share (`2fr`); a part without one takes one share of what the
+lengths leave. Give every panel an `Id`: it is how the state, the code API and a saved layout find it.
 
-The header buttons show only an icon, so each is named by `aria-label` and by a `MokaTooltip`
-("Collapse", "Expand", "Undock", "Dock") on hover and on keyboard focus. In a header row the names
-open below the row, the last button's lined up with the panel's edge. In a collapsed side strip,
-which is a column, the expand button's name opens beside the strip, away from the window's edge;
-in a collapsed bottom strip it opens above. Up to 0.1.19 they were `title` attributes, so the
-browser's own hint showed beside the Moka tooltips an app draws around its own header buttons.
+## One panel per side
 
----
-
-## MokaDockContent
-
-`MokaDockContent` fills the `content` grid area: whatever space is left after the docked
-panels claim their tracks. It accepts any `ChildContent` and forwards `Class`/`Style`.
-
-### Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `ChildContent` | `RenderFragment?` | `null` | The main area's content. |
-| `Scrollable` | `bool` | `true` | Scroll the area when its content overflows. Set `false` for content that scrolls itself. Adds `moka-dock-content--no-scroll`. |
-
----
-
-## IDE-style layout example
+The markup from before 0.6.0 still works. A panel placed directly in the layout docks to its `Dock` edge around
+`MokaDockContent`, as a group of one; two panels on the same edge share that group as tabs (they used to overlap).
 
 ```razor
-<MokaDockLayout Style="height: 100vh;">
-
-    <MokaDockPanel Dock="MokaDockPosition.Left"
-                   Title="Explorer"
-                   Size="240px" MinSize="160px" MaxSize="480px"
-                   Collapsible="true"
-                   @bind-Collapsed="_explorerCollapsed">
+<MokaDockLayout>
+    <MokaDockPanel Dock="MokaDockPosition.Left" Title="Explorer" Size="240px" Collapsible="true" CollapsedSize="32px">
         <FileTree />
     </MokaDockPanel>
-
-    <MokaDockPanel Dock="MokaDockPosition.Right"
-                   Title="Properties"
-                   Size="280px" MinSize="200px"
-                   Collapsible="true">
-        <PropertyGrid />
+    <MokaDockPanel Dock="MokaDockPosition.Bottom" Title="Output" Size="180px" @bind-Size="_outputSize">
+        <OutputPane />
     </MokaDockPanel>
-
-    <MokaDockPanel Dock="MokaDockPosition.Bottom"
-                   Title="Output"
-                   Size="180px" MinSize="80px"
-                   Collapsible="true">
-        <OutputConsole />
-    </MokaDockPanel>
-
     <MokaDockContent>
-        <CodeEditor />
-    </MokaDockContent>
-
-</MokaDockLayout>
-
-@code {
-    private bool _explorerCollapsed;
-}
-```
-
----
-
-## Floating panel example
-
-Set `Floating="true"` to undock a panel. The header becomes draggable, with a mouse, a pen or a
-finger, and the panel renders as a fixed overlay. Toggle between docked and floating via
-`@bind-Floating`.
-
-```razor
-<MokaDockPanel Dock="MokaDockPosition.Left"
-               Title="Inspector"
-               @bind-Floating="_isFloating"
-               FloatingWidth="360px" FloatingHeight="480px">
-    <InspectorContent />
-</MokaDockPanel>
-
-@code {
-    private bool _isFloating;
-}
-```
-
----
-
-## Collapsed strips
-
-Set `CollapsedSize` to a non-zero value (e.g., `"32px"`) to keep a thin strip visible
-when collapsed.
-
-```razor
-<MokaDockPanel Dock="MokaDockPosition.Left"
-               Title="Explorer"
-               Collapsible="true"
-               CollapsedSize="32px"
-               Size="220px">
-    <PanelContent />
-</MokaDockPanel>
-```
-
-The strip shows the title and the expand button. Beside the content (`Left`, `Right`) the header
-turns into a column: the expand button at the top and the title running down the strip. Above or
-below the content (`Top`, `Bottom`) it stays a row, centered in the strip. The undock button and
-`Actions` are hidden until the panel expands; `Actions` stays mounted, so its components keep their
-state. Leave room for the 22px expand button: a strip narrower than that clips it. Up to 0.1.12 the
-header row ran past the edge of a side strip, so the expand button was out of sight but still took
-focus, along with the undock button and the actions.
-
-At the default `CollapsedSize="0px"` (or any other zero, such as `"0"` or `"0rem"`) the collapsed
-panel is `inert`: nothing of it is on screen, so its buttons leave the tab order and the
-accessibility tree. Expanding it is then up to the parent, for example a toolbar button that flips
-a bound `Collapsed`:
-
-```razor
-<MokaButton Size="MokaSize.Xs" aria-pressed="@(_explorerCollapsed ? "false" : "true")"
-            OnClick="() => _explorerCollapsed = !_explorerCollapsed">Explorer</MokaButton>
-
-<MokaDockLayout Style="height: 100vh;">
-    <MokaDockPanel Dock="MokaDockPosition.Left" Title="Explorer"
-                   Collapsible="true" @bind-Collapsed="_explorerCollapsed">
-        <FileTree />
-    </MokaDockPanel>
-
-    <MokaDockContent>
-        <CodeEditor />
+        <Editor />
     </MokaDockContent>
 </MokaDockLayout>
-
-@code {
-    private bool _explorerCollapsed;
-}
 ```
 
----
+`MokaDockGroup` takes `Dock` too, for a group of tabs on one edge.
 
-## Collapsing keeps content mounted
+## Tabs
 
-A collapsed panel hides its body with the `hidden` attribute instead of removing it, so the
-components inside keep their state across a collapse and expand, such as a scroll position or
-a running terminal session. While hidden, the body takes no space and is out of the tab order
-and the accessibility tree.
+Each group shows its panels as tabs, in the style the layout's `TabStyle` or the group's own `TabStyle` picks. A
+group with one panel shows that panel's title instead, unless the style is `Editor` or the look is `Ide`.
 
-Because the content stays alive, anything it runs (a timer, a subscription) keeps running while
-the panel is collapsed. Bind `Collapsed` if a child needs to pause.
+| `MokaDockTabStyle` | Looks like |
+|--------------------|------------|
+| `Underline` | Plain tabs with a line under the one showing, as `MokaTabs` draws them. The default. |
+| `Editor` | Boxed tabs joined to the panel, each with its own close button. |
+| `Pills` | Rounded pills, the one showing filled. |
+| `Switcher` | The showing panel's title, with a list of the others to switch to. |
 
----
+Tabs follow the WAI-ARIA tabs pattern with automatic activation: the arrows, Home and End pick a tab, and Delete
+closes one that can close. When a strip runs out of room an **All tabs** button lists every tab, and a tab that
+becomes the one showing, such as one dropped into the group, scrolls into view. A tab drags along its strip to
+reorder.
+
+Content renders the first time its tab shows (`Lazy`, default true) and stays mounted while another tab shows
+(`KeepAlive`, default true). `KeepAlive="false"` removes it while hidden and renders it afresh each time.
+
+## Drag to dock
+
+Drag a tab to move one panel, or a group's header to move the whole group. While dragging, the layout shows where it
+will land:
+
+| `MokaDockDropIndicator` | What shows |
+|-------------------------|------------|
+| `Zones` | The half of the group under the pointer that a new group would take, or the whole group when the panel would join it as a tab; a strip along the layout's edge near it. The default. |
+| `Compass` | Five targets in the middle of the group under the pointer (four edges and the middle) and four at the layout's edges. Only a target under the pointer drops anything. |
+
+Dropping over a tab strip puts the tab at that place. Dropping where nothing lights up floats the panel there.
+Escape cancels. `AllowDragging="false"` turns dragging off.
+
+The header's menu does the same from the keyboard: **Dock left**, **Dock right**, **Dock top**, **Dock bottom**,
+**Move to** each other group, **Undock**, **Auto-hide**, **Open in new window** and **Close**.
+
+## Splits
+
+Splitters are focusable `role="separator"` elements, named by the two groups they sit between, with `aria-valuenow`
+giving the first one's share of the pair. Dragging one or pressing the arrows (Shift for bigger steps) resizes only
+the two groups beside it; Home and End go to the limits; a double-click or Enter puts the pair back to their
+starting sizes. `MinSize` and `MaxSize` on a group bound both. The size reaches .NET once, when the drag ends or the
+key is let go.
+
+## Floating windows
+
+**Undock** floats a group in a window over the layout, no larger than the layout and inside it; `FloatPanelAsync`
+does the same from code. A window comes to the front when it is clicked or gets focus,
+moves by its header, resizes from any edge or corner, and snaps to the layout's edges and to the other windows. Its
+size and place clamp to the layout, so it stays on screen when the layout shrinks. **Maximize** fills the layout and
+**Dock** puts the group back where it came from, at the size it had. On a legacy panel, `FloatingX`, `FloatingY`,
+`FloatingWidth` and `FloatingHeight` bind (`@bind-FloatingX`), and `Floatable="false"` turns floating off.
+
+## Side bars
+
+**Auto-hide** pins a group to a side bar of its tabs, as an IDE does. Clicking or hovering a tab
+(`AutoHideOnHover`) slides the group in over the content; a press outside it or Escape sends it back. **Dock**
+in its header returns it to its place.
+
+## Header controls
+
+The layout's `Controls` picks the buttons group headers show: `Floating`, `Collapse`, `Maximize`, `Close` and
+`Menu` (`MokaDockControls.Default` is all but `Close`). A panel's `Closable` overrides `Close` for that panel, and its
+`CanClose` can refuse, such as a document with unsaved changes. A maximized group fills the layout until its
+button or Escape restores it. A panel's `Actions` sit before the layout's buttons while it shows.
+
+## Keyboard and screen readers
+
+| Key | Does |
+|-----|------|
+| F6, Shift+F6 | Move to the next or previous group, landing on its tab or its content. |
+| Ctrl+Tab, Ctrl+Shift+Tab | Show the next or previous tab of the focused group. A browser tab keeps Ctrl+Tab for itself, so there the arrows on the tab strip do it; in a MAUI app it reaches the layout. |
+| Arrows, Home, End | On a tab strip, pick a tab. On a splitter, resize. |
+| Delete | Close the focused tab, when it can close. |
+| Escape | Restore a maximized group, close a side bar's flyout, or cancel a drag. |
+| Tab | Follows what is on screen: a group's header, then its content, then the next group. |
+
+Each group is a region named by its title, which owns its showing panel's content for assistive technology. A moved,
+floated, pinned or closed panel is announced.
+
+## Looks
+
+`Look` on the layout, or `MokaTheme.WithDocks` for the whole app, picks how it is drawn on the new design. The
+original design (`MokaTheme.Dark`, `MokaTheme.Light`) always draws `Classic`.
+
+| `MokaDockLook` | Looks like |
+|----------------|------------|
+| `Classic` | Panels on the surface with a line between them and a title over each. The default. |
+| `Ide` | Tab strips for headers, an activity bar of icons for closed and pinned panels, and hairline splitters. |
+| `Cards` | Each group a raised card with a gap of page background between them. |
+| `Minimal` | Headers only while a group is hovered or holds focus, hairline splitters and tinted panes. |
+| `Terminal` | Monospace titles in brackets, square corners, and the accent along the active group's edge. |
+
+```csharp
+builder.Services.AddMokaRed(options => options.Theme = MokaTheme.Default.WithDocks(MokaDockLook.Ide));
+```
+
+## Narrow screens
+
+Below `NarrowBelow` (default `40rem`) of the layout's own width, not the window's, the layout switches to
+`NarrowMode`. Measuring the layout itself means a layout in a side panel narrows with its panel, which a media query
+on the window can't do; a container query alone can't either, because the narrow modes change what is rendered, not
+only how. The layout's script watches its width and tells .NET once each time it crosses the line.
+
+| `MokaDockNarrowMode` | Shows |
+|----------------------|-------|
+| `Sheets` | The main area fills the layout, and the other panels open as bottom sheets from a bar of their icons. The default. |
+| `Tabs` | Every panel as a tab of one group, the main area first. |
+| `Stack` | The groups one above the other, each folding open and shut. |
+
+The saved layout stays the wide one. In `Sheets`, a panel opened in a sheet is created when the sheet opens and
+removed when it closes, since `MokaBottomSheet` is modal, holds focus inside itself and removes its content when
+closed; keep state that must outlive that in a service. `Tabs` and `Stack` keep every panel's state.
 
 ## Content that scrolls itself
 
-The panel body and `MokaDockContent` scroll when their content overflows. A view that scrolls
-on its own, such as a terminal or a code editor, then sits inside a second scroll container and
-shows two scrollbars, or gets cut off if it sizes itself to its container.
+`Scrollable="false"` on a panel or the main area clips instead of scrolling, and a single child fills it, so a view
+that scrolls itself (a terminal, an editor) gets a definite size and shows the only scrollbar.
 
-Set `Scrollable="false"` on the panel or the content area. The region then clips instead of
-scrolling and lays out as a flex column, and a single child fills it, so the child gets a
-definite size and its own scrollbar is the only one:
+## Parameters
 
-```razor
-<MokaDockLayout Style="height: 100vh;">
+### MokaDockLayout
 
-    <MokaDockPanel Dock="MokaDockPosition.Bottom"
-                   Title="Terminal"
-                   Size="240px"
-                   Collapsible="true"
-                   Scrollable="false">
-        <MokaTerminal Lines="_output" ShowHeader="false" MaxHeight="none" />
-    </MokaDockPanel>
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ChildContent` | `RenderFragment?` | - | The rows, columns, groups, panels and the main area. |
+| `State` | `MokaDockState?` | - | Where everything is. Two-way bindable. |
+| `StateChanged` | `EventCallback<MokaDockState>` | - | Raised after every change the person makes. |
+| `StorageKey` | `string?` | - | Saves and restores the state under this key. |
+| `StateVersion` | `int` | `0` | The app's own version of its layout. |
+| `MigrateState` | `Func<MokaDockState, int, MokaDockState?>?` | - | Brings a layout saved by an older `StateVersion` up to date. |
+| `Look` | `MokaDockLook?` | theme | How the layout is drawn. |
+| `TabStyle` | `MokaDockTabStyle` | `Underline` | How groups show their tabs. |
+| `DropIndicator` | `MokaDockDropIndicator` | `Zones` | What shows where a dragged panel lands. |
+| `Controls` | `MokaDockControls` | `Default` | The buttons group headers show. |
+| `AllowDragging` | `bool` | `true` | Whether tabs and groups drag. |
+| `AutoHideOnHover` | `bool` | `true` | Whether a side bar tab opens its group on hover as well as on click. |
+| `NarrowMode` | `MokaDockNarrowMode` | `Sheets` | How a narrow layout shows its panels. |
+| `NarrowBelow` | `string?` | `40rem` | The layout's own width below which it is narrow. Null never narrows. |
+| `Presets` | `IReadOnlyList<MokaDockPreset>?` | - | Named layouts for `ApplyPresetAsync`. |
+| `Text` | `MokaDockText?` | English | Every word the layout writes. |
+| `PanelOpened`, `PanelActivated`, `PanelClosed`, `PanelMoved` | `EventCallback<MokaDockPanelChange>` | - | Raised for each panel that opens, shows, closes or moves. |
 
-    <MokaDockContent Scrollable="false">
-        <CodeEditor />
-    </MokaDockContent>
+### MokaDockRow, MokaDockColumn
 
-</MokaDockLayout>
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `Id` | `string?` | The split's id in the state. |
+| `Size` | `string?` | Its size along the split it is in. |
+| `ChildContent` | `RenderFragment?` | Its parts. |
 
-@code {
-    private readonly List<MokaTerminalLine> _output = [];
-}
-```
+### MokaDockGroup
 
-`MaxHeight="none"` lifts `MokaTerminal`'s default 400px cap on its output, so it can fill a
-taller panel.
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Id` | `string?` | generated | The group's id in the state. |
+| `Size` | `string?` | one share | Its starting size along its split. |
+| `MinSize`, `MaxSize` | `string?` | 48px, none | How far its splitters move. |
+| `Resizable` | `bool` | `true` | Whether the splitters beside it move. |
+| `Collapsible`, `Collapsed`, `CollapsedSize` | `bool`, `bool`, `string?` | `false`, `false`, `0px` | A fold-to-strip button, its starting state, and the strip's size. |
+| `TabStyle` | `MokaDockTabStyle?` | layout's | This group's tabs. |
+| `Dock` | `MokaDockPosition?` | - | Directly in the layout: the edge it docks to. |
+| `AutoHide` | `MokaDockPosition?` | - | Starts pinned to this side's bar. |
+| `Title` | `string?` | showing panel's | The group's name for screen readers and menus. |
 
-With several children, each keeps its own height. Give the one that should take the rest of
-the space `flex: 1` and `min-height: 0`:
+### MokaDockPanel
 
-```razor
-<MokaDockPanel Dock="MokaDockPosition.Bottom" Title="Output" Scrollable="false">
-    <OutputFilter />
-    <MokaTerminal Lines="_output" ShowHeader="false" MaxHeight="none"
-                  Style="flex: 1; min-height: 0;" />
-</MokaDockPanel>
-```
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Id` | `string?` | generated | The panel's id, also the id of the element its content draws in. |
+| `Title`, `TitleContent`, `Icon` | | - | Its tab: title, custom title, icon. |
+| `Badge`, `BadgeTone` | `int?`, `MokaBadgeTone` | -, `Count` | A count on its tab. |
+| `ChildContent` | `RenderFragment?` | - | Its content. |
+| `Component` | `MokaDockComponent?` | - | A component as its content, which can open in another window. |
+| `Actions` | `RenderFragment?` | - | Buttons in the header while it shows. |
+| `Closable`, `CanClose` | `bool?`, `Func<Task<bool>>?` | layout's `Controls` | Whether it closes, and a question asked first. |
+| `Floatable` | `bool` | `true` | Whether it can float at all. |
+| `Lazy`, `KeepAlive` | `bool` | `true` | Render on first show; stay mounted while hidden. |
+| `Visible`, `Active`, `AutoHide` | `bool`, `bool`, `MokaDockPosition?` | `true`, `false`, - | Starts closed, starts as its group's showing tab, starts pinned. |
+| `Scrollable` | `bool` | `true` | Scroll or clip its content. |
+| `Dock`, `Size`, `MinSize`, `MaxSize`, `Resizable` | | `Left`, `250px` | Directly in the layout: its edge and track. `Size` binds (`SizeChanged` is `EventCallback<string>`). |
+| `Collapsible`, `Collapsed`, `CollapsedSize` | | | Its group's fold button and state; `Collapsed` binds. |
+| `Floating`, `FloatingX`, `FloatingY`, `FloatingWidth`, `FloatingHeight` | | `false`, 100, 100, `300px`, `400px` | Its floating window; each binds. |
+
+### MokaDockContent
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `ChildContent` | `RenderFragment?` | - | What the main area shows while no panel is open in it. |
+| `Size` | `string?` | one share | Its size in a row or column. |
+| `Title` | `string?` | `Content` | Its name for screen readers and the narrow layout's tab. |
+| `Scrollable` | `bool` | `true` | Scroll or clip its content. |

@@ -16,9 +16,11 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 
 ```razor
 @* ── Core: base classes, theming, enums, icons, utilities ── *@
+@using Moka.Red.Core.Announcer
 @using Moka.Red.Core.Base
 @using Moka.Red.Core.Charts
 @using Moka.Red.Core.Clipboard
+@using Moka.Red.Core.Code
 @using Moka.Red.Core.Enums
 @using Moka.Red.Core.Extensions
 @using Moka.Red.Core.Files
@@ -177,6 +179,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @* ── Feedback: dialogs, toasts, tooltips, popovers, loading, etc. ── *@
 @using Moka.Red.Feedback.ActionBar
 @using Moka.Red.Feedback.Alert
+@using Moka.Red.Feedback.Banner
 @using Moka.Red.Feedback.BootScreen
 @using Moka.Red.Feedback.BottomSheet
 @using Moka.Red.Feedback.Cheatsheet
@@ -200,6 +203,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Feedback.Progress
 @using Moka.Red.Feedback.Reconnect
 @using Moka.Red.Feedback.SlashMenu
+@using Moka.Red.Feedback.SystemNotification
 @using Moka.Red.Feedback.Toast
 @using Moka.Red.Feedback.Tooltip
 @using Moka.Red.Feedback.Wizard
@@ -229,10 +233,9 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @* ── Context Menu ── *@
 @using Moka.Red.ContextMenu
 
-@* ── ThemeGen: theme editor, presets, preview, import and export ── *@
+@* ── ThemeGen: theme studio, appearance panel, presets, preview, import and export ── *@
 @using Moka.Red.ThemeGen
 @using Moka.Red.ThemeGen.Appearance
-@using Moka.Red.ThemeGen.Editors
 @using Moka.Red.ThemeGen.ImportExport
 @using Moka.Red.ThemeGen.Presets
 @using Moka.Red.ThemeGen.Preview
@@ -274,6 +277,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Base` | `MokaComponentBase`, `MokaVisualComponentBase` -- base classes all components inherit from |
 | `Moka.Red.Core.Charts` | Chart math the charts share and an app can use too: `MokaChartUnit` (units on axes and tooltips), `MokaScale`, `MokaTimeTicks`, `MokaDownsampler`, `MokaMinMaxIndex`, `MokaChartStats`, `MokaLinearFit` |
 | `Moka.Red.Core.Clipboard` | `MokaCopyEventArgs` and the `@onmokacopied` and `@onmokacopyask` events, for an element of your own that copies inside its click through `data-moka-copy` |
+| `Moka.Red.Core.Code` | `MokaCodeHighlighters` (Razor, C#, HTML, XML, CSS, JSON and shell highlighters for `MokaCodeBlock` and `MokaCodeEditor`), `MokaCodeSpan` and `MokaCodeTokenKind` for a highlighter of your own |
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
 | `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method, and `AddMokaFilePicker<TPicker>()` |
 | `Moka.Red.Core.Files` | `IMokaFilePicker` and `MokaFilePickRequest`, for an app that picks files itself in place of the browser's dialog |
@@ -287,14 +291,14 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Layout.*` | Grid, Flexbox, Card, Paper, Panel, Accordion, AppBar, Toolbar, Container, Divider, DockLayout, SplitPane, etc. |
 | `Moka.Red.Forms.Base` | `MokaToggleBase`, `MokaTextInputBase`, `MokaSelectBase` -- needed when referencing base class types (e.g., `MokaToggleBase.LabelPosition`) |
 | `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, CountrySelect, etc. |
-| `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
+| `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, Banner, SystemNotification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
-| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |
+| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaTablePager`, the column kinds such as `MokaNumberColumn<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |
 | `Moka.Red.Navigation.*` | Menu, Breadcrumb, Sidebar, Stepper, CommandBar, Tabs (`MokaTabStrip`, `MokaTabContainer`) |
 | `Moka.Red.Navigation.Tabs.Models` | `TabInfo<TValue>`, `TabGroupInfo`, `TabBadgeInfo`, `TabTheme` and the tab event args |
 | `Moka.Red.Navigation.Tabs.Services` | `IMokaTabSessionState<TValue>`, `ITabStorageProvider`, `MokaBrowserTabStorageProvider` |
 | `Moka.Red.Navigation.Tabs.Plugins` | `IMokaTabPlugin` and `MokaTabPluginRegistry` |
 | `Moka.Red.ContextMenu` | `MokaContextMenu`, `MokaContextMenuTrigger`, `MokaContextMenuItem` |
-| `Moka.Red.ThemeGen.*` | `MokaAppearancePanel` and `MokaAppearanceRow`, `MokaThemeEditor` and its palette, typography and spacing editors, `MokaThemePresets`, `MokaThemePreview`, `MokaThemeImportExport`, and `MokaThemeSerializer` (JSON, CSS and C# export) |
+| `Moka.Red.ThemeGen.*` | `MokaThemeStudio` and `MokaThemePair`, `MokaAppearancePanel` and `MokaAppearanceRow`, `MokaThemePresets`, `MokaThemePreview`, `MokaThemeImportExport`, and `MokaThemeSerializer` (JSON, CSS and C# export) |
 
 > **Tip:** The `Moka.Red.Forms.Base` namespace is only needed if your code references base-class types directly, such as `MokaToggleBase.LabelPosition` for checkbox/switch label placement. Most consumers can skip it.

@@ -141,23 +141,16 @@ public sealed record MokaTypography
 	///     The <see cref="MokaLook.Gate" /> look's type: Inter, Space Grotesk for page titles and big numbers,
 	///     JetBrains Mono for data, and sentence case everywhere but micro labels.
 	/// </summary>
-	public static MokaTypography Gate { get; } = new()
+	public static MokaTypography Gate { get; } = new MokaTypography
 	{
 		FontFamily = "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
 		FontFamilyMono = "'JetBrains Mono', ui-monospace, Menlo, monospace",
-		FontFamilyDisplay = "'Space Grotesk', 'Inter', system-ui, sans-serif",
-		FontSizeRoot = "var(--moka-font-size-md)",
-		FontSizeHeading = "var(--moka-font-size-display)",
-		FontSizeDialog = "1.0625rem", // 17px
-		FontSizeMenu = "0.84375rem", // 13.5px
-		FontSizeMono = "0.78125rem", // 12.5px
-		FontWeightHeading = "var(--moka-font-weight-semibold)",
-		ControlCase = "none",
-		ControlTracking = "0",
-		TitleCase = "none",
-		TitleTracking = "0",
-		HeadingTracking = "-0.02em"
-	};
+		FontWeightHeading = "var(--moka-font-weight-semibold)"
+	}
+	.WithGateTextSize(MokaTextSize.Normal)
+	.WithTitleFont(MokaTitleFont.SpaceGrotesk)
+	.WithTitleSize(MokaTitleSize.Display)
+	.WithLetterCase(MokaLetterCase.Sentence);
 
 	/// <summary>
 	///     The type of <see cref="MokaTheme.Crisp" />: <see cref="Gate" /> at <see cref="MokaTextSize.Small" />,

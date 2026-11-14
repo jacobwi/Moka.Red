@@ -1,0 +1,26 @@
+<DemoSection Id="cards-in-columns" Title="Cards in columns" Description="Drag a card to another column or another place in its own. OnItemMoved reports where it went; the lists are the app's.">
+	<MokaKanbanBoard TItem="WorkItem" Columns="_columns" OnItemMoved="Moved" MaxHeight="22rem">
+		<ItemTemplate Context="task">
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
+				<strong>@task.Title</strong>
+				<MokaText Size="MokaSize.Xs" Mono>@task.Owner</MokaText>
+			</div>
+		</ItemTemplate>
+	</MokaKanbanBoard>
+	<MokaCaption>@_moved</MokaCaption>
+</DemoSection>
+
+@code {
+	private readonly IReadOnlyList<MokaKanbanColumn<WorkItem>> _columns =
+	[
+		new("To do", [new("Draft the report", "avery"), new("Collect the numbers", "sam")]),
+		new("Doing", [new("Review the budget", "jo")], MokaColor.Info),
+		new("Done", [new("Book the room", "avery")], MokaColor.Success)
+	];
+
+	private string _moved = "Nothing moved yet.";
+
+	private void Moved(MokaKanbanItemMovedArgs<WorkItem> move) => _moved = $"Moved \"{move.Item.Title}\".";
+
+	private sealed record WorkItem(string Title, string Owner);
+}

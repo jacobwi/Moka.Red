@@ -1,92 +1,64 @@
-.moka-dock-panel {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface);
-	overflow: hidden;
+/* In a layout, the panel is its host: drawn over its group's slot by anchor positioning, wherever the render tree
+   keeps it. Without anchor positioning the layout's script places it from the slot's box. */
+.moka-dock-host {
+	position: absolute;
+	top: anchor(top);
+	right: anchor(right);
+	bottom: anchor(bottom);
+	left: anchor(left);
+	box-sizing: border-box;
 	min-width: 0;
 	min-height: 0;
+	overflow: auto;
+	color: var(--moka-color-on-surface);
 }
 
-/* ── Borders per dock position ── */
-.moka-dock-panel--left {
-	border-right: 1px solid var(--moka-color-outline-variant);
+.moka-dock-host[hidden] {
+	display: none;
 }
 
-.moka-dock-panel--right {
-	border-left: 1px solid var(--moka-color-outline-variant);
+.moka-dock-host:focus-visible {
+	outline: none;
+	box-shadow: inset var(--moka-focus-ring);
 }
 
-.moka-dock-panel--top {
-	border-bottom: 1px solid var(--moka-color-outline-variant);
-}
-
-.moka-dock-panel--bottom {
-	border-top: 1px solid var(--moka-color-outline-variant);
-}
-
-/* ── Collapsed state ── */
-.moka-dock-panel--collapsed {
+/* Scrollable="false": the content clips instead of scrolling and a single child fills it, so a view that scrolls
+   itself (a terminal, an editor) gets a definite size and shows the only scrollbar. */
+.moka-dock-panel-body--no-scroll:not([hidden]) {
+	display: flex;
+	flex-direction: column;
 	overflow: hidden;
 }
 
-/* A collapsed panel with a CollapsedSize is a strip, and its header fills it. The header row ran
-   past a side strip's edge and took the expand button out of sight, still in the tab order. Beside
-   the content the header turns into a column: the expand button on top, the title running down the
-   strip. Above or below the content it stays a row, centered in the strip's height. */
-.moka-dock-panel--collapsed .moka-dock-panel-header {
+.moka-dock-panel-body--no-scroll ::deep > :only-child {
 	flex: 1 1 auto;
 	min-width: 0;
 	min-height: 0;
 }
 
-.moka-dock-panel--top.moka-dock-panel--collapsed .moka-dock-panel-header,
-.moka-dock-panel--bottom.moka-dock-panel--collapsed .moka-dock-panel-header {
-	padding-top: 0;
-	padding-bottom: 0;
-}
-
-.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-header,
-.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-header {
-	flex-direction: column;
-	justify-content: flex-start;
-	padding: var(--moka-spacing-xs) 0;
-}
-
-.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-actions,
-.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-actions {
-	order: -1;
-}
-
-.moka-dock-panel--left.moka-dock-panel--collapsed .moka-dock-panel-title-area,
-.moka-dock-panel--right.moka-dock-panel--collapsed .moka-dock-panel-title-area {
-	min-height: 0;
-	writing-mode: vertical-rl;
-}
-
-/* ── Header ── */
-.moka-dock-panel-header {
+/* Outside a layout the panel draws as a plain box with its body. */
+.moka-dock-panel {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
-	border-bottom: 1px solid var(--moka-color-outline-variant);
-	gap: var(--moka-spacing-sm);
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	overflow: hidden;
+}
+
+.moka-dock-panel > .moka-dock-panel-header {
+	display: flex;
 	flex-shrink: 0;
-	user-select: none;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
 }
 
-.moka-dock-panel--collapsed .moka-dock-panel-header {
-	border-bottom: none;
-}
-
-.moka-dock-panel-title-area {
+.moka-dock-panel > .moka-dock-panel-header > .moka-dock-panel-title {
 	flex: 1;
 	min-width: 0;
-}
-
-.moka-dock-panel-title {
 	font-size: var(--moka-font-size-sm);
 	font-weight: var(--moka-font-weight-semibold);
 	line-height: 1.3;
@@ -97,181 +69,14 @@
 	text-overflow: ellipsis;
 }
 
-.moka-dock-panel-actions {
-	display: flex;
-	align-items: center;
-	gap: var(--moka-spacing-xxs);
-	flex-shrink: 0;
-}
-
-/* Only there so a collapsed header can hide the consumer's actions; they lay out as before. */
-.moka-dock-panel-custom-actions {
-	display: contents;
-}
-
-.moka-dock-panel-custom-actions[hidden] {
-	display: none;
-}
-
-/* ── Collapse toggle button ── */
-.moka-dock-panel-toggle {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	height: 22px;
-	border: none;
-	background: transparent;
-	color: inherit;
-	cursor: pointer;
-	border-radius: var(--moka-radius-sm);
-	transition: background-color var(--moka-transition-fast);
-	opacity: 0.7;
-}
-
-.moka-dock-panel-toggle:hover {
-	background: var(--moka-color-surface-variant);
-	opacity: 1;
-}
-
-/* ── Body ── */
-/* The Scrollable="false" variant (moka-dock-panel-body--no-scroll) is styled in
-   MokaDockLayout.razor.css, shared with MokaDockContent. */
-.moka-dock-panel-body {
+.moka-dock-panel > .moka-dock-host {
+	position: static;
 	flex: 1;
-	overflow: auto;
-	min-height: 0;
-	min-width: 0;
-}
-
-/* A collapsed panel keeps its body mounted behind the hidden attribute. Any display value set on
-   the body would override the attribute, so restate it. */
-.moka-dock-panel-body[hidden] {
-	display: none;
-}
-
-/* ── Splitter (resize handle) ── */
-.moka-dock-panel-splitter {
-	position: absolute;
-	z-index: 10;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	touch-action: none;
-}
-
-/*
- * The grab zone is the splitter's own width, not a pseudo-element reaching outside it: the panel clips its overflow,
- * so half of such an area was cut away and the resize cursor only appeared in the last pixel or two inside the panel.
- * The panel's border still draws the visible line, so widening this changes nothing on screen. 6px rather than the
- * 12px the pseudo-element aimed at: the band sits over the panel's inner edge, and a wide one swallows clicks on
- * whatever sits there, such as the badges at the right end of list rows.
- */
-.moka-dock-panel-splitter--left,
-.moka-dock-panel-splitter--right {
-	top: 0;
-	bottom: 0;
-	width: 6px;
-	cursor: col-resize;
-}
-
-.moka-dock-panel-splitter--top,
-.moka-dock-panel-splitter--bottom {
-	height: 6px;
-}
-
-.moka-dock-panel-splitter--left {
-	left: 0;
-}
-
-.moka-dock-panel-splitter--right {
-	right: 0;
-}
-
-.moka-dock-panel-splitter--top,
-.moka-dock-panel-splitter--bottom {
-	left: 0;
-	right: 0;
-	cursor: row-resize;
-}
-
-.moka-dock-panel-splitter--top {
-	top: 0;
-}
-
-.moka-dock-panel-splitter--bottom {
-	bottom: 0;
-}
-
-/* ── Splitter handle indicator ── */
-.moka-dock-panel-splitter-handle {
-	border-radius: 1px;
-	background: transparent;
-	transition: background-color var(--moka-transition-fast);
-}
-
-.moka-dock-panel-splitter--left .moka-dock-panel-splitter-handle,
-.moka-dock-panel-splitter--right .moka-dock-panel-splitter-handle {
-	width: 3px;
-	height: 40px;
-}
-
-.moka-dock-panel-splitter--top .moka-dock-panel-splitter-handle,
-.moka-dock-panel-splitter--bottom .moka-dock-panel-splitter-handle {
-	height: 3px;
-	width: 40px;
-}
-
-.moka-dock-panel-splitter:hover .moka-dock-panel-splitter-handle {
-	background: var(--moka-color-primary);
-}
-
-/* Icons in the toggle buttons are MokaIcon instances: size comes from SizeValue,
-   and MokaIcon's own inline style already covers display and flex-shrink. The
-   moka-dock-panel-icon class stays on them purely as a targeting hook. */
-
-/* ── Floating (undocked) state ── */
-.moka-dock-panel--floating {
-	position: fixed;
-	z-index: var(--moka-z-modal);
-	border: 1px solid var(--moka-color-outline-variant);
-	border-radius: var(--moka-radius-md);
-	box-shadow: var(--moka-shadow-modal);
-	overflow: hidden;
-	resize: both;
-}
-
-/* touch-action: none lets a touch drag move the panel instead of being taken for a scroll. */
-.moka-dock-panel--floating .moka-dock-panel-header {
-	cursor: grab;
-	touch-action: none;
-}
-
-.moka-dock-panel--floating .moka-dock-panel-header:active {
-	cursor: grabbing;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
-.moka-gate .moka-dock-panel-title {
+.moka-gate .moka-dock-panel > .moka-dock-panel-header > .moka-dock-panel-title {
 	text-transform: var(--moka-card-title-case);
 	letter-spacing: var(--moka-card-title-tracking);
-}
-
-.moka-gate .moka-dock-panel-toggle {
-	color: var(--moka-color-icon);
-	opacity: 1;
-	border-radius: var(--moka-radius-md);
-	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
-}
-
-.moka-gate .moka-dock-panel-toggle:hover {
-	background: var(--moka-color-surface-hover);
-	color: var(--moka-color-on-surface);
-}
-
-.moka-gate .moka-dock-panel--floating {
-	border-color: var(--moka-color-outline-strong);
-	border-radius: var(--moka-radius-popup);
 }

@@ -19,6 +19,7 @@ public class MokaRadioGroupTests : BunitContext
 		IRenderedComponent<MokaRadioGroup<string>> cut = RenderGroup("a", value => chosen = value);
 
 		await cut.FindAll("input[type=radio]")[1].ChangeAsync(new ChangeEventArgs { Value = "on" });
+		cut.Render(p => p.Add(x => x.Value, chosen));
 
 		Assert.Equal("b", chosen);
 		Assert.Equal([false, true, false], cut.FindAll("input[type=radio]").Select(r => r.HasAttribute("checked")));
@@ -145,6 +146,7 @@ public class MokaRadioGroupTests : BunitContext
 		Assert.Single(radios.Select(r => r.GetAttribute("name")).Distinct());
 
 		await radios[0].ChangeAsync(new ChangeEventArgs { Value = "on" });
+		cut.Render(p => p.Add(x => x.Value, chosen));
 
 		Assert.Equal("a", chosen);
 		Assert.Equal([true, false], cut.FindAll("input[type=radio]").Select(r => r.HasAttribute("checked")));

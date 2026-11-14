@@ -1,0 +1,67 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.Avatar
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The person's name: the first line, and what the column sorts, filters, searches and exports.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Name { get; set; }
+
+	/// <summary>A second, quieter line under the name, such as an email address or a role. Null draws one line.</summary>
+	[Parameter]
+	public Func<TItem, string?>? Detail { get; set; }
+
+	/// <summary>The address of the person's picture. A row without one draws <see cref="Fallback" />.</summary>
+	[Parameter]
+	public Func<TItem, string?>? Picture { get; set; }
+
+	/// <summary>The initials to draw. Null, the default, takes the first letters of the first two words of the name.</summary>
+	[Parameter]
+	public Func<TItem, string?>? Initials { get; set; }
+
+	/// <summary>What the avatar of a row without a picture draws. Default the initials.</summary>
+	[Parameter]
+	public MokaAvatarFallback Fallback { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Name is not null;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string name = Name?.Invoke(item) ?? string.Empty;
+		string? detail = Detail?.Invoke(item);
+		bool identicon = Fallback == MokaAvatarFallback.Identicon;
+		return @<span class="moka-person-cell">
+			<MokaAvatar Src="@Picture?.Invoke(item)" Alt="" Size="MokaSize.Sm"
+			            Initials="@(identicon ? null : Initials?.Invoke(item) ?? InitialsOf(name))"
+			            IdenticonValue="@(identicon ? name : null)" ShowIdenticon="@identicon"/>
+			<span class="moka-person-cell__text">
+				<span class="moka-person-cell__name">@name</span>
+				@if (!string.IsNullOrEmpty(detail))
+				{
+					<span class="moka-person-cell__detail">@detail</span>
+				}
+			</span>
+		</span>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => Fallback;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Name?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Name?.Invoke(item) ?? string.Empty;
+
+	private static string InitialsOf(string name)
+	{
+		string[] words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+		return string.Concat(words.Take(2).Select(static word => char.ToUpper(word[0], CultureInfo.CurrentCulture)));
+	}
+}

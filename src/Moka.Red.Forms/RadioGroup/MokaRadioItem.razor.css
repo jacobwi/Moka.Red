@@ -44,7 +44,7 @@
 	height: 8px;
 	border-radius: 50%;
 	background: var(--moka-color-primary);
-	animation: moka-radio-scale-in var(--moka-transition-fast) ease-out;
+	animation: moka-radio-scale-in var(--moka-transition-fast);
 }
 
 @keyframes moka-radio-scale-in {

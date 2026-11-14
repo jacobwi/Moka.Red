@@ -47,7 +47,7 @@ public class MokaTableRowReorderTests : BunitContext
 	[Fact]
 	public async Task RowHandles_AreOff_WhileAColumnFilterIsActive()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowFilters, true));
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row));
 
 		await cut.Find("input[aria-label='Filter by Team']").InputAsync(new ChangeEventArgs { Value = "Research" });
 		cut.WaitForAssertion(() => Assert.Equal(2, DataRows(cut).Count), Debounce);

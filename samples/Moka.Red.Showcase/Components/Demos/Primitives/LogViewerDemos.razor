@@ -1,0 +1,14 @@
+<DemoSection Id="basics" Title="Basics" Description="Log entries with levels, search and a level filter.">
+	<MokaLogViewer Entries="_logEntries" MaxHeight="300px"/>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<MokaLogEntry> _logEntries =
+	[
+		new(DateTime.Now.AddSeconds(-30), MokaLogLevel.Info, "Application started.", "Host"),
+		new(DateTime.Now.AddSeconds(-20), MokaLogLevel.Debug, "Loading configuration from appsettings.json", "Config"),
+		new(DateTime.Now.AddSeconds(-10), MokaLogLevel.Warning, "Cache miss for key 'user:42'", "Cache"),
+		new(DateTime.Now.AddSeconds(-5), MokaLogLevel.Error, "Connection refused: db-primary:5432", "Database"),
+		new(DateTime.Now, MokaLogLevel.Info, "Retry succeeded, connected to db-replica.", "Database")
+	];
+}

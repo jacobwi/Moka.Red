@@ -1,0 +1,93 @@
+<DemoSection Id="basics" Title="Basics" Description="A list of links and actions, with groups and badges." Tip="Set Match on links instead of Active, and the menu follows the address the way NavLink does.">
+	<ChildContent>
+		<div style="max-width: 280px;">
+			<MokaMenu>
+				<MokaMenuItem Text="This page" Icon="MokaIcons.Navigation.Home" Href="components/menu" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Areas" Icon="MokaIcons.Navigation.Grid" Badge="3">
+					<MokaMenuItem Text="Primitives" Href="primitives" Match="NavLinkMatch.All"/>
+					<MokaMenuItem Text="Forms" Href="forms" Match="NavLinkMatch.All"/>
+					<MokaMenuItem Text="Navigation" Href="navigation" Match="NavLinkMatch.All"/>
+				</MokaMenuItem>
+				<MokaMenuDivider/>
+				<MokaMenuItem Text="Appearance" Icon="MokaIcons.Action.Settings" Href="appearance" Match="NavLinkMatch.All"/>
+			</MokaMenu>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaMenuItem">Text, Icon, Href, Badge, OnClick</DemoParam>
+		<DemoParam Name="Nested items">A group that opens and closes</DemoParam>
+		<DemoParam Name="Active, Match">Lights the current page; Match reads it from the address</DemoParam>
+		<DemoParam Name="Collapsed">Icons only, with the names in tooltips</DemoParam>
+		<DemoParam Name="Dense, Bordered">Tighter rows, and a border</DemoParam>
+		<DemoParam Name="MokaMenuDivider">A line between groups</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="a-long-group" Title="A long group" Description="A group opens to its own height, however many items it holds, and its items leave the tab order while it is closed.">
+	<div style="max-width: 280px;">
+		<MokaMenu aria-label="Folders">
+			<MokaMenuItem Text="Folders" Icon="MokaIcons.File.Folders" Badge="@LongFolders.Length.ToString(System.Globalization.CultureInfo.CurrentCulture)">
+				@foreach (string folder in LongFolders)
+				{
+					<MokaMenuItem @key="folder" Text="@folder" Icon="MokaIcons.File.Folder" Active="@(folder == _pickedFolder)" OnClick="() => _pickedFolder = folder"/>
+				}
+			</MokaMenuItem>
+		</MokaMenu>
+	</div>
+	<MokaCaption>Picked: @(_pickedFolder ?? "nothing yet")</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="groups-on-the-rail" Title="Groups on the rail" Description="A menu that shows only icons opens a group beside its icon, as a flyout with the group's names, icons and pills. A group inside the flyout opens in place. Press Reports, or focus it and press the Right arrow.">
+	<div style="display: flex; gap: var(--moka-spacing-lg); align-items: flex-start;">
+		<div style="width: 56px;">
+			<MokaMenu Collapsed="true" aria-label="Rail">
+				<MokaMenuItem Text="This page" Icon="MokaIcons.Navigation.Home" Href="components/menu" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Reports" Icon="MokaIcons.File.FileText" Badge="3">
+					<MokaMenuItem Text="Monthly" Icon="MokaIcons.File.FileSpreadsheet" OnClick="@(() => _railPick = "Monthly")"/>
+					<MokaMenuItem Text="Yearly" Icon="MokaIcons.File.FileSpreadsheet" OnClick="@(() => _railPick = "Yearly")"/>
+					<MokaMenuItem Text="Archive" Icon="MokaIcons.File.Archive">
+						<MokaMenuItem Text="2025" OnClick="@(() => _railPick = "Archive 2025")"/>
+						<MokaMenuItem Text="2024" OnClick="@(() => _railPick = "Archive 2024")"/>
+					</MokaMenuItem>
+				</MokaMenuItem>
+				<MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings">
+					<MokaMenuItem Text="Account" OnClick="@(() => _railPick = "Account")"/>
+					<MokaMenuItem Text="Appearance" Href="appearance" Match="NavLinkMatch.All"/>
+				</MokaMenuItem>
+			</MokaMenu>
+		</div>
+		<MokaCaption>Picked: @(_railPick ?? "nothing yet")</MokaCaption>
+	</div>
+</DemoSection>
+
+<DemoSection Id="the-current-page-opens-its-group" Title="The current page opens its group" Description="This page sits inside the Navigation group, which starts closed. Its link lights from the address and opens every group around it, and its binding hears it once through ExpandedChanged. Close the group and it stays closed.">
+	<div style="max-width: 280px;">
+		<MokaMenu aria-label="Areas">
+			<MokaMenuItem Text="Forms" Icon="MokaIcons.Action.Edit">
+				<MokaMenuItem Text="Switch" Href="components/switch" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Checkbox" Href="components/checkbox" Match="NavLinkMatch.All"/>
+			</MokaMenuItem>
+			<MokaMenuItem Text="Navigation" Icon="MokaIcons.Navigation.Menu" @bind-Expanded="_navigationOpen">
+				<MokaMenuItem Text="Breadcrumb" Href="components/breadcrumb" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Menu" Href="components/menu" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Tabs" Href="components/tabs" Match="NavLinkMatch.All"/>
+			</MokaMenuItem>
+		</MokaMenu>
+	</div>
+	<MokaCaption>Navigation group open: @(_navigationOpen ? "yes" : "no")</MokaCaption>
+</DemoSection>
+
+@code {
+	private static readonly string[] LongFolders =
+	[
+		"Accounts", "Archive", "Backups", "Contracts", "Designs", "Drafts", "Exports", "Finance", "Help desk", "Invoices",
+		"Legal", "Marketing", "Meeting notes", "Onboarding", "Payroll", "Photos", "Plans", "Press", "Receipts", "Recruiting",
+		"Reports", "Research", "Sales", "Templates"
+	];
+
+	private string? _pickedFolder;
+
+	private string? _railPick;
+
+	private bool _navigationOpen;
+}

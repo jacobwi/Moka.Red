@@ -1,0 +1,44 @@
+<DemoSection Id="default-max-5" Title="Default (max 5)" Description="A person or thing as initials, a picture, an icon or an identicon. A group stacks them and counts the rest.">
+	<MokaAvatarGroup>
+		<MokaAvatar Initials="AB" Bordered/>
+		<MokaAvatar Initials="CD" Bordered/>
+		<MokaAvatar Initials="EF" Bordered/>
+		<MokaAvatar Initials="GH" Bordered/>
+		<MokaAvatar Initials="IJ" Bordered/>
+		<MokaAvatar Initials="KL" Bordered/>
+		<MokaAvatar Initials="MN" Bordered/>
+	</MokaAvatarGroup>
+</DemoSection>
+
+<DemoSection Id="max-3-small" Title="Max 3, small">
+	<MokaAvatarGroup Max="3" Size="MokaSize.Sm">
+		<MokaAvatar Initials="AB" Bordered/>
+		<MokaAvatar Initials="CD" Bordered/>
+		<MokaAvatar Initials="EF" Bordered/>
+		<MokaAvatar Initials="GH" Bordered/>
+		<MokaAvatar Initials="IJ" Bordered/>
+	</MokaAvatarGroup>
+</DemoSection>
+
+<DemoSection Id="initials-colors" Title="Initials colors">
+	<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+		@foreach (string initials in new[] { "JD", "AB", "MK", "ZW", "BC", "KL", "SQ", "RD", "TO", "NP" })
+		{
+			<MokaAvatar Initials="@initials"/>
+		}
+	</div>
+</DemoSection>
+
+<DemoSection Id="color-and-colorvalue" Title="Color and ColorValue">
+	<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+		@foreach (MokaColor color in Enum.GetValues<MokaColor>())
+		{
+			<MokaAvatar Initials="@color.ToString()[..2]" Color="color"/>
+		}
+		<MokaAvatar Icon="MokaIcons.Navigation.Home" Color="MokaColor.Info"/>
+		<MokaAvatar Initials="BL" ColorValue="#2563eb"/>
+		<MokaAvatar Initials="YE" ColorValue="#facc15"/>
+		<MokaAvatar Initials="TE" ColorValue="var(--moka-label-teal)"/>
+		<MokaAvatar Icon="MokaIcons.Navigation.Home" ColorValue="#f5f5f4"/>
+	</div>
+</DemoSection>

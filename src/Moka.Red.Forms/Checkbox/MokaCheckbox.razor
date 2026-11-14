@@ -36,11 +36,11 @@
 			       id="@Id"
 			       name="@FieldName"
 			       value="@bool.TrueString"
-			       checked="@CurrentValue"
+			       @bind:get="CurrentValue"
+			       @bind:set="SetChecked"
 			       disabled="@Disabled"
 			       aria-busy="@(Loading ? "true" : null)"
 			       @onclick:preventDefault="Loading"
-			       @onchange="HandleChange"
 			       aria-describedby="@DescribedBy"
 			       @attributes="ControlAttributes"/>
 			@BoxTemplate

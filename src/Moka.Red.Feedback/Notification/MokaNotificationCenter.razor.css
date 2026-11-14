@@ -250,6 +250,44 @@
 	opacity: 1 !important;
 }
 
+/* A notification with a link is an anchor in the button's place. */
+.moka-notification-item__main {
+	text-decoration: none;
+}
+
+/* A notification's buttons wrap onto a line of their own under its content. */
+.moka-notification-item--has-actions {
+	flex-wrap: wrap;
+}
+
+.moka-notification-item--has-actions .moka-notification-item__main {
+	padding-bottom: var(--moka-spacing-xs);
+}
+
+.moka-notification-item__actions {
+	display: flex;
+	flex-basis: 100%;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-xs);
+	padding: 0 0 var(--moka-spacing-md) var(--moka-spacing-lg);
+}
+
+.moka-notification-item__action {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-primary);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-notification-item__action:hover {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-notification-bell {
@@ -768,3 +806,12 @@
 .moka-gate .moka-notification-center--terminal .moka-notification-item__time {
 	font-size: var(--moka-font-size-xs);
 }
+
+.moka-gate .moka-notification-item__action {
+	font-family: var(--_nl-font);
+	font-size: var(--moka-font-size-sm);
+	color: var(--_nl-link);
+	transition: background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-notification-item__action:hover { background-color: var(--_nl-hover); }

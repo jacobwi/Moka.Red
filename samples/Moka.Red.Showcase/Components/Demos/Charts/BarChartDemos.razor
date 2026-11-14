@@ -1,0 +1,511 @@
+@using Moka.Red.Core.Charts
+@using System.Globalization
+
+<DemoSection Id="basics" Title="Basics" Description="Bars side by side or stacked.">
+	<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Lg">
+		<MokaBarChart Labels="_monthLabels" Series="_barSeries"/>
+		<MokaBarChart Labels="_monthLabels" Series="_barSeries" Stacked="true"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="the-whole-column-is-the-target" Title="The whole column is the target">
+	<MokaBarChart Label="Devices online by zone" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Column"
+	              Keyboard="true" Labels="@Zones" Series="@_devices" OnPointClick="Picked"/>
+	<span>@_picked</span>
+</DemoSection>
+
+<DemoSection Id="bytes-the-unit-in-the-axis-title" Title="Bytes, the unit in the axis title">
+	<MokaBarChart Series="@_written" Labels="@_hours" Label="Backup written per hour"
+	              YAxis="@(new MokaChartAxis { Unit = MokaChartUnit.Bytes, Nice = true, ShowUnit = false, Title = "Written" })"/>
+</DemoSection>
+
+<DemoSection Id="bar-ends" Title="Bar ends" Description="BarEnds rounds a bar's free end, both ends or neither.">
+	<MokaSegmentedControl Value="@_ends.ToString()" ValueChanged="SetEnds" AriaLabel="Bar ends">
+		@foreach (MokaBarEnds ends in Enum.GetValues<MokaBarEnds>())
+		{
+			<MokaSegment Value="@ends.ToString()" Text="@ends.ToString()"/>
+		}
+	</MokaSegmentedControl>
+	<MokaBarChart Series="@_regions" Labels="@Regions" BarEnds="_ends" Formatter="@Thousands" Label="Requests by region"/>
+</DemoSection>
+
+<DemoSection Id="horizontal-bars" Title="Horizontal bars" Description="Largest first, the value at its tip, names whole; above the bar when narrow.">
+	<MokaBarChart Horizontal Series="@_domains" Labels="@Domains" Formatter="@Thousands"
+	              Title="Top domains by DNS queries" Subtitle="All devices, last 24 hours"
+	              Label="Top domains by DNS queries" ExportName="top-domains"
+	              Controls="MokaChartControls.View | MokaChartControls.Export"/>
+</DemoSection>
+
+<DemoSection Id="grouped-bars-redrawn" Title="Grouped bars, redrawn" Description="24 px cap, 2 px gaps, one tooltip a group, the busiest labelled.">
+	<MokaBarChart Series="@_regions" Labels="@Regions" Formatter="@Thousands"
+	              Title="Requests by region" Subtitle="Thousands of requests, this week and last"
+	              ValueLabels="MokaValueLabels.Largest" Label="Requests by region"/>
+</DemoSection>
+
+<DemoSection Id="100-stacked" Title="100% stacked" Description="Each row one whole; a share prints where it fits.">
+	<MokaBarChart Horizontal Percent Series="@_protocols" Labels="@ZonesBar" Sort="MokaChartSort.None"
+	              Unit="MokaChartUnit.Bytes" Title="Traffic by protocol in each zone" Subtitle="Share of bytes, today"
+	              Label="Traffic by protocol in each zone"/>
+</DemoSection>
+
+<DemoSection Id="diverging" Title="Diverging" Description="Up and down colors either side of a gray zero line.">
+	<MokaBarChart Horizontal Diverging UpIsGood="false" PositiveText="Slower" NegativeText="Faster"
+	              Series="@_latencyBar" Labels="@Endpoints" Unit="MokaChartUnit.Milliseconds"
+	              Title="p95 latency against last week" Subtitle="Change in milliseconds, by endpoint"
+	              Label="Change in p95 latency by endpoint"/>
+</DemoSection>
+
+<DemoSection Id="target-band" Title="Target band" Description="Nights outside 20 to 40 minutes stand out and are labelled.">
+	<MokaBarChart Series="@_backups" Labels="@Nights" TargetLow="20" TargetHigh="40"
+	              Unit="@Minutes" Title="Nightly backup time" Subtitle="Minutes, last 14 nights. Target 20 to 40"
+	              Label="Nightly backup time"/>
+</DemoSection>
+
+<DemoSection Id="emphasis" Title="Emphasis" Description="One series in its color, the rest muted.">
+	<MokaBarChart Series="@_services" Labels="@Hours" Stacked Highlight="Search"
+	              Title="Requests by service" Subtitle="Search is the story" Label="Requests by service"/>
+</DemoSection>
+
+<DemoSection Id="per-bar-and-keyboard" Title="Per bar and keyboard" Description="Tab to the chart, then Left, Right, Home, End; Enter pins.">
+	<MokaBarChart Series="@_devicesBar" Labels="@ZonesBar" Pinnable="true" Keyboard="true"
+	              Title="Devices online by zone" Subtitle="Right now" ValueLabels="MokaValueLabels.Tip"
+	              Label="Devices online by zone" ShareText="@OfOnline"/>
+</DemoSection>
+
+<DemoSection Id="stacked-with-negatives" Title="Stacked, with negatives" Description="Segments 2 px apart, rounded only where each stack ends.">
+	<MokaBarChart Series="@_flows" Labels="@Quarters" Stacked ValueLabels="MokaValueLabels.Tip"
+	              Legend="MokaChartLegendPosition.Right" Title="Cash flow" Label="Cash flow by quarter"/>
+</DemoSection>
+
+<DemoSection Id="waterfall" Title="Waterfall" Description="From where the year opens to where it closes: each month floats on the running total, a hairline joins each bar to the next, and totals stand on zero.">
+	<MokaSegmentedControl Value="@(_longFall ? "days" : "months")" ValueChanged="SetFall" AriaLabel="How many steps">
+		<MokaSegment Value="months" Text="One year"/>
+		<MokaSegment Value="days" Text="2,000 days"/>
+	</MokaSegmentedControl>
+	@if (_longFall)
+	{
+		<MokaBarChart Waterfall Series="@_fallDays" Labels="@_fallDayLabels" TotalsAt="@_fallDayTotals" ShowTotal TotalLabel="Today"
+		              DataVersion="1" Formatter="@Thousands" Title="Cash, day by day" Subtitle="Each day's net, a subtotal at every month's end"
+		              Label="Cash, day by day" Controls="MokaChartControls.View"/>
+	}
+	else
+	{
+		<MokaBarChart Waterfall Series="@_fallMonths" Labels="@FallMonths" TotalsAt="@FallTotals" ShowTotal TotalLabel="Closing" Formatter="@Thousands" Title="Cash over the year" Subtitle="The opening balance, each month's net and a half-year subtotal"
+		              Label="Cash over the year" Pinnable="true" Keyboard="true"
+		              Controls="MokaChartControls.View | MokaChartControls.Export"/>
+	}
+</DemoSection>
+
+<DemoSection Id="waterfall-in-rows" Title="Waterfall in rows" Description="A slower page is worse, so UpIsGood is off: what added time takes the down color.">
+	<MokaBarChart Waterfall Horizontal UpIsGood="false" Series="@_pageLoad" Labels="@PageLoadSteps" TotalsAt="@Opening"
+	              ShowTotal TotalLabel="This release" Unit="MokaChartUnit.Milliseconds"
+	              Title="Page load, release to release" Subtitle="Median milliseconds" Label="Page load, release to release"/>
+</DemoSection>
+
+<DemoSection Id="bars-at-their-times" Title="Bars at their times" Description="Each hour stands at its time under its tick; a missing hour is a gap, the three busiest hours take the warning color, and an event names its hour.">
+	<MokaSegmentedControl Value="@(_hour12 ? "12" : "24")" ValueChanged="SetClock" AriaLabel="Clock">
+		<MokaSegment Value="24" Text="24-hour"/>
+		<MokaSegment Value="12" Text="12-hour"/>
+	</MokaSegmentedControl>
+	<MokaBarChart Series="@_hourly" Times="@_hourlyTimes" TimeZone="TimeZoneInfo.Utc"
+	              XAxis="@(_hour12 ? Clock12 : Clock24)" Annotations="@_hourlyNotes" Unit="MokaChartUnit.Bytes"
+	              Title="Internet traffic per hour" Label="Internet traffic per hour" ShowLegend="false"
+	              Height="calc(9rem * var(--demo-text-scale, 1))"/>
+</DemoSection>
+
+<DemoSection Id="a-click-on-the-standard-look" Title="A click on the Standard look" Description="OnPointClick binds the script on its own; the bars keep the browser's titles.">
+	<MokaBarChart Series="@_devicesBar" Labels="@ZonesBar" Look="MokaChartLook.Standard" Title="Devices online by zone"
+	              Label="Devices online by zone, click a zone" OnPointClick="PickedBar"/>
+	<p style="margin: 0;">@(_pickedBar ?? "Click a bar.")</p>
+</DemoSection>
+
+<DemoSection Id="in-a-centred-flex-box" Title="In a centred flex box" Description="A chart in a parent that shrinks to fit still fills its width.">
+	<div style="display: flex; justify-content: center;">
+		<MokaBarChart Series="@_hourly" Times="@_hourlyTimes" TimeZone="TimeZoneInfo.Utc" Label="Traffic per hour" ShowLegend="false"
+		              Title="Traffic per hour" OnPointClick="PickedBar"/>
+	</div>
+	<div style="display: flex; justify-content: center;">
+		<MokaBarChart Waterfall Series="@_fallMonths" Labels="@FallMonths" TotalsAt="@FallTotals" ShowTotal TotalLabel="Closing"
+		              Formatter="@Thousands" Title="Cash over the year" Label="Cash over the year, centred"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="too-many-categories" Title="Too many categories" Description="Columns past MaxColumns, or past three pixels each, merge into buckets; Scroll keeps them all, the value axis standing still.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
+		<MokaSegmentedControl Value="@_many.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetMany" AriaLabel="How many categories">
+			<MokaSegment Value="10" Text="10"/>
+			<MokaSegment Value="100" Text="100"/>
+			<MokaSegment Value="10000" Text="10,000"/>
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@(_scroll ? "scroll" : "merge")" ValueChanged="SetScroll" AriaLabel="Columns that don't fit">
+			<MokaSegment Value="merge" Text="Merge"/>
+			<MokaSegment Value="scroll" Text="Scroll"/>
+		</MokaSegmentedControl>
+	</div>
+	<MokaBarChart Series="@_manySeries" Labels="@_manyLabels" LabelFit="@(_scroll ? MokaAxisLabelFit.Scroll : null)"
+	              DataVersion="_manyVersion" Title="@($"{_many:N0} days of requests")" Label="Requests by day"/>
+</DemoSection>
+
+<DemoSection Id="two-thousand-rows" Title="Two thousand rows" Description="Rows draw only as they scroll into view, at an exact height, in a 320 px scroller.">
+	<MokaBarChart Horizontal Series="@_rows" Labels="@_rowLabels" MaxHeight="320px" Formatter="@Thousands"
+	              Title="Queries by host" Label="Queries by host"/>
+</DemoSection>
+
+@code {
+	private static readonly string[] _monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+	private static readonly MokaBarSeries[] _barSeries =
+	[
+		new() { Name = "Direct", Values = [12, 14, 11, 16, 15, 18] },
+		new() { Name = "Referral", Values = [6, 5, 8, 7, 9, 8], Color = MokaColor.Info },
+		new() { Name = "Social", Values = [3, 4, 6, 5, 7, 6], Color = MokaColor.Success }
+	];
+
+	private static readonly string[] Zones = ["LAN", "Wi-Fi", "Guest", "IoT", "Lab"];
+
+	private readonly IReadOnlyList<MokaBarSeries> _devices = [new() { Name = "Devices online", Values = [24, 31, 6, 17, 4] }];
+
+	private string _picked = "Click a bar, or press Enter on one";
+
+	private void Picked(MokaChartPoint point) => _picked = $"Picked {point.Category}, {point.ValueText}";
+
+	private static readonly DateTimeOffset Now = new(2026, 11, 11, 18, 0, 0, TimeSpan.Zero);
+
+	private readonly string[] _hours = [.. Enumerable.Range(0, 12).Select(i => $"{i * 2:00}:00")];
+
+	private IReadOnlyList<MokaBarSeries> _domainSeries = [];
+
+	private IReadOnlyList<MokaLineSeries> _hourSeries = [];
+
+	private IReadOnlyList<MokaLineSeries> _jobs = [];
+
+	private IReadOnlyList<MokaBarSeries> _written = [];
+
+	private IReadOnlyList<MokaLineSeries> _latency = [];
+
+	private readonly Dictionary<string, (DateTimeOffset[] Times, IReadOnlyList<MokaLineSeries> Series)> _spans = [];
+
+	private IReadOnlyList<MokaChartAnnotation> _limits = [];
+
+	private IReadOnlyList<MokaChartAnnotation> _events = [];
+
+	private IReadOnlyList<MokaLineSeries> _minute = [];
+
+	protected override void OnInitialized()
+	{
+		_domainSeries = [new MokaBarSeries { Name = "Queries", Values = [18240, 12905, 9412, 7830, 6115, 4960, 2284, 1904, 1622, 980] }];
+		_hourSeries = [new MokaLineSeries { Name = "Requests", Values = [.. Enumerable.Range(0, 60).Select(i => 4200 + 3000 * Math.Sin(i / 4d))] }];
+		_jobs =
+		[
+			new MokaLineSeries { Name = "Backup", Values = [62000, 71000, 90000, 66000, 58000, 61000, 70000, 83000, 64000, 59000, 62000, 77000] },
+			new MokaLineSeries { Name = "Search index", Values = [2400, 3100, 2800, 4100, 3600, 2900, 3300, 2700, 3900, 3000, 2600, 3500] },
+			new MokaLineSeries { Name = "DNS sync", Values = [40, 55, 48, 62, 41, 44, 70, 52, 47, 58, 43, 50] }
+		];
+		_written = [new MokaBarSeries { Name = "Written", Values = [.. Enumerable.Range(0, 12).Select(i => 4e8 + 3e9 * Math.Abs(Math.Sin(i)))] }];
+		_latency = [new MokaLineSeries { Name = "p95", Values = [.. Enumerable.Range(0, 96).Select(i => i is >= 8 and < 16 ? double.NaN : 140 + 70 * Math.Sin(i / 9d) + (i % 7 * 6))] }];
+		_limits = [new MokaChartThreshold(200) { Label = "Limit 200 ms" }];
+		DateTimeOffset day = Now.Date;
+		_events =
+		[
+			new MokaChartWindow(day.AddHours(2), day.AddHours(4)) { Label = "Maintenance" },
+			new MokaChartEvent(day.AddHours(15.25)) { Label = "Deploy 0.3.23", Detail = "Rolled back the cache change", Tone = MokaColor.Info },
+			new MokaChartEvent(day.AddHours(12.25)) { Label = "Incident: upstream DNS slow", To = day.AddHours(13.25), Tone = MokaColor.Error, Shape = MokaChartMarker.Triangle }
+		];
+		_minute = [new MokaLineSeries { Name = "Processor", Values = [21, 34, 28, 41, 37, 30, 26] }];
+		AddSpan("6h", TimeSpan.FromHours(6), TimeSpan.FromMinutes(5));
+		AddSpan("48h", TimeSpan.FromHours(48), TimeSpan.FromMinutes(30));
+		AddSpan("30d", TimeSpan.FromDays(30), TimeSpan.FromHours(6));
+
+		ApplyTheme();
+		MakeMany();
+		Random random = new(7);
+		_rowLabels = [.. Enumerable.Range(0, 2000).Select(i => $"host-{i + 1:0000}.lan")];
+		_rows = [new MokaBarSeries { Name = "Queries", Values = [.. Enumerable.Range(0, 2000).Select(_ => Math.Round(200 + random.NextDouble() * 9800))] }];
+		_responseTimes = LogNormal(4200, 118, 0.52, 5);
+		_candles = Candles(20, 3);
+		_manyCandles = Candles(2000, 11);
+		MakeHourly();
+	}
+
+	private void AddSpan(string key, TimeSpan span, TimeSpan step)
+	{
+		int count = (int)(span / step) + 1;
+		DateTimeOffset[] times = [.. Enumerable.Range(0, count).Select(i => Now - span + step * i)];
+		_spans[key] = (times, [new MokaLineSeries { Name = "Download", Values = [.. times.Select(t => 4e8 + 3e8 * Math.Sin(t.Hour / 24d * Math.Tau))] }]);
+	}
+
+	private static readonly string[] Regions = ["EU West", "EU North", "US East", "US West", "Asia"];
+
+	private readonly MokaBarSeries[] _regions =
+	[
+		new() { Name = "This week", Values = [412_000, 128_000, 506_000, 233_000, 97_000] },
+		new() { Name = "Last week", Values = [388_000, 141_000, 470_000, 219_000, 76_000] }
+	];
+
+	private MokaBarEnds _ends = MokaBarEnds.Rounded;
+
+	private static string Thousands(double value) => value.ToString("N0", CultureInfo.CurrentCulture);
+
+	private void SetEnds(string value) => _ends = Enum.Parse<MokaBarEnds>(value);
+
+	private static readonly string[] Domains =
+	[
+		"telemetry.microsoft.com", "i.ytimg.com", "graph.facebook.com", "api.github.com", "time.cloudflare.com",
+		"s3.eu-central-1.amazonaws.com", "updates.nas.local"
+	];
+
+	private readonly MokaBarSeries[] _domains = [new() { Name = "Queries", Values = [18240, 12905, 9412, 7830, 6115, 4960, 2284] }];
+
+	private static readonly string[] ZonesBar = ["LAN", "Guest", "IoT", "VPN"];
+
+	private readonly MokaBarSeries[] _protocols =
+	[
+		new() { Name = "HTTPS", Values = [62e9, 48e9, 21e8, 71e8] },
+		new() { Name = "QUIC", Values = [24e9, 38e9, 2e8, 9e8] },
+		new() { Name = "DNS", Values = [4e9, 6e9, 31e8, 12e8] },
+		new() { Name = "Other", Values = [10e9, 8e9, 46e8, 8e8], ColorValue = "var(--moka-chart-muted)" }
+	];
+
+	private static readonly string[] Endpoints = ["/api/sync", "/api/login", "/api/orders", "/api/thumbs", "/api/files", "/api/search"];
+
+	private readonly MokaBarSeries[] _latencyBar = [new() { Name = "Change", Values = [71, 38, 12, -9, -21, -64] }];
+
+	private static readonly MokaChartUnit Minutes = MokaChartUnit.Of("min");
+
+	private static readonly string[] Nights =
+	[
+		"29 Oct", "30 Oct", "31 Oct", "1 Nov", "2 Nov", "3 Nov", "4 Nov", "5 Nov", "6 Nov", "7 Nov", "8 Nov", "9 Nov", "10 Nov", "11 Nov"
+	];
+
+	private readonly MokaBarSeries[] _backups = [new() { Name = "Backup time", Values = [28, 31, 26, 44, 33, 29, 35, 52, 30, 27, 24, 38, 33, 46] }];
+
+	private static readonly string[] Hours = ["00", "03", "06", "09", "12", "15", "18", "21"];
+
+	private readonly MokaBarSeries[] _services =
+	[
+		new() { Name = "Search", Values = [150, 140, 210, 380, 410, 360, 240, 180] },
+		new() { Name = "Auth", Values = [70, 60, 90, 100, 85, 80, 75, 70] },
+		new() { Name = "Files", Values = [120, 100, 140, 170, 165, 150, 130, 120] },
+		new() { Name = "Feed", Values = [180, 160, 190, 200, 210, 230, 220, 200] }
+	];
+
+	private readonly MokaBarSeries[] _devicesBar = [new() { Name = "Devices online", Values = [38, 21, 34, 11] }];
+
+	private static string OfOnline(string share, string total) => $"{share} of the {total} online";
+
+	private static readonly string[] Quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+	private readonly MokaBarSeries[] _flows =
+	[
+		new() { Name = "Sales", Values = [42, 51, 47, 63] },
+		new() { Name = "Services", Values = [18, 21, 24, 26] },
+		new() { Name = "Refunds", Values = [-6, -9, -4, -12] },
+		new() { Name = "Fees", Values = [-3, -4, -3, -5] }
+	];
+
+	private static readonly string[] FallMonths = ["Opening", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "H1", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+	private static readonly int[] FallTotals = [0, 7];
+
+	private static readonly int[] Opening = [0];
+
+	private readonly MokaBarSeries[] _fallMonths =
+	[
+		new() { Name = "Cash", Values = [12_400, 3_200, -1_800, 2_600, -4_100, 1_500, 900, double.NaN, -2_300, 4_800, 1_200, -900, 3_600, -1_500] }
+	];
+
+	private bool _longFall;
+
+	private MokaBarSeries[] _fallDays = [];
+
+	private string[] _fallDayLabels = [];
+
+	private int[] _fallDayTotals = [];
+
+	private void SetFall(string value)
+	{
+		_longFall = value == "days";
+		if (_longFall && _fallDays.Length == 0)
+		{
+			MakeFallDays();
+		}
+	}
+
+	private void MakeFallDays()
+	{
+		Random random = new(17);
+		DateTime start = new(2021, 5, 1);
+		List<double> values = [20_000];
+		List<string> labels = ["Opening"];
+		List<int> totals = [0];
+		for (int day = 0; day < 2000; day++)
+		{
+			DateTime date = start.AddDays(day);
+			values.Add(Math.Round((random.NextDouble() - 0.47) * 900));
+			labels.Add(date.ToString("d MMM yyyy", CultureInfo.InvariantCulture));
+			if (date.AddDays(1).Day == 1)
+			{
+				totals.Add(values.Count);
+				values.Add(double.NaN);
+				labels.Add(date.ToString("MMM yyyy", CultureInfo.InvariantCulture));
+			}
+		}
+
+		_fallDays = [new MokaBarSeries { Name = "Cash", Values = [.. values] }];
+		_fallDayLabels = [.. labels];
+		_fallDayTotals = [.. totals];
+	}
+
+	private static readonly string[] PageLoadSteps =
+	[
+		"Last release", "Larger hero images", "Image caching", "Web fonts", "Code splitting", "Third-party tags", "Lazy comments"
+	];
+
+	private readonly MokaBarSeries[] _pageLoad = [new() { Name = "Page load", Values = [1_240, 180, -320, 60, -210, 140, -90] }];
+
+	private static readonly MokaChartAxis Clock24 = new() { Hour12 = false };
+
+	private static readonly MokaChartAxis Clock12 = new() { Hour12 = true };
+
+	private MokaBarSeries[] _hourly = [];
+
+	private DateTimeOffset[] _hourlyTimes = [];
+
+	private MokaChartAnnotation[] _hourlyNotes = [];
+
+	private bool _hour12;
+
+	private void SetClock(string value) => _hour12 = value == "12";
+
+	private string? _pickedBar;
+
+	private void PickedBar(MokaChartPoint point) => _pickedBar = $"{point.Category ?? point.Time?.ToString("HH:mm", CultureInfo.InvariantCulture)}: {point.ValueText}";
+
+	private MokaTheme _theme = MokaTheme.Red;
+
+	private string _preset = "Red";
+
+	private bool _dark = true;
+
+	private MokaChartLook _look = MokaChartLook.Quiet;
+
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+
+	private MokaChartTexture _texture = MokaChartTexture.None;
+
+	private int _many = 100;
+
+	private bool _scroll;
+
+	private long _manyVersion;
+
+	private MokaBarSeries[] _manySeries = [];
+
+	private string[] _manyLabels = [];
+
+	private MokaBarSeries[] _rows = [];
+
+	private string[] _rowLabels = [];
+
+	private double[] _responseTimes = [];
+
+	private MokaCandle[] _candles = [];
+
+	private MokaCandle[] _manyCandles = [];
+
+	private void MakeHourly()
+	{
+		DateTimeOffset start = new(2026, 11, 10, 0, 0, 0, TimeSpan.Zero);
+		_hourlyTimes = [.. Enumerable.Range(0, 24).Where(hour => hour != 5).Select(hour => start.AddHours(hour))];
+		double[] values = [.. _hourlyTimes.Select(time => Math.Round(4e8 + 3e8 * Math.Sin((time.Hour - 6) / 3.8) + time.Hour * 2e7))];
+		HashSet<int> busiest = [.. values.Select((value, i) => (value, i)).OrderByDescending(x => x.value).Take(3).Select(x => x.i)];
+		_hourly =
+		[
+			new MokaBarSeries
+			{
+				Name = "Internet",
+				Values = values,
+				Colors = [.. values.Select((_, i) => busiest.Contains(i) ? "var(--moka-color-warning)" : null)]
+			}
+		];
+		_hourlyNotes = [new MokaChartEvent(start.AddHours(14)) { Label = "A device called a listed address", Tone = MokaColor.Error }];
+	}
+
+	private void SetMany(string value)
+	{
+		_many = int.Parse(value, CultureInfo.InvariantCulture);
+		MakeMany();
+	}
+
+	private void SetScroll(string value) => _scroll = value == "scroll";
+
+	private void ApplyTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void MakeMany()
+	{
+		Random random = new(_many);
+		DateTime start = new(2000, 1, 1);
+		_manyLabels = [.. Enumerable.Range(0, _many).Select(i => start.AddDays(i).ToString("d MMM yyyy", CultureInfo.InvariantCulture))];
+		_manySeries =
+		[
+			new MokaBarSeries
+			{
+				Name = "Requests",
+				Values = [.. Enumerable.Range(0, _many).Select(i => Math.Round(400 + 300 * Math.Sin(i / 30.0) + random.NextDouble() * 200))]
+			}
+		];
+		_manyVersion++;
+	}
+
+	private static double[] LogNormal(int count, double median, double spread, int seed)
+	{
+		Random random = new(seed);
+		double[] values = new double[count];
+		for (int i = 0; i < count; i++)
+		{
+			double gauss = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+			values[i] = Math.Exp(Math.Log(median) + spread * gauss);
+		}
+
+		return values;
+	}
+
+	private static MokaCandle[] Candles(int days, int seed)
+	{
+		Random random = new(seed);
+		List<MokaCandle> candles = [];
+		double close = 1.0812;
+		DateTimeOffset day = new(2026, 10, 14, 12, 0, 0, TimeSpan.Zero);
+		while (candles.Count < days)
+		{
+			if (day.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday))
+			{
+				double open = close;
+				close = Math.Round(open + (random.NextDouble() - 0.47) * 0.0064, 4);
+				double high = Math.Round(Math.Max(open, close) + random.NextDouble() * 0.0018 + 0.0004, 4);
+				double low = Math.Round(Math.Min(open, close) - random.NextDouble() * 0.0018 - 0.0004, 4);
+				candles.Add(new MokaCandle(day, open, high, low, close) { Volume = Math.Round(80_000 + random.NextDouble() * 120_000) });
+			}
+
+			day = day.AddDays(1);
+		}
+
+		if (days > 100)
+		{
+			DateTimeOffset end = candles[^1].At;
+			return [.. candles.Select(c => c with { At = c.At - (end - new DateTimeOffset(2026, 11, 10, 12, 0, 0, TimeSpan.Zero)) })];
+		}
+
+		return [.. candles];
+	}
+}

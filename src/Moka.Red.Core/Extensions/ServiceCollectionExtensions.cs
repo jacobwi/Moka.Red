@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moka.Red.Core.Announcer;
 using Moka.Red.Core.Files;
 using Moka.Red.Core.Hotkeys;
 using Moka.Red.Core.PageTitle;
@@ -69,6 +70,19 @@ public static class ServiceCollectionExtensions
 		where TPicker : class, IMokaFilePicker
 	{
 		services.AddScoped<IMokaFilePicker, TPicker>();
+		return services;
+	}
+
+	/// <summary>
+	///     Registers <see cref="IMokaAnnouncer" />, scoped, unless one is registered already. A <c>MokaToastHost</c> or
+	///     <c>MokaBannerHost</c> in the layout carries the live regions it speaks through; an app with neither places a
+	///     <see cref="MokaAnnouncerHost" />. <c>AddMokaRed()</c> and <c>AddMokaFeedback()</c> call this.
+	/// </summary>
+	/// <param name="services">The service collection.</param>
+	/// <returns>The same collection, for chaining.</returns>
+	public static IServiceCollection AddMokaAnnouncer(this IServiceCollection services)
+	{
+		services.TryAddScoped<IMokaAnnouncer, MokaAnnouncer>();
 		return services;
 	}
 }

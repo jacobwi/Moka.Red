@@ -1,0 +1,17 @@
+<DemoSection Id="basic-scale-in" Title="Basic scale in" Description="Grows its content in from a smaller size.">
+	<MokaScaleIn>
+		<MokaCard Title="Welcome" Outlined>
+			<ChildContent>
+				<MokaText>This card pops in from 80% scale.</MokaText>
+			</ChildContent>
+		</MokaCard>
+	</MokaScaleIn>
+</DemoSection>
+
+<DemoSection Id="small-initial-scale" Title="Small initial scale">
+	<MokaScaleIn InitialScale="0.3">
+		<MokaFlexbox Justify="MokaJustify.Center" Padding="MokaSpacingScale.Md">
+			<MokaButton Color="MokaColor.Primary" Variant="MokaVariant.Filled">Pop!</MokaButton>
+		</MokaFlexbox>
+	</MokaScaleIn>
+</DemoSection>

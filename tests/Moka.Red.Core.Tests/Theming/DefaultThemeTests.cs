@@ -24,7 +24,7 @@ public class DefaultThemeTests : BunitContext
 		string rootClass = cut.Find(".moka-root").ClassName!;
 		Assert.Contains("moka-gate", rootClass, StringComparison.Ordinal);
 		Assert.Contains("moka-dark", rootClass, StringComparison.Ordinal);
-		Assert.Contains(MokaPalette.Graphite.Surface, cut.Find(".moka-root").GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains(MokaPalette.Graphite.Surface, cut.Find("style").TextContent, StringComparison.Ordinal);
 	}
 
 	[Fact]

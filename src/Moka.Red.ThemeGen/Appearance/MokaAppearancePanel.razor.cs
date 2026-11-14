@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Data.Table;
 using Moka.Red.Primitives.Utility;
 
 namespace Moka.Red.ThemeGen.Appearance;
@@ -23,10 +24,11 @@ public partial class MokaAppearancePanel
 	private const int ChartSlots = 8;
 
 	// Rows with too many options to sit beside their label, so their cards take the panel's width under it.
-	private const MokaAppearanceRows SectionRows = MokaAppearanceRows.StatusBar | ComponentRows | MokaAppearanceRows.ChartsGroup;
+	private const MokaAppearanceRows SectionRows =
+		MokaAppearanceRows.StatusBar | MokaAppearanceRows.Docks | MokaAppearanceRows.Tables | ComponentRows | MokaAppearanceRows.ChartsGroup;
 
 	private readonly Dictionary<(MokaAppearanceRows Row, string Option), MokaTheme> _choicePreviews = [];
-	private readonly Dictionary<(string Palette, bool Dark, string Accent), MokaTheme> _previews = [];
+	private readonly Dictionary<PreviewKey, MokaTheme> _previews = [];
 	private (MokaAppearance Value, bool Dark)? _choicePreviewsFor;
 	private IReadOnlyList<MokaAccent>? _previewAccents;
 	private IReadOnlyList<MokaAppearancePalette>? _previewPalettes;
@@ -58,6 +60,21 @@ public partial class MokaAppearancePanel
 	/// </summary>
 	[Parameter]
 	public IReadOnlyList<MokaAccent> Accents { get; set; } = MokaAccent.Presets;
+
+	/// <summary>
+	///     The swatches of the neutral row (<see cref="MokaAppearanceRows.Neutral" />). Default is
+	///     <see cref="MokaAppearanceNeutral.Presets" />.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<MokaAppearanceNeutral> Neutrals { get; set; } = MokaAppearanceNeutral.Presets;
+
+	/// <summary>
+	///     Whether the accent and neutral rows offer a color picker after their swatches, for a color of the person's own
+	///     (<see cref="MokaAppearance.CustomAccent" /> and <see cref="MokaAppearance.CustomNeutral" />). The color picked gets
+	///     a swatch of its own. Default false.
+	/// </summary>
+	[Parameter]
+	public bool CustomColors { get; set; }
 
 	/// <summary>
 	///     Draws the color mode row as a <see cref="MokaThemeToggle" /> instead of cards. Null is cards, or
@@ -163,7 +180,15 @@ public partial class MokaAppearancePanel
 
 	private List<string> AccentColors => [.. ShownAccents.Select(accent => accent.For(IsDarkNow).Color)];
 
-	private string? SelectedAccentColor => SelectedAccent?.For(IsDarkNow).Color;
+	private string? SelectedAccentColor => SelectedAccent?.For(IsDarkNow).Color ?? _value.CustomAccent;
+
+	private bool AccentIsOwn => SelectedAccent is null && _value.CustomAccent is null;
+
+	private bool ShowsNeutral => Shows(MokaAppearanceRows.Neutral) && (CustomColors || ShownNeutrals.Any());
+
+	private IEnumerable<MokaAppearanceNeutral> ShownNeutrals => Neutrals.Where(neutral => OptionShows(MokaAppearanceRows.Neutral, neutral.Color));
+
+	private List<string> NeutralColors => [.. ShownNeutrals.Select(neutral => neutral.Color)];
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -189,7 +214,7 @@ public partial class MokaAppearancePanel
 	}
 
 	private bool Shows(MokaAppearanceRows row) =>
-		(Rows & row) != 0 && ((row & StyleChoiceRows) == 0 || CurrentPalette.TakesStyleChoices);
+		(Rows & row) != 0 && ((row & (StyleChoiceRows | MokaAppearanceRows.Neutral)) == 0 || CurrentPalette.TakesStyleChoices);
 
 	private MokaAppearanceOptionState StateOf(MokaAppearanceRows row, object value) =>
 		OptionState?.Invoke(new MokaAppearanceOption(row, value)) ?? MokaAppearanceOptionState.Available;
@@ -215,16 +240,15 @@ public partial class MokaAppearancePanel
 	// the same instance from one render to the next.
 	private MokaTheme PreviewTheme(MokaAppearancePalette palette, bool dark)
 	{
-		MokaTheme theme = dark ? palette.Dark : palette.Light;
-		if (SelectedAccent is not { } accent)
+		if (SelectedAccent is null && _value.CustomAccent is null && _value.CustomNeutral is null)
 		{
-			return theme;
+			return dark ? palette.Dark : palette.Light;
 		}
 
-		(string, bool, string) key = (palette.Id, dark, accent.Id);
+		PreviewKey key = new(palette.Id, dark, SelectedAccent?.Id, _value.CustomAccent, _value.CustomNeutral);
 		if (!_previews.TryGetValue(key, out MokaTheme? tinted))
 		{
-			tinted = theme.WithAccent(accent);
+			tinted = _value.WithColors(palette, dark, Accents);
 			_previews[key] = tinted;
 		}
 
@@ -246,7 +270,14 @@ public partial class MokaAppearancePanel
 	private MokaAccent? AccentOf(string? color) =>
 		Accents.FirstOrDefault(accent => string.Equals(accent.For(IsDarkNow).Color, color, StringComparison.OrdinalIgnoreCase));
 
-	private string? AccentName(string color) => AccentOf(color)?.Name;
+	private string? AccentName(string color) => AccentOf(color)?.Name ?? Text.CustomAccent;
+
+	private MokaAppearanceNeutral? NeutralOf(string? color) =>
+		Neutrals.FirstOrDefault(neutral => string.Equals(neutral.Color, color, StringComparison.OrdinalIgnoreCase));
+
+	private string? NeutralName(string color) => NeutralOf(color)?.Name ?? Text.CustomNeutral;
+
+	private bool NeutralDisabled(string color) => NeutralOf(color) is { } neutral && OptionDisabled(MokaAppearanceRows.Neutral, neutral.Color);
 
 	private Task ApplyAsync(MokaAppearance next)
 	{
@@ -258,9 +289,17 @@ public partial class MokaAppearancePanel
 
 	private Task SetPaletteAsync(string palette) => ApplyAsync(_value with { Palette = palette });
 
-	private Task SetAccentColorAsync(string? color) => ApplyAsync(_value with { Accent = AccentOf(color)?.Id });
+	private Task SetAccentColorAsync(string? color)
+	{
+		MokaAccent? preset = AccentOf(color);
+		return ApplyAsync(_value with { Accent = preset?.Id, CustomAccent = preset is null && CustomColors ? color : null });
+	}
 
-	private Task UsePaletteAccentAsync() => ApplyAsync(_value with { Accent = null });
+	private Task UsePaletteAccentAsync() => ApplyAsync(_value with { Accent = null, CustomAccent = null });
+
+	private Task SetNeutralAsync(string? color) => ApplyAsync(_value with { CustomNeutral = color });
+
+	private Task UsePaletteNeutralAsync() => ApplyAsync(_value with { CustomNeutral = null });
 
 	private Task ResetAsync() => ApplyAsync(ResetValue);
 
@@ -275,58 +314,58 @@ public partial class MokaAppearancePanel
 			_choicePreviews.Clear();
 		}
 
-		AddRow(rows, MokaAppearanceRows.Density, Text.Density, CurrentChoice<MokaDensity>(theme, (t, v) => t.WithDensity(v)),
+		AddRow(rows, MokaAppearanceRows.Density, CurrentChoice<MokaDensity>(theme, (t, v) => t.WithDensity(v)),
 			[(MokaDensity.Comfortable, Text.DensityComfortable), (MokaDensity.Compact, Text.DensityCompact)],
 			choice => _value with { Density = choice },
 			choice => DensityMock(ChoicePreview(theme, MokaAppearanceRows.Density, choice.ToString(), t => t.WithDensity(choice))));
 
-		AddRow(rows, MokaAppearanceRows.TextSize, Text.TextSize, CurrentChoice<MokaTextSize>(theme, (t, v) => t.WithTextSize(v)),
+		AddRow(rows, MokaAppearanceRows.TextSize, CurrentChoice<MokaTextSize>(theme, (t, v) => t.WithTextSize(v)),
 			[(MokaTextSize.Normal, Text.TextSizeNormal), (MokaTextSize.Small, Text.TextSizeSmall)],
 			choice => _value with { TextSize = choice });
 
-		AddRow(rows, MokaAppearanceRows.Corners, Text.Corners, CurrentChoice<MokaCorners>(theme, (t, v) => t.WithCorners(v)),
+		AddRow(rows, MokaAppearanceRows.Corners, CurrentChoice<MokaCorners>(theme, (t, v) => t.WithCorners(v)),
 			[(MokaCorners.Soft, Text.CornersSoft), (MokaCorners.Medium, Text.CornersMedium), (MokaCorners.Tight, Text.CornersTight)],
 			choice => _value with { Corners = choice },
 			choice => CornersMock(ChoicePreview(theme, MokaAppearanceRows.Corners, choice.ToString(), t => t.WithCorners(choice))));
 
-		AddRow(rows, MokaAppearanceRows.Elevation, Text.Elevation, theme.Elevation,
+		AddRow(rows, MokaAppearanceRows.Elevation, theme.Elevation,
 			[(MokaElevation.Shadow, Text.ElevationShadow), (MokaElevation.Glow, Text.ElevationGlow), (MokaElevation.Line, Text.ElevationLine)],
 			choice => _value with { Elevation = choice });
 
-		AddRow(rows, MokaAppearanceRows.MainButton, Text.MainButton, CurrentChoice<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)),
+		AddRow(rows, MokaAppearanceRows.MainButton, CurrentChoice<MokaMainButton>(theme, (t, v) => t.WithMainButton(v)),
 			[(MokaMainButton.Solid, Text.MainButtonSolid), (MokaMainButton.Tinted, Text.MainButtonTinted), (MokaMainButton.Outline, Text.MainButtonOutline)],
 			choice => _value with { MainButton = choice },
 			choice => MainButtonMock(ChoicePreview(theme, MokaAppearanceRows.MainButton, choice.ToString(), t => t.WithMainButton(choice))));
 
-		AddRow(rows, MokaAppearanceRows.TextButtons, Text.TextButtons, theme.TextButtons,
+		AddRow(rows, MokaAppearanceRows.TextButtons, theme.TextButtons,
 			[(MokaTextButtonColor.Accent, Text.TextButtonsAccent), (MokaTextButtonColor.Neutral, Text.TextButtonsNeutral)],
 			choice => _value with { TextButtons = choice });
 
-		AddRow(rows, MokaAppearanceRows.LetterCase, Text.LetterCase, CurrentChoice<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)),
+		AddRow(rows, MokaAppearanceRows.LetterCase, CurrentChoice<MokaLetterCase>(theme, (t, v) => t.WithLetterCase(v)),
 			[(MokaLetterCase.Sentence, Text.LetterCaseSentence), (MokaLetterCase.Uppercase, Text.LetterCaseUppercase), (MokaLetterCase.Controls, Text.LetterCaseControls)],
 			choice => _value with { LetterCase = choice });
 
-		AddRow(rows, MokaAppearanceRows.TitleFont, Text.TitleFont, CurrentChoice<MokaTitleFont>(theme, (t, v) => t.WithTitleFont(v)),
+		AddRow(rows, MokaAppearanceRows.TitleFont, CurrentChoice<MokaTitleFont>(theme, (t, v) => t.WithTitleFont(v)),
 			[(MokaTitleFont.SpaceGrotesk, Text.TitleFontSpaceGrotesk), (MokaTitleFont.Inter, Text.TitleFontInter), (MokaTitleFont.JetBrainsMono, Text.TitleFontJetBrainsMono)],
 			choice => _value with { TitleFont = choice });
 
-		AddRow(rows, MokaAppearanceRows.TitleSize, Text.TitleSize, CurrentChoice<MokaTitleSize>(theme, (t, v) => t.WithTitleSize(v)),
+		AddRow(rows, MokaAppearanceRows.TitleSize, CurrentChoice<MokaTitleSize>(theme, (t, v) => t.WithTitleSize(v)),
 			[(MokaTitleSize.Display, Text.TitleSizeDisplay), (MokaTitleSize.Compact, Text.TitleSizeCompact)],
 			choice => _value with { TitleSize = choice });
 
-		AddRow(rows, MokaAppearanceRows.NumberFont, Text.NumberFont, CurrentChoice<MokaNumberFont>(theme, (t, v) => t.WithNumberFont(v)),
+		AddRow(rows, MokaAppearanceRows.NumberFont, CurrentChoice<MokaNumberFont>(theme, (t, v) => t.WithNumberFont(v)),
 			[(MokaNumberFont.Title, Text.NumberFontTitle), (MokaNumberFont.Mono, Text.NumberFontMono)],
 			choice => _value with { NumberFont = choice });
 
-		AddRow(rows, MokaAppearanceRows.Selection, Text.Selection, CurrentChoice<MokaSelection>(theme, (t, v) => t.WithSelection(v)),
+		AddRow(rows, MokaAppearanceRows.Selection, CurrentChoice<MokaSelection>(theme, (t, v) => t.WithSelection(v)),
 			[(MokaSelection.Ring, Text.SelectionRing), (MokaSelection.Flat, Text.SelectionFlat), (MokaSelection.Glow, Text.SelectionGlow)],
 			choice => _value with { Selection = choice });
 
-		AddRow(rows, MokaAppearanceRows.CurrentPlace, Text.CurrentPlace, CurrentChoice<MokaCurrentPlace>(theme, (t, v) => t.WithCurrentPlace(v)),
+		AddRow(rows, MokaAppearanceRows.CurrentPlace, CurrentChoice<MokaCurrentPlace>(theme, (t, v) => t.WithCurrentPlace(v)),
 			[(MokaCurrentPlace.Ring, Text.CurrentPlaceRing), (MokaCurrentPlace.Solid, Text.CurrentPlaceSolid), (MokaCurrentPlace.SolidInset, Text.CurrentPlaceSolidInset)],
 			choice => _value with { CurrentPlace = choice });
 
-		AddRow(rows, MokaAppearanceRows.StatusBar, Text.StatusBar, CurrentChoice<MokaStatusBarLook>(theme, (t, v) => t.WithStatusBar(v)),
+		AddRow(rows, MokaAppearanceRows.StatusBar, CurrentChoice<MokaStatusBarLook>(theme, (t, v) => t.WithStatusBar(v)),
 			[
 				(MokaStatusBarLook.Standard, Text.StatusBarStandard), (MokaStatusBarLook.Accent, Text.StatusBarAccent),
 				(MokaStatusBarLook.Hairline, Text.StatusBarHairline), (MokaStatusBarLook.Floating, Text.StatusBarFloating),
@@ -336,11 +375,35 @@ public partial class MokaAppearancePanel
 			choice => _value with { StatusBar = choice },
 			StatusBarMock);
 
-		AddRow(rows, MokaAppearanceRows.Descriptions, Text.Descriptions, theme.Descriptions.ToString(),
+		AddRow(rows, MokaAppearanceRows.Docks, theme.Docks,
+			[
+				(MokaDockLook.Classic, Text.DocksClassic), (MokaDockLook.Ide, Text.DocksIde), (MokaDockLook.Cards, Text.DocksCards),
+				(MokaDockLook.Minimal, Text.DocksMinimal), (MokaDockLook.Terminal, Text.DocksTerminal)
+			],
+			choice => _value with { Docks = choice },
+			DocksArt);
+
+		AddRow(rows, MokaAppearanceRows.Tables, ShownTableLook(theme),
+			[
+				(MokaTableLook.Lined, Text.TablesLined), (MokaTableLook.SoftStripes, Text.TablesSoftStripes), (MokaTableLook.Cards, Text.TablesCards),
+				(MokaTableLook.Sheet, Text.TablesSheet), (MokaTableLook.Airy, Text.TablesAiry), (MokaTableLook.Framed, Text.TablesFramed),
+				(MokaTableLook.List, Text.TablesList)
+			],
+			choice => _value with { Tables = choice },
+			TablesArt);
+
+		AddRow(rows, MokaAppearanceRows.TableDensity, ShownTableDensity(theme),
+			[
+				(MokaTableDensity.Compact, Text.TableDensityCompact), (MokaTableDensity.Standard, Text.TableDensityStandard),
+				(MokaTableDensity.Comfortable, Text.TableDensityComfortable)
+			],
+			choice => _value with { TableDensity = choice });
+
+		AddRow(rows, MokaAppearanceRows.Descriptions, theme.Descriptions.ToString(),
 			[(true, Text.DescriptionsShown, null), (false, Text.DescriptionsHidden, null)],
 			choice => ApplyAsync(_value with { Descriptions = bool.Parse(choice) }));
 
-		AddRow(rows, MokaAppearanceRows.LabelTone, Text.LabelTone, theme.LabelTone,
+		AddRow(rows, MokaAppearanceRows.LabelTone, theme.LabelTone,
 			[(MokaLabelTone.Vivid, Text.LabelToneVivid), (MokaLabelTone.Muted, Text.LabelToneMuted), (MokaLabelTone.Pastel, Text.LabelTonePastel)],
 			choice => _value with { LabelTone = choice },
 			choice => LabelToneMock(ChoicePreview(theme, MokaAppearanceRows.LabelTone, choice.ToString(), t => t.WithLabelTone(choice))));
@@ -353,7 +416,7 @@ public partial class MokaAppearancePanel
 
 	private void AddChartRows(List<ChoiceRow> rows, MokaTheme theme)
 	{
-		AddRow(rows, MokaAppearanceRows.Charts, Text.Charts, theme.Charts,
+		AddRow(rows, MokaAppearanceRows.Charts, theme.Charts,
 			[
 				(MokaChartLook.Standard, Text.ChartsStandard), (MokaChartLook.Quiet, Text.ChartsQuiet), (MokaChartLook.Dense, Text.ChartsDense),
 				(MokaChartLook.Soft, Text.ChartsSoft), (MokaChartLook.Bold, Text.ChartsBold)
@@ -361,7 +424,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Charts = choice },
 			ChartLookArt);
 
-		AddRow(rows, MokaAppearanceRows.ChartPalette, Text.ChartPalette, theme.ChartPalette,
+		AddRow(rows, MokaAppearanceRows.ChartPalette, theme.ChartPalette,
 			[
 				(MokaChartPalette.Standard, Text.ChartPaletteStandard), (MokaChartPalette.Reference, Text.ChartPaletteReference),
 				(MokaChartPalette.AccentFirst, Text.ChartPaletteAccentFirst), (MokaChartPalette.Muted, Text.ChartPaletteMuted)
@@ -374,7 +437,7 @@ public partial class MokaAppearancePanel
 			(MokaChartTextureChoice.ColorOnly, Text.ChartTextureColorOnly), (MokaChartTextureChoice.HatchedInPrint, Text.ChartTextureHatchedInPrint),
 			(MokaChartTextureChoice.InkInPrint, Text.ChartTextureInkInPrint), (MokaChartTextureChoice.AlwaysHatched, Text.ChartTextureAlwaysHatched)
 		];
-		AddRow(rows, MokaAppearanceRows.ChartTexture, Text.ChartTexture, new MokaChartTextureChoice(theme.ChartTexture, theme.ChartPrint).ToString(),
+		AddRow(rows, MokaAppearanceRows.ChartTexture, new MokaChartTextureChoice(theme.ChartTexture, theme.ChartPrint).ToString(),
 			[.. textures.Select(texture => ((object)texture.Choice, texture.Text,
 				Compact ? null : ChartTextureArt(texture.Choice, ChoicePreview(theme, MokaAppearanceRows.ChartTexture, texture.Choice.ToString(), t => t))))],
 			choice =>
@@ -386,7 +449,7 @@ public partial class MokaAppearancePanel
 
 	private void AddComponentRows(List<ChoiceRow> rows, MokaTheme theme)
 	{
-		AddRow(rows, MokaAppearanceRows.ComponentStyle, Text.ComponentStyle, CurrentChoice<MokaComponentStyle>(theme, (t, v) => t.WithComponentStyle(v)),
+		AddRow(rows, MokaAppearanceRows.ComponentStyle, CurrentChoice<MokaComponentStyle>(theme, (t, v) => t.WithComponentStyle(v)),
 			[
 				(MokaComponentStyle.Standard, Text.ComponentStyleStandard), (MokaComponentStyle.Soft, Text.ComponentStyleSoft),
 				(MokaComponentStyle.Terminal, Text.ComponentStyleTerminal)
@@ -394,7 +457,7 @@ public partial class MokaAppearancePanel
 			choice => _value.WithComponentStyle(choice),
 			ComponentStyleArt);
 
-		AddRow(rows, MokaAppearanceRows.Toasts, Text.Toasts, theme.Toasts,
+		AddRow(rows, MokaAppearanceRows.Toasts, theme.Toasts,
 			[
 				(MokaToastLook.Standard, Text.ToastsStandard), (MokaToastLook.ToneEdge, Text.ToastsToneEdge), (MokaToastLook.Tinted, Text.ToastsTinted),
 				(MokaToastLook.IconTile, Text.ToastsIconTile), (MokaToastLook.Snackbar, Text.ToastsSnackbar), (MokaToastLook.Pill, Text.ToastsPill),
@@ -403,12 +466,12 @@ public partial class MokaAppearancePanel
 			choice => _value with { Toasts = choice },
 			ToastArt);
 
-		AddRow(rows, MokaAppearanceRows.ToastStacking, Text.ToastStacking, theme.ToastStacking,
+		AddRow(rows, MokaAppearanceRows.ToastStacking, theme.ToastStacking,
 			[(MokaToastStacking.List, Text.ToastStackingList), (MokaToastStacking.Pile, Text.ToastStackingPile)],
 			choice => _value with { ToastStacking = choice },
 			ToastStackingArt);
 
-		AddRow(rows, MokaAppearanceRows.Notifications, Text.Notifications, theme.Notifications,
+		AddRow(rows, MokaAppearanceRows.Notifications, theme.Notifications,
 			[
 				(MokaNotificationLook.Standard, Text.NotificationsStandard), (MokaNotificationLook.Inbox, Text.NotificationsInbox),
 				(MokaNotificationLook.Cards, Text.NotificationsCards), (MokaNotificationLook.Compact, Text.NotificationsCompact),
@@ -418,7 +481,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Notifications = choice },
 			NotificationsArt);
 
-		AddRow(rows, MokaAppearanceRows.Popups, Text.Popups, theme.Popups,
+		AddRow(rows, MokaAppearanceRows.Popups, theme.Popups,
 			[
 				(MokaPopupLook.Standard, Text.PopupsStandard), (MokaPopupLook.Flat, Text.PopupsFlat), (MokaPopupLook.Elevated, Text.PopupsElevated),
 				(MokaPopupLook.Glass, Text.PopupsGlass), (MokaPopupLook.AccentTint, Text.PopupsAccentTint), (MokaPopupLook.Contrast, Text.PopupsContrast),
@@ -427,7 +490,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Popups = choice },
 			PopupsArt);
 
-		AddRow(rows, MokaAppearanceRows.Lists, Text.Lists, theme.Lists,
+		AddRow(rows, MokaAppearanceRows.Lists, theme.Lists,
 			[
 				(MokaListLook.Standard, Text.ListsStandard), (MokaListLook.Check, Text.ListsCheck), (MokaListLook.Solid, Text.ListsSolid),
 				(MokaListLook.Attached, Text.ListsAttached), (MokaListLook.Radio, Text.ListsRadio), (MokaListLook.Compact, Text.ListsCompact),
@@ -436,7 +499,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Lists = choice },
 			ListsArt);
 
-		AddRow(rows, MokaAppearanceRows.Dialogs, Text.Dialogs, theme.Dialogs,
+		AddRow(rows, MokaAppearanceRows.Dialogs, theme.Dialogs,
 			[
 				(MokaDialogLook.Standard, Text.DialogsStandard), (MokaDialogLook.Bands, Text.DialogsBands), (MokaDialogLook.IconLead, Text.DialogsIconLead),
 				(MokaDialogLook.Centered, Text.DialogsCentered), (MokaDialogLook.Terminal, Text.DialogsTerminal)
@@ -444,7 +507,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Dialogs = choice },
 			DialogsArt);
 
-		AddRow(rows, MokaAppearanceRows.Buttons, Text.Buttons, theme.Buttons,
+		AddRow(rows, MokaAppearanceRows.Buttons, theme.Buttons,
 			[
 				(MokaButtonLook.Standard, Text.ButtonsStandard), (MokaButtonLook.Raised, Text.ButtonsRaised), (MokaButtonLook.Soft, Text.ButtonsSoft),
 				(MokaButtonLook.Pill, Text.ButtonsPill), (MokaButtonLook.Glow, Text.ButtonsGlow), (MokaButtonLook.Offset, Text.ButtonsOffset),
@@ -453,7 +516,7 @@ public partial class MokaAppearancePanel
 			choice => _value with { Buttons = choice },
 			ButtonsArt);
 
-		AddRow(rows, MokaAppearanceRows.Tooltips, Text.Tooltips, theme.Tooltips,
+		AddRow(rows, MokaAppearanceRows.Tooltips, theme.Tooltips,
 			[
 				(MokaTooltipLook.Standard, Text.TooltipsStandard), (MokaTooltipLook.Flat, Text.TooltipsFlat), (MokaTooltipLook.Elevated, Text.TooltipsElevated),
 				(MokaTooltipLook.Glass, Text.TooltipsGlass), (MokaTooltipLook.AccentTint, Text.TooltipsAccentTint), (MokaTooltipLook.Contrast, Text.TooltipsContrast),
@@ -462,49 +525,49 @@ public partial class MokaAppearancePanel
 			choice => _value with { Tooltips = choice },
 			TooltipsArt);
 
-		AddRow(rows, MokaAppearanceRows.TooltipArrows, Text.TooltipArrows, theme.TooltipArrows.ToString(),
+		AddRow(rows, MokaAppearanceRows.TooltipArrows, theme.TooltipArrows.ToString(),
 			[(false, Text.TooltipArrowsHidden, null), (true, Text.TooltipArrowsShown, null)],
 			choice => ApplyAsync(_value with { TooltipArrows = bool.Parse(choice) }));
 
-		AddRow(rows, MokaAppearanceRows.TooltipMotion, Text.TooltipMotion, theme.TooltipMotion,
+		AddRow(rows, MokaAppearanceRows.TooltipMotion, theme.TooltipMotion,
 			[
 				(MokaTooltipMotion.Fade, Text.TooltipMotionFade), (MokaTooltipMotion.Slide, Text.TooltipMotionSlide),
 				(MokaTooltipMotion.Grow, Text.TooltipMotionGrow), (MokaTooltipMotion.Instant, Text.TooltipMotionInstant)
 			],
 			choice => _value with { TooltipMotion = choice });
 
-		AddRow(rows, MokaAppearanceRows.TooltipSize, Text.TooltipSize, theme.TooltipSize,
+		AddRow(rows, MokaAppearanceRows.TooltipSize, theme.TooltipSize,
 			[(MokaTooltipSize.Compact, Text.TooltipSizeCompact), (MokaTooltipSize.Standard, Text.TooltipSizeStandard), (MokaTooltipSize.Roomy, Text.TooltipSizeRoomy)],
 			choice => _value with { TooltipSize = choice });
 
-		AddRow(rows, MokaAppearanceRows.DisabledButtons, Text.DisabledButtons, theme.DisabledButtons,
+		AddRow(rows, MokaAppearanceRows.DisabledButtons, theme.DisabledButtons,
 			[
 				(MokaDisabledButtonLook.Faded, Text.DisabledButtonsFaded), (MokaDisabledButtonLook.Muted, Text.DisabledButtonsMuted),
 				(MokaDisabledButtonLook.Outline, Text.DisabledButtonsOutline)
 			],
 			choice => _value with { DisabledButtons = choice });
 
-		AddRow(rows, MokaAppearanceRows.Callouts, Text.Callouts, theme.Callouts,
+		AddRow(rows, MokaAppearanceRows.Callouts, theme.Callouts,
 			[(MokaCalloutLook.Standard, Text.CalloutsStandard), (MokaCalloutLook.Edge, Text.CalloutsEdge)],
 			choice => _value with { Callouts = choice });
 
-		AddRow(rows, MokaAppearanceRows.Switches, Text.Switches, theme.Switches,
+		AddRow(rows, MokaAppearanceRows.Switches, theme.Switches,
 			[(MokaSwitchLook.Standard, Text.SwitchesStandard), (MokaSwitchLook.Tinted, Text.SwitchesTinted)],
 			choice => _value with { Switches = choice });
 
-		AddRow(rows, MokaAppearanceRows.SettingsHeaders, Text.SettingsHeaders, theme.SettingsHeaders,
+		AddRow(rows, MokaAppearanceRows.SettingsHeaders, theme.SettingsHeaders,
 			[(MokaSettingsHeaderLook.Standard, Text.SettingsHeadersStandard), (MokaSettingsHeaderLook.Tinted, Text.SettingsHeadersTinted)],
 			choice => _value with { SettingsHeaders = choice });
 	}
 
-	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, string label, TChoice? current, (TChoice Choice, string Text)[] options,
+	private void AddRow<TChoice>(List<ChoiceRow> rows, MokaAppearanceRows row, TChoice? current, (TChoice Choice, string Text)[] options,
 		Func<TChoice, MokaAppearance> withChoice, Func<TChoice, RenderFragment>? preview = null)
 		where TChoice : struct, Enum =>
-		AddRow(rows, row, label, current?.ToString(),
+		AddRow(rows, row, current?.ToString(),
 			[.. options.Select(option => ((object)option.Choice, option.Text, Compact || preview is null ? null : preview(option.Choice)))],
 			choice => ApplyAsync(withChoice(Enum.Parse<TChoice>(choice))));
 
-	private void AddRow(List<ChoiceRow> rows, MokaAppearanceRows row, string label, string? current, (object Choice, string Text, RenderFragment? Preview)[] options, Func<string, Task> pick)
+	private void AddRow(List<ChoiceRow> rows, MokaAppearanceRows row, string? current, (object Choice, string Text, RenderFragment? Preview)[] options, Func<string, Task> pick)
 	{
 		if (!Shows(row))
 		{
@@ -517,7 +580,7 @@ public partial class MokaAppearancePanel
 
 		if (OffersChoice(shown.Select(option => option.Value), current))
 		{
-			rows.Add(new ChoiceRow(row, label, current, shown, pick));
+			rows.Add(new ChoiceRow(row, Text.LabelOf(row), current, shown, pick));
 		}
 	}
 
@@ -536,6 +599,13 @@ public partial class MokaAppearancePanel
 
 		return null;
 	}
+
+	// A theme without a table look draws Lined, and without a density each table's look picks its own: Comfortable for
+	// Airy, Compact for the rest. The rows show what tables draw, as the other rows do.
+	private static MokaTableLook ShownTableLook(MokaTheme theme) => theme.Tables ?? MokaTableLook.Lined;
+
+	private static MokaTableDensity ShownTableDensity(MokaTheme theme) =>
+		theme.TableDensity ?? (ShownTableLook(theme) == MokaTableLook.Airy ? MokaTableDensity.Comfortable : MokaTableDensity.Compact);
 
 	private static readonly MokaLabelColor[] ToneSamples = [MokaLabelColor.Teal, MokaLabelColor.Amber, MokaLabelColor.Purple];
 
@@ -593,6 +663,10 @@ public partial class MokaAppearancePanel
 		.AddClass($"moka-tooltips-{MokaEnumHelpers.ToCssClass(look)}")
 		.Build();
 
+	private static string TableRowClass(int row) => new CssBuilder("moka-appearance-panel__table-row")
+		.AddClass("moka-appearance-panel__table-row--head", row == 0)
+		.Build();
+
 	private static string ToneClass(string block, MokaColor tone) => new CssBuilder(block)
 		.AddClass($"moka-appearance-panel__tone--{MokaEnumHelpers.ToCssClass(tone)}")
 		.Build();
@@ -612,6 +686,8 @@ public partial class MokaAppearancePanel
 	private static MokaTheme PackOf(MokaComponentStyle style) => MokaTheme.Red.WithComponentStyle(style);
 
 	private sealed record ChoiceOption(string Value, string Text, bool Disabled, RenderFragment? Preview);
+
+	private readonly record struct PreviewKey(string Palette, bool Dark, string? Accent, string? CustomAccent, string? CustomNeutral);
 
 	private enum RowGroup
 	{

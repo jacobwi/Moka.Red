@@ -49,24 +49,9 @@ public partial class MokaNotificationCenter
 	[Parameter]
 	public MokaNotificationLook? Look { get; set; }
 
-	/// <summary>
-	///     The heading over the notifications from today, under <see cref="MokaNotificationLook.Grouped" />. Today is
-	///     the local date of the registered <see cref="TimeProvider" />, else the system clock's.
-	/// </summary>
+	/// <summary>Every word the center writes around the notifications, to change or translate.</summary>
 	[Parameter]
-	public string TodayText { get; set; } = "Today";
-
-	/// <summary>The heading over the older notifications, under <see cref="MokaNotificationLook.Grouped" />.</summary>
-	[Parameter]
-	public string EarlierText { get; set; } = "Earlier";
-
-	/// <summary>
-	///     The header's count of unread notifications, from how many there are, in the looks that show one
-	///     (<see cref="MokaNotificationLook.Inbox" />, <see cref="MokaNotificationLook.Grouped" /> and
-	///     <see cref="MokaNotificationLook.Terminal" />). Default "2 new".
-	/// </summary>
-	[Parameter]
-	public Func<int, string>? NewCountText { get; set; }
+	public MokaNotificationCenterText Text { get; set; } = new();
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-notification-center";
@@ -89,13 +74,13 @@ public partial class MokaNotificationCenter
 	private string BadgeText => UnreadCount > 99 ? "99+" : UnreadCount.ToString(CultureInfo.InvariantCulture);
 
 	// The badge sits inside the button, whose aria-label would otherwise hide the count.
-	private string TriggerLabel => UnreadCount > 0 ? $"Notifications, {BadgeText} unread" : "Notifications";
+	private string TriggerLabel => Text.Bell(UnreadCount);
 
 	private string PanelId => $"{Id ?? _generatedId}-panel";
 	private string TitleId => $"{PanelId}-title";
 	private string UnreadId => $"{PanelId}-unread";
 
-	private string NewCount => NewCountText?.Invoke(UnreadCount) ?? MokaNotificationLooks.DefaultNewCount(UnreadCount);
+	private string NewCount => Text.NewCount(UnreadCount);
 
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
@@ -203,13 +188,30 @@ public partial class MokaNotificationCenter
 		notification.OnClick?.Invoke();
 	}
 
+	private async Task HandleActionAsync(MokaNotification notification, MokaNotificationAction action, int index)
+	{
+		if (action.MarksRead && !notification.Read)
+		{
+			NotificationService.MarkAsRead(notification.Id);
+		}
+
+		await action.OnClick();
+
+		if (action.Removes)
+		{
+			// The pressed button goes with its notification, so focus moves as it does after a dismiss.
+			_focusAfterRemove = index;
+			NotificationService.Remove(notification.Id);
+		}
+	}
+
 	private static MokaIconDefinition GetIcon(MokaNotification notification)
 		=> notification.Icon ?? MokaFeedbackFormat.SeverityIcon(notification.Severity);
 
 	private IReadOnlyList<MokaNotificationGroup<MokaNotification>> Groups(
 		IReadOnlyList<MokaNotification> notifications, MokaNotificationLook look) =>
 		MokaNotificationLooks.Group(notifications, MokaUniqueKeys.For(notifications, n => n.Id), look,
-			n => n.Timestamp, Clock, TodayText, EarlierText);
+			n => n.Timestamp, Clock, Text.Today, Text.Earlier);
 
 	private string? GroupHeadingId(MokaNotificationGroup<MokaNotification> group) =>
 		group.Heading is null ? null : $"{PanelId}-{group.Key}";
@@ -219,10 +221,11 @@ public partial class MokaNotificationCenter
 		.AddClass("moka-visually-hidden", look == MokaNotificationLook.Compact)
 		.Build();
 
-	private static string FormatTime(DateTime timestamp) => MokaFeedbackFormat.RelativeTime(timestamp);
+	private string FormatTime(DateTime timestamp) => Text.Time(timestamp, Clock.GetUtcNow().UtcDateTime);
 
 	private static string ItemCss(MokaNotification notification) => new CssBuilder("moka-notification-item")
 		.AddClass("moka-notification-item--unread", !notification.Read)
+		.AddClass("moka-notification-item--has-actions", notification.Actions.Count > 0)
 		.AddClass($"moka-notification-item--{MokaEnumHelpers.ToCssClass(notification.Severity)}")
 		.Build();
 

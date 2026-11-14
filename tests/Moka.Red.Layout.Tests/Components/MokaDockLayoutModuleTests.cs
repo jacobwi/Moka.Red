@@ -1,55 +1,59 @@
 using Bunit;
-using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.JSInterop;
-using Moka.Red.Core.Enums;
 using Moka.Red.Layout.DockLayout;
 
 namespace Moka.Red.Layout.Tests.Components;
 
-// Every panel asks the layout for moka-drag.js from its first OnAfterRenderAsync, before the
-// import has come back. The layout used to start a new import for each of them.
+// The panels used to import moka-drag.js and bind a splitter each. The layout binds one module once now, and its
+// listeners on the root serve every gutter, tab and window, so a render that adds groups binds nothing.
 public class MokaDockLayoutModuleTests : BunitContext
 {
-	private const string DragModule = "./_content/Moka.Red.Core/moka-drag.js";
+	private const string Module = "./_content/Moka.Red.Layout/DockLayout/MokaDockLayout.razor.js";
+
+	private readonly BunitJSModuleInterop _module;
+
+	public MokaDockLayoutModuleTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		_module = JSInterop.SetupModule(Module);
+		_module.Mode = JSRuntimeMode.Loose;
+	}
 
 	[Fact]
-	public async Task PanelsThatAskAtOnce_ShareOneImport()
+	public void TheLayout_BindsItsModuleOnce_WithOptionsAsADictionary()
 	{
-		// bUnit only hands out module references through its own import, so the test takes one from
-		// a stand-in module and gives it to the drag import when that is allowed to finish.
-		BunitJSModuleInterop standIn = JSInterop.SetupModule("stand-in.js");
-		standIn.Mode = JSRuntimeMode.Loose;
-		IJSObjectReference module = await JSInterop.JSRuntime.InvokeAsync<IJSObjectReference>("import", "stand-in.js");
-		using PendingImport import = new(DragModule);
-		JSInterop.AddInvocationHandler(import);
+		IRenderedComponent<MokaDockLayout> cut = Render<MokaDockLayout>(p => p
+			.Add(x => x.DropIndicator, MokaDockDropIndicator.Compass)
+			.Add(x => x.NarrowBelow, "30rem")
+			.AddChildContent(DockKit.Ide()));
 
-		IRenderedComponent<MokaDockLayout> cut = Render<MokaDockLayout>(p => p.AddChildContent(TwoPanels));
-		int imports = import.Invocations.Count;
-		import.Complete(module);
+		cut.Render(p => p.AddChildContent(DockKit.Ide()));
 
-		Assert.Equal(1, imports);
-		cut.WaitForAssertion(() => Assert.Equal(2, standIn.Invocations["makeResizable"].Count));
+		JSRuntimeInvocation bind = Assert.Single(_module.Invocations["bind"]);
+		Dictionary<string, object?> options = Assert.IsType<Dictionary<string, object?>>(bind.Arguments[2]);
+		Assert.Equal("compass", options["indicator"]);
+		Assert.Equal("30rem", options["narrowBelow"]);
+		Assert.Equal(true, options["drag"]);
+		Assert.DoesNotContain(JSInterop.Invocations, i => i.Identifier == "makeResizable");
 	}
 
-	private static void TwoPanels(RenderTreeBuilder builder)
+	[Fact]
+	public void ChangedOptions_AreSentToTheBoundModule()
 	{
-		builder.OpenComponent<MokaDockPanel>(0);
-		builder.AddComponentParameter(1, nameof(MokaDockPanel.Dock), MokaDockPosition.Left);
-		builder.CloseComponent();
+		IRenderedComponent<MokaDockLayout> cut = Render<MokaDockLayout>(p => p.AddChildContent(DockKit.Ide()));
 
-		builder.OpenComponent<MokaDockPanel>(2);
-		builder.AddComponentParameter(3, nameof(MokaDockPanel.Dock), MokaDockPosition.Right);
-		builder.CloseComponent();
+		cut.Render(p => p.Add(x => x.AllowDragging, false).AddChildContent(DockKit.Ide()));
 
-		builder.OpenComponent<MokaDockContent>(4);
-		builder.CloseComponent();
+		JSRuntimeInvocation update = Assert.Single(_module.Invocations["update"]);
+		Assert.Equal(false, Assert.IsType<Dictionary<string, object?>>(update.Arguments[1])["drag"]);
 	}
 
-	// An import of one path that stays pending until the test completes it.
-	private sealed class PendingImport(string path) : JSRuntimeInvocationHandlerBase<IJSObjectReference>(
-		invocation => invocation.Identifier == "import" && Equals(invocation.Arguments[0], path),
-		isCatchAllHandler: false)
+	[Fact]
+	public async Task Disposing_UnbindsWhatItBound()
 	{
-		public void Complete(IJSObjectReference module) => SetResultBase(module);
+		IRenderedComponent<MokaDockLayout> cut = Render<MokaDockLayout>(p => p.AddChildContent(DockKit.Ide()));
+
+		await cut.Instance.DisposeAsync();
+
+		Assert.Single(_module.Invocations["unbind"]);
 	}
 }

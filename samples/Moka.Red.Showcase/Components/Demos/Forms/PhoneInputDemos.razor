@@ -1,0 +1,12 @@
+<DemoSection Id="basics" Title="Basics" Description="A phone number, formatted as you type.">
+	<div style="max-width: 280px;">
+		<MokaPhoneInput @bind-Value="_phoneValue" Label="Phone Number"/>
+	</div>
+	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
+		Value: @_phoneValue
+	</p>
+</DemoSection>
+
+@code {
+	private string _phoneValue = "";
+}

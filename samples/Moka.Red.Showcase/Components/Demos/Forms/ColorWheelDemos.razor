@@ -1,0 +1,8 @@
+<DemoSection Id="basic-color-wheel" Title="Basic color wheel" Description="A color from a hue wheel.">
+	<MokaColorWheel @bind-Value="_colorWheelValue"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @_colorWheelValue</MokaText>
+</DemoSection>
+
+@code {
+	private string _colorWheelValue = "#3b82f6";
+}

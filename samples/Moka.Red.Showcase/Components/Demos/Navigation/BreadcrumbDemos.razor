@@ -1,0 +1,258 @@
+<DemoSection Id="basics" Title="Basics" Description="Where a page sits, as a trail of links.">
+	<MokaBreadcrumb>
+		<MokaBreadcrumbItem Text="Overview" Href="./" Icon="MokaIcons.Navigation.Home"/>
+		<MokaBreadcrumbItem Text="Components" Href="components"/>
+		<MokaBreadcrumbItem Text="Navigation" Href="navigation"/>
+		<MokaBreadcrumbItem Text="Breadcrumb"/>
+	</MokaBreadcrumb>
+</DemoSection>
+
+<DemoSection Id="trail" Title="Trail">
+	<MokaBreadcrumb>
+		<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+		<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Office desktop"/>
+	</MokaBreadcrumb>
+
+	<MokaCaption Micro>A long name is cut, with all of it in a tooltip</MokaCaption>
+	<MokaBreadcrumb>
+		<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+		<MokaBreadcrumbItem Text="Living room media server, upstairs" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Ports"/>
+	</MokaBreadcrumb>
+
+	<MokaCaption Micro>Over a page header, without the current page</MokaCaption>
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		<MokaBreadcrumb ShowCurrent="false">
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+			<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Office desktop"/>
+		</MokaBreadcrumb>
+		<MokaPageHeader Title="Office desktop" Said="Online since 08:12, 192.168.1.24"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="folded-levels-in-a-menu" Title="Folded levels in a menu">
+	<MokaParagraph>
+		<code>MaxItems="3"</code> keeps the first level and the last two. The "···" button opens the rest: arrows, Home and End
+		move, Escape closes it and puts focus back on the button.
+	</MokaParagraph>
+	<MokaBreadcrumb MaxItems="3">
+		<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+		<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Home network" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Office desktop"/>
+	</MokaBreadcrumb>
+
+	<MokaCaption Micro>MaxItems="1": only the current page</MokaCaption>
+	<MokaBreadcrumb MaxItems="1">
+		<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home"/>
+		<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+		<MokaBreadcrumbItem Text="Office desktop"/>
+	</MokaBreadcrumb>
+</DemoSection>
+
+<DemoSection Id="folding-on-its-own-as-the-box-narrows" Title="Folding on its own as the box narrows">
+	<MokaParagraph>
+		Drag the box's corner. With <code>Fold="Narrow"</code> the middle folds under 400 px, and on the new design the trail
+		becomes a link back to the parent under 240 px. A container query, no script.
+	</MokaParagraph>
+	<div style="@ResizableBox">
+		<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+			<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+			<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="Desktop"/>
+		</MokaBreadcrumb>
+	</div>
+
+	<MokaGrid MinColumn="200px" Style="gap: var(--moka-grid-gap);">
+		@foreach (string width in BoxWidths)
+		{
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+				<MokaCaption Micro>@width</MokaCaption>
+				<div style="@FixedBox(width)">
+					<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+						<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+						<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+						<MokaBreadcrumbItem Text="Wired" Href="@Here"/>
+						<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+						<MokaBreadcrumbItem Text="Desktop"/>
+					</MokaBreadcrumb>
+				</div>
+			</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="a-path-you-can-copy" Title="A path you can copy">
+	<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Copyable>
+		<Root>
+			<MokaIcon Icon="MokaIcons.File.Database" SizeValue="14px"/>
+			<span style="@RootChip">server</span>
+		</Root>
+		<ChildContent>
+			<MokaBreadcrumbItem Text="network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="devices" Href="@Here"/>
+			<MokaBreadcrumbItem Text="office-desktop"/>
+		</ChildContent>
+	</MokaBreadcrumb>
+
+	<MokaCaption Micro>Too long for its well: the end stays, the start scrolls back and fades</MokaCaption>
+	<div style="max-width: 20rem;">
+		<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Copyable>
+			<MokaBreadcrumbItem Text="network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="home-network" Href="@Here"/>
+			<MokaBreadcrumbItem Text="wired" Href="@Here"/>
+			<MokaBreadcrumbItem Text="switch-2" Href="@Here"/>
+			<MokaBreadcrumbItem Text="port-7" Href="@Here"/>
+			<MokaBreadcrumbItem Text="office-desktop"/>
+		</MokaBreadcrumb>
+	</div>
+
+	<MokaCaption Micro>A trail can copy too: Segment says what each level adds, and an empty one leaves it out</MokaCaption>
+	<MokaBreadcrumb Copyable>
+		<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly Segment=""/>
+		<MokaBreadcrumbItem Text="Devices" Href="@Here" Segment="devices"/>
+		<MokaBreadcrumbItem Text="Office desktop" Segment="office-desktop"/>
+	</MokaBreadcrumb>
+</DemoSection>
+
+<DemoSection Id="on-a-phone" Title="On a phone">
+	<MokaParagraph>A phone's width with folding on, and a column under 240 px, where the new design links back to the parent.</MokaParagraph>
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: flex-start;">
+		<div style="@FixedBox("24.375rem")">
+			<MokaBreadcrumb Fold="MokaBreadcrumbFold.Narrow">
+				<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+				<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Home network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Office desktop"/>
+			</MokaBreadcrumb>
+		</div>
+		<div style="@FixedBox("13.75rem")">
+			<MokaBreadcrumb>
+				<MokaBreadcrumbItem Text="Home" Href="@Here" Icon="MokaIcons.Navigation.Home" IconOnly/>
+				<MokaBreadcrumbItem Text="Network" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Devices" Href="@Here"/>
+				<MokaBreadcrumbItem Text="Office desktop"/>
+			</MokaBreadcrumb>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="levels-added-and-removed-at-runtime" Title="Levels added and removed at runtime">
+	<MokaParagraph>
+		Each level is keyed. The current page, the separators, the folded menu and the back link follow every change, also for
+		a level put in the middle.
+	</MokaParagraph>
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm);">
+		<MokaButton Size="MokaSize.Sm" OnClick="AddLevel">Add a level</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="InsertLevel">Add one in the middle</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="RemoveLevel" Disabled="@(_levels.Count <= 1)">Remove the last level</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="CycleMaxItems">MaxItems: @(_maxItems?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "none")</MokaButton>
+	</div>
+	<MokaBreadcrumb MaxItems="_maxItems">
+		@foreach (string level in _levels)
+		{
+			<MokaBreadcrumbItem @key="level" Text="@level" Href="@Here" Icon="IconFor(level)"/>
+		}
+	</MokaBreadcrumb>
+</DemoSection>
+
+<DemoSection Id="a-path-as-tall-as-the-fields" Title="A path as tall as the fields" Description="On the new design Size sets a path's height, so a small path lines up with small fields.">
+	<div style="@Row">
+		<MokaTextField Size="MokaSize.Sm" Placeholder="Text field" aria-label="Text field"/>
+		<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm">
+			<MokaBreadcrumbItem Text="files" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="photos"/>
+		</MokaBreadcrumb>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-trail-on-one-line" Title="A trail on one line" Description="Wrap false keeps a long trail on one line with the current page in view and its start faded, as a path does. Scroll it sideways to read the start.">
+	<MokaSlider @bind-Value="_crumbWidth" Min="200" Max="900" Step="10" ShowValue="true" Label="Width in pixels"/>
+	<div style="@CrumbBox">
+		@Trail(false)
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-last-level-wider-than-its-well" Title="A last level wider than its well" Description="A path's last level is capped at its well and ends in an ellipsis, with the whole name in a tooltip.">
+	<div style="@CrumbBox">
+		<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm" Style="@PathWell">
+			<MokaBreadcrumbItem Text="2026 Lisbon trip"/>
+		</MokaBreadcrumb>
+		<MokaBreadcrumb Look="MokaBreadcrumbLook.Path" Size="MokaSize.Sm" Style="@PathWell">
+			<MokaBreadcrumbItem Text="trips" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="2026" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="2026 Lisbon trip"/>
+		</MokaBreadcrumb>
+	</div>
+</DemoSection>
+
+@code {
+	private const string Here = "components/breadcrumb";
+
+	private const string ResizableBox =
+		"resize: horizontal; overflow: hidden; width: 36rem; min-width: 8rem; max-width: 100%; padding: var(--moka-spacing-md); " +
+		"border: 1px dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private static readonly string[] BoxWidths = ["26rem", "19rem", "13rem"];
+
+	private static string FixedBox(string width) =>
+		$"width: {width}; max-width: 100%; box-sizing: border-box; padding: var(--moka-spacing-md); " +
+		"border: 1px dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private const string RootChip =
+		"padding: 1px 6px; border-radius: var(--moka-radius-sm); background: var(--moka-color-neutral-bg); " +
+		"color: var(--moka-color-on-surface-2); font-size: var(--moka-font-size-xs);";
+
+	private static readonly int?[] MaxItemsSteps = [null, 3, 2, 1];
+
+	private readonly List<string> _levels = ["Home", "Network", "Devices"];
+
+	private int? _maxItems;
+
+	private int _next = 1;
+
+	private static MokaIconDefinition? IconFor(string level) => level == "Home" ? MokaIcons.Navigation.Home : default(MokaIconDefinition?);
+
+	private void AddLevel() => _levels.Add($"Level {_next++}");
+
+	private void InsertLevel() => _levels.Insert(Math.Max(1, _levels.Count / 2), $"Level {_next++}");
+
+	private void RemoveLevel()
+	{
+		if (_levels.Count > 1)
+		{
+			_levels.RemoveAt(_levels.Count - 1);
+		}
+	}
+
+	private void CycleMaxItems() => _maxItems = MaxItemsSteps[(Array.IndexOf(MaxItemsSteps, _maxItems) + 1) % MaxItemsSteps.Length];
+
+	private const string Row = "display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md); margin: var(--moka-spacing-sm) 0 var(--moka-spacing-lg);";
+
+	private double _crumbWidth = 360;
+
+	private string CrumbBox => FormattableString.Invariant(
+		$"max-width: {_crumbWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
+
+	private static RenderFragment Trail(bool wrap) =>
+		@<MokaBreadcrumb Wrap="wrap">
+			<MokaBreadcrumbItem Text="Home" Icon="MokaIcons.Navigation.Home" IconOnly Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="Libraries" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="Family photos" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="2026" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="Summer at the lake" Href="components/breadcrumb"/>
+			<MokaBreadcrumbItem Text="Day three"/>
+		</MokaBreadcrumb>;
+
+	private string PathWell => FormattableString.Invariant($"max-width: {Math.Max(80, _crumbWidth / 3)}px; margin-top: var(--moka-spacing-sm);");
+}

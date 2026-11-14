@@ -55,7 +55,6 @@ public partial class MokaSwitch
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
-	private void HandleChange(ChangeEventArgs e) => Toggle();
 	private readonly string _generatedId = $"moka-switch-{Guid.NewGuid():N}";
 
 	private string FieldId => string.IsNullOrEmpty(Id) ? _generatedId : Id;

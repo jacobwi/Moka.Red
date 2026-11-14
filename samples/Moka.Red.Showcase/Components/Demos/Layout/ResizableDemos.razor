@@ -1,0 +1,33 @@
+<DemoSection Id="horizontal-resize" Title="Horizontal resize" Description="A box you resize by its edges, within limits.">
+	<MokaResizable Width="300px" MinWidth="150px" MaxWidth="600px" ShowHandle="true">
+		<MokaCard Title="Resizable Card">
+			<ChildContent>
+				<p>Drag the right edge to resize this card.</p>
+			</ChildContent>
+		</MokaCard>
+	</MokaResizable>
+</DemoSection>
+
+<DemoSection Id="both-directions" Title="Both directions">
+	<MokaResizable Direction="MokaResizeDirection.Both" Width="300px" Height="200px" MinWidth="150px" MinHeight="100px">
+		<div style="background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md); height: 100%; overflow: auto;">
+			<p>Resize me in both directions!</p>
+		</div>
+	</MokaResizable>
+</DemoSection>
+
+<DemoSection Id="vertical-only" Title="Vertical only">
+	<MokaResizable Direction="MokaResizeDirection.Vertical" Height="120px" MinHeight="60px" MaxHeight="300px">
+		<div style="background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md); height: 100%; overflow: auto;">
+			<p>Drag the bottom edge to resize vertically.</p>
+		</div>
+	</MokaResizable>
+</DemoSection>
+
+<DemoSection Id="hidden-handle" Title="Hidden handle">
+	<MokaResizable Width="250px" MinWidth="100px" MaxWidth="500px" ShowHandle="false">
+		<div style="background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-md);">
+			<p>No visible grip - but still resizable by dragging the right edge.</p>
+		</div>
+	</MokaResizable>
+</DemoSection>

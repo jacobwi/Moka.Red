@@ -30,15 +30,15 @@
 		<div class="moka-notification-panel" id="@PanelId" @ref="_panel" tabindex="-1" role="group"
 		     aria-labelledby="@TitleId" popover="manual" data-moka-popup>
 			<div class="moka-notification-panel__header">
-				<span class="moka-notification-panel__title" id="@TitleId">Notifications</span>
+				<span class="moka-notification-panel__title" id="@TitleId">@Text.Title</span>
 				@if (UnreadCount > 0 && MokaNotificationLooks.ShowsNewCount(look))
 				{
 					<span class="moka-notification-panel__count">@NewCount</span>
 				}
 				@if (notifications.Count > 0)
 				{
-					<button type="button" class="moka-notification-panel__action" @onclick="HandleMarkAllRead">Mark all read</button>
-					<button type="button" class="moka-notification-panel__action" @onclick="HandleClear">Clear all</button>
+					<button type="button" class="moka-notification-panel__action" @onclick="HandleMarkAllRead">@Text.MarkAllRead</button>
+					<button type="button" class="moka-notification-panel__action" @onclick="HandleClear">@Text.ClearAll</button>
 				}
 			</div>
 
@@ -47,12 +47,12 @@
 				{
 					<div class="moka-notification-panel__empty">
 						<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="32px" Style="opacity: 0.3"/>
-						<span>No notifications</span>
+						<span>@Text.Empty</span>
 					</div>
 				}
 				else
 				{
-					<span id="@UnreadId" hidden>Unread</span>
+					<span id="@UnreadId" hidden>@Text.Unread</span>
 					@foreach (MokaNotificationGroup<MokaNotification> group in Groups(notifications, look))
 					{
 						string? headingId = GroupHeadingId(group);
@@ -68,26 +68,20 @@
 								MokaNotification notification = group.Items[i];
 								int index = group.Start + i;
 								<div class="@ItemCss(notification)" role="listitem" @key="group.Keys[i]">
-									<button type="button" class="moka-notification-item__main"
-									        aria-describedby="@(notification.Read ? null : UnreadId)"
-									        @onclick="() => HandleItemClick(notification)">
-										@if (look == MokaNotificationLook.Terminal)
-										{
-											<span class="moka-notification-item__tag" aria-hidden="true">@MokaNotificationLooks.SeverityTag(notification.Severity)</span>
-										}
-										else
-										{
-											<span class="moka-notification-item__icon">
-												<MokaIcon Icon="GetIcon(notification)" SizeValue="@MokaNotificationLooks.IconSize(look)"/>
-											</span>
-										}
-										<span class="moka-notification-item__content">
-											<span class="moka-notification-item__title">@notification.Title</span>
-											<span class="@MessageClass(look)">@notification.Message</span>
-											<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
-										</span>
-									</button>
-									@{ string dismissName = $"Dismiss {notification.Title}"; }
+									@{ RenderFragment itemContent = ItemContent(notification, look); }
+									@if (UrlValues.SafeHref(notification.Href) is { } href)
+									{
+										<a class="moka-notification-item__main" href="@href"
+										   aria-describedby="@(notification.Read ? null : UnreadId)"
+										   @onclick="() => HandleItemClick(notification)">@itemContent</a>
+									}
+									else
+									{
+										<button type="button" class="moka-notification-item__main"
+										        aria-describedby="@(notification.Read ? null : UnreadId)"
+										        @onclick="() => HandleItemClick(notification)">@itemContent</button>
+									}
+									@{ string dismissName = Text.Dismiss(notification.Title); }
 									@* The dismiss buttons make a column down the panel's right edge, so the name opens to
 									   the left, over its own notification, and never over the button below. *@
 									<MokaTooltip Text="@dismissName" Position="MokaTooltipPosition.Left">
@@ -97,6 +91,16 @@
 											<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
 										</button>
 									</MokaTooltip>
+									@if (notification.Actions.Count > 0)
+									{
+										<div class="moka-notification-item__actions">
+											@foreach (MokaNotificationAction action in notification.Actions)
+											{
+												<button type="button" class="moka-notification-item__action"
+												        @onclick="() => HandleActionAsync(notification, action, index)">@action.Text</button>
+											}
+										</div>
+									}
 								</div>
 							}
 						</div>
@@ -106,3 +110,24 @@
 		</div>
 	}
 </div>
+
+@code {
+	private RenderFragment ItemContent(MokaNotification notification, MokaNotificationLook look) => __builder =>
+	{
+		if (look == MokaNotificationLook.Terminal)
+		{
+			<span class="moka-notification-item__tag" aria-hidden="true">@MokaNotificationLooks.SeverityTag(notification.Severity)</span>
+		}
+		else
+		{
+			<span class="moka-notification-item__icon">
+				<MokaIcon Icon="GetIcon(notification)" SizeValue="@MokaNotificationLooks.IconSize(look)"/>
+			</span>
+		}
+		<span class="moka-notification-item__content">
+			<span class="moka-notification-item__title">@notification.Title</span>
+			<span class="@MessageClass(look)">@notification.Message</span>
+			<span class="moka-notification-item__time">@FormatTime(notification.Timestamp)</span>
+		</span>
+	};
+}

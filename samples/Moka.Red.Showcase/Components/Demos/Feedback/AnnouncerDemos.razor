@@ -1,0 +1,30 @@
+@implements IDisposable
+@inject IMokaAnnouncer Announcer
+
+<DemoSection Id="basics" Title="Basics" Description="Says things to screen readers that have no place on the screen. The words go to one polite and one assertive live region for the whole app; toasts and banners speak through the same pair." Tip="A MokaToastHost or a MokaBannerHost carries the announcer's regions, so an app with either needs nothing more in the layout.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => Announcer.Announce("3 results"))">Search</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => Announcer.Announce("Saved"))">Save</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error" OnClick="@(() => Announcer.Announce("Connection lost", MokaPoliteness.Assertive))">Lose the connection</MokaButton>
+		</div>
+		<MokaDataList Items="RecentItems" EmptyText="Nothing said yet." Dense/>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Announce(text, politeness)">Polite waits its turn; Assertive interrupts, for errors</DemoParam>
+		<DemoParam Name="Recent">The latest announcements, up to three of each politeness</DemoParam>
+		<DemoParam Name="MokaAnnouncerHost">Keeps the two live regions in the page</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private IReadOnlyList<MokaDataListItem> RecentItems =>
+		[.. Announcer.Recent.OrderByDescending(said => said.Number).Select(said => new MokaDataListItem(said.Politeness.ToString(), said.Text))];
+
+	protected override void OnInitialized() => Announcer.Changed += HandleChanged;
+
+	public void Dispose() => Announcer.Changed -= HandleChanged;
+
+	// Raised on the thread that announced, which may not be the renderer's.
+	private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
+}

@@ -1,0 +1,185 @@
+@using Moka.Red.Primitives.Bytes
+
+<DemoSection Id="basics" Title="Basics" Description="Thumbnails that open in a lightbox.">
+	<div style="max-width: 500px;">
+		<MokaMediaGallery Items="_galleryItems" Columns="3"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tile-states" Title="Tile states"
+             Description="A skeleton while a thumbnail is on its way, and a struck-out picture for one that can't be shown.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 640px;">
+			<MokaMediaGallery Items="_stateItems" Columns="4"/>
+			<div style="display: flex; gap: var(--moka-spacing-sm); align-items: center; flex-wrap: wrap;">
+				<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="ToggleThumbnails">
+					@(_thumbnailsArrived ? "Start over" : "Thumbnails arrive")
+				</MokaButton>
+				<MokaCaption>Tile 1 waits with <code>Loading</code>, tile 2 has no thumbnail yet, tile 3 is <code>Failed</code> and tile 4's thumbnail fails to load.</MokaCaption>
+			</div>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaMediaItem.Loading">Draws a skeleton; so does an item with no thumbnail source at all</DemoParam>
+		<DemoParam Name="MokaMediaItem.Failed">Draws a struck-out picture and a word, as a thumbnail that fails to load does</DemoParam>
+		<DemoParam Name="Text">Every word, read aloud or shown, through MokaMediaText</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="columns-that-fill-rows" Title="Columns that fill rows"
+             Description="MinColumn fits as many tiles as the width allows; OnItemOpen says which tile, even among equal items.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMediaGallery Items="_fillItems" MinColumn="7rem" Gap="MokaSpacingScale.Xs" Lightbox="false"
+			                  OnItemOpen="args => _opened = args"/>
+			<MokaCaption>
+				@if (_opened is { } opened)
+				{
+					<span>Opened tile @(opened.Index + 1), @(opened.Item.Alt).</span>
+				}
+				else
+				{
+					<span>Tiles 1 and 7 are equal items; press either.</span>
+				}
+			</MokaCaption>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MinColumn">The narrowest a tile gets; wins over Columns</DemoParam>
+		<DemoParam Name="OnItemOpen">The item and its index, for items that compare equal</DemoParam>
+		<DemoParam Name="MokaMediaItem.Key">The tile's @@key, and what tells equal items apart</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="captions-under-tiles" Title="Captions under tiles" Description="A name, a size and a download button under each tile. Pressing the button doesn't open the lightbox."
+             Tip="Downloads take a moment here, so the busy state shows. Open a photo for the lightbox's own actions.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMediaGallery Items="_photos" MinColumn="9rem">
+				<TileCaption>
+					<span title="@context.Alt">@context.Alt</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-tertiary);"/>
+					<MokaTooltip Text="Download">
+						<MokaButton Quiet Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Download" Loading="IsSaving(context)"
+						            aria-label="@($"Download {context.Alt}")" OnClick="() => SaveAsync(context)"/>
+					</MokaTooltip>
+				</TileCaption>
+				<LightboxFacts>
+					<span style="font-weight: var(--moka-font-weight-semibold);">@context.Alt</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);"/>
+				</LightboxFacts>
+				<LightboxActions>
+					<MokaLightboxAction Icon="MokaIcons.Action.Download" Text="@($"Download {context.Alt}")"
+					                    Href="@context.Src" Download="@FileName(context)"/>
+					<MokaLightboxAction Icon="MokaIcons.Action.Share" Text="Copy link" Busy="IsSharing(context)"
+					                    OnClick="() => ShareAsync(context)"/>
+					<MokaLightboxAction Icon="MokaIcons.Action.Delete" Text="Delete" Disabled/>
+				</LightboxActions>
+			</MokaMediaGallery>
+			<MokaCaption><span>@_status</span></MokaCaption>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="TileCaption">A template under each tile; its first element takes the room left and is cut short</DemoParam>
+		<DemoParam Name="LightboxActions">Actions on the image on show, beside the lightbox's close button</DemoParam>
+		<DemoParam Name="MokaLightboxAction">Icon, Text, OnClick, Href, Download, Busy, Disabled, TooltipPosition</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<MokaMediaItem> _galleryItems =
+	[
+		new() { Src = "samples/photo-1.svg", Alt = "Dusk" },
+		new() { Src = "samples/photo-2.svg", Alt = "Forest" },
+		new() { Src = "samples/photo-3.svg", Alt = "Lake" },
+		new() { Src = "samples/photo-4.svg", Alt = "Bloom" },
+		new() { Src = "samples/photo-5.svg", Alt = "Fog" },
+		new() { Src = "samples/photo-6.svg", Alt = "Dunes" }
+	];
+
+	private bool _thumbnailsArrived;
+
+	private IReadOnlyList<MokaMediaItem> _stateItems = WaitingItems();
+
+	private static IReadOnlyList<MokaMediaItem> WaitingItems() =>
+	[
+		new() { Key = 1, Src = "samples/photo-1.svg", Alt = "Dusk", Loading = true },
+		new() { Key = 2, Alt = "Forest" },
+		new() { Key = 3, Src = "samples/photo-3.svg", Alt = "Lake", Failed = true },
+		new() { Key = 4, Src = "samples/photo-4.svg", ThumbnailSrc = "samples/missing.svg", Alt = "Bloom" }
+	];
+
+	private static IReadOnlyList<MokaMediaItem> ArrivedItems() =>
+	[
+		new() { Key = 1, Src = "samples/photo-1.svg", Alt = "Dusk" },
+		new() { Key = 2, Src = "samples/photo-2.svg", Alt = "Forest" },
+		new() { Key = 3, Src = "samples/photo-3.svg", Alt = "Lake", Failed = true },
+		new() { Key = 4, Src = "samples/photo-4.svg", ThumbnailSrc = "samples/missing.svg", Alt = "Bloom" }
+	];
+
+	private void ToggleThumbnails()
+	{
+		_thumbnailsArrived = !_thumbnailsArrived;
+		_stateItems = _thumbnailsArrived ? ArrivedItems() : WaitingItems();
+	}
+
+	private static readonly string[] Names = ["Dusk", "Forest", "Lake", "Bloom", "Fog", "Dunes"];
+
+	// Two equal items, as a folder with the same picture twice gives: only the index tells them apart.
+	private static readonly IReadOnlyList<MokaMediaItem> _fillItems =
+	[
+		.. Enumerable.Range(0, 12).Select(i => new MokaMediaItem
+		{
+			Src = $"samples/photo-{i % 6 + 1}.svg",
+			Alt = Names[i % 6]
+		})
+	];
+
+	private MokaMediaItemOpenArgs? _opened;
+
+	private static readonly string[] CaptionNames =
+	[
+		"Dusk over the harbour from the north pier", "Forest", "Lake", "Bloom", "Fog", "Dunes",
+		"Market", "Lighthouse", "Ridge", "Orchard", "Quay", "Tide pools at low water"
+	];
+
+	private static readonly IReadOnlyList<MokaMediaItem> _photos =
+	[
+		.. CaptionNames.Select((name, i) => new MokaMediaItem
+		{
+			Key = i,
+			Src = $"samples/photo-{i % 6 + 1}.svg",
+			Alt = name
+		})
+	];
+
+	private string _status = "Nothing downloaded yet.";
+
+	private object? _saving;
+
+	private object? _sharing;
+
+	private static long SizeOf(MokaMediaItem photo) => 840_000 + (int)photo.Key! * 312_457L;
+
+	private static string FileName(MokaMediaItem photo) => $"{photo.Alt}.svg";
+
+	private bool IsSaving(MokaMediaItem photo) => Equals(_saving, photo.Key);
+
+	private bool IsSharing(MokaMediaItem photo) => Equals(_sharing, photo.Key);
+
+	private async Task SaveAsync(MokaMediaItem photo)
+	{
+		_saving = photo.Key;
+		await Task.Delay(900);
+		_saving = null;
+		_status = $"Downloaded {FileName(photo)}.";
+	}
+
+	private async Task ShareAsync(MokaMediaItem photo)
+	{
+		_sharing = photo.Key;
+		await Task.Delay(900);
+		_sharing = null;
+		_status = $"Copied a link to {photo.Alt}.";
+	}
+}

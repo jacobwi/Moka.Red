@@ -1,0 +1,215 @@
+@namespace Moka.Red.Layout.DockLayout
+@using Moka.Red.Feedback.BottomSheet
+@inherits ComponentBase
+
+@{
+	Layout.EnsureCurrent();
+	_rendered = _version;
+	_drawing.Enqueue(_version);
+	_order = 0;
+	MokaDockState state = Layout.ViewState;
+}
+@if (Layout.IsNarrow)
+{
+	@Narrow(state)
+}
+else
+{
+	@if (Layout.ResolvedLook == MokaDockLook.Ide)
+	{
+		@ActivityBar(state)
+	}
+	else
+	{
+		@foreach (MokaDockPosition side in SidesWithPins(state))
+		{
+			@SideBar(state, side)
+		}
+	}
+	<div class="moka-dock-main">
+		@if (state.Root is { } root)
+		{
+			@Node(root)
+		}
+		@for (int i = 0; i < state.Floating.Count; i++)
+		{
+			MokaDockFloatingWindow window = state.Floating[i];
+			<div class="@FloatClass(window)" style="@FloatStyle(window, i)" data-moka-dock-float="@window.Group.Id" @key="window.Group.Id">
+				@GroupView(window.Group, MokaDockGroupMode.Floating, Layout.AnchorOf(window.Group.Id))
+				@if (!window.Maximized)
+				{
+					@foreach (string edge in Edges)
+					{
+						<div class="moka-dock-float__edge moka-dock-float__edge--@edge" data-moka-dock-resize="@edge" aria-hidden="true"></div>
+					}
+				}
+			</div>
+		}
+		@if (Flyout(state) is { } pinned)
+		{
+			<div class="moka-dock-flyout moka-dock-flyout--@MokaEnumHelpers.ToCssClass(pinned.Side)" id="@FlyoutId"
+			     style="@FlyoutStyle(pinned)" data-moka-dock-flyout="@pinned.Group.Id">
+				@GroupView(pinned.Group, MokaDockGroupMode.Flyout, Layout.AnchorOf(MokaDockLayout.FlyoutKey))
+			</div>
+		}
+	</div>
+}
+
+@code {
+
+	private static readonly string[] Edges = ["n", "e", "s", "w", "ne", "nw", "se", "sw"];
+
+	private RenderFragment Node(MokaDockNode node) => node switch
+	{
+		MokaDockSplitNode split => Split(split),
+		MokaDockGroupNode group => GroupView(group, MokaDockGroupMode.Docked, Layout.AnchorOf(group.Id)),
+		_ => _ => { }
+	};
+
+	private RenderFragment Split(MokaDockSplitNode split) =>
+		@<div class="@SplitClass(split)" style="@SplitStyle(split)" data-moka-dock-split="@split.Id"
+		      data-moka-dock-dir="@(split.Direction == MokaDockSplitDirection.Row ? "row" : "column")"
+		      data-moka-dock-min="@Limits(split, s => s.MinSize)" data-moka-dock-max="@Limits(split, s => s.MaxSize)"
+		      data-moka-dock-flex="@Flex(split)">
+			@for (int i = 0; i < split.Children.Count; i++)
+			{
+				MokaDockNode child = split.Children[i];
+				@if (i > 0)
+				{
+					@Gutter(split, i - 1)
+				}
+				<div class="moka-dock-cell" @key="child.Id">@Node(child)</div>
+			}
+		</div>;
+
+	private RenderFragment Gutter(MokaDockSplitNode split, int index)
+	{
+		MokaDockNode first = split.Children[index];
+		MokaDockNode second = split.Children[index + 1];
+		bool vertical = split.Direction == MokaDockSplitDirection.Row;
+		if (!Layout.IsResizable(first) || !Layout.IsResizable(second))
+		{
+			return @<div class="moka-dock-gutter moka-dock-gutter--fixed" aria-hidden="true"></div>;
+		}
+
+		return @<div class="@GutterClass(vertical)" role="separator" tabindex="0"
+		             aria-orientation="@(vertical ? "vertical" : "horizontal")"
+		             aria-label="@Layout.Words.Resize(NodeName(first), NodeName(second))"
+		             aria-valuenow="@ValueNow(first, second)" aria-valuemin="0" aria-valuemax="100"
+		             aria-controls="@ControlsOf(first)" data-moka-dock-gutter="@index"></div>;
+	}
+
+	private RenderFragment GroupView(MokaDockGroupNode group, MokaDockGroupMode mode, int anchor) =>
+		@<MokaDockGroupView Layout="Layout" Group="group" Mode="mode" Anchor="anchor" Stamp="Layout.StampOf(group, mode)" Order="++_order"/>;
+
+	private RenderFragment ActivityBar(MokaDockState state) =>
+		@<nav class="moka-dock-activity" aria-label="@Layout.Words.Panels">
+			@foreach (MokaDockAutoHidden pinned in state.AutoHidden)
+			{
+				@foreach (string panel in pinned.Group.Panels)
+				{
+					string current = panel;
+					string group = pinned.Group.Id;
+					bool open = Layout.FlyoutGroup == group && pinned.Group.Shown == current;
+					<MokaTooltip Text="@Layout.TitleOf(current)" Position="MokaTooltipPosition.Right">
+						<button type="button" class="@ActivityClass(open)" aria-label="@Layout.TitleOf(current)"
+						        aria-expanded="@(open ? "true" : "false")" aria-controls="@FlyoutId"
+						        data-moka-dock-autohide="@group" @onclick="() => PinnedPressedAsync(group, current)">
+							<MokaIcon Icon="@(Layout.PanelFor(current)?.Icon ?? MokaIcons.Navigation.AppWindow)" SizeValue="18px"/>
+						</button>
+					</MokaTooltip>
+				}
+			}
+			@foreach (MokaDockParkedPanel hidden in state.Hidden)
+			{
+				string current = hidden.Panel;
+				<MokaTooltip Text="@Layout.TitleOf(current)" Position="MokaTooltipPosition.Right">
+					<button type="button" class="moka-dock-activity__button moka-dock-activity__button--hidden"
+					        aria-label="@Layout.TitleOf(current)" @onclick="() => Layout.ShowPanelAsync(current)">
+						<MokaIcon Icon="@(Layout.PanelFor(current)?.Icon ?? MokaIcons.Navigation.AppWindow)" SizeValue="18px"/>
+					</button>
+				</MokaTooltip>
+			}
+		</nav>;
+
+	private RenderFragment SideBar(MokaDockState state, MokaDockPosition side) =>
+		@<div class="moka-dock-sidebar moka-dock-sidebar--@MokaEnumHelpers.ToCssClass(side)" role="toolbar"
+		      aria-label="@Layout.Words.SideBar"
+		      aria-orientation="@(side is MokaDockPosition.Left or MokaDockPosition.Right ? "vertical" : "horizontal")">
+			@foreach (MokaDockAutoHidden pinned in state.AutoHidden.Where(a => a.Side == side))
+			{
+				@foreach (string panel in pinned.Group.Panels)
+				{
+					string current = panel;
+					string group = pinned.Group.Id;
+					bool open = Layout.FlyoutGroup == group && pinned.Group.Shown == current;
+					<button type="button" class="@SideTabClass(open)" aria-expanded="@(open ? "true" : "false")"
+					        aria-controls="@FlyoutId" data-moka-dock-autohide="@group"
+					        @onclick="() => PinnedPressedAsync(group, current)">
+						@if (Layout.PanelFor(current)?.Icon is { } icon)
+						{
+							<MokaIcon Icon="icon" SizeValue="14px"/>
+						}
+						<span class="moka-dock-sidebar__text">@Layout.TitleOf(current)</span>
+					</button>
+				}
+			}
+		</div>;
+
+	private RenderFragment Narrow(MokaDockState state)
+	{
+		switch (Layout.NarrowMode)
+		{
+			case MokaDockNarrowMode.Tabs:
+				MokaDockGroupNode narrow = Layout.NarrowGroup();
+				return @<div class="moka-dock-main moka-dock-main--narrow">
+					@GroupView(narrow, MokaDockGroupMode.Narrow, Layout.AnchorOf(MokaDockLayout.NarrowGroupId))
+				</div>;
+			case MokaDockNarrowMode.Stack:
+				return @<div class="moka-dock-main moka-dock-main--stack">
+					@foreach (MokaDockGroupNode group in Layout.StackGroups())
+					{
+						<div class="@StackCellClass(group)" @key="group.Id">
+							@GroupView(group, MokaDockGroupMode.Stack, Layout.AnchorOf(group.Id))
+						</div>
+					}
+				</div>;
+			default:
+				MokaDockGroupNode? main = Layout.MainGroup();
+				List<string> panels = [.. Layout.SheetPanels()];
+				string? sheet = Layout.SheetPanel;
+				return @<text>
+					<div class="moka-dock-main moka-dock-main--sheets">
+						@if (main is not null)
+						{
+							@GroupView(main, MokaDockGroupMode.Main, Layout.AnchorOf(main.Id))
+						}
+					</div>
+					@if (panels.Count > 0)
+					{
+						<nav class="moka-dock-narrow-bar" aria-label="@Layout.Words.Panels">
+							@foreach (string panel in panels)
+							{
+								string current = panel;
+								<button type="button" class="@NarrowButtonClass(current == sheet)"
+								        aria-expanded="@(current == sheet ? "true" : "false")" @onclick="() => Layout.OpenSheet(current)">
+									<MokaIcon Icon="@(Layout.PanelFor(current)?.Icon ?? MokaIcons.Navigation.AppWindow)" SizeValue="18px"/>
+									<span class="moka-dock-narrow-bar__text">@Layout.TitleOf(current)</span>
+								</button>
+							}
+						</nav>
+					}
+					<MokaBottomSheet Open="@(sheet is not null)" OpenChanged="SheetOpenChanged" Class="moka-dock-sheet">
+						<Header>@(sheet is null ? null : Layout.TitleOf(sheet))</Header>
+						<ChildContent>
+							@if (sheet is not null)
+							{
+								@Layout.BodyOf(sheet)
+							}
+						</ChildContent>
+					</MokaBottomSheet>
+				</text>;
+		}
+	}
+
+}

@@ -2,103 +2,114 @@
 @inherits MokaVisualComponentBase
 @using Moka.Red.Feedback.Internal
 
-@* Keys from the open panel stop here, so the Escape that closes it does not also reach the Blazor
-   handler of a dialog around it. *@
-<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes"
-     @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="_isOpen">
-	@* No tooltip while the panel is open: the panel opens where the tooltip would. *@
-	<MokaTooltip Text="@(_isOpen ? null : TriggerLabel)" Position="TriggerTooltipPosition">
-		<button type="button" class="moka-notification-bell__trigger" @ref="_trigger" @onclick="ToggleDropdown"
-		        aria-label="@TriggerLabel"
-		        aria-expanded="@(_isOpen ? "true" : "false")"
-		        aria-controls="@(_isOpen ? PanelId : null)">
-			<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
-			@if (UnreadCount > 0)
-			{
-				<span class="moka-notification-bell__badge">@BadgeText</span>
-			}
-		</button>
-	</MokaTooltip>
-
-	@if (_isOpen)
-	{
-		MokaNotificationLook look = ShownLook;
-
-		@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
-		   which the script reads as "still open". *@
-		<div class="@DropdownClass" style="@DropdownStyle" id="@PanelId" tabindex="-1" role="group" aria-labelledby="@TitleId"
-		     popover="manual" data-moka-popup @ref="_panel">
-			<div class="moka-notification-bell__header">
-				<span class="moka-notification-bell__title" id="@TitleId">Notifications</span>
-				@if (UnreadCount > 0 && MokaNotificationLooks.ShowsNewCount(look))
-				{
-					<span class="moka-notification-bell__count">@NewCount</span>
-				}
-				@if (Notifications is { Count: > 0 })
-				{
-					<button type="button" class="moka-notification-bell__action" @onclick="HandleMarkAllRead">Mark all read</button>
-					<button type="button" class="moka-notification-bell__action" @onclick="HandleClear">Clear</button>
-				}
-			</div>
-
-			<div class="moka-notification-bell__list">
-				@if (Notifications is null or { Count: 0 })
-				{
-					<div class="moka-notification-bell__empty">
-						<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="28px" Style="opacity: 0.3"/>
-						<span>No notifications</span>
-					</div>
-				}
-				else
-				{
-					<span id="@UnreadId" hidden>Unread</span>
-					@foreach (MokaNotificationGroup<MokaNotificationBellItem> group in Groups(VisibleNotifications, look))
-					{
-						string? headingId = GroupHeadingId(group);
-						@* A heading names the list under it rather than sitting in it, where only list items belong. *@
-						if (headingId is not null)
-						{
-							<div class="moka-notification-bell__group moka-micro-label" id="@headingId">@group.Heading</div>
-						}
-
-						<div role="list" aria-labelledby="@headingId" @key="group.Key">
-							@for (int i = 0; i < group.Items.Count; i++)
-							{
-								MokaNotificationBellItem item = group.Items[i];
-								<div class="@ItemCss(item)" role="listitem" @key="group.Keys[i]"
-								     aria-describedby="@(Clickable || item.Read ? null : UnreadId)">
-									@if (Clickable)
-									{
-										<button type="button" class="moka-notification-bell__item-main"
-										        aria-describedby="@(item.Read ? null : UnreadId)"
-										        @onclick="() => HandleItemClick(item)">
-											@ItemContent(item, look)
-										</button>
-									}
-									else
-									{
-										<div class="moka-notification-bell__item-main">
-											@ItemContent(item, look)
-										</div>
-									}
-								</div>
-							}
-						</div>
-					}
-
-					@if (RemainingCount > 0)
-					{
-						<div class="moka-notification-bell__more">
-							+@RemainingCount more
-						</div>
-					}
-				}
-			</div>
+@if (Inline)
+{
+	<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes">
+		<div class="@DropdownClass" style="@DropdownStyle" id="@PanelId" role="group" aria-labelledby="@TitleId">
+			@PanelContent(ShownLook)
 		</div>
-	}
-</div>
+	</div>
+}
+else
+{
+	@* Keys from the open panel stop here, so the Escape that closes it does not also reach the Blazor
+	   handler of a dialog around it. *@
+	<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes"
+	     @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="_isOpen">
+		@* No tooltip while the panel is open: the panel opens where the tooltip would. *@
+		<MokaTooltip Text="@(_isOpen ? null : TriggerLabel)" Position="TriggerTooltipPosition">
+			<button type="button" class="moka-notification-bell__trigger" @ref="_trigger" @onclick="ToggleDropdown"
+			        aria-label="@TriggerLabel"
+			        aria-expanded="@(_isOpen ? "true" : "false")"
+			        aria-controls="@(_isOpen ? PanelId : null)">
+				<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="@ResolvedSize"/>
+				@if (UnreadCount > 0)
+				{
+					<span class="moka-notification-bell__badge">@BadgeText</span>
+				}
+			</button>
+		</MokaTooltip>
+
+		@if (_isOpen)
+		{
+			@* tabindex -1 lets a click on the panel's blank space keep focus inside the component,
+			   which the script reads as "still open". *@
+			<div class="@DropdownClass" style="@DropdownStyle" id="@PanelId" tabindex="-1" role="group" aria-labelledby="@TitleId"
+			     popover="manual" data-moka-popup @ref="_panel">
+				@PanelContent(ShownLook)
+			</div>
+		}
+	</div>
+}
 
 @code {
+
+	private RenderFragment PanelContent(MokaNotificationLook look) => @<text>
+		<div class="moka-notification-bell__header">
+			<span class="moka-notification-bell__title" id="@TitleId">@Text.Title</span>
+			@if (UnreadCount > 0 && MokaNotificationLooks.ShowsNewCount(look))
+			{
+				<span class="moka-notification-bell__count">@NewCount</span>
+			}
+			@if (Notifications is { Count: > 0 })
+			{
+				<button type="button" class="moka-notification-bell__action" @onclick="HandleMarkAllRead">@Text.MarkAllRead</button>
+				<button type="button" class="moka-notification-bell__action" @onclick="HandleClear">@Text.Clear</button>
+			}
+		</div>
+
+		<div class="moka-notification-bell__list">
+			@if (Notifications is null or { Count: 0 })
+			{
+				<div class="moka-notification-bell__empty">
+					<MokaIcon Icon="MokaIcons.Status.Bell" SizeValue="28px" Style="opacity: 0.3"/>
+					<span>@Text.Empty</span>
+				</div>
+			}
+			else
+			{
+				<span id="@UnreadId" hidden>@Text.Unread</span>
+				@foreach (MokaNotificationGroup<MokaNotificationBellItem> group in Groups(VisibleNotifications, look))
+				{
+					string? headingId = GroupHeadingId(group);
+					@* A heading names the list under it rather than sitting in it, where only list items belong. *@
+					if (headingId is not null)
+					{
+						<div class="moka-notification-bell__group moka-micro-label" id="@headingId">@group.Heading</div>
+					}
+
+					<div role="list" aria-labelledby="@headingId" @key="group.Key">
+						@for (int i = 0; i < group.Items.Count; i++)
+						{
+							MokaNotificationBellItem item = group.Items[i];
+							<div class="@ItemCss(item)" role="listitem" @key="group.Keys[i]"
+							     aria-describedby="@(Clickable || item.Read ? null : UnreadId)">
+								@if (Clickable)
+								{
+									<button type="button" class="moka-notification-bell__item-main"
+									        aria-describedby="@(item.Read ? null : UnreadId)"
+									        @onclick="() => HandleItemClick(item)">
+										@ItemContent(item, look)
+									</button>
+								}
+								else
+								{
+									<div class="moka-notification-bell__item-main">
+										@ItemContent(item, look)
+									</div>
+								}
+							</div>
+						}
+					</div>
+				}
+
+				@if (RemainingCount > 0)
+				{
+					<div class="moka-notification-bell__more">@Text.More(RemainingCount)</div>
+				}
+			}
+		</div>
+	</text>;
 
 	// Spans, since the content sits inside a button when the item can be clicked.
 	private RenderFragment ItemContent(MokaNotificationBellItem item, MokaNotificationLook look) => @<text>

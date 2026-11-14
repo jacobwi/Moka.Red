@@ -26,7 +26,7 @@ public class MokaToastLookTests : BunitContext
 		Toasts.Show(message, severity, o =>
 		{
 			o.Title = title;
-			o.DurationMs = 0;
+			o.Duration = null;
 		});
 
 	private IRenderedComponent<CascadingValue<MokaTheme>> RenderIn(MokaTheme theme,
@@ -278,9 +278,10 @@ public class MokaToastLookTests : BunitContext
 		Show("Oldest");
 		Toasts.ShowError("Newest", o =>
 		{
-			o.DurationMs = 0;
+			o.Duration = null;
 			o.ActionText = "Retry";
 			o.OnAction = () => actions++;
+			o.CloseOnAction = false;
 		});
 
 		cut.Find(".moka-toast-action").Click();
@@ -295,9 +296,9 @@ public class MokaToastLookTests : BunitContext
 	{
 		IRenderedComponent<CascadingValue<MokaTheme>> cut =
 			RenderIn(MokaTheme.Red, h => h.Add(x => x.Stacking, MokaToastStacking.Pile));
-		Toasts.ShowInfo("Timed", o => o.DurationMs = 60_000);
+		Toasts.ShowInfo("Timed", o => o.Duration = TimeSpan.FromMinutes(1));
 
-		Assert.Equal("animation-duration: 60000ms", cut.Find(".moka-toast-progress").GetAttribute("style"));
+		Assert.Equal("--_toast-duration: 60000ms", cut.Find(".moka-toast-timer").GetAttribute("style"));
 	}
 
 	[Fact]
@@ -369,9 +370,9 @@ public class MokaToastLookTests : BunitContext
 	[Theory]
 	[InlineData("snackbar")]
 	[InlineData("pill")]
-	public void OneLineLooks_HideTheCountdownBar(string look) =>
-		Assert.Equal("none",
-			ScopedCss.Declarations(Css, $".moka-gate .moka-toast-host--{look} .moka-toast-progress")["display"]);
+	public void OneLineLooks_HideTheCountdownBar_WhileItStillRuns(string look) =>
+		Assert.Equal("hidden",
+			ScopedCss.Declarations(Css, $".moka-gate .moka-toast-host--{look} .moka-toast-timer")["visibility"]);
 
 	// Centred on its edge whatever Position says, without a transform that would capture the close tooltips.
 	[Fact]

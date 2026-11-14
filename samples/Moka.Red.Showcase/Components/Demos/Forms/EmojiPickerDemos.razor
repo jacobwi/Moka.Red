@@ -1,0 +1,87 @@
+@using Moka.Red.Forms.EmojiPicker
+@using Moka.Red.Primitives.Emoji
+@using Moka.Red.Primitives.Reactions
+@using System.ComponentModel.DataAnnotations
+@using Moka.Red.Feedback.EmojiTypeahead
+
+<DemoSection Id="shapes" Title="Shapes">
+	<MokaGrid Columns="1" ColumnsMd="2" Gap="MokaSpacingScale.Lg">
+		<div>
+			<MokaCaption Micro>Popover grid</MokaCaption>
+			<MokaEmojiPicker @bind-Value="_status" Label="Status emoji" Clearable
+			                 Options="@(_options with { Shape = MokaEmojiShape.Popover })" OptionsChanged="Keep"/>
+		</div>
+		<div>
+			<MokaCaption Micro>Search list</MokaCaption>
+			<MokaEmojiPicker @bind-Value="_listed" Label="Reaction to use"
+			                 Options="@(_options with { Shape = MokaEmojiShape.List })" OptionsChanged="Keep"/>
+		</div>
+		<div>
+			<MokaCaption Micro>Quick strip</MokaCaption>
+			<MokaEmojiPicker @bind-Value="_mood" Label="Mood" Clearable
+			                 Options="@(_options with { Shape = MokaEmojiShape.Strip })" OptionsChanged="Keep"/>
+		</div>
+		<div>
+			<MokaCaption Micro>Composer panel under a picker</MokaCaption>
+			<MokaEmojiPicker @bind-Value="_docked" Label="Project icon" Size="MokaSize.Lg"
+			                 Options="@(_options with { Shape = MokaEmojiShape.Composer })" OptionsChanged="Keep"/>
+		</div>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="in-a-form-beside-fields-that-take-an" Title="In a form, beside fields that take an emoji button" Description="The picker takes part in EditForm validation; a text field or area with EmojiButton opens the same panel, and a typeahead around a field offers emoji after a colon.">
+	<EditForm Model="_form" OnValidSubmit="@(() => _submitted = true)">
+		<DataAnnotationsValidator/>
+		<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Lg">
+			<MokaEmojiPicker @bind-Value="_form.Icon" Label="Team icon (required)" Required Clearable
+			                 Options="_options" OptionsChanged="Keep"/>
+			<MokaTextField @bind-Value="_form.Title" Label="Title" EmojiButton Clearable
+			               EmojiOptions="_options" EmojiOptionsChanged="Keep"/>
+			<MokaTextArea @bind-Value="_form.Notes" Label="Release notes" Rows="3" EmojiButton
+			              EmojiOptions="_options" EmojiOptionsChanged="Keep"/>
+			<MokaEmojiTypeahead Options="_options">
+				<MokaTextArea @bind-Value="_form.Comment" Label="Comment with a colon typeahead" Rows="3"
+				              HelperText="Type a colon and two letters, like :ta or :roc, or a whole code like :tada:"/>
+			</MokaEmojiTypeahead>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Align="MokaAlign.Center">
+				<MokaButton Type="submit">Save</MokaButton>
+				@if (_submitted)
+				{
+					<MokaCaption>Saved: @_form.Icon @_form.Title</MokaCaption>
+				}
+			</MokaFlexbox>
+			<ValidationSummary/>
+		</MokaFlexbox>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private MokaEmojiOptions _options = new();
+
+	private string? _status = "\u2708\uFE0F";
+
+	private string? _listed;
+
+	private string? _mood = "\U0001F354";
+
+	private string? _docked = "\U0001F680";
+
+	private void Keep(MokaEmojiOptions changed) =>
+		_options = _options with { Recent = changed.Recent, SkinTone = changed.SkinTone };
+
+	private bool _submitted;
+
+	private readonly TeamForm _form = new();
+
+	private sealed class TeamForm
+	{
+		[Required(ErrorMessage = "Pick an icon for the team.")]
+		public string? Icon { get; set; }
+
+		public string? Title { get; set; } = "Release 0.4";
+
+		public string? Notes { get; set; } = "New pickers for emoji and flags. Thanks to everyone who tried the boards.";
+
+		public string? Comment { get; set; } = "Looks good, ship it ";
+	}
+}

@@ -1,0 +1,70 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Microsoft.Extensions.DependencyInjection
+@using Moka.Red.ContextMenu
+
+@code {
+	/// <inheritdoc />
+	protected internal override string? KindName => Words.RowMenu(null);
+
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The menu's items for a row. They are built when the menu opens, not as the rows draw.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, IReadOnlyList<MokaContextMenuItem>>? Items { get; set; }
+
+	/// <summary>What a row is called, for its button's name ("Actions for Ada"). Null names every button the same.</summary>
+	[Parameter]
+	public Func<TItem, string?>? ItemName { get; set; }
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
+
+	/// <inheritdoc />
+	/// <remarks>The buttons sit at the row's end.</remarks>
+	public override MokaTextAlign Align { get; set; } = MokaTextAlign.Right;
+
+	/// <inheritdoc />
+	/// <remarks>Nothing to sort, filter, search or export.</remarks>
+	protected internal override bool HasValue => false;
+
+	// One button per row, and one menu for the whole page: the context menu service's host draws it. The service opens
+	// it under the button for a keyboard click, which reports no pointer position. The button has no click handler of
+	// its own: the table hears every row's through one listener and calls HandleCellActionAsync.
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string label = Words.RowMenu(ItemName?.Invoke(item));
+		return @<MokaTooltip Text="@label" Position="MokaTooltipPosition.Left">
+			<button type="button" class="moka-row-menu-cell" aria-label="@label" aria-haspopup="menu"
+			        data-moka-act="@ActionAttribute(OpenAction)">
+				<MokaIcon Icon="MokaIcons.Navigation.MoreVertical" SizeValue="16px"/>
+			</button>
+		</MokaTooltip>;
+	};
+
+	private const string OpenAction = "open";
+
+	/// <inheritdoc />
+	protected internal override Task HandleCellActionAsync(TItem item, string action, MouseEventArgs click)
+	{
+		if (action == OpenAction)
+		{
+			Open(item, click);
+		}
+
+		return Task.CompletedTask;
+	}
+
+	private void Open(TItem item, MouseEventArgs e)
+	{
+		IMokaContextMenuService menu = Services.GetService<IMokaContextMenuService>()
+		                               ?? throw new InvalidOperationException(
+			                               "MokaRowMenuColumn opens its menu through IMokaContextMenuService. Register it with AddMokaContextMenu() (AddMokaRed() does) and place a MokaContextMenuHost in the layout.");
+		if (Items is not null)
+		{
+			menu.Show(e, Items(item));
+		}
+	}
+}

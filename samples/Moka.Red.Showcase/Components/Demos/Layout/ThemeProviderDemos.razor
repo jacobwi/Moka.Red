@@ -1,0 +1,48 @@
+<DemoSection Id="uppercase-controls-headings-as-written" Title="Uppercase controls, headings as written" Description="Uppercase turns every title uppercase and spaces page titles and big numbers out. With MokaLetterCase.Controls buttons, chips, tabs and card titles go uppercase while page and dialog titles stay as written.">
+	<div style="@Columns">
+		@foreach ((string key, string name, MokaLetterCase letterCase) in LetterCases)
+		{
+			<div>
+				<MokaCaption Micro>@name</MokaCaption>
+				<MokaThemeProvider Theme="@((Theme ?? MokaTheme.Default).WithLetterCase(letterCase))">
+					@CaseSample
+				</MokaThemeProvider>
+			</div>
+		}
+	</div>
+</DemoSection>
+
+@code {
+	[CascadingParameter]
+	private MokaTheme? Theme { get; set; }
+
+	private static readonly (string Key, string Name, MokaLetterCase Case)[] LetterCases =
+	[
+		("case-sentence", "Sentence", MokaLetterCase.Sentence),
+		("case-uppercase", "Uppercase", MokaLetterCase.Uppercase),
+		("case-controls", "Controls", MokaLetterCase.Controls)
+	];
+
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
+
+	private string _caseView = "list";
+
+	private RenderFragment CaseSample =>
+		@<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); padding: var(--moka-spacing-lg); border-radius: var(--moka-radius-md); background: var(--moka-color-background);">
+			<MokaPageHeader Title="Settings" Said="Last saved 2 minutes ago"/>
+			<MokaCard Title="Storage" Subtitle="Shared by 3 devices">
+				<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+					<MokaStat Value="1.2 TB" Label="Used"/>
+					<MokaChip Text="Synced"/>
+				</div>
+			</MokaCard>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				<MokaButton Variant="MokaVariant.Filled">Save changes</MokaButton>
+				<MokaButton Variant="MokaVariant.Text">Cancel</MokaButton>
+				<MokaSegmentedControl Size="MokaSize.Sm" @bind-Value="_caseView" AriaLabel="View">
+					<MokaSegment Value="list" Text="List"/>
+					<MokaSegment Value="tiles" Text="Tiles"/>
+				</MokaSegmentedControl>
+			</div>
+		</div>;
+}

@@ -1,0 +1,18 @@
+@namespace Moka.Red.Core.Announcer
+@implements IDisposable
+
+@* Both regions are in the page from the first render and stay empty until this host speaks, so a screen reader is
+   already watching them when words arrive. Each announcement is a keyed element of its own: the same words said
+   twice are a new element, which is what a screen reader reads. *@
+<div class="moka-visually-hidden moka-announcer" role="status" aria-live="polite">
+	@foreach (MokaAnnouncement announcement in Shown(MokaPoliteness.Polite))
+	{
+		<div @key="announcement.Number">@announcement.Text</div>
+	}
+</div>
+<div class="moka-visually-hidden moka-announcer" role="alert" aria-live="assertive" aria-atomic="false">
+	@foreach (MokaAnnouncement announcement in Shown(MokaPoliteness.Assertive))
+	{
+		<div @key="announcement.Number">@announcement.Text</div>
+	}
+</div>

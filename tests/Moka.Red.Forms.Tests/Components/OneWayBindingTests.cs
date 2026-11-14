@@ -50,9 +50,14 @@ public class OneWayBindingTests : BunitContext
 	public async Task ColorWheel_KeepsItsSliders_WhenABoundParentEchoesItsOwnValue()
 	{
 		string value = "#ff0000";
-		IRenderedComponent<MokaColorWheel> cut = Render<MokaColorWheel>(p => p
+		IRenderedComponent<MokaColorWheel>? cut = null;
+		cut = Render<MokaColorWheel>(p => p
 			.Add(x => x.Value, value)
-			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v => value = v)));
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v =>
+			{
+				value = v;
+				cut!.Render(q => q.Add(x => x.Value, v));
+			})));
 
 		await cut.FindAll(".moka-color-wheel-slider")[2].InputAsync(new ChangeEventArgs { Value = "100" });
 		cut.Render(p => p.Add(x => x.Value, value));
@@ -262,7 +267,11 @@ public class OneWayBindingTests : BunitContext
 	[Fact]
 	public async Task CreditCard_KeepsWhatWasTyped_WhenTheParentPassesTheSameValues()
 	{
-		IRenderedComponent<MokaCreditCardInput> cut = Render<MokaCreditCardInput>();
+		IRenderedComponent<MokaCreditCardInput> cut = Render<MokaCreditCardInput>(p => p
+			.Add(x => x.CardNumber, "")
+			.Add(x => x.ExpiryDate, "")
+			.Add(x => x.Cvv, "")
+			.Add(x => x.CardholderName, ""));
 
 		await NumberInput(cut).InputAsync(new ChangeEventArgs { Value = "4242424242424242" });
 		await cut.Find("input[placeholder='MM/YY']").InputAsync(new ChangeEventArgs { Value = "1226" });

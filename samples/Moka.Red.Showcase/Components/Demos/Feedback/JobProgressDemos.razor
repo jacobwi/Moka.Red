@@ -1,0 +1,126 @@
+@using Moka.Red.Feedback.JobProgress
+@implements IDisposable
+
+<DemoSection Id="a-running-job" Title="A running job">
+	<MokaJobProgress Text="@_text"
+	                 Percent="_percent"
+	                 Bytes="_bytes"
+	                 TotalBytes="@(_bytes is null ? null : Total)"
+	                 BytesPerSecond="_rate"
+	                 Elapsed="_elapsed"
+	                 Facts="_step"/>
+	<div style="display: flex; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="Start">Run it again</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="with-a-number" Title="With a number">
+	<MokaJobProgress Text="Downloading the update"
+	                 Percent="62"
+	                 Bytes="148_000_000"
+	                 TotalBytes="240_000_000"
+	                 BytesPerSecond="12_400_000"
+	                 Elapsed="TimeSpan.FromSeconds(12)"/>
+</DemoSection>
+
+<DemoSection Id="with-no-number-yet" Title="With no number yet">
+	<MokaJobProgress Text="Checking what changed" Elapsed="TimeSpan.FromSeconds(4)"/>
+</DemoSection>
+
+@code {
+	private const long Total = 240_000_000;
+
+	private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(400);
+
+	private Timer? _timer;
+
+	private DateTime _started;
+
+	private DateTime _phaseStarted;
+
+	private int _phase;
+
+	private string _text = string.Empty;
+
+	private double? _percent;
+
+	private long? _bytes;
+
+	private double? _rate;
+
+	private TimeSpan _elapsed;
+
+	private IReadOnlyList<string>? _step;
+
+	protected override void OnInitialized() => Start();
+
+	private void Start()
+	{
+		_timer?.Dispose();
+		_started = DateTime.UtcNow;
+		_phaseStarted = _started;
+		_phase = 0;
+		_bytes = null;
+		_rate = null;
+		_percent = null;
+		_text = "Checking what changed";
+		_step = ["Step 1 of 4"];
+		_elapsed = TimeSpan.Zero;
+		_timer = new Timer(_ => InvokeAsync(Advance), null, Tick, Tick);
+	}
+
+	private void Advance()
+	{
+		DateTime now = DateTime.UtcNow;
+		_elapsed = now - _started;
+		double inPhase = (now - _phaseStarted).TotalSeconds;
+
+		switch (_phase)
+		{
+			case 0 when inPhase >= 2.5:
+				NextPhase(now, "Downloading the update", "Step 2 of 4");
+				_bytes = 0;
+				_percent = 0;
+				break;
+			case 1:
+				double rate = 21_000_000 + Random.Shared.Next(-3_000_000, 3_000_000);
+				_rate = rate;
+				_bytes = Math.Min(Total, _bytes.GetValueOrDefault() + (long)(rate * Tick.TotalSeconds));
+				_percent = _bytes.Value * 100.0 / Total;
+				if (_bytes >= Total)
+				{
+					NextPhase(now, "Checking the download", "Step 3 of 4");
+					_rate = null;
+					_percent = null;
+				}
+
+				break;
+			case 2 when inPhase >= 2:
+				NextPhase(now, "Writing it to the disk", "Step 4 of 4");
+				_bytes = null;
+				_percent = 0;
+				break;
+			case 3:
+				_percent = Math.Min(100, inPhase / 3 * 100);
+				if (_percent >= 100)
+				{
+					NextPhase(now, "Ready. It restarts the router for about a minute.", null);
+					_timer?.Dispose();
+				}
+
+				break;
+		}
+
+		StateHasChanged();
+	}
+
+	private void NextPhase(DateTime now, string text, string? step)
+	{
+		_phase++;
+		_phaseStarted = now;
+		_text = text;
+		_step = step is null ? null : [step];
+	}
+
+	public void Dispose() => _timer?.Dispose();
+}

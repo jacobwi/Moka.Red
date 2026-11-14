@@ -1,17 +1,17 @@
 @namespace Moka.Red.Data.Pagination
 @inherits MokaComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="navigation" aria-label="Pagination" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" role="navigation" aria-label="@Words.Label" @attributes="AdditionalAttributes">
 	@if (Compact)
 	{
-		<MokaTooltip Text="Previous page" Position="TooltipPosition">
-			<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(_currentPage - 1)" aria-label="Previous page">
+		<MokaTooltip Text="@Words.PreviousPage" Position="TooltipPosition">
+			<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPageShown - 1)" aria-label="@Words.PreviousPage">
 				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 			</button>
 		</MokaTooltip>
-		<span class="moka-pagination-compact-info">@_currentPage / @TotalPages</span>
-		<MokaTooltip Text="Next page" Position="TooltipPosition">
-			<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(_currentPage + 1)" aria-label="Next page">
+		<span class="moka-pagination-compact-info">@CompactText</span>
+		<MokaTooltip Text="@Words.NextPage" Position="TooltipPosition">
+			<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPageShown + 1)" aria-label="@Words.NextPage">
 				<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 			</button>
 		</MokaTooltip>
@@ -21,7 +21,7 @@
 		@if (ShowPageSizeSelector)
 		{
 			<div class="moka-pagination-size">
-				<select class="moka-pagination-size-select" value="@_pageSize" @onchange="HandlePageSizeChange" aria-label="Rows per page">
+				<select class="moka-pagination-size-select" @bind:get="PageSizeShown" @bind:set="PickPageSize" aria-label="@Words.RowsPerPage">
 					@foreach (var opt in PageSizeOptions)
 					{
 						<option value="@opt">@opt</option>
@@ -32,50 +32,53 @@
 
 		@if (ShowPageInfo)
 		{
-			<span class="moka-pagination-info">@StartItem-@EndItem of @TotalItems</span>
+			<span class="moka-pagination-info">@RangeText</span>
 		}
 
 		<div class="moka-pagination-nav">
 			@if (ShowFirstLast)
 			{
-				<MokaTooltip Text="First page" Position="TooltipPosition">
-					<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(1)" aria-label="First page">
+				<MokaTooltip Text="@Words.FirstPage" Position="TooltipPosition">
+					<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(1)" aria-label="@Words.FirstPage">
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronsLeft" SizeValue="14px"/>
 					</button>
 				</MokaTooltip>
 			}
 
-			<MokaTooltip Text="Previous page" Position="TooltipPosition">
-				<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(_currentPage - 1)" aria-label="Previous page">
+			<MokaTooltip Text="@Words.PreviousPage" Position="TooltipPosition">
+				<button type="button" class="moka-pagination-btn" disabled="@IsFirstPage" @onclick="() => GoToPage(CurrentPageShown - 1)" aria-label="@Words.PreviousPage">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="14px"/>
 				</button>
 			</MokaTooltip>
 
-			<button type="button" class="@EdgePageCssClass(ShowStartEllipsis)" tabindex="@EdgePageTabIndex(ShowStartEllipsis)" aria-current="@(_currentPage == 1 ? "page" : null)" @onclick="() => GoToPage(1)">1</button>
+			<button type="button" class="@EdgePageCssClass(ShowStartEllipsis)" tabindex="@EdgePageTabIndex(ShowStartEllipsis)" aria-current="@(CurrentPageShown == 1 ? "page" : null)" @onclick="() => GoToPage(1)">1</button>
 			<span class="@EllipsisCssClass(ShowStartEllipsis)" aria-hidden="true">…</span>
 
 			@foreach (var pageNum in _visiblePages)
 			{
 				<button type="button" class="@PageCssClass(pageNum)"
-				        aria-current="@(pageNum == _currentPage ? "page" : null)"
+				        aria-current="@(pageNum == CurrentPageShown ? "page" : null)"
 				        @onclick="() => GoToPage(pageNum)">
 					@pageNum
 				</button>
 			}
 
-			<span class="@EllipsisCssClass(ShowEndEllipsis)" aria-hidden="true">…</span>
-			<button type="button" class="@EdgePageCssClass(ShowEndEllipsis)" tabindex="@EdgePageTabIndex(ShowEndEllipsis)" aria-current="@(_currentPage == TotalPages ? "page" : null)" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
+			@if (ShowLastPage)
+			{
+				<span class="@EllipsisCssClass(ShowEndEllipsis)" aria-hidden="true">…</span>
+				<button type="button" class="@EdgePageCssClass(ShowEndEllipsis)" tabindex="@EdgePageTabIndex(ShowEndEllipsis)" aria-current="@(CurrentPageShown == TotalPages ? "page" : null)" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
+			}
 
-			<MokaTooltip Text="Next page" Position="TooltipPosition">
-				<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(_currentPage + 1)" aria-label="Next page">
+			<MokaTooltip Text="@Words.NextPage" Position="TooltipPosition">
+				<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(CurrentPageShown + 1)" aria-label="@Words.NextPage">
 					<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="14px"/>
 				</button>
 			</MokaTooltip>
 
-			@if (ShowFirstLast)
+			@if (ShowFirstLast && ShowLastPage)
 			{
-				<MokaTooltip Text="Last page" Position="TooltipPosition">
-					<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(TotalPages)" aria-label="Last page">
+				<MokaTooltip Text="@Words.LastPage" Position="TooltipPosition">
+					<button type="button" class="moka-pagination-btn" disabled="@IsLastPage" @onclick="() => GoToPage(TotalPages)" aria-label="@Words.LastPage">
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronsRight" SizeValue="14px"/>
 					</button>
 				</MokaTooltip>

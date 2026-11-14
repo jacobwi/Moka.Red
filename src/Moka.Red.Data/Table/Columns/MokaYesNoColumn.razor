@@ -1,0 +1,106 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's answer, or null to draw nothing.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, bool?>? Value { get; set; }
+
+	/// <summary>Whether an answer is a check or a switch. Default a check.</summary>
+	[Parameter]
+	public MokaYesNoLook Look { get; set; }
+
+	/// <inheritdoc />
+	/// <remarks>Answers default to the middle of the column.</remarks>
+	public override MokaTextAlign Align { get; set; } = MokaTextAlign.Center;
+
+	/// <summary>Writes an answer into a row and returns the row, for editing. See <see cref="MokaColumn{TItem}.SetField" />.</summary>
+	[Parameter]
+	public Func<TItem, bool?, TItem>? SetValue { get; set; }
+
+	/// <inheritdoc />
+	protected internal override Type EditValueType(TItem item) => typeof(bool?);
+
+	/// <inheritdoc />
+	protected internal override MokaColumnEditor AutoEditor(TItem item) =>
+		Look == MokaYesNoLook.Switch ? MokaColumnEditor.Switch : MokaColumnEditor.Checkbox;
+
+	/// <inheritdoc />
+	protected internal override bool CanWrite => SetValue is not null || base.CanWrite;
+
+	/// <inheritdoc />
+	protected internal override TItem WriteValue(TItem item, object? value) =>
+		SetValue is null ? base.WriteValue(item, value) : SetValue(item, value as bool?);
+
+	/// <inheritdoc />
+	/// <remarks>Reads the table's own Yes and No as well as true, false, 1 and 0.</remarks>
+	protected internal override bool TryParseText(string text, TItem item, out object? value)
+	{
+		string trimmed = text.Trim();
+		value = string.Equals(trimmed, Words.Yes, StringComparison.CurrentCultureIgnoreCase) ? true
+			: string.Equals(trimmed, Words.No, StringComparison.CurrentCultureIgnoreCase) ? false
+			: null;
+		return value is not null || base.TryParseText(text, item, out value);
+	}
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Value is not null;
+
+	// A picture, with the word for screen readers: a box or switch per row would be a tab stop per row in a grid with
+	// one.
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		if (Value?.Invoke(item) is not { } yes)
+		{
+			return static _ => { };
+		}
+
+		string word = yes ? Words.Yes : Words.No;
+		if (Look == MokaYesNoLook.Switch)
+		{
+			return @<span class="moka-yes-no-cell">
+				<span class="@SwitchClass(yes)" aria-hidden="true"><span class="moka-yes-no-cell__knob"></span></span>
+				<span class="moka-visually-hidden">@word</span>
+			</span>;
+		}
+
+		return @<span class="moka-yes-no-cell">
+			<MokaIcon Icon="@(yes ? MokaIcons.Status.Check : MokaIcons.Action.Remove)" SizeValue="16px"
+			          Class="@IconClass(yes)"/>
+			<span class="moka-visually-hidden">@word</span>
+		</span>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => Look;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Value?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Value?.Invoke(item) switch
+	{
+		true => Words.Yes,
+		false => Words.No,
+		null => string.Empty
+	};
+
+	/// <inheritdoc />
+	protected internal override string ExportTextOf(TItem item) => Value?.Invoke(item) switch
+	{
+		true => "true",
+		false => "false",
+		null => string.Empty
+	};
+
+	private static string IconClass(bool yes) => yes ? "moka-yes-no-cell__yes" : "moka-yes-no-cell__no";
+
+	private static string SwitchClass(bool on) => new CssBuilder("moka-yes-no-cell__switch")
+		.AddClass("moka-yes-no-cell__switch--on", on)
+		.Build();
+}

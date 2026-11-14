@@ -1,0 +1,17 @@
+<DemoSection Id="basics" Title="Basics" Description="A plain surface at an elevation.">
+	<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap; align-items: flex-start;">
+		@for (var i = 0; i <= 4; i++)
+		{
+			var elevation = i;
+			<MokaPaper Elevation="@elevation" style="width: 120px; text-align: center;">
+				<p style="margin: 0;">Elevation @elevation</p>
+			</MokaPaper>
+		}
+		<MokaPaper Outlined style="width: 120px; text-align: center;">
+			<p style="margin: 0;">Outlined</p>
+		</MokaPaper>
+		<MokaPaper Square style="width: 120px; text-align: center;">
+			<p style="margin: 0;">Square</p>
+		</MokaPaper>
+	</div>
+</DemoSection>

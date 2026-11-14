@@ -1,0 +1,79 @@
+@using Moka.Red.Forms.Base
+
+<DemoSection Id="basics" Title="Basics" Description="A yes or no choice. Indeterminate for a group that is partly checked." Tip="Use a checkbox for a choice that is saved later, and a switch for one that acts at once.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="I agree to the terms and conditions"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Indeterminate" Indeterminate="true"/>
+			<MokaCheckbox @bind-Value="_model.AgreeTerms" Label="Disabled" Disabled="true"/>
+			<MokaCheckbox Value="true" DisplayOnly Label="Display only, checked (no input, no focus)"/>
+			<MokaCheckbox Value="false" DisplayOnly Label="Display only, unchecked"/>
+
+			<h3>Saving</h3>
+			<p class="page-desc">Each change saves for two seconds. While it saves the box shows a spinner, keeps focus, and a click or Space doesn't change it again.</p>
+			<div>
+				<MokaCheckbox @bind-Value="_releaseMail" @bind-Value:after="SaveReleaseMailAsync" Loading="_releaseMailSaving"
+				              Label="Email me about releases" HelperText="@($"Saved {_releaseMailSaves} times")"/>
+			</div>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, LabelPlacement">The text, and which side it sits on</DemoParam>
+		<DemoParam Name="Indeterminate">The dash for a group that is partly checked</DemoParam>
+		<DemoParam Name="HelperText">A hint under it</DemoParam>
+		<DemoParam Name="DisplayOnly">A drawn box with no input, for a row that owns the state</DemoParam>
+		<DemoParam Name="Loading">A spinner in the box while a change saves; it keeps focus and won't toggle again</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="the-page-owns-the-value" Title="The page owns the value" Description="Pass Value with ValueChanged and the page owns the value. Turn Allow changes off and tick the box: the handler leaves its field alone, and the box goes back.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 480px;">
+		<MokaSwitch @bind-Value="_allowSummaryChanges" Label="Allow changes"/>
+		<MokaCheckbox Label="Send me a weekly summary" Value="_summary" ValueChanged="SetSummary"/>
+		<MokaCaption>The page holds: @(_summary ? "checked" : "unchecked")</MokaCaption>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _allowSummaryChanges;
+
+	private bool _summary;
+
+	private void SetSummary(bool on)
+	{
+		if (_allowSummaryChanges)
+		{
+			_summary = on;
+		}
+	}
+
+	// Toggles that save, each for two seconds
+	private bool _releaseMail;
+
+	private bool _releaseMailSaving;
+
+	private int _releaseMailSaves;
+
+	private async Task SaveReleaseMailAsync()
+	{
+		_releaseMailSaving = true;
+		await Task.Delay(2000);
+		_releaseMailSaves++;
+		_releaseMailSaving = false;
+	}
+
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+}

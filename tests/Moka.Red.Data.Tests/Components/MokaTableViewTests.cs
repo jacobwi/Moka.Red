@@ -10,12 +10,17 @@ using static Moka.Red.Data.Tests.Components.TableKit;
 
 namespace Moka.Red.Data.Tests.Components;
 
+// Saved views: table states kept under a name, drawn as chips.
 public class MokaTableViewTests : BunitContext
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
-	private static readonly MokaTableView Everything = new("Everything", new Dictionary<string, string>());
-	private static readonly MokaTableView Guests = new("Guests", new Dictionary<string, string> { ["zone"] = "guests" });
+	private static readonly MokaTableView Everything = new("Everything", Plain());
+
+	private static readonly MokaTableView Researchers =
+		new("Researchers", Plain(new MokaTableFilter("Team", MokaFilterOperator.Is, "Research")));
+
+	private static readonly MokaTableState Engineers = Plain(new MokaTableFilter("Team", MokaFilterOperator.Is, "Engineering"));
 
 	public MokaTableViewTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -31,18 +36,18 @@ public class MokaTableViewTests : BunitContext
 	[Fact]
 	public void Views_ShowAsNamedChips()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Guests]));
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Researchers]));
 
 		Assert.Equal("Saved views", cut.Find(".moka-table-views").GetAttribute("aria-label"));
-		Assert.Equal(["Everything", "Guests"], cut.FindAll(".moka-table-view-pick").Select(b => b.TextContent.Trim()));
+		Assert.Equal(["Everything", "Researchers"], cut.FindAll(".moka-table-view-pick").Select(b => b.TextContent.Trim()));
 	}
 
 	[Fact]
-	public void TheChipWithTheFiltersInForce_IsLit()
+	public void TheChipOfTheViewInForce_IsLit()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Everything, Guests])
-			.Add(t => t.ActiveView, new MokaTableView("Anything", new Dictionary<string, string> { ["zone"] = "guests" })));
+			.Add(t => t.Views, [Everything, Researchers])
+			.Add(t => t.State, Researchers.State));
 
 		IReadOnlyList<IElement> chips = cut.FindAll(".moka-table-view");
 		Assert.DoesNotContain("moka-table-view--on", chips[0].ClassList);
@@ -52,33 +57,45 @@ public class MokaTableViewTests : BunitContext
 	}
 
 	[Fact]
-	public void NoActiveView_LightsNoChip()
+	public void ATableAsItStarts_LightsTheViewOfThat()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Guests]));
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Researchers]));
+
+		IReadOnlyList<IElement> chips = cut.FindAll(".moka-table-view");
+		Assert.Contains("moka-table-view--on", chips[0].ClassList);
+		Assert.DoesNotContain("moka-table-view--on", chips[1].ClassList);
+	}
+
+	[Fact]
+	public void AViewOfSomethingElse_IsNotLit()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Researchers]));
 
 		Assert.Empty(cut.FindAll(".moka-table-view--on"));
 	}
 
 	[Fact]
-	public void AChip_SaysWhatItFilters()
+	public void AChip_SaysWhatItShows()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Guests]));
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Everything, Researchers]));
 
 		Assert.Equal("Everything", cut.FindAll(".moka-table-view-pick")[0].GetAttribute("title"));
-		Assert.Equal("zone: guests", cut.FindAll(".moka-table-view-pick")[1].GetAttribute("title"));
+		Assert.Equal("Team: Research", cut.FindAll(".moka-table-view-pick")[1].GetAttribute("title"));
 	}
 
 	[Fact]
-	public async Task PickingAChip_RaisesItsView()
+	public async Task PickingAChip_PutsItsStateInForce_AndRaisesIt()
 	{
-		MokaTableView? picked = null;
+		MokaTableState? raised = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Everything, Guests])
-			.Add(t => t.ViewPicked, v => picked = v));
+			.Add(t => t.Views, [Everything, Researchers])
+			.Add(t => t.StateChanged, s => raised = s));
 
 		await cut.FindAll(".moka-table-view-pick")[1].ClickAsync(new MouseEventArgs());
 
-		Assert.Equal(Guests, picked);
+		Assert.Equal(["Grace", "Barbara"], ColumnTexts(cut, 0));
+		Assert.Contains("moka-table-view--on", cut.FindAll(".moka-table-view")[1].ClassList);
+		Assert.True(Researchers.State.SameView(raised));
 	}
 
 	[Fact]
@@ -86,37 +103,37 @@ public class MokaTableViewTests : BunitContext
 	{
 		MokaTableView? forgotten = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Guests])
+			.Add(t => t.Views, [Researchers])
 			.Add(t => t.ViewForgotten, v => forgotten = v));
 
 		await cut.Find(".moka-table-view-forget").ClickAsync(new MouseEventArgs());
 
-		Assert.Equal(Guests, forgotten);
+		Assert.Equal(Researchers, forgotten);
 	}
 
 	[Fact]
 	public void TheForgetButton_IsNamedByATooltip()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Guests])
+			.Add(t => t.Views, [Researchers])
 			.Add(t => t.ViewForgotten, _ => { }));
 
-		IconTooltip.AssertNamed(cut.Find(".moka-table-view-forget"), "Forget the view Guests", MokaTooltipPosition.Bottom);
+		IconTooltip.AssertNamed(cut.Find(".moka-table-view-forget"), "Forget the view Researchers", MokaTooltipPosition.Bottom);
 	}
 
 	[Fact]
 	public void WithoutAHandler_ChipsCanNotBeForgotten()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Guests]));
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Researchers]));
 
 		Assert.Empty(cut.FindAll(".moka-table-view-forget"));
 	}
 
 	[Fact]
-	public void AViewWithNoFilters_CanNotBeForgotten()
+	public void AViewOfTheTableAsItStarts_CanNotBeForgotten()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Everything, Guests])
+			.Add(t => t.Views, [Everything, Researchers])
 			.Add(t => t.ViewForgotten, _ => { }));
 
 		Assert.Single(cut.FindAll(".moka-table-view-forget"));
@@ -129,7 +146,7 @@ public class MokaTableViewTests : BunitContext
 		BunitJSModuleInterop module = JSInterop.SetupModule(TableModule);
 		module.Mode = JSRuntimeMode.Loose;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Guests])
+			.Add(t => t.Views, [Researchers])
 			.Add(t => t.ViewForgotten, _ => { }));
 
 		await cut.Find(".moka-table-view-forget").ClickAsync(new MouseEventArgs());
@@ -140,7 +157,7 @@ public class MokaTableViewTests : BunitContext
 	[Fact]
 	public void WithoutASaveHandler_ThereIsNoSaveButton()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Guests]));
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.Views, [Researchers]));
 
 		Assert.Empty(cut.FindAll(".moka-table-view-save"));
 	}
@@ -154,35 +171,47 @@ public class MokaTableViewTests : BunitContext
 	}
 
 	[Fact]
-	public void WithNoFiltersInForce_ThereIsNothingToSave()
+	public void ATableAsItStarts_HasNothingToSave()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.ViewSaved, _ => { }));
 
 		IElement save = cut.Find(".moka-table-view-save");
 		Assert.True(save.HasAttribute("disabled"));
-		Assert.Equal("Pick a filter first", save.GetAttribute("title"));
+		Assert.Equal("Change the table first", save.GetAttribute("title"));
 	}
 
 	[Fact]
-	public void FiltersThatAreAViewAlready_CanNotBeSavedAgain()
+	public void AViewInForceAlready_CanNotBeSavedAgain()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Guests])
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.Views, [Researchers])
+			.Add(t => t.State, Researchers.State)
 			.Add(t => t.ViewSaved, _ => { }));
 
 		IElement save = cut.Find(".moka-table-view-save");
 		Assert.True(save.HasAttribute("disabled"));
-		Assert.Equal("These filters are a view already", save.GetAttribute("title"));
+		Assert.Equal("A view shows this already", save.GetAttribute("title"));
+	}
+
+	[Fact]
+	public void AStateNoViewShows_CanBeSaved()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
+			.Add(t => t.Views, [Researchers])
+			.Add(t => t.State, Engineers)
+			.Add(t => t.ViewSaved, _ => { }));
+
+		IElement save = cut.Find(".moka-table-view-save");
+		Assert.False(save.HasAttribute("disabled"));
+		Assert.Equal("Keep how the table looks now under a name", save.GetAttribute("title"));
 	}
 
 	[Fact]
 	public async Task Saving_AsksForANameAndRaisesTheNewView()
 	{
 		MokaTableView? saved = null;
-		Dictionary<string, string> filters = new() { ["zone"] = "things" };
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, new MokaTableView("Now", filters))
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, v => saved = v));
 
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
@@ -193,8 +222,11 @@ public class MokaTableViewTests : BunitContext
 		await cut.Find(".moka-table-view-name").InputAsync(new ChangeEventArgs { Value = "  Things  " });
 		await cut.FindAll(".moka-table-view-new button")[0].ClickAsync(new MouseEventArgs());
 
-		Assert.Equal(new MokaTableView("Things", filters), saved);
-		Assert.NotSame(filters, saved!.Filters);
+		Assert.Equal("Things", saved!.Name);
+		Assert.True(saved.State.SameView(Engineers));
+		Assert.Null(saved.State.Density);
+		Assert.Equal(1, saved.State.Page);
+		Assert.NotSame(Engineers.Filters, saved.State.Filters);
 		Assert.Empty(cut.FindAll(".moka-table-view-name"));
 	}
 
@@ -203,7 +235,7 @@ public class MokaTableViewTests : BunitContext
 	{
 		MokaTableView? saved = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, v => saved = v));
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
 
@@ -222,7 +254,7 @@ public class MokaTableViewTests : BunitContext
 	{
 		MokaTableView? saved = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, v => saved = v));
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
 
@@ -236,7 +268,7 @@ public class MokaTableViewTests : BunitContext
 	public async Task Cancel_GoesBackToTheButton()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, _ => { }));
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
 
@@ -250,7 +282,7 @@ public class MokaTableViewTests : BunitContext
 	{
 		MokaTableView? saved = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, v => saved = v));
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
 
@@ -266,16 +298,16 @@ public class MokaTableViewTests : BunitContext
 	{
 		MokaTableView? saved = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.Views, [Guests])
-			.Add(t => t.ActiveView, new MokaTableView("Now", new Dictionary<string, string> { ["zone"] = "things" }))
+			.Add(t => t.Views, [Researchers])
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, v => saved = v));
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
 
-		await cut.Find(".moka-table-view-name").InputAsync(new ChangeEventArgs { Value = "GUESTS" });
+		await cut.Find(".moka-table-view-name").InputAsync(new ChangeEventArgs { Value = "RESEARCHERS" });
 		await cut.FindAll(".moka-table-view-new button")[0].ClickAsync(new MouseEventArgs());
 
 		Assert.Null(saved);
-		Assert.Equal("There's a view called GUESTS already.", cut.Find(".moka-table-view-problem").TextContent.Trim());
+		Assert.Equal("There's a view called RESEARCHERS already.", cut.Find(".moka-table-view-problem").TextContent.Trim());
 		Assert.Equal("alert", cut.Find(".moka-table-view-problem").GetAttribute("role"));
 		Assert.Equal("true", cut.Find(".moka-table-view-name").GetAttribute("aria-invalid"));
 	}
@@ -288,7 +320,7 @@ public class MokaTableViewTests : BunitContext
 		BunitJSModuleInterop module = JSInterop.SetupModule(KeysModule);
 		module.Mode = JSRuntimeMode.Loose;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, _ => { }));
 
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
@@ -304,7 +336,7 @@ public class MokaTableViewTests : BunitContext
 	public async Task NamingAView_TakesFocus()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ActiveView, Guests)
+			.Add(t => t.State, Engineers)
 			.Add(t => t.ViewSaved, _ => { }));
 
 		await cut.Find(".moka-table-view-save").ClickAsync(new MouseEventArgs());
@@ -317,7 +349,7 @@ public class MokaTableViewTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
 			.Add(t => t.Searchable, true)
-			.Add(t => t.Views, [Guests]));
+			.Add(t => t.Views, [Researchers]));
 
 		IElement toolbar = cut.Find(".moka-table-toolbar");
 		Assert.Contains("moka-table-toolbar--views", toolbar.ClassList);
@@ -328,13 +360,17 @@ public class MokaTableViewTests : BunitContext
 	[Fact]
 	public void Views_AreEqualByWhatTheySay()
 	{
-		MokaTableView same = new("Guests", new Dictionary<string, string> { ["zone"] = "guests" });
+		MokaTableView same = new("Researchers", Plain(new MokaTableFilter("Team", MokaFilterOperator.Is, "Research")));
 
-		Assert.Equal(Guests, same);
-		Assert.Equal(Guests.GetHashCode(), same.GetHashCode());
-		Assert.NotEqual(Guests, Guests with { Name = "Other" });
-		Assert.NotEqual(Guests, Guests with { Filters = new Dictionary<string, string> { ["zone"] = "home" } });
+		Assert.Equal(Researchers, same);
+		Assert.Equal(Researchers.GetHashCode(), same.GetHashCode());
+		Assert.NotEqual(Researchers, Researchers with { Name = "Other" });
+		Assert.NotEqual(Researchers, Researchers with { State = Engineers });
 	}
+
+	// A state with every part said, as the table builds them: no sort, the default page size, no grouping.
+	private static MokaTableState Plain(params MokaTableFilter[] filters) =>
+		new() { Sorts = [], PageSize = 10, Groups = [], Filters = filters };
 
 	private IRenderedComponent<MokaTable<Person>> Table(
 		Action<ComponentParameterCollectionBuilder<MokaTable<Person>>>? extra = null) =>

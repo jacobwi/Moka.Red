@@ -1,0 +1,25 @@
+@inject IJSRuntime JS
+
+<DemoSection Id="basics" Title="Basics" Description="Spotlight tour overlay for guiding users. Note: requires JS interop for element positioning.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaButton id="onboard-demo-1" OnClick="() => _onboardingActive = true" Color="MokaColor.Primary">Start Tour</MokaButton>
+		<MokaButton id="onboard-demo-2" Variant="MokaVariant.Outlined">Settings</MokaButton>
+		<MokaButton id="onboard-demo-3" Variant="MokaVariant.Soft" Color="MokaColor.Success">Save</MokaButton>
+	</MokaFlexbox>
+
+	<MokaOnboarding Active="_onboardingActive"
+	                Steps="_onboardingSteps"
+	                OnComplete="() => _onboardingActive = false"
+	                OnSkip="() => _onboardingActive = false"/>
+</DemoSection>
+
+@code {
+	private bool _onboardingActive;
+
+	private static readonly MokaOnboardingStep[] _onboardingSteps =
+	[
+		new() { Title = "Welcome", Description = "Click here to start the tour anytime.", TargetSelector = "#onboard-demo-1" },
+		new() { Title = "Settings", Description = "Configure your preferences here.", TargetSelector = "#onboard-demo-2" },
+		new() { Title = "Save", Description = "Don't forget to save your changes!", TargetSelector = "#onboard-demo-3" }
+	];
+}

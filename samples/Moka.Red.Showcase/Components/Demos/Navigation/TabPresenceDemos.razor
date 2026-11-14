@@ -1,0 +1,13 @@
+@using Moka.Red.Core.PageTitle
+
+<DemoSection Id="rest-while-the-tab-is-out-of-sight" Title="Rest while the tab is out of sight" Description="It renders nothing. Hidden is raised once the browser tab has been out of sight for HiddenAfter, here five seconds, and Visible when it comes back, so a page can pause its refreshes.">
+	<MokaTabPresence HiddenAfter="TimeSpan.FromSeconds(5)" Hidden="@(() => Note("Out of sight for 5 seconds: refreshes paused."))"
+	                 Visible="@(() => Note("Back in view: refreshes resumed."))"/>
+	<MokaCaption>@_said</MokaCaption>
+</DemoSection>
+
+@code {
+	private string _said = "Switch to another browser tab for five seconds, then come back.";
+
+	private void Note(string said) => _said = said;
+}

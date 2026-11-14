@@ -1,0 +1,27 @@
+<DemoSection Id="vertical-drag-anywhere" Title="Vertical (drag anywhere)" Description="A list you reorder by dragging, anywhere on a row or by a handle.">
+	<MokaSortable TItem="string" Items="_sortableItems" OnReorder="HandleSortReorder">
+		<ItemTemplate>
+			<span>@context</span>
+		</ItemTemplate>
+	</MokaSortable>
+</DemoSection>
+
+<DemoSection Id="with-drag-handle" Title="With drag handle">
+	<MokaSortable TItem="string" Items="_sortableHandleItems" DragHandle="true" OnReorder="HandleSortReorder2">
+		<ItemTemplate>
+			<span>@context</span>
+		</ItemTemplate>
+	</MokaSortable>
+</DemoSection>
+
+@code {
+	private readonly List<string> _sortableHandleItems =
+		["High priority", "Medium priority", "Low priority", "Backlog"];
+
+	private readonly List<string> _sortableItems =
+		["Design mockups", "Write tests", "Code review", "Deploy to staging", "Update docs"];
+
+	private void HandleSortReorder((int OldIndex, int NewIndex) e) => StateHasChanged();
+
+	private void HandleSortReorder2((int OldIndex, int NewIndex) e) => StateHasChanged();
+}

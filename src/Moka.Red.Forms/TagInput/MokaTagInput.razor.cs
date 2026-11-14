@@ -25,11 +25,16 @@ public partial class MokaTagInput : MokaVisualComponentBase
 	// The tags on screen. Changes build a new list for ValuesChanged instead of editing the caller's:
 	// editing it threw on arrays and read-only lists, and a parent handed back its own instance
 	// could not tell that anything had changed.
-	private List<string> _tags = [];
+	private readonly MokaInputValue<IList<string>> _input;
 
 	// What Values held when it was last read. Comparing contents rather than the reference also
 	// picks up a parent that edits its own list in place and re-renders.
 	private List<string> _seen = [];
+
+	/// <summary>Creates the tag input. It shows its own tags until the parent passes a list.</summary>
+	public MokaTagInput() => _input = new MokaInputValue<IList<string>>(StateHasChanged, DispatchExceptionAsync, []);
+
+	private IList<string> Tags => _input.Shown ?? [];
 
 	// The consumer's Id names the text input, and the label's for follows it. Once MaxTags is reached
 	// the input is gone, and so is the label's for, which would point at nothing.
@@ -120,7 +125,7 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		.AddClass($"moka-taginput-input--{SizeToKebab(Size)}")
 		.Build();
 
-	private bool CanAddMore => !MaxTags.HasValue || _tags.Count < MaxTags.Value;
+	private bool CanAddMore => !MaxTags.HasValue || Tags.Count < MaxTags.Value;
 
 	private IEnumerable<string> FilteredSuggestions
 	{
@@ -133,7 +138,7 @@ public partial class MokaTagInput : MokaVisualComponentBase
 
 			return Suggestions
 				.Where(s => s.Contains(_inputText, StringComparison.OrdinalIgnoreCase))
-				.Where(s => AllowDuplicates || !_tags.Contains(s, StringComparer.OrdinalIgnoreCase));
+				.Where(s => AllowDuplicates || !Tags.Contains(s, StringComparer.OrdinalIgnoreCase));
 		}
 	}
 
@@ -169,23 +174,35 @@ public partial class MokaTagInput : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(PopupModule, "close", _generatedId);
 		}
 
+		_input.Stop();
 		await base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
-
-		IList<string> values = Values ?? [];
-		if (!values.SequenceEqual(_seen))
+		if (parameters.TryGetValue(nameof(Values), out IList<string>? values))
 		{
-			_seen = [.. values];
-			_tags = [.. values];
+			IList<string> given = values ?? [];
+			if (!given.SequenceEqual(_seen))
+			{
+				_seen = [.. given];
+			}
+
+			_input.Take(_seen);
 		}
+
+		return base.SetParametersAsync(parameters);
 	}
 
-	private async Task HandleInput(string? typed)
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	private void HandleInput(string? typed)
 	{
 		string value = typed ?? string.Empty;
 
@@ -194,7 +211,7 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		{
 			string[] parts = value.Split(Delimiter,
 				StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-			List<string> next = [.. _tags];
+			List<string> next = [.. Tags];
 			foreach (string part in parts)
 			{
 				TryAddTag(next, part);
@@ -202,7 +219,7 @@ public partial class MokaTagInput : MokaVisualComponentBase
 
 			_inputText = string.Empty;
 			// Tags typed with the delimiter were added without ValuesChanged ever being raised.
-			await CommitAsync(next);
+			Commit(next);
 		}
 		else
 		{
@@ -212,26 +229,26 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		_showSuggestions = Suggestions is not null && !string.IsNullOrWhiteSpace(_inputText);
 	}
 
-	private async Task HandleKeyDown(KeyboardEventArgs e)
+	private void HandleKeyDown(KeyboardEventArgs e)
 	{
 		switch (e.Key)
 		{
 			case "Enter":
 				if (!string.IsNullOrWhiteSpace(_inputText))
 				{
-					List<string> next = [.. _tags];
+					List<string> next = [.. Tags];
 					TryAddTag(next, _inputText.Trim());
 					_inputText = string.Empty;
 					_showSuggestions = false;
-					await CommitAsync(next);
+					Commit(next);
 				}
 
 				break;
 
 			case "Backspace":
-				if (string.IsNullOrEmpty(_inputText) && _tags.Count > 0)
+				if (string.IsNullOrEmpty(_inputText) && Tags.Count > 0)
 				{
-					await CommitAsync(_tags[..^1]);
+					Commit([.. Tags.Take(Tags.Count - 1)]);
 				}
 
 				break;
@@ -267,43 +284,40 @@ public partial class MokaTagInput : MokaVisualComponentBase
 		return true;
 	}
 
-	private async Task RemoveTag(int index)
+	private void RemoveTag(int index)
 	{
 		if (Disabled)
 		{
 			return;
 		}
 
-		List<string> next = [.. _tags];
+		List<string> next = [.. Tags];
 		next.RemoveAt(index);
-		await CommitAsync(next);
+		Commit(next);
 	}
 
-	private async Task HandleClearAll()
+	private void HandleClearAll()
 	{
 		_inputText = string.Empty;
-		await CommitAsync([]);
+		Commit([]);
 	}
 
-	private async Task SelectSuggestion(string suggestion)
+	private void SelectSuggestion(string suggestion)
 	{
-		List<string> next = [.. _tags];
+		List<string> next = [.. Tags];
 		TryAddTag(next, suggestion);
 		_inputText = string.Empty;
 		_showSuggestions = false;
-		await CommitAsync(next);
+		Commit(next);
 	}
 
 	// Only a real change is reported, and always as a new list.
-	private async Task CommitAsync(List<string> next)
+	private void Commit(List<string> next)
 	{
-		if (next.SequenceEqual(_tags))
+		if (!next.SequenceEqual(Tags))
 		{
-			return;
+			_input.Pick(next, ValuesChanged);
 		}
-
-		_tags = next;
-		await ValuesChanged.InvokeAsync(next);
 	}
 
 	private void HandleFocus()

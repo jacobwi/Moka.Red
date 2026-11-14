@@ -34,7 +34,7 @@
 				</div>
 			</div>
 
-			@if (_fields.Count == 0)
+			@if (ShownFields.Count == 0)
 			{
 				<div class="moka-form-builder__empty">
 					<MokaIcon Icon="MokaIcons.Action.Add" SizeValue="32px"/>
@@ -47,7 +47,7 @@
 					@{
 						object?[] keys = FieldKeys();
 					}
-					@foreach (var (field, index) in _fields.Select((f, i) => (f, i)))
+					@foreach (var (field, index) in ShownFields.Select((f, i) => (f, i)))
 					{
 						<div class="@FieldItemCssClass(field)"
 						     @key="keys[index]"
@@ -64,7 +64,7 @@
 										</button>
 									</MokaTooltip>
 								}
-								@if (index < _fields.Count - 1)
+								@if (index < ShownFields.Count - 1)
 								{
 									<MokaTooltip Text="Move down" Position="MokaTooltipPosition.Left">
 										<button class="moka-form-builder__move-btn" type="button" aria-label="Move down"
@@ -93,12 +93,12 @@
 				</div>
 			}
 
-			@if (ShowPreview && _fields.Count > 0)
+			@if (ShowPreview && ShownFields.Count > 0)
 			{
 				<div class="moka-form-builder__preview-section">
 					<div class="moka-form-builder__panel-header">Live Preview</div>
 					<div class="moka-form-builder__preview-content" style="@PreviewGridStyle">
-						@foreach (var field in _fields)
+						@foreach (var field in ShownFields)
 						{
 							<div style="@GetFieldColStyle(field)">
 								@RenderFieldPreview(field)
@@ -119,8 +119,8 @@
 						<label class="moka-form-builder__property-label">Label</label>
 						<input class="moka-form-builder__property-input"
 						       type="text"
-						       value="@_selectedField.Label"
-						       @onchange="e => UpdateProperty(() => _selectedField.Label = e.Value?.ToString() ?? string.Empty)"/>
+						       @bind:get="_selectedField.Label"
+						       @bind:set="value => UpdateSelected(field => field.Label = value ?? string.Empty)"/>
 					</div>
 
 					@if (!IsLayoutType(_selectedField.Type))
@@ -129,23 +129,23 @@
 							<label class="moka-form-builder__property-label">Placeholder</label>
 							<input class="moka-form-builder__property-input"
 							       type="text"
-							       value="@_selectedField.Placeholder"
-							       @onchange="e => UpdateProperty(() => _selectedField.Placeholder = e.Value?.ToString())"/>
+							       @bind:get="_selectedField.Placeholder"
+							       @bind:set="value => UpdateSelected(field => field.Placeholder = value)"/>
 						</div>
 
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">Helper Text</label>
 							<input class="moka-form-builder__property-input"
 							       type="text"
-							       value="@_selectedField.HelperText"
-							       @onchange="e => UpdateProperty(() => _selectedField.HelperText = e.Value?.ToString())"/>
+							       @bind:get="_selectedField.HelperText"
+							       @bind:set="value => UpdateSelected(field => field.HelperText = value)"/>
 						</div>
 
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">
 								<input type="checkbox"
-								       checked="@_selectedField.Required"
-								       @onchange="e => UpdateProperty(() => _selectedField.Required = (bool)(e.Value ?? false))"/>
+								       @bind:get="_selectedField.Required"
+								       @bind:set="value => UpdateSelected(field => field.Required = value)"/>
 								Required
 							</label>
 						</div>
@@ -153,8 +153,8 @@
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">
 								<input type="checkbox"
-								       checked="@_selectedField.Disabled"
-								       @onchange="e => UpdateProperty(() => _selectedField.Disabled = (bool)(e.Value ?? false))"/>
+								       @bind:get="_selectedField.Disabled"
+								       @bind:set="value => UpdateSelected(field => field.Disabled = value)"/>
 								Disabled
 							</label>
 						</div>
@@ -166,8 +166,8 @@
 							<label class="moka-form-builder__property-label">Max Length</label>
 							<input class="moka-form-builder__property-input"
 							       type="number"
-							       value="@_selectedField.MaxLength"
-							       @onchange="e => UpdateProperty(() => _selectedField.MaxLength = int.TryParse(e.Value?.ToString(), out var v) ? v : null)"/>
+							       @bind:get="InvariantNumber(_selectedField.MaxLength)"
+							       @bind:set="value => UpdateSelected(field => field.MaxLength = ParseNumber(value))"/>
 						</div>
 					}
 
@@ -177,16 +177,16 @@
 							<label class="moka-form-builder__property-label">Min</label>
 							<input class="moka-form-builder__property-input"
 							       type="number"
-							       value="@InvariantNumber(_selectedField.Min)"
-							       @onchange="e => UpdateProperty(() => _selectedField.Min = ParseNumber(e.Value))"/>
+							       @bind:get="InvariantNumber(_selectedField.Min)"
+							       @bind:set="value => UpdateSelected(field => field.Min = ParseNumber(value))"/>
 						</div>
 
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">Max</label>
 							<input class="moka-form-builder__property-input"
 							       type="number"
-							       value="@InvariantNumber(_selectedField.Max)"
-							       @onchange="e => UpdateProperty(() => _selectedField.Max = ParseNumber(e.Value))"/>
+							       @bind:get="InvariantNumber(_selectedField.Max)"
+							       @bind:set="value => UpdateSelected(field => field.Max = ParseNumber(value))"/>
 						</div>
 					}
 
@@ -196,7 +196,8 @@
 							<label class="moka-form-builder__property-label">Options (one per line)</label>
 							<textarea class="moka-form-builder__property-textarea"
 									  rows="4"
-									  @onchange="e => UpdateOptions(e.Value?.ToString())">@OptionsToText(_selectedField.Options)</textarea>
+									  @bind:get="OptionsToText(_selectedField.Options)"
+									  @bind:set="UpdateOptions"></textarea>
 						</div>
 					}
 
@@ -205,8 +206,8 @@
 						<div class="moka-form-builder__property">
 							<label class="moka-form-builder__property-label">Column Span</label>
 							<select class="moka-form-builder__property-input"
-							        value="@_selectedField.ColSpan"
-							        @onchange="e => UpdateProperty(() => _selectedField.ColSpan = int.TryParse(e.Value?.ToString(), out var v) ? v : 1)">
+							        @bind:get="InvariantNumber(_selectedField.ColSpan)"
+							        @bind:set="value => UpdateSelected(field => field.ColSpan = ParseNumber(value) ?? 1)">
 								@for (var c = 1; c <= Columns; c++)
 								{
 									<option value="@c">@c</option>
@@ -219,8 +220,9 @@
 						<label class="moka-form-builder__property-label">Default Value</label>
 						<input class="moka-form-builder__property-input"
 						       type="text"
-						       value="@_selectedField.DefaultValue"
-						       @onchange="e => UpdateProperty(() => _selectedField.DefaultValue = e.Value?.ToString())"/>
+						       @bind:get="_selectedField.DefaultValue"
+						       @bind:set="value => UpdateSelected(field => field.DefaultValue = value)"/>
+
 					</div>
 				</div>
 			}

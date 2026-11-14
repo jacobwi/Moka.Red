@@ -1,0 +1,23 @@
+<DemoSection Id="basics" Title="Basics" Description="A number, read and written in the invariant culture.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaNumericField @bind-Value="_model.Age" Label="Age" Placeholder="Enter your age" TValue="int"/>
+		<MokaNumericField @bind-Value="_model.Age" Label="With Error" ErrorText="Must be between 1 and 120." TValue="int"/>
+		<MokaNumericField @bind-Value="_model.Age" Label="Disabled" Disabled="true" TValue="int"/>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+}

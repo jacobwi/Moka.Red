@@ -1,0 +1,17 @@
+<DemoSection Id="thin-scrollbar-default" Title="Thin scrollbar (default)" Description="A box that scrolls, with a thin or hidden scrollbar.">
+	<MokaScrollArea Height="150px" Style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-sm);">
+		@for (var i = 1; i <= 30; i++)
+		{
+			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i - Scrollable content with thin scrollbar styling.</p>
+		}
+	</MokaScrollArea>
+</DemoSection>
+
+<DemoSection Id="hidden-scrollbar" Title="Hidden scrollbar">
+	<MokaScrollArea Height="100px" HideScrollbar Style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); padding: var(--moka-spacing-sm);">
+		@for (var i = 1; i <= 20; i++)
+		{
+			<p style="font-size: var(--moka-font-size-sm); margin: var(--moka-spacing-xxs) 0;">Line @i - Scrollable but no visible scrollbar.</p>
+		}
+	</MokaScrollArea>
+</DemoSection>

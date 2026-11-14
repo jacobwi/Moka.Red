@@ -1,0 +1,30 @@
+<DemoSection Id="basics" Title="Basics" Description="A titled box with actions that can collapse.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 500px;">
+		<MokaPanel Title="Basic Panel">
+			<p>A simple titled panel with bordered style.</p>
+		</MokaPanel>
+
+		<MokaPanel Title="Panel with Actions">
+			<Actions>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Refresh">Refresh</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft">Export</MokaButton>
+			</Actions>
+			<ChildContent>
+				<p>This panel has action buttons in the header toolbar.</p>
+			</ChildContent>
+		</MokaPanel>
+
+		<MokaPanel Title="Collapsible Panel" Collapsible Collapsed="_panelCollapsed" CollapsedChanged="v => _panelCollapsed = v">
+			<p>Click the chevron in the header to collapse or expand this panel.</p>
+			<p>The body smoothly animates using a max-height CSS transition.</p>
+		</MokaPanel>
+
+		<MokaPanel Title="Elevated Panel" Bordered="false" Elevated>
+			<p>This panel uses elevation shadow instead of a border.</p>
+		</MokaPanel>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _panelCollapsed;
+}

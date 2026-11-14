@@ -1,0 +1,30 @@
+@page "/{Slug}"
+@using Moka.Red.Showcase.Components.Library
+@inject NavigationManager Navigation
+
+@if (_area is { } area)
+{
+	<PageTitle>@area.Name - Moka.Red</PageTitle>
+
+	<div class="area-page" @key="area">
+		<MokaPageHeader Eyebrow="Components" EyebrowHref="components" Title="@area.Name"
+		                Said="@($"{area.Components.Count} components. {area.Description}")"/>
+		<ComponentGrid Components="area.Components"/>
+	</div>
+}
+
+@code {
+	private LibraryArea? _area;
+
+	[Parameter]
+	public string Slug { get; set; } = string.Empty;
+
+	protected override void OnParametersSet()
+	{
+		_area = LibraryCatalog.Area(Slug);
+		if (_area is null)
+		{
+			Navigation.NotFound();
+		}
+	}
+}

@@ -36,10 +36,10 @@
 		     aria-disabled="@(Disabled ? "true" : null)"
 		     aria-haspopup="listbox"
 		     @attributes="TriggerAttributes">
-			@if (Multiple && SelectedValues is not null && SelectedValues.Count > 0)
+			@if (Multiple && ShownValues is not null && ShownValues.Count > 0)
 			{
 				<div class="moka-select-chips">
-					@foreach (var item in SelectedValues)
+					@foreach (var item in ShownValues)
 					{
 						<span class="moka-select-chip">
 							@if (ChipTemplate is not null)
@@ -84,7 +84,7 @@
 				</span>
 			}
 			<div class="moka-select-actions">
-				@if (Clearable && (CurrentValue is not null || (Multiple && SelectedValues is not null && SelectedValues.Count > 0)))
+				@if (Clearable && (CurrentValue is not null || (Multiple && ShownValues is not null && ShownValues.Count > 0)))
 				{
 					<MokaTooltip Text="@(DropdownOpen ? null : "Clear selection")" Position="MokaTooltipPosition.Bottom">
 						<button class="moka-select-clear" type="button"

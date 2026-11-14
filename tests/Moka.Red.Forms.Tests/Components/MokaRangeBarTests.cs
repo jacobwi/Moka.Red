@@ -324,9 +324,9 @@ public class MokaRangeBarTests : BunitContext
 	}
 
 	[Fact]
-	public void AParentThatRendersAgain_DoesNotUndoAChange()
+	public void AParentThatOnlyPassesTheRange_DoesNotUndoAChangeByRenderingAgain()
 	{
-		IRenderedComponent<MokaRangeBar> cut = Bar();
+		IRenderedComponent<MokaRangeBar> cut = Render<MokaRangeBar>(p => p.Add(x => x.Start, 20).Add(x => x.End, 60).Add(x => x.Label, "Pool"));
 		Handle(cut, "start").KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
 
 		cut.Render(p => p.Add(x => x.Start, 20).Add(x => x.Label, "Pool"));
@@ -621,18 +621,31 @@ public class MokaRangeBarTests : BunitContext
 	private static IElement Handle(IRenderedComponent<MokaRangeBar> cut, string which) =>
 		cut.Find($"[data-moka-handle={which}]");
 
+	// A parent bound to Start and End, as @bind-Start and @bind-End are: it takes each end and renders the bar again.
 	private IRenderedComponent<MokaRangeBar> Bar(
-		Action<ComponentParameterCollectionBuilder<MokaRangeBar>>? extra = null, double start = 20, double end = 60) =>
-		Render<MokaRangeBar>(p =>
+		Action<ComponentParameterCollectionBuilder<MokaRangeBar>>? extra = null, double start = 20, double end = 60)
+	{
+		IRenderedComponent<MokaRangeBar>? bar = null;
+		bar = Render<MokaRangeBar>(p =>
 		{
 			p.Add(x => x.Start, start)
 				.Add(x => x.End, end)
 				.Add(x => x.Label, "Pool")
-				.Add(x => x.StartChanged, EventCallback.Factory.Create<double>(this, _starts.Add))
-				.Add(x => x.EndChanged, EventCallback.Factory.Create<double>(this, _ends.Add))
+				.Add(x => x.StartChanged, EventCallback.Factory.Create<double>(this, value =>
+				{
+					_starts.Add(value);
+					bar!.Render(q => q.Add(x => x.Start, value));
+				}))
+				.Add(x => x.EndChanged, EventCallback.Factory.Create<double>(this, value =>
+				{
+					_ends.Add(value);
+					bar!.Render(q => q.Add(x => x.End, value));
+				}))
 				.Add(x => x.ValueChanged, EventCallback.Factory.Create<MokaRange>(this, _values.Add));
 			extra?.Invoke(p);
 		});
+		return bar;
+	}
 
 	private sealed class Booking
 	{

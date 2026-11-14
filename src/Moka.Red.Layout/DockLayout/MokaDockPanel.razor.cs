@@ -1,586 +1,369 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
-using Moka.Red.Icons;
+using Moka.Red.Primitives.Badge;
 
 namespace Moka.Red.Layout.DockLayout;
 
 /// <summary>
-///     A panel that docks to an edge of a <see cref="MokaDockLayout" />.
-///     Supports resizable splitter handles, collapsing, floating/undocking,
-///     and header with title/actions.
+///     A panel of a <see cref="MokaDockLayout" />: a tab in a group, which can be dragged to another group or edge,
+///     floated, pinned to a side bar, maximized, closed and opened in another window. In a <see cref="MokaDockGroup" />
+///     it starts as one of the group's tabs; directly in the layout, it docks to <see cref="Dock" /> around the main
+///     area, joining the other panels docked to that edge as tabs. Its content renders once, where it is declared, and
+///     is drawn over whichever group holds it, so it keeps its component state when it moves.
 /// </summary>
-public partial class MokaDockPanel : MokaComponentBase
+public partial class MokaDockPanel : MokaDockPart
 {
-	private static readonly string[] LengthFunctions = ["calc(", "min(", "max(", "clamp("];
+	private DockPlacement _placement = DockPlacement.Nowhere;
+	private int _contentVersion;
+	private bool _shownOnce;
+	private bool _synced;
+	private bool _lastCollapsed;
+	private bool _lastFloating;
+	private double _lastFloatingX;
+	private double _lastFloatingY;
+	private string? _lastFloatingWidth;
+	private string? _lastFloatingHeight;
+	private string? _lastSize;
+	private object? _lastMeta;
 
-	private ElementReference _attachedHeader;
-	private ElementReference _attachedSplitter;
-	private SplitterOptions? _attachedSplitterOptions;
-
-	// Collapsed, Floating and the floating position also change from inside the panel: its header
-	// buttons and the header drag. The rendered state lives in these fields, and a parameter only
-	// replaces it when the parent passes a new value, so a parent render that repeats the old value
-	// (a one-way Collapsed="@x") cannot undo what the user just did.
-	private bool _collapsed;
-	private bool _collapsedParameter;
-	private DotNetObjectReference<MokaDockPanel>? _dotNetRef;
-	private bool _draggableAttached;
-	private bool _floating;
-	private bool _floatingParameter;
-	private double _floatingX;
-	private double? _floatingXParameter;
-	private double _floatingY;
-	private double? _floatingYParameter;
-	private ElementReference _headerRef;
-	private Task _jsSync = Task.CompletedTask;
-	private string? _maxSize;
-	private string? _minSize;
-	private ElementReference _panelRef;
-	private string? _size;
-	private ElementReference _splitterRef;
-
-	/// <summary>The edge to dock this panel to.</summary>
+	/// <summary>For a panel directly in the layout: the edge it docks to, around the main area. Default left.</summary>
 	[Parameter]
 	public MokaDockPosition Dock { get; set; } = MokaDockPosition.Left;
 
-	/// <summary>The panel body content.</summary>
+	/// <summary>The panel's content. <see cref="Component" /> takes its place when set.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
 	/// <summary>
-	///     Size of the panel (CSS value, e.g. "250px", "20%"). A new value from the parent replaces
-	///     a size the user dragged the splitter to.
+	///     A component to show as the content, made with <see cref="MokaDockComponent.Create{TComponent}" />. Only a panel
+	///     shown this way can open in another browser window, since the window renders it in a circuit of its own.
 	/// </summary>
 	[Parameter]
-	public string Size { get; set; } = "250px";
+	public MokaDockComponent? Component { get; set; }
 
-	/// <summary>Minimum size constraint for resizing (CSS value).</summary>
+	/// <summary>
+	///     For a panel directly in the layout or in a row or column: its size along the split it is in, as a CSS length,
+	///     or a share such as <c>2fr</c>. A panel directly in the layout starts at <c>250px</c>. A new value from the parent
+	///     replaces a size the person dragged the splitter to. Two-way bindable.
+	/// </summary>
+	[Parameter]
+	public string? Size { get; set; }
+
+	/// <summary>Raised with the new size, in pixels as a CSS length such as <c>320px</c>, when a splitter drag resizes the panel's group.</summary>
+	[Parameter]
+	public EventCallback<string> SizeChanged { get; set; }
+
+	/// <summary>The smallest the panel's group can be dragged to, as a CSS length.</summary>
 	[Parameter]
 	public string? MinSize { get; set; }
 
-	/// <summary>Maximum size constraint for resizing (CSS value).</summary>
+	/// <summary>The largest the panel's group can be dragged to, as a CSS length.</summary>
 	[Parameter]
 	public string? MaxSize { get; set; }
 
-	/// <summary>Whether the panel can be resized via a splitter handle. Default true.</summary>
+	/// <summary>Whether the splitter beside the panel's group moves. Default true.</summary>
 	[Parameter]
 	public bool Resizable { get; set; } = true;
 
-	/// <summary>Whether the panel shows a collapse toggle. Default false.</summary>
+	/// <summary>Whether the header shows a button that folds the panel's group to a strip.</summary>
 	[Parameter]
 	public bool Collapsible { get; set; }
 
 	/// <summary>
-	///     Whether the panel is collapsed. Two-way bindable. A collapsed panel hides its body but keeps
-	///     it mounted, so child components keep their state. The header button collapses and expands
-	///     the panel whether or not this is bound; a new value from the parent replaces that state.
+	///     Whether the panel's group is folded. Two-way bindable. A folded group keeps its panels mounted. The header
+	///     button folds and opens it whether or not this is bound; a new value from the parent replaces that.
 	/// </summary>
 	[Parameter]
 	public bool Collapsed { get; set; }
 
-	/// <summary>Callback when <see cref="Collapsed" /> changes.</summary>
+	/// <summary>Raised when the panel's group is folded or opened.</summary>
 	[Parameter]
 	public EventCallback<bool> CollapsedChanged { get; set; }
 
 	/// <summary>
-	///     Size of the panel when collapsed. Default "0px". At a zero size the collapsed panel is inert,
-	///     so its hidden header buttons are out of the tab order and the accessibility tree. A size
-	///     leaves a strip that shows the title and the expand button, laid out down the strip for a
-	///     left or right panel; <see cref="Actions" /> and the undock button come back on expand.
+	///     The folded strip's size. Default <c>0px</c>, which takes the group off screen and out of the tab order. A size
+	///     leaves a strip showing the title and the button that opens it.
 	/// </summary>
 	[Parameter]
 	public string? CollapsedSize { get; set; } = "0px";
 
 	/// <summary>
-	///     Whether this panel is currently floating (undocked). Two-way bindable. The header button
-	///     undocks and docks the panel whether or not this is bound; a new value from the parent
-	///     replaces that state. Docking again keeps the size the panel had before it floated.
+	///     Whether the panel floats in a window of its own. Two-way bindable. The header button floats and docks it
+	///     whether or not this is bound; a new value from the parent replaces that. Docking again puts it back at the
+	///     size it had.
 	/// </summary>
 	[Parameter]
 	public bool Floating { get; set; }
 
-	/// <summary>Callback when <see cref="Floating" /> state changes.</summary>
+	/// <summary>Raised when the panel floats or docks.</summary>
 	[Parameter]
 	public EventCallback<bool> FloatingChanged { get; set; }
 
-	/// <summary>
-	///     Floating panel position X (pixels from left). Default 100. Dragging the header moves the panel,
-	///     and a new value from the parent moves it again.
-	/// </summary>
+	/// <summary>The floating window's left edge, in pixels from the layout's. Default 100. Two-way bindable.</summary>
 	[Parameter]
 	public double FloatingX { get; set; } = 100;
 
-	/// <summary>
-	///     Floating panel position Y (pixels from top). Default 100. Dragging the header moves the panel,
-	///     and a new value from the parent moves it again.
-	/// </summary>
+	/// <summary>Raised when the floating window is moved.</summary>
+	[Parameter]
+	public EventCallback<double> FloatingXChanged { get; set; }
+
+	/// <summary>The floating window's top edge, in pixels from the layout's. Default 100. Two-way bindable.</summary>
 	[Parameter]
 	public double FloatingY { get; set; } = 100;
 
-	/// <summary>Floating panel width. Default "300px".</summary>
+	/// <summary>Raised when the floating window is moved.</summary>
+	[Parameter]
+	public EventCallback<double> FloatingYChanged { get; set; }
+
+	/// <summary>The floating window's width, in pixels (<c>300px</c>). Two-way bindable.</summary>
 	[Parameter]
 	public string FloatingWidth { get; set; } = "300px";
 
-	/// <summary>Floating panel height. Default "400px".</summary>
+	/// <summary>Raised when the floating window is resized.</summary>
+	[Parameter]
+	public EventCallback<string> FloatingWidthChanged { get; set; }
+
+	/// <summary>The floating window's height, in pixels (<c>400px</c>). Two-way bindable.</summary>
 	[Parameter]
 	public string FloatingHeight { get; set; } = "400px";
 
+	/// <summary>Raised when the floating window is resized.</summary>
+	[Parameter]
+	public EventCallback<string> FloatingHeightChanged { get; set; }
+
+	/// <summary>Whether the panel can float at all. Default true; false hides the buttons and refuses a drag out.</summary>
+	[Parameter]
+	public bool Floatable { get; set; } = true;
+
 	/// <summary>
-	///     Whether the body scrolls when its content overflows. Default true. Set false for content that
-	///     scrolls itself, such as a terminal or an editor: the body then clips instead, and a single child
-	///     fills it, so the child gets a definite size and shows the only scrollbar.
+	///     Whether the content scrolls when it overflows. Default true. Set false for content that scrolls itself, such as
+	///     a terminal or an editor: the content then clips instead, and a single child fills it.
 	/// </summary>
 	[Parameter]
 	public bool Scrollable { get; set; } = true;
 
-	/// <summary>Simple text title for the panel header.</summary>
+	/// <summary>The panel's title, on its tab and in its header.</summary>
 	[Parameter]
 	public string? Title { get; set; }
 
-	/// <summary>Custom title content. Overrides <see cref="Title" />.</summary>
+	/// <summary>Custom title content, in place of <see cref="Title" /> in the header when the panel's group shows no tabs.</summary>
 	[Parameter]
 	public RenderFragment? TitleContent { get; set; }
 
-	/// <summary>Actions rendered in the panel header, aligned to the right.</summary>
+	/// <summary>Buttons in the header while the panel shows, before the layout's own.</summary>
 	[Parameter]
 	public RenderFragment? Actions { get; set; }
 
-	/// <summary>Callback when the panel is resized. Receives the new size in pixels.</summary>
+	/// <summary>The panel's icon, on its tab, in side bars and in the narrow layout's bar.</summary>
 	[Parameter]
-	public EventCallback<double> SizeChanged { get; set; }
+	public MokaIconDefinition? Icon { get; set; }
 
-	[CascadingParameter] private MokaDockLayout? ParentLayout { get; set; }
+	/// <summary>A count on the panel's tab.</summary>
+	[Parameter]
+	public int? Badge { get; set; }
+
+	/// <summary>The count's tone.</summary>
+	[Parameter]
+	public MokaBadgeTone BadgeTone { get; set; } = MokaBadgeTone.Count;
+
+	/// <summary>Whether the panel can be closed. Unset follows whether the layout's <c>Controls</c> include Close.</summary>
+	[Parameter]
+	public bool? Closable { get; set; }
+
+	/// <summary>Asked before the panel closes; false keeps it open.</summary>
+	[Parameter]
+	public Func<Task<bool>>? CanClose { get; set; }
+
+	/// <summary>
+	///     Whether the content first renders when the panel first shows. Default true. False renders it straight away,
+	///     hidden while another tab shows.
+	/// </summary>
+	[Parameter]
+	public bool Lazy { get; set; } = true;
+
+	/// <summary>
+	///     Whether the content stays mounted, with its state, while another tab shows. Default true. False removes it
+	///     while hidden and renders it afresh each time it shows.
+	/// </summary>
+	[Parameter]
+	public bool KeepAlive { get; set; } = true;
+
+	/// <summary>Whether the panel starts in the layout. False starts it closed, to be shown from code.</summary>
+	[Parameter]
+	public bool Visible { get; set; } = true;
+
+	/// <summary>Whether the panel starts as the one showing in its group, rather than the first.</summary>
+	[Parameter]
+	public bool Active { get; set; }
+
+	/// <summary>Starts the panel pinned to this side's bar instead of docked.</summary>
+	[Parameter]
+	public MokaDockPosition? AutoHide { get; set; }
+
+	internal int MetaVersion { get; private set; }
+
+	internal override object Declaration =>
+		(Id, Dock, Visible, AutoHide, (Size, MinSize, MaxSize, Resizable, Collapsible, CollapsedSize), (Floatable, Closable, Active));
+
+	internal RenderFragment? Body => Component?.Render() ?? ChildContent;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-dock-panel";
 
 	/// <inheritdoc />
-	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-dock-panel--{MokaEnumHelpers.ToCssClass(Dock)}", !_floating)
-		.AddClass("moka-dock-panel--collapsed", IsCollapsed)
-		.AddClass("moka-dock-panel--resizable", Resizable && !_floating)
-		.AddClass("moka-dock-panel--floating", _floating)
-		.AddClass(Class)
-		.Build();
+	protected override string CssClass => new CssBuilder(RootClass).AddClass(Class).Build();
 
-	/// <inheritdoc />
-	protected override string? CssStyle => _floating ? FloatingCssStyle : DockedCssStyle;
+	private string PanelId => Layout?.IdOf(this) ?? Id ?? "";
 
-	// MinSize and MaxSize bound the track (TrackSize), not this element. On the element a percentage
-	// resolves against the panel's own grid area, and any bound the track breaks leaves a gap
-	// beside the panel or pushes it over the content.
-	private string? DockedCssStyle => new StyleBuilder()
-		.AddStyle("grid-area", MokaEnumHelpers.ToCssClass(Dock))
-		.AddStyle(Style)
-		.Build();
+	private string HostId => Layout?.HostIdOf(PanelId) ?? PanelId;
 
-	private string? FloatingCssStyle => new StyleBuilder()
-		.AddStyle("left", $"{_floatingX.ToString(CultureInfo.InvariantCulture)}px")
-		.AddStyle("top", $"{_floatingY.ToString(CultureInfo.InvariantCulture)}px")
-		.AddStyle("width", FloatingWidth)
-		.AddStyle("height", FloatingHeight)
-		.AddStyle(Style)
-		.Build();
-
-	private string BodyClass => new CssBuilder("moka-dock-panel-body")
+	private string HostClass => new CssBuilder("moka-dock-host moka-dock-panel-body")
 		.AddClass("moka-dock-panel-body--no-scroll", !Scrollable)
+		.AddClass(Layout is null ? null : Class)
 		.Build();
 
-	internal string CurrentSize { get; private set; } = "250px";
+	private string? HostStyle => new StyleBuilder()
+		.AddStyle("position-anchor", _placement.Anchor > 0 ? MokaDockLayout.AnchorName(_placement.Anchor) : null)
+		.AddStyle("z-index", _placement.Z > 0 ? _placement.Z.ToString(CultureInfo.InvariantCulture) : null)
+		.AddStyle(Style)
+		.Build();
 
-	internal bool IsCollapsed => _collapsed && Collapsible && !_floating;
-	internal bool IsFloating => _floating;
+	private string? AnchorAttribute => _placement.Anchor > 0 ? _placement.Anchor.ToString(CultureInfo.InvariantCulture) : null;
 
-	// An empty CollapsedSize would drop the track from the grid and misalign every area after it.
-	internal string CollapsedTrackSize => string.IsNullOrWhiteSpace(CollapsedSize) ? "0px" : CollapsedSize;
+	private bool RendersContent => !_placement.InSheet && (_placement.Visible || !Lazy || (KeepAlive && _shownOnce));
 
-	// The panel's grid track. ClampSize has already applied px bounds to a px size; bounds in any
-	// other unit go to CSS, which resolves rem, viewport units and % of the layout the way the
-	// splitter drag does.
-	internal string TrackSize => IsCollapsed ? CollapsedTrackSize : BoundTrack(CurrentSize);
-
-	// A panel collapsed to nothing still has a header, clipped out of sight, whose buttons would take
-	// focus and be read out. Inert removes the whole panel from the tab order and the accessibility
-	// tree. A collapsed strip with a size stays usable: its header lays out to keep the expand button
-	// on screen.
-	private bool IsInert => IsCollapsed && IsZeroLength(CollapsedTrackSize);
-
-	private bool IsHorizontal => Dock is MokaDockPosition.Left or MokaDockPosition.Right;
-
-	private bool HasHeader =>
-		Title is not null || TitleContent is not null || Actions is not null || Collapsible || _floating;
-
-	private bool HasSplitter => Resizable && !IsCollapsed && !_floating;
-
-	private string SplitterPosition => Dock switch
-	{
-		MokaDockPosition.Left => "right",
-		MokaDockPosition.Right => "left",
-		MokaDockPosition.Top => "bottom",
-		MokaDockPosition.Bottom => "top",
-		_ => "right"
-	};
-
-	private string ChevronDirection => Dock switch
-	{
-		MokaDockPosition.Left => IsCollapsed ? "right" : "left",
-		MokaDockPosition.Right => IsCollapsed ? "left" : "right",
-		MokaDockPosition.Top => IsCollapsed ? "down" : "up",
-		MokaDockPosition.Bottom => IsCollapsed ? "up" : "down",
-		_ => "left"
-	};
-
-	private string CollapseLabel => IsCollapsed ? "Expand" : "Collapse";
-
-	// The toggles end the header row, so their tooltips open below it, the last one lined up with the panel's
-	// edge. A collapsed side strip is a column instead, where a tooltip below would cover the title running down
-	// the strip, so it opens beside the strip, away from the window's edge; a collapsed bottom strip has the
-	// window's edge below it.
-	private MokaTooltipPosition CollapseTooltipPosition => !IsCollapsed
-		? MokaTooltipPosition.BottomEnd
-		: Dock switch
-		{
-			MokaDockPosition.Left => MokaTooltipPosition.Right,
-			MokaDockPosition.Right => MokaTooltipPosition.Left,
-			MokaDockPosition.Bottom => MokaTooltipPosition.TopEnd,
-			_ => MokaTooltipPosition.BottomEnd
-		};
-
-	private MokaTooltipPosition UndockTooltipPosition =>
-		Collapsible ? MokaTooltipPosition.Bottom : MokaTooltipPosition.BottomEnd;
-
-	private MokaIconDefinition ChevronIcon => ChevronDirection switch
-	{
-		"left" => MokaIcons.Navigation.ChevronLeft,
-		"right" => MokaIcons.Navigation.ChevronRight,
-		"up" => MokaIcons.Navigation.ChevronUp,
-		"down" => MokaIcons.Navigation.ChevronDown,
-		_ => MokaIcons.Navigation.ChevronLeft
-	};
-
-	/// <inheritdoc />
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-
-		// The layout builds its grid from this panel as soon as it registers.
-		SyncStateFromParameters();
-		ParentLayout?.RegisterPanel(this);
-	}
+	/// <summary>Dock panels redraw when the layout moves them, outside the parameters their parent passes.</summary>
+	/// <returns>Always true.</returns>
+	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-		SyncStateFromParameters();
+		_contentVersion++;
 
-		// The layout rendered its grid before this panel received these parameters.
-		ParentLayout?.NotifyPanelChanged();
+		object meta = (Title, Icon, Badge, BadgeTone, Closable, Floatable);
+		if (!meta.Equals(_lastMeta) || TitleContent is not null || Actions is not null)
+		{
+			_lastMeta = meta;
+			MetaVersion++;
+			Layout?.PanelMetaChanged();
+		}
+
+		Layout?.UpdateWindowSession(this);
+		if (Layout is not null && _synced)
+		{
+			SyncFromParameters();
+		}
+
+		_synced = true;
+		_lastCollapsed = Collapsed;
+		_lastFloating = Floating;
+		_lastFloatingX = FloatingX;
+		_lastFloatingY = FloatingY;
+		_lastFloatingWidth = FloatingWidth;
+		_lastFloatingHeight = FloatingHeight;
+		_lastSize = Size;
+		_placement = Layout?.PlacementOf(this) ?? DockPlacement.Nowhere;
+		_shownOnce |= _placement.Visible;
 	}
 
-	private void SyncStateFromParameters()
+	// A parameter the parent changed replaces what the person did; the same value passed again leaves it alone, so a
+	// one-way Collapsed="@x" never undoes a click.
+	private void SyncFromParameters()
 	{
-		// Follow a new Size, and re-clamp when the bounds move. Otherwise keep the dragged size.
-		if (!string.Equals(Size, _size, StringComparison.Ordinal))
+		MokaDockLayout layout = Layout!;
+		if (Collapsed != _lastCollapsed)
 		{
-			CurrentSize = ClampSize(Size);
-		}
-		else if (!string.Equals(MinSize, _minSize, StringComparison.Ordinal)
-		         || !string.Equals(MaxSize, _maxSize, StringComparison.Ordinal))
-		{
-			CurrentSize = ClampSize(CurrentSize);
+			RunDetached(() => layout.SetPanelCollapsedAsync(this, Collapsed));
 		}
 
-		_size = Size;
-		_minSize = MinSize;
-		_maxSize = MaxSize;
-
-		if (Collapsed != _collapsedParameter)
+		if (Floating != _lastFloating)
 		{
-			_collapsedParameter = Collapsed;
-			_collapsed = Collapsed;
+			RunDetached(() => layout.SetPanelFloatingAsync(this, Floating));
+		}
+		else if (FloatingX != _lastFloatingX || FloatingY != _lastFloatingY
+		                                     || FloatingWidth != _lastFloatingWidth || FloatingHeight != _lastFloatingHeight)
+		{
+			RunDetached(() => layout.SetPanelWindowAsync(this));
 		}
 
-		if (Floating != _floatingParameter)
+		if (Size != _lastSize)
 		{
-			_floatingParameter = Floating;
-			_floating = Floating;
-		}
-
-		if (FloatingX != _floatingXParameter)
-		{
-			_floatingXParameter = FloatingX;
-			_floatingX = FloatingX;
-		}
-
-		if (FloatingY != _floatingYParameter)
-		{
-			_floatingYParameter = FloatingY;
-			_floatingY = FloatingY;
+			RunDetached(() => layout.SetPanelSizeAsync(this, Size));
 		}
 	}
 
-	/// <inheritdoc />
-	protected override Task OnAfterRenderAsync(bool firstRender)
+	internal void PlacementChanged()
 	{
-		// One sync at a time: each one reads the state it attaches, so a later render cannot be
-		// overtaken by the JS calls of an earlier one.
-		_jsSync = SyncJsAsync(_jsSync);
-		return _jsSync;
-	}
-
-	/// <summary>Dock panels have internal collapse/resize/floating state.</summary>
-	protected override bool ShouldRender() => true;
-
-	private async Task SyncJsAsync(Task previous)
-	{
-		await previous;
-		await SyncSplitterAsync();
-		await SyncDraggableAsync();
-	}
-
-	// The splitter element is re-created after a collapse or a float, and Dock, MinSize and
-	// MaxSize change its options. Comparing against what is attached covers those changes
-	// whether they came from this panel's buttons or from a parent.
-	private async ValueTask SyncSplitterAsync()
-	{
-		SplitterOptions? wanted = HasSplitter && ParentLayout is not null
-			? new SplitterOptions(IsHorizontal, Dock is MokaDockPosition.Right or MokaDockPosition.Bottom,
-				MinSize, MaxSize)
-			: null;
-
-		if (wanted == _attachedSplitterOptions
-		    && (wanted is null || string.Equals(_attachedSplitter.Id, _splitterRef.Id, StringComparison.Ordinal)))
+		DockPlacement placement = Layout?.PlacementOf(this) ?? DockPlacement.Nowhere;
+		if (placement == _placement)
 		{
 			return;
 		}
 
-		if (_attachedSplitterOptions is not null)
-		{
-			_attachedSplitterOptions = null;
-			await InvokeDragModuleAsync("removeResizable", _attachedSplitter);
-		}
-
-		if (wanted is { } options)
-		{
-			_dotNetRef ??= DotNetObjectReference.Create(this);
-			_attachedSplitter = _splitterRef;
-			_attachedSplitterOptions = options;
-			await InvokeDragModuleAsync("makeResizable", _dotNetRef, _panelRef, _splitterRef,
-				new
-				{
-					direction = options.Horizontal ? "horizontal" : "vertical",
-					target = "track",
-					reverse = options.Reverse,
-					min = options.Min,
-					max = options.Max,
-					callbackMethod = nameof(OnResized)
-				});
-		}
+		_placement = placement;
+		_shownOnce |= placement.Visible;
+		StateHasChanged();
 	}
 
-	// A docked panel must not keep the floating header drag, or dragging its header would move it.
-	private async ValueTask SyncDraggableAsync()
+	// After the layout's state changed: raises this panel's own callbacks for what changed about it.
+	internal async Task StateChangedAsync(MokaDockState before, MokaDockState after)
 	{
-		bool wanted = _floating && ParentLayout is not null;
+		string id = PanelId;
+		MokaDockPanelLocation was = before.Locate(id);
+		MokaDockPanelLocation now = after.Locate(id);
 
-		if (wanted == _draggableAttached
-		    && (!wanted || string.Equals(_attachedHeader.Id, _headerRef.Id, StringComparison.Ordinal)))
+		if (CollapsedChanged.HasDelegate && GroupOf(before, was) is { } oldGroup && GroupOf(after, now) is { } newGroup
+		    && oldGroup.Collapsed != newGroup.Collapsed)
 		{
-			return;
+			await CollapsedChanged.InvokeAsync(newGroup.Collapsed);
 		}
 
-		if (_draggableAttached)
+		bool wasFloating = was.Place == MokaDockPlace.Floating;
+		bool isFloating = now.Place == MokaDockPlace.Floating;
+		if (wasFloating != isFloating)
 		{
-			_draggableAttached = false;
-			await InvokeDragModuleAsync("removeDraggable", _attachedHeader);
+			await FloatingChanged.InvokeAsync(isFloating);
 		}
 
-		if (wanted)
+		if (isFloating && after.Floating.FirstOrDefault(w => w.Group.Id == now.Group) is { } window)
 		{
-			_dotNetRef ??= DotNetObjectReference.Create(this);
-			_attachedHeader = _headerRef;
-			_draggableAttached = true;
-			await InvokeDragModuleAsync("makeDraggable", _dotNetRef, _panelRef, _headerRef,
-				new Dictionary<string, object?> { ["callbackMethod"] = nameof(OnFloatingMoved) });
-		}
-	}
-
-	// moka-drag.js is imported once by the layout and shared by its panels.
-	private async ValueTask InvokeDragModuleAsync(string identifier, params object?[] args)
-	{
-		if (ParentLayout is null)
-		{
-			return;
-		}
-
-		try
-		{
-			IJSObjectReference jsModule = await ParentLayout.EnsureJsModuleAsync();
-			await jsModule.InvokeVoidAsync(identifier, args);
-		}
-		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
-		{
-		}
-		catch (InvalidOperationException) when (!HasRendered)
-		{
-		}
-	}
-
-	private async Task ToggleCollapse()
-	{
-		_collapsed = !_collapsed;
-
-		// Update the grid before the callback, which may await before the parent re-renders.
-		ParentLayout?.NotifyPanelChanged();
-		await CollapsedChanged.InvokeAsync(_collapsed);
-	}
-
-	// Docking again keeps CurrentSize, the size the panel had before it floated, the same as when
-	// the parent docks it. Only a new Size from the parent replaces a size the user dragged to.
-	private async Task ToggleFloating()
-	{
-		_floating = !_floating;
-		ParentLayout?.NotifyPanelChanged();
-		await FloatingChanged.InvokeAsync(_floating);
-	}
-
-	/// <summary>Called from JS when resize completes.</summary>
-	[JSInvokable]
-	public async Task OnResized(double newSizePx)
-	{
-		CurrentSize = $"{newSizePx.ToString(CultureInfo.InvariantCulture)}px";
-		ParentLayout?.NotifyPanelChanged();
-
-		if (SizeChanged.HasDelegate)
-		{
-			await SizeChanged.InvokeAsync(newSizePx);
-		}
-	}
-
-	/// <summary>Called from JS when a floating panel is dragged to a new position.</summary>
-	[JSInvokable]
-	public void OnFloatingMoved(double x, double y)
-	{
-		// No render needed: the drag already moved the element, and the next render writes the
-		// same position.
-		_floatingX = x;
-		_floatingY = y;
-	}
-
-	private string ClampSize(string size)
-	{
-		if (TryParsePx(size, out double sizePx))
-		{
-			if (MinSize is not null && TryParsePx(MinSize, out double minPx) && sizePx < minPx)
+			MokaDockFloatingWindow? old = wasFloating ? before.Floating.FirstOrDefault(w => w.Group.Id == was.Group) : null;
+			if (old?.X != window.X)
 			{
-				return MinSize;
+				await FloatingXChanged.InvokeAsync(window.X);
 			}
 
-			if (MaxSize is not null && TryParsePx(MaxSize, out double maxPx) && sizePx > maxPx)
+			if (old?.Y != window.Y)
 			{
-				return MaxSize;
+				await FloatingYChanged.InvokeAsync(window.Y);
+			}
+
+			if (old?.Width != window.Width)
+			{
+				await FloatingWidthChanged.InvokeAsync(Pixels(window.Width));
+			}
+
+			if (old?.Height != window.Height)
+			{
+				await FloatingHeightChanged.InvokeAsync(Pixels(window.Height));
 			}
 		}
 
-		return size;
+		if (SizeChanged.HasDelegate && was.Place == MokaDockPlace.Docked && now.Place == MokaDockPlace.Docked
+		    && GroupOf(before, was)?.Size is var oldSize && GroupOf(after, now)?.Size is { } newSize && oldSize != newSize
+		    && !MokaDockState.TryShare(newSize, out _))
+		{
+			await SizeChanged.InvokeAsync(newSize);
+		}
 	}
 
-	private static bool TryParsePx(string value, out double px)
-	{
-		px = 0;
-		if (value.EndsWith("px", StringComparison.OrdinalIgnoreCase))
-		{
-			return double.TryParse(value[..^2], NumberStyles.Float,
-				CultureInfo.InvariantCulture, out px);
-		}
+	private static MokaDockGroupNode? GroupOf(MokaDockState state, MokaDockPanelLocation location) =>
+		location.Group is { } group ? state.FindGroup(group) : null;
 
-		return false;
-	}
-
-	private string BoundTrack(string size)
-	{
-		// min(), max() and clamp() only take lengths: wrapping a keyword, an fr or a minmax() would
-		// make the whole grid template invalid, so those tracks keep their size unbounded.
-		if (!IsLength(size))
-		{
-			return size;
-		}
-
-		string? min = CssBound(MinSize, size);
-		string? max = CssBound(MaxSize, size);
-		return (min, max) switch
-		{
-			(null, null) => size,
-			(null, _) => $"min({size}, {max})",
-			(_, null) => $"max({min}, {size})",
-			_ => $"clamp({min}, {size}, {max})"
-		};
-	}
-
-	// Null when there is no bound for CSS to apply: none given, one ClampSize already applied (px on
-	// a px size), or one that is not a length.
-	private static string? CssBound(string? bound, string size) =>
-		bound is null || !IsLength(bound) || (TryParsePx(bound, out _) && TryParsePx(size, out _))
-			? null
-			: bound;
-
-	// "0", "0px", "0.0rem" and the like. Anything this cannot read, such as calc(), counts as a
-	// size, which keeps the panel usable rather than making a visible strip inert.
-	private static bool IsZeroLength(string value) =>
-		TryParseLength(value, out double amount, out _) && amount == 0;
-
-	private static bool IsLength(string value)
-	{
-		string text = value.Trim();
-		if (LengthFunctions.Any(function => text.StartsWith(function, StringComparison.OrdinalIgnoreCase)))
-		{
-			return true;
-		}
-
-		return TryParseLength(text, out _, out string unit) && !unit.Equals("fr", StringComparison.OrdinalIgnoreCase);
-	}
-
-	// "240px", "20%", "12rem" or "0" as a number and its unit. False for anything else.
-	private static bool TryParseLength(string value, out double amount, out string unit)
-	{
-		ReadOnlySpan<char> text = value.AsSpan().Trim();
-		int unitStart = text.Length;
-		while (unitStart > 0 && (char.IsAsciiLetter(text[unitStart - 1]) || text[unitStart - 1] == '%'))
-		{
-			unitStart--;
-		}
-
-		unit = text[unitStart..].ToString();
-		return double.TryParse(text[..unitStart], NumberStyles.Float, CultureInfo.InvariantCulture, out amount);
-	}
-
-	/// <inheritdoc />
-	protected override async ValueTask DisposeAsyncCore()
-	{
-		ParentLayout?.UnregisterPanel(this);
-
-		if (_attachedSplitterOptions is not null)
-		{
-			_attachedSplitterOptions = null;
-			await InvokeDragModuleAsync("removeResizable", _attachedSplitter);
-		}
-
-		if (_draggableAttached)
-		{
-			_draggableAttached = false;
-			await InvokeDragModuleAsync("removeDraggable", _attachedHeader);
-		}
-
-		_dotNetRef?.Dispose();
-		await base.DisposeAsyncCore();
-	}
-
-	private readonly record struct SplitterOptions(bool Horizontal, bool Reverse, string? Min, string? Max);
+	private static string Pixels(double value) => string.Create(CultureInfo.InvariantCulture, $"{value}px");
 }

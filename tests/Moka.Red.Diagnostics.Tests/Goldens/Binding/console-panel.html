@@ -1,0 +1,16 @@
+<div class="moka-diag-console"><div class="moka-diag-console-toolbar"><label class="moka-diag-console-filter"><input type="checkbox" checked blazor:onchange="1" /> Debug
+			</label>
+			<label class="moka-diag-console-filter"><input type="checkbox" checked blazor:onchange="2" /> Info
+			</label>
+			<label class="moka-diag-console-filter"><input type="checkbox" checked blazor:onchange="3" /> Warn
+			</label>
+			<label class="moka-diag-console-filter"><input type="checkbox" checked blazor:onchange="4" /> Error
+			</label>
+			<label class="moka-diag-console-filter"><input type="checkbox" checked blazor:onchange="5" /> Critical
+			</label>
+			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." aria-label="Filter by category" value="" blazor:oninput="6" />
+			<button type="button" class="moka-diag-console-clear" blazor:onclick="7" title="Clear console">Clear</button></div>
+
+		<div class="moka-diag-console-list moka-thin-scrollbar"><div class="moka-diag-console-empty">
+					No console messages captured yet.
+				</div></div></div>

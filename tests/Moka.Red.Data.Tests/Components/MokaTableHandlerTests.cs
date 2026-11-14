@@ -41,7 +41,7 @@ public class MokaTableHandlerTests : BunitContext
 			() => Cell(cut, 0, 0).DoubleClickAsync(new MouseEventArgs()));
 		await Cell(cut, 0, 1).DoubleClickAsync(new MouseEventArgs());
 
-		Assert.NotNull(cut.Find(".moka-table-edit-input"));
+		Assert.NotNull(cut.Find("td[data-editing] input"));
 	}
 
 	[Fact]

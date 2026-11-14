@@ -27,8 +27,8 @@ public class MokaTimePickerTypedTests : BunitContext
 			.Add(x => x.Value, NineThirtyPm));
 
 		Assert.Equal(
-			"type=text class=moka-timepicker-input moka-timepicker-input--md value=21:30 readonly= placeholder=Select time... " +
-			"aria-haspopup=dialog aria-expanded=false blazor:onclick blazor:onkeydown id=f",
+			"type=text class=moka-timepicker-input moka-timepicker-input--md readonly= placeholder=Select time... " +
+			"aria-haspopup=dialog aria-expanded=false blazor:onclick blazor:onkeydown id=f value=21:30 blazor:onchange",
 			AttributesOf(cut.Find("input")));
 	}
 
@@ -176,20 +176,19 @@ public class MokaTimePickerTypedTests : BunitContext
 		Assert.Equal(shown, cut.Find("input").GetAttribute("value"));
 	}
 
-	// The last render already holds "21:30" when "2130" is typed over it, so without a render of the raw text in
-	// between, Blazor would see no change and leave "2130" in the box.
+	// The last render already holds "21:30" when "2130" is typed over it. The input binds with @bind, which tells
+	// Blazor the box holds "2130", so the next render writes "21:30" over it in one go.
 	[Fact]
 	public async Task Typed_TheSameTimeWrittenAnotherWay_IsWrittenBackOverIt()
 	{
 		List<TimeSpan?> changes = [];
 		IRenderedComponent<MokaTimePicker> cut = RenderTyped(true, NineThirtyPm, changes);
-		List<string?> rendered = [];
-		cut.OnMarkupUpdated += (_, _) => rendered.Add(cut.Find("input").GetAttribute("value"));
 
 		await Commit(cut, "2130");
 
 		Assert.Empty(changes);
-		Assert.Equal(["2130", "21:30"], rendered.Distinct());
+		Assert.Equal("21:30", cut.Find("input").GetAttribute("value"));
+		Assert.False(cut.Find("input").HasAttribute("aria-invalid"));
 	}
 
 	[Theory]
@@ -299,12 +298,9 @@ public class MokaTimePickerTypedTests : BunitContext
 	public async Task Typed_MinAndMaxStillApply(string text)
 	{
 		List<TimeSpan?> changes = [];
-		IRenderedComponent<MokaTimePicker> cut = Render<MokaTimePicker>(p => p
-			.Add(x => x.Typed, true)
-			.Add(x => x.Value, new TimeSpan(9, 0, 0))
+		IRenderedComponent<MokaTimePicker> cut = RenderTyped(true, new TimeSpan(9, 0, 0), changes, p => p
 			.Add(x => x.Min, new TimeSpan(8, 0, 0))
-			.Add(x => x.Max, new TimeSpan(17, 0, 0))
-			.Add(x => x.ValueChanged, EventCallback.Factory.Create<TimeSpan?>(this, changes.Add)));
+			.Add(x => x.Max, new TimeSpan(17, 0, 0)));
 
 		await Commit(cut, text);
 
@@ -420,15 +416,23 @@ public class MokaTimePickerTypedTests : BunitContext
 			ScopedCss.Declarations(Css, ".moka-gate .moka-timepicker-input--invalid.moka-timepicker-input:not(:disabled)")["border-color"]);
 	}
 
-	private IRenderedComponent<MokaTimePicker> RenderTyped(bool format24, TimeSpan? value, List<TimeSpan?>? changes = null) =>
-		Render<MokaTimePicker>(p =>
+	// A parent bound to the time: it takes every change and passes it back.
+	private IRenderedComponent<MokaTimePicker> RenderTyped(bool format24, TimeSpan? value, List<TimeSpan?>? changes = null,
+		Action<ComponentParameterCollectionBuilder<MokaTimePicker>>? extra = null)
+	{
+		IRenderedComponent<MokaTimePicker>? cut = null;
+		cut = Render<MokaTimePicker>(p =>
 		{
-			p.Add(x => x.Typed, true).Add(x => x.Format24, format24).Add(x => x.Value, value);
-			if (changes is not null)
-			{
-				p.Add(x => x.ValueChanged, EventCallback.Factory.Create<TimeSpan?>(this, changes.Add));
-			}
+			p.Add(x => x.Typed, true).Add(x => x.Format24, format24).Add(x => x.Value, value)
+				.Add(x => x.ValueChanged, EventCallback.Factory.Create<TimeSpan?>(this, time =>
+				{
+					changes?.Add(time);
+					cut!.Render(q => q.Add(x => x.Value, time));
+				}));
+			extra?.Invoke(p);
 		});
+		return cut;
+	}
 
 	private IRenderedComponent<EditForm> RenderForm(Shift shift, Action onValid, Action onInvalid) => Render<EditForm>(p => p
 		.Add(f => f.Model, shift)

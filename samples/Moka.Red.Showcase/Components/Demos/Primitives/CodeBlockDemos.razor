@@ -1,0 +1,112 @@
+<DemoSection Id="c-sample" Title="C# sample" Description="Code with line numbers and a copy button.">
+	<MokaCodeBlock Code="@_codeBlockSample" Language="csharp"/>
+</DemoSection>
+
+<DemoSection Id="syntax-highlighting" Title="Syntax highlighting" Description="Highlighter colors the code; MokaCodeHighlighters has one for each language below. Language stays a label and never picks a highlighter. The colors come from the --moka-code-* tokens, so they follow the theme." Tip="Pass a field or a static method, not a lambda in the markup, so the block colors the code again only when the code changes.">
+	<DemoChoice TValue="CodeLanguage" Label="Language" Options="CodeLanguages" @bind-Value="_language"/>
+	<MokaCodeBlock Code="@CodeSamples[_language].Code" Language="@CodeSamples[_language].Label" Highlighter="CodeSamples[_language].Highlighter"/>
+</DemoSection>
+
+@code {
+	private readonly string _codeBlockSample =
+		"public class Example\n{\n    public static void Main(string[] args)\n    {\n        Console.WriteLine(\"Hello, Moka.Red!\");\n    }\n}";
+
+	private enum CodeLanguage
+	{
+		Razor,
+		CSharp,
+		Html,
+		Xml,
+		Css,
+		Json,
+		Shell
+	}
+
+	private sealed record CodeSample(string Label, string Code, Func<string, IEnumerable<MokaCodeSpan>> Highlighter);
+
+	private static readonly CodeLanguage[] CodeLanguages = Enum.GetValues<CodeLanguage>();
+
+	private CodeLanguage _language = CodeLanguage.Razor;
+
+	private static readonly Dictionary<CodeLanguage, CodeSample> CodeSamples = new()
+	{
+		[CodeLanguage.Razor] = new("razor", """
+			@page "/counter"
+			@inject ILogger<Counter> Logger
+
+			<h1 class="title">Count: @count</h1>
+			<MokaButton OnClick="Increment">Add one</MokaButton>
+
+			@code {
+			    private int count;
+
+			    // Counts the clicks.
+			    private void Increment() => count++;
+			}
+			""", MokaCodeHighlighters.Razor),
+		[CodeLanguage.CSharp] = new("csharp", """
+			[Route("api/[controller]")]
+			public sealed class ReportsController(IReportStore store) : ControllerBase
+			{
+			    // Newest first, at most 50.
+			    [HttpGet]
+			    public async Task<IReadOnlyList<Report>> ListAsync(CancellationToken token) =>
+			        await store.ListAsync(take: 50, token);
+
+			    private const double Ratio = 0.75;
+			    private static string Describe(Report report) => $"{report.Title} ({report.Pages} pages)";
+			}
+			""", MokaCodeHighlighters.CSharp),
+		[CodeLanguage.Html] = new("html", """
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+			    <style>
+			        .notice { color: #b91c1c; padding: 4px 8px; }
+			    </style>
+			</head>
+			<body>
+			    <!-- A notice for the reader -->
+			    <p class="notice" data-kind="warning">Back up &amp; restore</p>
+			</body>
+			</html>
+			""", MokaCodeHighlighters.Html),
+		[CodeLanguage.Xml] = new("xml", """
+			<?xml version="1.0" encoding="utf-8"?>
+			<Project Sdk="Microsoft.NET.Sdk.Razor">
+			  <!-- Both frameworks the package ships for -->
+			  <PropertyGroup>
+			    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+			    <Description><![CDATA[Components & themes]]></Description>
+			  </PropertyGroup>
+			</Project>
+			""", MokaCodeHighlighters.Xml),
+		[CodeLanguage.Css] = new("css", """
+			@media (min-width: 720px) {
+			  .report-card:hover > .title {
+			    --card-gap: 0.75rem;
+			    color: #0f766e;
+			    padding: var(--card-gap) 12px;
+			    font-family: "Inter", sans-serif; /* the body font */
+			  }
+			}
+			""", MokaCodeHighlighters.Css),
+		[CodeLanguage.Json] = new("json", """
+			{
+			  "name": "Quarterly report",
+			  "pages": 24,
+			  "draft": false,
+			  "reviewer": null,
+			  "tags": ["finance", "2026"]
+			}
+			""", MokaCodeHighlighters.Json),
+		[CodeLanguage.Shell] = new("bash", """
+			# Build, then publish for Linux
+			dotnet build --configuration Release
+			export APP_ENV="production"
+			if [ -f ./publish.sh ]; then
+			    ./publish.sh --runtime linux-x64 "$APP_ENV"
+			fi
+			""", MokaCodeHighlighters.Shell)
+	};
+}

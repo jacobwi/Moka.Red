@@ -1,0 +1,199 @@
+@using Moka.Red.Primitives.Bytes
+@inject IWebHostEnvironment Environment
+
+<DemoSection Id="basics" Title="Basics"
+             Description="A lightbox of your own over a long list, reading each full image only as it comes near."
+             Tip="Each full image here takes 0.7 s. Photo 8 fails to read, photo 13 is marked Failed and photo 21's thumbnail is missing.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaMediaGallery @ref="_longGallery" Items="_longItems" MinColumn="5.5rem" Gap="MokaSpacingScale.Xs"
+			                  Lightbox="false" OnItemOpen="OpenLightbox"/>
+			<MokaCaption>
+				<span style="font-family: var(--moka-font-family-mono);">
+					@_longItems.Count photos. Holding @_held.Count full images; @_reads read, @_released given back.
+				</span>
+			</MokaCaption>
+			<MokaLightbox Items="_longItems" @bind-Open="_lightboxOpen" @bind-Open:after="LightboxClosedAsync"
+			              @bind-Index="_lightboxIndex" LoadSource="LoadFullAsync" ReleaseSource="ReleaseFull">
+				<Facts>
+					<span style="font-weight: var(--moka-font-weight-semibold);">@context.Alt</span>
+					<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);">
+						@TakenOn(context).ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+					</span>
+					<MokaBytes Value="SizeOf(context)" Style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);"/>
+				</Facts>
+			</MokaLightbox>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items, @@bind-Index, @@bind-Open">The list it steps through, the image on show, and showing at all</DemoParam>
+		<DemoParam Name="LoadSource, ReleaseSource">Reads a full image when it comes near and gives it back when it drops away</DemoParam>
+		<DemoParam Name="Preload">How many neighbours on each side are read ahead, 1 by default</DemoParam>
+		<DemoParam Name="Facts">A template for facts about the item on show</DemoParam>
+		<DemoParam Name="FocusItemAsync">On the gallery: focus goes back to the tile last on show</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="a-lightbox-that-follows-the-theme" Title="A lightbox that follows the theme" Description="Its buttons take the theme's control height, its picture the modal shadow and its fade the transition time."
+             Tip="Glow, Line and Compact change the new design only; on the original design they leave the lightbox as it is. Ember is a new-design theme.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+			<MokaSegmentedControl @bind-Value="_look" AriaLabel="Theme for this lightbox">
+				<MokaSegment Value="page" Text="This page"/>
+				<MokaSegment Value="glow" Text="Glow"/>
+				<MokaSegment Value="line" Text="Line"/>
+				<MokaSegment Value="ember" Text="Ember"/>
+				<MokaSegment Value="compact" Text="Compact"/>
+			</MokaSegmentedControl>
+			@{
+				RenderFragment gallery =
+					@<MokaMediaGallery Items="_photos" MinColumn="7rem" Gap="MokaSpacingScale.Xs">
+						<LightboxActions>
+							<MokaLightboxAction Icon="MokaIcons.Action.Download" Text="Download" Href="@context.Src"
+							                    Download="@FileName(context)"/>
+						</LightboxActions>
+					</MokaMediaGallery>;
+			}
+			@if (LookTheme is { } theme)
+			{
+				<MokaThemeProvider Theme="theme">
+					<div style="padding: var(--moka-spacing-md);">@gallery</div>
+				</MokaThemeProvider>
+			}
+			else
+			{
+				@gallery
+			}
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="--moka-control-height">The arrows' size, and the other buttons' at nine tenths of it</DemoParam>
+		<DemoParam Name="--moka-shadow-modal">The picture's shadow: a ring and glow with Glow, none with Line</DemoParam>
+		<DemoParam Name="--moka-transition-normal">The fade in and the buttons' hover</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private static readonly string[] Names = ["Dusk", "Forest", "Lake", "Bloom", "Fog", "Dunes"];
+
+	// A long list whose full images are read on demand, as a photo library would.
+	private static readonly IReadOnlyList<MokaMediaItem> _longItems =
+	[
+		.. Enumerable.Range(0, 40).Select(i => new MokaMediaItem
+		{
+			Key = $"photo-{i + 1}",
+			ThumbnailSrc = i == 20 ? "samples/missing.svg" : $"samples/photo-{i % 6 + 1}.svg",
+			Alt = $"{Names[i % 6]} {i + 1}",
+			Caption = i % 5 == 0 ? $"Roll {i / 5 + 1}" : null,
+			Failed = i == 12
+		})
+	];
+
+	private readonly Dictionary<string, string> _fullImages = [];
+
+	private readonly HashSet<string> _held = [];
+
+	private MokaMediaGallery? _longGallery;
+
+	private bool _lightboxOpen;
+
+	private int _lightboxIndex;
+
+	private int _reads;
+
+	private int _released;
+
+	private void OpenLightbox(MokaMediaItemOpenArgs args)
+	{
+		_lightboxIndex = args.Index;
+		_lightboxOpen = true;
+	}
+
+	private async Task LightboxClosedAsync()
+	{
+		if (!_lightboxOpen && _longGallery is not null)
+		{
+			await _longGallery.FocusItemAsync(_lightboxIndex);
+		}
+	}
+
+	// Stands in for reading a photo's bytes from storage: a delay, one photo that can't be read, and an SVG drawn four
+	// times larger than its thumbnail as a data URL.
+	private async Task<string?> LoadFullAsync(MokaMediaItem item, CancellationToken cancellationToken)
+	{
+		await Task.Delay(700, cancellationToken);
+		if (Equals(item.Key, "photo-8"))
+		{
+			throw new IOException("The photo could not be read.");
+		}
+
+		string file = $"samples/photo-{NumberOf(item) % 6 + 1}.svg";
+		if (!_fullImages.TryGetValue(file, out string? url))
+		{
+			string svg = await File.ReadAllTextAsync(Path.Combine(Environment.WebRootPath, file), cancellationToken);
+			svg = svg.Replace("width='400' height='400'", "width='1600' height='1600'", StringComparison.Ordinal);
+			url = "data:image/svg+xml;base64," + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg));
+			_fullImages[file] = url;
+		}
+
+		_reads++;
+		_held.Add((string)item.Key!);
+		StateHasChanged();
+		return url;
+	}
+
+	private Task ReleaseFull(MokaMediaItem item, string url)
+	{
+		_released++;
+		_held.Remove((string)item.Key!);
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private static int NumberOf(MokaMediaItem item) =>
+		int.Parse(((string)item.Key!)["photo-".Length..], System.Globalization.CultureInfo.InvariantCulture) - 1;
+
+	private static DateTime TakenOn(MokaMediaItem item) =>
+		new DateTime(2026, 6, 1, 9, 0, 0, DateTimeKind.Utc).AddHours(NumberOf(item) * 37);
+
+	private static long SizeOf(MokaMediaItem item) => 1_200_000 + NumberOf(item) * 73_421L;
+
+	private static readonly string[] CaptionNames =
+	[
+		"Dusk over the harbour from the north pier", "Forest", "Lake", "Bloom", "Fog", "Dunes",
+		"Market", "Lighthouse", "Ridge", "Orchard", "Quay", "Tide pools at low water"
+	];
+
+	private static readonly IReadOnlyList<MokaMediaItem> _photos =
+	[
+		.. CaptionNames.Select((name, i) => new MokaMediaItem
+		{
+			Key = i,
+			Src = $"samples/photo-{i % 6 + 1}.svg",
+			Alt = name
+		})
+	];
+
+	private string _look = "page";
+
+	[CascadingParameter]
+	public MokaTheme? Theme { get; set; }
+
+	private MokaTheme? LookTheme
+	{
+		get
+		{
+			MokaTheme page = Theme ?? MokaTheme.Default;
+			return _look switch
+			{
+				"glow" => page.WithElevation(MokaElevation.Glow),
+				"line" => page.WithElevation(MokaElevation.Line),
+				"ember" => page.IsDark ? MokaTheme.Ember : MokaTheme.EmberLight,
+				"compact" => page.WithDensity(MokaDensity.Compact),
+				_ => null
+			};
+		}
+	}
+
+	private static string FileName(MokaMediaItem photo) => $"{photo.Alt}.svg";
+}

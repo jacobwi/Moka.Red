@@ -111,11 +111,7 @@ public class MokaKnobTests : BunitContext
 	public async Task HomeAndEnd_JumpToMinAndMax()
 	{
 		List<double> changes = [];
-		IRenderedComponent<MokaKnob> cut = Render<MokaKnob>(p => p
-			.Add(x => x.Value, 20d)
-			.Add(x => x.Min, 10d)
-			.Add(x => x.Max, 50d)
-			.Add(x => x.ValueChanged, value => changes.Add(value)));
+		IRenderedComponent<MokaKnob> cut = RenderKnob(20, changes, p => p.Add(x => x.Min, 10d).Add(x => x.Max, 50d));
 
 		await PressAsync(cut, "End");
 		Assert.Equal("50", cut.Find("[role=slider]").GetAttribute("aria-valuenow"));
@@ -132,12 +128,10 @@ public class MokaKnobTests : BunitContext
 	public async Task FractionalSteps_LandOnTheGrid()
 	{
 		List<double> changes = [];
-		IRenderedComponent<MokaKnob> cut = Render<MokaKnob>(p => p
-			.Add(x => x.Value, 0.6)
+		IRenderedComponent<MokaKnob> cut = RenderKnob(0.6, changes, p => p
 			.Add(x => x.Min, 0d)
 			.Add(x => x.Max, 1d)
-			.Add(x => x.Step, 0.1)
-			.Add(x => x.ValueChanged, value => changes.Add(value)));
+			.Add(x => x.Step, 0.1));
 
 		await PressAsync(cut, "ArrowRight");
 
@@ -248,9 +242,23 @@ public class MokaKnobTests : BunitContext
 		Assert.Equal(102, changed);
 	}
 
-	private IRenderedComponent<MokaKnob> RenderKnob(double value, List<double> changes) => Render<MokaKnob>(p => p
-		.Add(x => x.Value, value)
-		.Add(x => x.ValueChanged, v => changes.Add(v)));
+	// A parent bound to Value, as @bind-Value is: it takes each change and renders the knob again. A parent that only
+	// listens owns the value too, and would put each change back.
+	private IRenderedComponent<MokaKnob> RenderKnob(double value, List<double> changes,
+		Action<ComponentParameterCollectionBuilder<MokaKnob>>? extra = null)
+	{
+		IRenderedComponent<MokaKnob>? cut = null;
+		cut = Render<MokaKnob>(p =>
+		{
+			p.Add(x => x.Value, value).Add(x => x.ValueChanged, EventCallback.Factory.Create<double>(this, v =>
+			{
+				changes.Add(v);
+				cut!.Render(q => q.Add(x => x.Value, v));
+			}));
+			extra?.Invoke(p);
+		});
+		return cut;
+	}
 
 	private static Task PressAsync(IRenderedComponent<MokaKnob> cut, string key) =>
 		cut.Find("[role=slider]").KeyDownAsync(new KeyboardEventArgs { Key = key });

@@ -111,6 +111,60 @@
 	overflow-wrap: anywhere;
 }
 
+.moka-code-block--highlighted .moka-code-block__code {
+	color: var(--moka-code-text, var(--moka-color-on-surface));
+}
+
+/* The token spans are built in C#, so they carry no scope attribute and these rules reach them through ::deep. */
+.moka-code-block__line ::deep .moka-code-block__token--tag {
+	color: var(--moka-code-tag, var(--moka-color-primary));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--attribute,
+.moka-code-block__line ::deep .moka-code-block__token--key {
+	color: var(--moka-code-attribute, var(--moka-color-info));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--string,
+.moka-code-block__line ::deep .moka-code-block__token--literal {
+	color: var(--moka-code-string, var(--moka-color-success));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--keyword,
+.moka-code-block__line ::deep .moka-code-block__token--heading {
+	color: var(--moka-code-keyword, var(--moka-color-primary));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--heading {
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--type {
+	color: var(--moka-code-type, color-mix(in srgb, var(--moka-color-info) 45%, var(--moka-color-error)));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--number,
+.moka-code-block__line ::deep .moka-code-block__token--constant {
+	color: var(--moka-code-number, var(--moka-color-warning));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--comment {
+	color: var(--moka-code-comment, var(--moka-color-on-surface-tertiary));
+	font-style: italic;
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--punctuation {
+	color: var(--moka-code-punctuation, var(--moka-color-on-surface-variant));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--directive {
+	color: var(--moka-code-directive, var(--moka-color-warning));
+}
+
+.moka-code-block__line ::deep .moka-code-block__token--value {
+	color: var(--moka-code-text, var(--moka-color-on-surface));
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-code-block {
@@ -140,4 +194,36 @@
 .moka-gate .moka-code-block__line-number {
 	color: var(--moka-color-on-surface-tertiary);
 	opacity: 1;
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--tag {
+	color: var(--moka-code-tag, var(--moka-color-primary-text));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--attribute,
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--key {
+	color: var(--moka-code-attribute, var(--moka-color-info-text));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--string,
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--literal {
+	color: var(--moka-code-string, var(--moka-color-success-text));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--keyword,
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--heading {
+	color: var(--moka-code-keyword, var(--moka-color-primary-text));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--type {
+	color: var(--moka-code-type, color-mix(in srgb, var(--moka-color-info-text) 45%, var(--moka-color-error-text)));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--number,
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--constant {
+	color: var(--moka-code-number, var(--moka-color-warning-text));
+}
+
+.moka-gate .moka-code-block__line ::deep .moka-code-block__token--directive {
+	color: var(--moka-code-directive, var(--moka-color-warning-text));
 }

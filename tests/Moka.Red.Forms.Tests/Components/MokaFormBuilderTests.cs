@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Forms.FormBuilder;
 
@@ -47,9 +48,14 @@ public class MokaFormBuilderTests : BunitContext
 		List<MokaFormField> fields = [new() { Label = "Existing" }];
 		IList<MokaFormField>? reported = null;
 
-		IRenderedComponent<MokaFormBuilder> cut = Render<MokaFormBuilder>(p => p
+		IRenderedComponent<MokaFormBuilder>? cut = null;
+		cut = Render<MokaFormBuilder>(p => p
 			.Add(x => x.Fields, fields)
-			.Add(x => x.FieldsChanged, list => reported = list));
+			.Add(x => x.FieldsChanged, EventCallback.Factory.Create<IList<MokaFormField>>(this, list =>
+			{
+				reported = list;
+				cut!.Render(q => q.Add(x => x.Fields, list));
+			})));
 
 		await cut.Find(".moka-form-builder__palette-item").ClickAsync(new MouseEventArgs());
 

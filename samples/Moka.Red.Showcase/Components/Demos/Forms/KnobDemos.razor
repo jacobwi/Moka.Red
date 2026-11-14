@@ -1,0 +1,12 @@
+<DemoSection Id="basic-knob" Title="Basic knob" Description="A value set by turning a dial.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.End" Wrap>
+		<MokaKnob @bind-Value="_knobValue"/>
+		<MokaKnob @bind-Value="_knobValue" Label="Volume"/>
+		<MokaKnob @bind-Value="_knobValue" Label="Gain" Color="MokaColor.Success"/>
+	</MokaFlexbox>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Value: @_knobValue</MokaText>
+</DemoSection>
+
+@code {
+	private double _knobValue = 50;
+}

@@ -1,0 +1,171 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@using Moka.Red.Navigation.AppShell
+@using Moka.Red.Showcase.Components.Library
+@inject IMokaCommandPaletteService Palette
+@inject NavigationManager Navigation
+@inject ShowcaseLook Look
+
+<MokaThemeProvider Theme="Look.Themes.Theme" DarkTheme="Look.Themes.DarkTheme" LightTheme="Look.Themes.LightTheme" AutoDetectColorScheme>
+	<MokaHotkeyHost/>
+	<div class="showcase-frame">
+		<MokaAppShell Class="showcase-shell" Entries="Menu" NavLabel="Pages">
+			<Brand>
+				<span class="app-logo" aria-hidden="true">M</span>
+				<span class="moka-app-shell__brand-text">
+					<span class="moka-app-shell__brand-name">Moka.Red</span>
+					<span class="moka-app-shell__brand-line">v@(Version)</span>
+				</span>
+			</Brand>
+			<Status>.NET 9 + 10</Status>
+			<TopBarEnd>
+				<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+					<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+				</MokaTooltip>
+				<LookButton Id="showcase-look-phone" Control="Look.Settings.LookControl" DrawerId="@DrawerId" DrawerOpen="_drawerOpen"
+				            DockShown="_dockShown" OnPress="PressLook"/>
+			</TopBarEnd>
+			<ChildContent>
+				<MokaAppBar Class="showcase-pagebar" Title="@CurrentPage" Dense Fixed Bordered Elevated="false">
+					<EndContent>
+						<MokaTooltip Text="Search (Ctrl+K)" Position="MokaTooltipPosition.Bottom">
+							<MokaButton Quiet StartIcon="MokaIcons.Action.Search" aria-label="Search (Ctrl+K)" OnClick="Palette.Open"/>
+						</MokaTooltip>
+						<LookButton Id="showcase-look-bar" Control="Look.Settings.LookControl" DrawerId="@DrawerId" DrawerOpen="_drawerOpen"
+						            DockShown="_dockShown" OnPress="PressLook"/>
+					</EndContent>
+				</MokaAppBar>
+				<div class="showcase-page">
+					@* Not sticky: a sticky host sticks at the window's top, under the fixed page bar, since it doesn't read
+					   --moka-appbar-space. *@
+					<MokaBannerHost Sticky="false"/>
+					@Body
+					@if (ShowsDock)
+					{
+						<div class="showcase-dock-room" aria-hidden="true"></div>
+					}
+				</div>
+			</ChildContent>
+		</MokaAppShell>
+	</div>
+
+	<LookDrawer Id="@DrawerId" Open="_drawerOpen" OpenChanged="SetDrawerOpen"/>
+
+	@if (ShowsDock)
+	{
+		<LookDock/>
+	}
+
+	<MokaToastHost OffsetTop="var(--moka-appbar-space, 0px)"/>
+	<MokaDialogHost/>
+	<MokaContextMenuHost/>
+	<MokaCommandPalette/>
+	<MokaDiagnosticsOverlay Theme="Look.Themes.Theme"/>
+</MokaThemeProvider>
+
+@code {
+	private const string DrawerId = "showcase-look-drawer";
+
+	private static readonly string? Version = typeof(MokaTheme).Assembly.GetName().Version?.ToString(3);
+
+	private readonly List<string> _commands = [];
+	private ShowcaseLookControl _control;
+	private bool _dockShown = true;
+	private bool _drawerOpen;
+	private string? _opener;
+
+	private string Path => Navigation.ToBaseRelativePath(Navigation.Uri);
+
+	// A layout gets a new Body on every page change, so these are read again then.
+	private string? CurrentPage => ShowcaseCatalog.PageName(Path);
+
+	private static IReadOnlyList<MokaNavEntry> Menu => ShowcaseCatalog.Menu;
+
+	private bool ShowsDock => Look.Settings.LookControl == ShowcaseLookControl.Dock && _dockShown;
+
+	protected override void OnInitialized()
+	{
+		_control = Look.Settings.LookControl;
+		Look.Changed += HandleLookChanged;
+
+		MokaCommand[] commands =
+		[
+			.. ShowcaseCatalog.Pages.Select(page => new MokaCommand
+			{
+				Id = $"showcase-page-{page.Route}",
+				Title = page.Label,
+				Description = page.Description,
+				Group = page.Group.Length > 0 ? page.Group : "Pages",
+				Icon = page.Icon,
+				Href = page.Route.TrimStart('/'),
+				Keywords = page.Keywords
+			}),
+			.. LibraryCatalog.Areas.Select(area => new MokaCommand
+			{
+				Id = $"showcase-area-{area.Slug}",
+				Title = area.Name,
+				Description = area.Description,
+				Group = "Areas",
+				Icon = area.Icon,
+				Href = area.Slug,
+				Keywords = string.Join(' ', area.Components.Select(component => component.Name))
+			}),
+			.. LibraryCatalog.Components.Select(component => new MokaCommand
+			{
+				Id = $"showcase-component-{component.Slug}",
+				Title = component.Title,
+				Description = $"{component.Area}. {component.Line}",
+				Group = ShowcaseCatalog.ComponentsGroup,
+				Href = component.Href.TrimStart('/'),
+				Keywords = LibraryCatalog.Keywords(component)
+			})
+		];
+
+		Palette.RegisterMany(commands);
+		_commands.AddRange(commands.Select(command => command.Id));
+	}
+
+	public void Dispose()
+	{
+		Look.Changed -= HandleLookChanged;
+		foreach (string id in _commands)
+		{
+			Palette.Unregister(id);
+		}
+	}
+
+	// A dock hidden with the Look button comes back when the dock is picked again.
+	private void HandleLookChanged()
+	{
+		if (Look.Settings.LookControl != _control)
+		{
+			_control = Look.Settings.LookControl;
+			_dockShown = true;
+		}
+
+		StateHasChanged();
+	}
+
+	private void PressLook(string opener)
+	{
+		switch (Look.Settings.LookControl)
+		{
+			case ShowcaseLookControl.Drawer:
+				_opener = opener;
+				_drawerOpen = !_drawerOpen;
+				break;
+			case ShowcaseLookControl.Dock:
+				_dockShown = !_dockShown;
+				break;
+		}
+	}
+
+	private async Task SetDrawerOpen(bool open)
+	{
+		_drawerOpen = open;
+		if (!open && _opener is not null)
+		{
+			await Look.FocusAsync(_opener);
+		}
+	}
+}

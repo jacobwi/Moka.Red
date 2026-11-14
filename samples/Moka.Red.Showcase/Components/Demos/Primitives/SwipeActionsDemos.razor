@@ -1,0 +1,24 @@
+<DemoSection Id="swipe-item" Title="Swipe item" Description="Swipe a row sideways to reveal its actions.">
+	<MokaText Size="MokaSize.Sm" Style="margin-bottom: var(--moka-spacing-sm);">@_swipeStatus</MokaText>
+	<MokaSwipeActions>
+		<LeftActions>
+			<MokaButton Color="MokaColor.Success" Variant="MokaVariant.Filled" OnClick="HandleSwipeArchive">Archive</MokaButton>
+		</LeftActions>
+		<RightActions>
+			<MokaButton Color="MokaColor.Error" Variant="MokaVariant.Filled" OnClick="HandleSwipeDelete">Delete</MokaButton>
+		</RightActions>
+		<ChildContent>
+			<MokaCard Outlined Style="padding: var(--moka-spacing-md);">
+				<MokaText>Swipe left or right to reveal actions</MokaText>
+			</MokaCard>
+		</ChildContent>
+	</MokaSwipeActions>
+</DemoSection>
+
+@code {
+	private string _swipeStatus = "Swipe the item to reveal actions";
+
+	private void HandleSwipeDelete() => _swipeStatus = "Delete action triggered!";
+
+	private void HandleSwipeArchive() => _swipeStatus = "Archive action triggered!";
+}

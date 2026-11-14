@@ -1,0 +1,9 @@
+<DemoSection Id="basics" Title="Basics" Description="The lines that changed between two texts.">
+	<MokaDiffViewer OldText="@_diffOld" NewText="@_diffNew" ShowLineNumbers="true" MaxHeight="320px"/>
+</DemoSection>
+
+@code {
+	private static readonly string _diffOld = "using System;\n\nclass Program\n{\n\tstatic void Main()\n\t{\n\t\tConsole.WriteLine(\"Hello\");\n\t}\n}";
+
+	private static readonly string _diffNew = "using System;\n\nclass Program\n{\n\tstatic void Main(string[] args)\n\t{\n\t\tConsole.WriteLine(\"Hello, Moka\");\n\t\tConsole.WriteLine(\"Bye\");\n\t}\n}";
+}

@@ -12,9 +12,19 @@ namespace Moka.Red.Core.Base;
 /// <typeparam name="TValue">The type of the input value.</typeparam>
 public abstract class MokaVisualInputBase<TValue> : MokaInputBase<TValue>
 {
+	/// <inheritdoc />
+	protected MokaVisualInputBase()
+	{
+	}
+
+	/// <inheritdoc />
+	protected MokaVisualInputBase(IEqualityComparer<TValue?>? comparer) : base(comparer)
+	{
+	}
+
 	/// <summary>
 	///     The value a form post carries for a control with no native element to hold it. Defaults to
-	///     <see cref="Microsoft.AspNetCore.Components.Forms.InputBase{TValue}.CurrentValueAsString" />. Override it
+	///     <see cref="MokaInputBase{TValue}.CurrentValueAsString" />. Override it
 	///     when that text is formatted for display, since the server has to read it back.
 	/// </summary>
 	protected virtual string? PostedValue => CurrentValueAsString;

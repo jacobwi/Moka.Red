@@ -15,7 +15,7 @@ order: 64
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Fields` | `IList<MokaFormField>` | `[]` | The fields to start with (two-way bindable). The builder works on its own copy and never edits the list you pass. Passing a different list, or the same list with other fields in it, replaces the builder's fields |
-| `FieldsChanged` | `EventCallback<IList<MokaFormField>>` | -- | Receives a new list after every change: add, remove, move or edit |
+| `FieldsChanged` | `EventCallback<IList<MokaFormField>>` | -- | Receives a new list after every change: add, remove, move or edit. An edited field is a new `MokaFormField` with the same `Id`, so the fields you passed are never changed. Passing `Fields` and listening makes you the owner: a list you don't take goes back ([Binding](forms.md#binding)) |
 | `OnExport` | `EventCallback<string>` | -- | Callback invoked when the user clicks Export, passing the output string |
 | `ShowPreview` | `bool` | `true` | Whether to show the live preview below the canvas |
 | `ShowExport` | `bool` | `true` | Whether to show the export button |

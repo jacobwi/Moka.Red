@@ -1,0 +1,77 @@
+@using Moka.Red.Primitives.Emoji
+
+<DemoSection Id="every-option" Title="Every option" Description="One options record drives every panel on this page, so the skin tone and the frequently used list follow from one to the next. The app keeps them; the panel hands back a new record after each pick.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
+		<div>
+			<MokaCaption Micro>Shape</MokaCaption>
+			<MokaSegmentedControl Value="@_options.Shape.ToString()" AriaLabel="Shape"
+			                      ValueChanged="@(v => _options = _options with { Shape = Enum.Parse<MokaEmojiShape>(v) })">
+				@foreach (MokaEmojiShape shape in Enum.GetValues<MokaEmojiShape>())
+				{
+					<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div>
+			<MokaCaption Micro>Groups</MokaCaption>
+			<MokaSegmentedControl Value="@_options.Navigation.ToString()" AriaLabel="Groups"
+			                      ValueChanged="@(v => _options = _options with { Navigation = Enum.Parse<MokaEmojiNavigation>(v) })">
+				@foreach (MokaEmojiNavigation navigation in Enum.GetValues<MokaEmojiNavigation>())
+				{
+					<MokaSegment Value="@navigation.ToString()" Text="@navigation.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div>
+			<MokaCaption Micro>Newest version</MokaCaption>
+			<MokaSegmentedControl Value="@VersionKey" ValueChanged="SetVersion" AriaLabel="Newest version">
+				<MokaSegment Value="auto" Text="This system"/>
+				<MokaSegment Value="13" Text="13.0"/>
+				<MokaSegment Value="15.1" Text="15.1"/>
+				<MokaSegment Value="99" Text="All"/>
+			</MokaSegmentedControl>
+		</div>
+	</MokaFlexbox>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap Style="margin-top: var(--moka-spacing-lg);">
+		<MokaSwitch Value="_options.ShowSearch" ValueChanged="@(v => _options = _options with { ShowSearch = v })" Label="Search"/>
+		<MokaSwitch Value="_options.SearchKeywords" ValueChanged="@(v => _options = _options with { SearchKeywords = v })" Label="Keywords and shortcodes"/>
+		<MokaSwitch Value="_options.SkinTones" ValueChanged="@(v => _options = _options with { SkinTones = v })" Label="Skin tone"/>
+		<MokaSwitch Value="_options.ShowFrequent" ValueChanged="@(v => _options = _options with { ShowFrequent = v })" Label="Frequently used"/>
+		<MokaSwitch Value="_options.ShowPreview" ValueChanged="@(v => _options = _options with { ShowPreview = v })" Label="Preview strip"/>
+		<MokaSwitch Value="_options.ShowKeyHints" ValueChanged="@(v => _options = _options with { ShowKeyHints = v })" Label="Key hints"/>
+	</MokaFlexbox>
+
+	<div style="margin-top: var(--moka-spacing-lg); display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<MokaCaption Micro>Inline panel</MokaCaption>
+		<MokaEmojiPanel @bind-Options="_options" OnPick="Picked" Selected="@_lastPick?.Emoji" Open="true"/>
+		<MokaCaption>
+			@if (_lastPick is null)
+			{
+				<span>Nothing picked yet.</span>
+			}
+			else
+			{
+				<span>Picked @_lastPick.Emoji, @_lastPick.Name (:@_lastPick.Shortcode:). Tone @_options.SkinTone, @(_options.Recent?.Count ?? 0) kept in the frequently used list.</span>
+			}
+		</MokaCaption>
+	</div>
+</DemoSection>
+
+@code {
+	private MokaEmojiOptions _options = new();
+
+	private MokaEmojiPick? _lastPick;
+
+	private string VersionKey => _options.MaxVersion switch
+	{
+		null => "auto",
+		{ } v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)
+	};
+
+	private void SetVersion(string key) => _options = _options with
+	{
+		MaxVersion = key == "auto" ? null : double.Parse(key, System.Globalization.CultureInfo.InvariantCulture)
+	};
+
+	private void Picked(MokaEmojiPick pick) => _lastPick = pick;
+}

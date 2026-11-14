@@ -1,0 +1,58 @@
+<DemoSection Id="colors-soft-default-variant" Title="Colors (soft - default variant)" Description="A small label for a status or a category. Soft and small by default." Tip="A tag labels and does nothing else. For something to pick or close, use a chip.">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaTag Text="Primary" Color="MokaColor.Primary"/>
+			<MokaTag Text="Success" Color="MokaColor.Success"/>
+			<MokaTag Text="Warning" Color="MokaColor.Warning"/>
+			<MokaTag Text="Error" Color="MokaColor.Error"/>
+			<MokaTag Text="Info" Color="MokaColor.Info"/>
+			<MokaTag Text="Secondary" Color="MokaColor.Secondary"/>
+			<MokaTag Text="Surface"/>
+		</MokaFlexbox>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Text, Icon">What the tag says</DemoParam>
+		<DemoParam Name="Color, Variant">Soft by default</DemoParam>
+		<DemoParam Name="Size">Sm by default</DemoParam>
+		<DemoParam Name="Pill">Round ends</DemoParam>
+		<DemoParam Name="Mono">Monospace text, for versions and keys</DemoParam>
+		<DemoParam Name="New">The small New look, ahead of Variant and Color</DemoParam>
+	</Notes>
+	<Playground>
+		<TagPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="variants" Title="Variants">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaTag Text="Soft" Variant="MokaVariant.Soft" Color="MokaColor.Primary"/>
+		<MokaTag Text="Filled" Variant="MokaVariant.Filled" Color="MokaColor.Primary"/>
+		<MokaTag Text="Outlined" Variant="MokaVariant.Outlined" Color="MokaColor.Primary"/>
+		<MokaTag Text="Text" Variant="MokaVariant.Text" Color="MokaColor.Primary"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="sizes" Title="Sizes">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaTag Text="XS" Size="MokaSize.Xs" Color="MokaColor.Primary"/>
+		<MokaTag Text="SM" Size="MokaSize.Sm" Color="MokaColor.Primary"/>
+		<MokaTag Text="MD" Size="MokaSize.Md" Color="MokaColor.Primary"/>
+		<MokaTag Text="LG" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="with-icons" Title="With icons">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaTag Text="Verified" Icon="MokaIcons.Status.CheckCircle" Color="MokaColor.Success"/>
+		<MokaTag Text="Code" Icon="MokaIcons.File.Code" Color="MokaColor.Info" Variant="MokaVariant.Outlined"/>
+		<MokaTag Text="Featured" Icon="MokaIcons.Toggle.Star" Color="MokaColor.Warning" Variant="MokaVariant.Filled"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="pill-shape" Title="Pill shape">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaTag Text="Pill Primary" Pill Color="MokaColor.Primary"/>
+		<MokaTag Text="Pill Success" Pill Color="MokaColor.Success" Variant="MokaVariant.Filled"/>
+		<MokaTag Text="Pill Outlined" Pill Color="MokaColor.Error" Variant="MokaVariant.Outlined"/>
+	</MokaFlexbox>
+</DemoSection>

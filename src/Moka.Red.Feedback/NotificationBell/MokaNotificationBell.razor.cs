@@ -31,7 +31,9 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private readonly string _generatedId = $"moka-notification-bell-{Guid.NewGuid():N}";
 	private bool _focusTriggerPending;
 	private bool _isOpen;
+	private bool? _lastInline;
 	private ElementReference _panel;
+	private bool _popupBound;
 	private ElementReference _root;
 	private string? _shownPopup;
 	private ElementReference _trigger;
@@ -81,23 +83,16 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	public MokaNotificationLook? Look { get; set; }
 
 	/// <summary>
-	///     The heading over the notifications from today, under <see cref="MokaNotificationLook.Grouped" />. Today is
-	///     the local date of the registered <see cref="TimeProvider" />, else the system clock's.
+	///     Draws the list in place, always open, with no bell to open it: for a page or a card that lists notifications.
+	///     The header, its actions, the items and the looks work as in the panel; nothing closes it, and it doesn't go to
+	///     the top layer. Default false.
 	/// </summary>
 	[Parameter]
-	public string TodayText { get; set; } = "Today";
+	public bool Inline { get; set; }
 
-	/// <summary>The heading over the older notifications, under <see cref="MokaNotificationLook.Grouped" />.</summary>
+	/// <summary>Every word the bell and its list write.</summary>
 	[Parameter]
-	public string EarlierText { get; set; } = "Earlier";
-
-	/// <summary>
-	///     The header's count, from <see cref="UnreadCount" />, in the looks that show one
-	///     (<see cref="MokaNotificationLook.Inbox" />, <see cref="MokaNotificationLook.Grouped" /> and
-	///     <see cref="MokaNotificationLook.Terminal" />). Default "2 new".
-	/// </summary>
-	[Parameter]
-	public Func<int, string>? NewCountText { get; set; }
+	public MokaNotificationBellText Text { get; set; } = new();
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
 
@@ -108,7 +103,8 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass("moka-notification-bell--open", _isOpen)
+		.AddClass("moka-notification-bell--open", _isOpen && !Inline)
+		.AddClass("moka-notification-bell--inline", Inline)
 		.AddClass($"moka-notification-bell--{MokaEnumHelpers.ToCssClass(Size)}")
 		.AddClass(MokaNotificationLooks.ModifierClass(RootClass, ShownLook))
 		.AddClass(Class)
@@ -118,10 +114,10 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 
 	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
-	private string NewCount => NewCountText?.Invoke(UnreadCount) ?? MokaNotificationLooks.DefaultNewCount(UnreadCount);
+	private string NewCount => Text.NewCount(UnreadCount);
 
 	private string DropdownClass => new CssBuilder("moka-notification-bell__dropdown")
-		.AddClass($"moka-notification-bell__dropdown--{MokaEnumHelpers.ToCssClass(Position)}")
+		.AddClass($"moka-notification-bell__dropdown--{MokaEnumHelpers.ToCssClass(Position)}", !Inline)
 		.Build();
 
 	// The root only wraps the bell button, so the padding and radius go to the panel it opens,
@@ -151,7 +147,7 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private string BadgeText => UnreadCount > 99 ? "99+" : UnreadCount.ToString(CultureInfo.InvariantCulture);
 
 	// The badge sits inside the button, whose aria-label would otherwise hide the count.
-	private string TriggerLabel => UnreadCount > 0 ? $"Notifications, {BadgeText} unread" : "Notifications";
+	private string TriggerLabel => Text.Bell(UnreadCount);
 
 	// The panel opens on the side the bell has room on, and so does the bell's name.
 	private MokaTooltipPosition TriggerTooltipPosition => Position switch
@@ -172,16 +168,31 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private string UnreadId => $"{PanelId}-unread";
 
 	// What moka-popup.js was last told: a render that changes none of it sends nothing.
-	private string? PopupState => _isOpen ? Position.ToString() : null;
+	private string? PopupState => _isOpen && !Inline ? Position.ToString() : null;
 
 	/// <summary>Has internal open/close state.</summary>
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// The two forms draw different root elements, so the bell that comes back is bound afresh, and starts closed.
+		if (_lastInline != Inline)
+		{
+			_lastInline = Inline;
+			_popupBound = false;
+			_isOpen = false;
+		}
+	}
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender)
+		if (!Inline && !_popupBound)
 		{
+			_popupBound = true;
 			await SafeModuleInvokeVoidAsync(ModulePath, "bindPopup", _root, _trigger);
 		}
 
@@ -240,13 +251,18 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private async Task HandleClear()
 	{
 		await OnClear.InvokeAsync();
+		if (Inline)
+		{
+			return;
+		}
+
 		_isOpen = false;
 
 		// The Clear button had focus and is gone with the panel.
 		_focusTriggerPending = true;
 	}
 
-	private static string FormatTime(DateTime timestamp) => MokaFeedbackFormat.RelativeTime(timestamp);
+	private string FormatTime(DateTime timestamp) => Text.Time(timestamp, Clock.GetUtcNow().UtcDateTime);
 
 	private static string ItemCss(MokaNotificationBellItem item) => new CssBuilder("moka-notification-bell__item")
 		.AddClass("moka-notification-bell__item--unread", !item.Read)
@@ -255,7 +271,7 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 	private IReadOnlyList<MokaNotificationGroup<MokaNotificationBellItem>> Groups(
 		IReadOnlyList<MokaNotificationBellItem> visible, MokaNotificationLook look) =>
 		MokaNotificationLooks.Group(visible, MokaUniqueKeys.For(visible, item => item.Id), look,
-			item => item.Timestamp, Clock, TodayText, EarlierText);
+			item => item.Timestamp, Clock, Text.Today, Text.Earlier);
 
 	private string? GroupHeadingId(MokaNotificationGroup<MokaNotificationBellItem> group) =>
 		group.Heading is null ? null : $"{PanelId}-{group.Key}";
@@ -265,6 +281,5 @@ public partial class MokaNotificationBell : MokaVisualComponentBase
 		.AddClass("moka-visually-hidden", look == MokaNotificationLook.Compact)
 		.Build();
 
-	// The same width either way, so the titles line up.
-	private static string Tag(MokaNotificationBellItem item) => item.Read ? "[---]" : "[NEW]";
+	private string Tag(MokaNotificationBellItem item) => item.Read ? Text.ReadTag : Text.UnreadTag;
 }

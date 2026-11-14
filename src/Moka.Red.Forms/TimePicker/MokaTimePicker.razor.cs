@@ -138,10 +138,6 @@ public partial class MokaTimePicker
 	// A click only opens the popup while the field can't be typed in. Once it can, a click puts the caret there.
 	private EventCallback FieldClick => Typed ? default : EventCallback.Factory.Create(this, ToggleDropdown);
 
-	private EventCallback<ChangeEventArgs> TypedChange => Typed
-		? EventCallback.Factory.Create<ChangeEventArgs>(this, CommitTypedAsync)
-		: default;
-
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
@@ -185,6 +181,15 @@ public partial class MokaTimePicker
 		if (!Typed || CurrentValue != _valueWhenRejected)
 		{
 			DropRejectedText();
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void OnCurrentValueRestored()
+	{
+		if (_isOpen && CurrentValue is { } time)
+		{
+			ShowInColumns(time);
 		}
 	}
 
@@ -359,30 +364,18 @@ public partial class MokaTimePicker
 		CurrentValue = null;
 	}
 
-	private async Task CommitTypedAsync(ChangeEventArgs e)
+	// The input binds with @bind, so Blazor knows the box holds "2130" and writes "21:30" over it, though the last
+	// render already held 21:30.
+	private void CommitTyped(string? value)
 	{
-		string text = e.Value?.ToString() ?? string.Empty;
+		string text = value ?? string.Empty;
 		_typedError = TryParseValueFromString(text, out _, out string error) ? null : error;
 		_valueWhenRejected = CurrentValue;
-		_typedText = text;
+		_typedText = _typedError is null ? null : text;
 		CurrentValueAsString = text;
-		if (_typedError is not null)
-		{
-			return;
-		}
-
-		if (_isOpen && CurrentValue is { } time)
+		if (_typedError is null && _isOpen && CurrentValue is { } time)
 		{
 			ShowInColumns(time);
-		}
-
-		// The last render may already hold the time this text reads as, such as "2130" for 21:30. Blazor would see
-		// nothing to change and leave "2130" on screen, so one render with the text gives the next a value to replace.
-		StateHasChanged();
-		await Task.Yield();
-		if (_typedError is null && string.Equals(_typedText, text, StringComparison.Ordinal))
-		{
-			_typedText = null;
 		}
 	}
 

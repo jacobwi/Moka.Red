@@ -17,10 +17,10 @@
 			<div class="moka-creditcard-preview-number">@MaskedNumber</div>
 			<div class="moka-creditcard-preview-bottom">
 				<div class="moka-creditcard-preview-name">
-					@(string.IsNullOrWhiteSpace(_cardholderName) ? "YOUR NAME" : _cardholderName.ToUpperInvariant())
+					@(string.IsNullOrWhiteSpace(ShownName) ? "YOUR NAME" : ShownName.ToUpperInvariant())
 				</div>
 				<div class="moka-creditcard-preview-expiry">
-					@(string.IsNullOrWhiteSpace(_expiryDate) ? "MM/YY" : _expiryDate)
+					@(string.IsNullOrWhiteSpace(ShownExpiry) ? "MM/YY" : ShownExpiry)
 				</div>
 			</div>
 		</div>
@@ -75,7 +75,7 @@
 		<div class="moka-creditcard-field">
 			<input class="moka-creditcard-input" style="@InputStyle"
 			       type="text"
-			       @bind:get="_cardholderName"
+			       @bind:get="ShownName"
 			       @bind:set="HandleNameInput"
 			       @bind:event="oninput"
 			       placeholder="Cardholder name"

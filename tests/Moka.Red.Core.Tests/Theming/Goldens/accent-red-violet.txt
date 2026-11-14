@@ -1,0 +1,302 @@
+class: moka-root moka-dark moka-gate moka-popups-standard moka-buttons-standard
+nested-class: moka-root moka-root--nested moka-dark moka-gate moka-popups-standard
+page: background: var(--moka-color-background); color-scheme: dark;
+root-declares: 296
+nested-root-declares: 0
+
+--moka-color-primary: #8F7DFF
+--moka-color-primary-light: #B3A8FF
+--moka-color-primary-dark: #7265CC
+--moka-color-on-primary: #0A0E15
+--moka-color-secondary: #A0A0AA
+--moka-color-secondary-light: #C8C8CF
+--moka-color-secondary-dark: #82828C
+--moka-color-on-secondary: #0A0E15
+--moka-color-surface: #141417
+--moka-color-surface-variant: #1A1A1E
+--moka-color-on-surface: #ECECEF
+--moka-color-on-surface-variant: #A0A0AA
+--moka-color-background: #0C0C0E
+--moka-color-on-background: #ECECEF
+--moka-color-error: #FF6369
+--moka-color-on-error: #0A0E15
+--moka-color-warning: #FFB547
+--moka-color-on-warning: #0A0E15
+--moka-color-success: #3DD68C
+--moka-color-on-success: #0A0E15
+--moka-color-info: #5B9CFF
+--moka-color-on-info: #0A0E15
+--moka-color-error-dim: rgba(255, 99, 105, 0.14)
+--moka-color-warning-dim: rgba(255, 181, 71, 0.14)
+--moka-color-success-dim: rgba(61, 214, 140, 0.14)
+--moka-color-info-dim: rgba(91, 156, 255, 0.14)
+--moka-color-outline: #27272D
+--moka-color-outline-variant: #1F1F24
+--moka-color-surface-hover: #1F1F24
+--moka-color-surface-2: #101013
+--moka-color-surface-3: #1F1F24
+--moka-color-primary-glow: rgba(143, 125, 255, 0.08)
+--moka-color-primary-glow-md: rgba(143, 125, 255, 0.15)
+--moka-color-primary-glow-strong: rgba(143, 125, 255, 0.25)
+--moka-color-primary-border: rgba(143, 125, 255, 0.30)
+--moka-color-primary-border-dim: rgba(143, 125, 255, 0.12)
+--moka-color-primary-glow-faint: rgba(143, 125, 255, 0.04)
+--moka-color-on-surface-tertiary: #82828C
+--moka-color-on-surface-quaternary: #44444C
+--moka-color-surface-raised: #17171B
+--moka-color-neutral-bg: #26262C
+--moka-color-outline-strong: #33333A
+--moka-color-outline-hover: #44444C
+--moka-color-on-surface-2: #C8C8CF
+--moka-color-icon: #8A8A94
+--moka-color-lift: white
+--moka-color-knob: #ECECEF
+--moka-shadow-knob: none
+--moka-color-paper: #FFFFFF
+--moka-color-paper-edge: transparent
+--moka-color-primary-bg: #1E1A3A
+--moka-color-primary-row: color-mix(in srgb, var(--moka-color-primary) 12%, var(--moka-color-background))
+--moka-color-primary-ring: color-mix(in srgb, var(--moka-color-primary) 35%, var(--moka-color-background))
+--moka-color-primary-pill: color-mix(in srgb, var(--moka-color-primary) 25%, var(--moka-color-background))
+--moka-color-primary-focus: color-mix(in srgb, var(--moka-color-primary) 22%, transparent)
+--moka-color-primary-text: color-mix(in srgb, var(--moka-color-primary) 40%, white)
+--moka-color-success-bg: #13281F
+--moka-color-success-ink: #9FE6C0
+--moka-color-success-text: #C8F2DA
+--moka-color-success-line: #2F6E50
+--moka-color-warning-bg: #2B2413
+--moka-color-warning-ink: #F2DDB0
+--moka-color-warning-text: #F2DDB0
+--moka-color-warning-line: #5A4A1E
+--moka-color-error-bg: #3A1D22
+--moka-color-error-ink: #FFB3B6
+--moka-color-error-text: #FFD3D5
+--moka-color-error-line: #6B2C33
+--moka-color-error-soft: #FF8A8F
+--moka-color-info-bg: #172640
+--moka-color-info-ink: #A9C8FF
+--moka-color-info-text: #C9DDFF
+--moka-color-info-line: #22406B
+--moka-label-red: #EF4444
+--moka-label-red-bg: color-mix(in srgb, #EF4444 20%, var(--moka-color-surface))
+--moka-label-red-ink: #F69898
+--moka-label-rose: #F43F5E
+--moka-label-rose-bg: color-mix(in srgb, #F43F5E 20%, var(--moka-color-surface))
+--moka-label-rose-ink: #F995A6
+--moka-label-orange: #F97316
+--moka-label-orange-bg: color-mix(in srgb, #F97316 20%, var(--moka-color-surface))
+--moka-label-orange-ink: #FCB27F
+--moka-label-amber: #F59E0B
+--moka-label-amber-bg: color-mix(in srgb, #F59E0B 20%, var(--moka-color-surface))
+--moka-label-amber-ink: #FACA79
+--moka-label-yellow: #EAB308
+--moka-label-yellow-bg: color-mix(in srgb, #EAB308 20%, var(--moka-color-surface))
+--moka-label-yellow-ink: #F3D577
+--moka-label-lime: #84CC16
+--moka-label-lime-bg: color-mix(in srgb, #84CC16 20%, var(--moka-color-surface))
+--moka-label-lime-ink: #BBE37F
+--moka-label-green: #22C55E
+--moka-label-green-bg: color-mix(in srgb, #22C55E 20%, var(--moka-color-surface))
+--moka-label-green-ink: #85DFA6
+--moka-label-emerald: #10B981
+--moka-label-emerald-bg: color-mix(in srgb, #10B981 20%, var(--moka-color-surface))
+--moka-label-emerald-ink: #7CD9BA
+--moka-label-teal: #14B8A6
+--moka-label-teal-bg: color-mix(in srgb, #14B8A6 20%, var(--moka-color-surface))
+--moka-label-teal-ink: #7ED8CE
+--moka-label-cyan: #06B6D4
+--moka-label-cyan-bg: color-mix(in srgb, #06B6D4 20%, var(--moka-color-surface))
+--moka-label-cyan-ink: #76D7E7
+--moka-label-sky: #0EA5E9
+--moka-label-sky-bg: color-mix(in srgb, #0EA5E9 20%, var(--moka-color-surface))
+--moka-label-sky-ink: #7ACEF3
+--moka-label-blue: #3B82F6
+--moka-label-blue-bg: color-mix(in srgb, #3B82F6 20%, var(--moka-color-surface))
+--moka-label-blue-ink: #93BAFA
+--moka-label-indigo: #6366F1
+--moka-label-indigo-bg: color-mix(in srgb, #6366F1 20%, var(--moka-color-surface))
+--moka-label-indigo-ink: #A9ABF7
+--moka-label-violet: #8B5CF6
+--moka-label-violet-bg: color-mix(in srgb, #8B5CF6 20%, var(--moka-color-surface))
+--moka-label-violet-ink: #BFA5FA
+--moka-label-purple: #A855F7
+--moka-label-purple-bg: color-mix(in srgb, #A855F7 20%, var(--moka-color-surface))
+--moka-label-purple-ink: #CFA2FB
+--moka-label-pink: #EC4899
+--moka-label-pink-bg: color-mix(in srgb, #EC4899 20%, var(--moka-color-surface))
+--moka-label-pink-ink: #F59AC7
+--moka-label-slate: #64748B
+--moka-label-slate-bg: color-mix(in srgb, #64748B 20%, var(--moka-color-surface))
+--moka-label-slate-ink: #AAB3BF
+--moka-chart-1: var(--moka-color-primary)
+--moka-chart-2: var(--moka-color-secondary)
+--moka-chart-3: var(--moka-color-success)
+--moka-chart-4: var(--moka-color-info)
+--moka-chart-5: var(--moka-color-warning)
+--moka-chart-6: var(--moka-color-error)
+--moka-chart-7: var(--moka-color-on-surface)
+--moka-chart-8: var(--moka-color-primary)
+--moka-chart-up: #3B82F6
+--moka-chart-down: #EF5350
+--moka-chart-muted: color-mix(in oklab, var(--moka-color-on-surface) 34%, var(--moka-color-surface))
+--moka-chart-grid: color-mix(in oklab, var(--moka-color-on-surface) 7%, var(--moka-color-surface))
+--moka-chart-axis: color-mix(in oklab, var(--moka-color-on-surface) 22%, var(--moka-color-surface))
+--moka-chart-band-1: color-mix(in oklab, var(--moka-color-on-surface) 5%, var(--moka-color-surface))
+--moka-chart-band-2: color-mix(in oklab, var(--moka-color-on-surface) 10%, var(--moka-color-surface))
+--moka-chart-band-3: color-mix(in oklab, var(--moka-color-on-surface) 17%, var(--moka-color-surface))
+--moka-chart-seq-1: #2A0083
+--moka-chart-seq-2: #4116B9
+--moka-chart-seq-3: #5A44DF
+--moka-chart-seq-4: #776CFF
+--moka-chart-seq-5: #9D9FFF
+--moka-chart-ord-1: #BABDFF
+--moka-chart-ord-2: #A0A3FF
+--moka-chart-ord-3: #8987FF
+--moka-chart-ord-4: #7467FF
+--moka-chart-ord-5: #624EE9
+--moka-chart-zero: color-mix(in oklab, var(--moka-color-on-surface) 5%, var(--moka-color-surface))
+--moka-code-text: var(--moka-color-on-surface)
+--moka-code-tag: var(--moka-color-primary-text)
+--moka-code-attribute: var(--moka-color-on-surface-2)
+--moka-code-string: var(--moka-label-green-ink)
+--moka-code-keyword: var(--moka-label-violet-ink)
+--moka-code-type: var(--moka-label-cyan-ink)
+--moka-code-number: var(--moka-label-amber-ink)
+--moka-code-comment: var(--moka-color-on-surface-tertiary)
+--moka-code-punctuation: var(--moka-color-on-surface-tertiary)
+--moka-code-directive: var(--moka-color-primary)
+--moka-font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif
+--moka-font-family-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace
+--moka-font-family-display: 'Space Grotesk', 'Inter', system-ui, sans-serif
+--moka-font-family-number: var(--moka-font-family-display)
+--moka-font-family-figure: var(--moka-font-family)
+--moka-font-size-xxs: 0.65625rem
+--moka-font-size-xs: 0.6875rem
+--moka-font-size-sm: 0.75rem
+--moka-font-size-base: 0.8125rem
+--moka-font-size-md: 0.875rem
+--moka-font-size-lg: 1rem
+--moka-font-size-xl: 1.25rem
+--moka-font-size-xxl: 1.5rem
+--moka-font-size-display: 1.875rem
+--moka-font-size-root: var(--moka-font-size-md)
+--moka-font-size-heading: var(--moka-font-size-display)
+--moka-font-size-card-title: var(--moka-font-size-lg)
+--moka-font-size-dialog: 1.0625rem
+--moka-font-size-menu: 0.84375rem
+--moka-font-size-mono: 0.78125rem
+--moka-line-height-tight: 1.2
+--moka-line-height-base: 1.4
+--moka-line-height-relaxed: 1.6
+--moka-font-weight-light: 300
+--moka-font-weight-normal: 400
+--moka-font-weight-medium: 500
+--moka-font-weight-semibold: 600
+--moka-font-weight-bold: 700
+--moka-font-weight-heading: var(--moka-font-weight-semibold)
+--moka-control-case: none
+--moka-control-tracking: 0
+--moka-title-case: none
+--moka-title-tracking: 0
+--moka-heading-tracking: -0.02em
+--moka-card-title-case: var(--moka-title-case)
+--moka-card-title-tracking: var(--moka-title-tracking)
+--moka-chart-title-tracking: var(--moka-heading-tracking)
+--moka-number-tracking: var(--moka-heading-tracking)
+--moka-spacing-xxs: 0.125rem
+--moka-spacing-xs: 0.25rem
+--moka-spacing-sm: 0.375rem
+--moka-spacing-md: 0.5rem
+--moka-spacing-lg: 0.75rem
+--moka-spacing-xl: 1rem
+--moka-spacing-xxl: 1.5rem
+--moka-density: 1
+--moka-font-scale: 1
+--moka-radius-none: 0
+--moka-radius-sm: 6px
+--moka-radius-md: 10px
+--moka-radius-lg: 14px
+--moka-radius-xl: 20px
+--moka-radius-full: 9999px
+--moka-radius-card: var(--moka-radius-xl)
+--moka-radius-popup: var(--moka-radius-lg)
+--moka-page-gap: 20px
+--moka-card-padding: 22px
+--moka-card-gap: 16px
+--moka-grid-gap: 16px
+--moka-panel-padding: 12px 14px
+--moka-inner-padding: 14px
+--moka-row-padding: 10px 12px
+--moka-item-padding: 8px 10px
+--moka-control-height: 40px
+--moka-main-padding: 28px 32px 120px
+--moka-main-padding-top: 28px
+--moka-main-padding-bottom: 120px
+--moka-menu-row: 30px
+--moka-button-height: 38px
+--moka-button-height-sm: 32px
+--moka-button-height-lg: 46px
+--moka-button-padding: 14px
+--moka-button-padding-sm: 10px
+--moka-input-padding: 12px
+--moka-segment-height: 34px
+--moka-cell-padding: 9px 16px
+--moka-pill-padding: 5px 10px
+--moka-shadow-0: none
+--moka-shadow-1: none
+--moka-shadow-2: none
+--moka-shadow-3: 0 18px 40px rgba(0, 0, 0, 0.45)
+--moka-shadow-4: 0 18px 50px rgba(0, 0, 0, 0.55)
+--moka-shadow-popup: 0 18px 40px rgba(0, 0, 0, 0.45)
+--moka-shadow-popup-lg: 0 18px 50px rgba(0, 0, 0, 0.55)
+--moka-shadow-modal: 0 3px 6px 2px rgba(0, 0, 0, 0.3)
+--moka-shadow-subtle: none
+--moka-transition-fast: 120ms ease-out
+--moka-transition-normal: 150ms ease-out
+--moka-transition-slow: 200ms ease-out
+--moka-height-statusbar: 28px
+--moka-height-toolbar: 52px
+--moka-height-toolbar-dense: 44px
+--moka-z-dropdown: 1000
+--moka-z-sticky: 1020
+--moka-z-fixed: 1030
+--moka-z-modal-backdrop: 1040
+--moka-z-modal: 1050
+--moka-z-popover: 1060
+--moka-z-tooltip: 1070
+--moka-z-appbar: 1035
+--moka-opacity-disabled: 0.55
+--moka-about-display: block
+--moka-opacity-hover: 0.08
+--moka-focus-color: var(--moka-color-primary)
+--moka-focus-width: 2px
+--moka-border-width: 1px
+--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-focus)
+--moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)
+--moka-selected-glow: inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)
+--moka-selected-bar: inset 2px 0 0 var(--moka-color-primary)
+--moka-current-bg: var(--moka-color-primary-row)
+--moka-current-color: var(--moka-color-on-surface)
+--moka-current-icon: var(--moka-color-primary-light)
+--moka-current-shadow: var(--moka-selected-glow)
+--moka-current-edge: var(--moka-color-primary)
+--moka-current-pill-ring: none
+--moka-button-primary-bg: var(--moka-color-primary)
+--moka-button-primary-color: var(--moka-color-on-primary)
+--moka-button-primary-border: var(--moka-color-primary)
+--moka-button-primary-hover-bg: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))
+--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift))
+--moka-button-text-color: var(--moka-color-primary-light)
+--moka-button-text-hover-color: var(--moka-color-on-surface)
+--moka-callout-fill: 100%
+--moka-callout-edge: 0px
+--moka-callout-edge-radius: var(--moka-radius-lg)
+--moka-switch-on-track: currentColor
+--moka-switch-on-ring: none
+--moka-switch-on-knob: var(--moka-color-knob)
+--moka-switch-on-knob-shadow: var(--moka-shadow-knob)
+--moka-color-backdrop: rgba(8, 8, 10, 0.78)
+--moka-backdrop-blur: 8px
+--moka-color-backdrop-strong: color-mix(in srgb, var(--moka-color-background) 92%, transparent)
+--moka-color-backdrop-frosted: color-mix(in srgb, var(--moka-color-background) 55%, transparent)
+--moka-backdrop-blur-strong: 16px

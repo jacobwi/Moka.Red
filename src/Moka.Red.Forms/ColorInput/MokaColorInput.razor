@@ -37,8 +37,8 @@
 			{
 				<input type="color"
 				       class="moka-color-input__native"
-				       value="@(CurrentValueAsString ?? "#000000")"
-				       @onchange="HandleNativeInput"
+				       @bind:get="NativeColor"
+				       @bind:set="HandleNativeInput"
 				       disabled="@Disabled"
 				       tabindex="-1"
 				       aria-label="Pick a color"/>

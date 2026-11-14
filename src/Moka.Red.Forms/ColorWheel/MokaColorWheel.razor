@@ -57,9 +57,9 @@
 		{
 			<input type="text"
 			       class="moka-color-wheel-hex-input"
-			       value="@CurrentHexColor"
-			       maxlength="7"
-			       @onchange="OnHexInput"/>
+			       @bind:get="CurrentHexColor"
+			       @bind:set="OnHexInput"
+			       maxlength="7"/>
 		}
 	</div>
 </div>

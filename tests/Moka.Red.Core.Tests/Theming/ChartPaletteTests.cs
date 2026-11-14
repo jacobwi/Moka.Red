@@ -1,4 +1,5 @@
 using System.Globalization;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
@@ -284,7 +285,7 @@ public sealed class ChartPaletteTests
 /// <summary>
 ///     The data viz method's palette checks: OKLCH lightness band and chroma floor, WCAG contrast, and OKLab distance
 ///     (times 100) between touching colors under normal vision and under protanopia and deuteranopia simulated with the
-///     Machado, Oliveira and Fernandes (2009) matrices at full severity. Written apart from the library's color code.
+///     Machado, Oliveira and Fernandes (2009) matrices at full severity.
 /// </summary>
 internal static class PaletteValidator
 {
@@ -320,90 +321,32 @@ internal static class PaletteValidator
 	internal static double WorstNormal(IReadOnlyList<string> palette, IReadOnlyList<(int, int)> pairs) =>
 		pairs.Min(pair => DeltaE(palette[pair.Item1], palette[pair.Item2]));
 
-	internal static double DeltaE(string a, string b, double[][]? simulate = null)
-	{
-		(double L, double A, double B) x = Oklab(Simulated(Linear(a), simulate));
-		(double L, double A, double B) y = Oklab(Simulated(Linear(b), simulate));
-		return 100 * Math.Sqrt(Math.Pow(x.L - y.L, 2) + Math.Pow(x.A - y.A, 2) + Math.Pow(x.B - y.B, 2));
-	}
+	internal static double DeltaE(string a, string b, double[][]? simulate = null) =>
+		100 * Simulated(a, simulate).ToOklab().DistanceTo(Simulated(b, simulate).ToOklab());
 
 	internal static double Lightness(string hex) => Oklch(hex).Lightness;
 
 	internal static (double Lightness, double Chroma, double Hue) Oklch(string hex)
 	{
-		(double l, double a, double b) = Oklab(Linear(hex));
-		double hue = Math.Atan2(b, a) * 180 / Math.PI;
-		return (l, Math.Sqrt((a * a) + (b * b)), ((hue % 360) + 360) % 360);
+		MokaOklch oklch = MokaCssColor.Parse(hex).ToOklch();
+		return (oklch.L, oklch.C, oklch.H);
 	}
 
-	internal static double Contrast(string a, string b)
-	{
-		double x = Luminance(a), y = Luminance(b);
-		return (Math.Max(x, y) + 0.05) / (Math.Min(x, y) + 0.05);
-	}
+	internal static double Contrast(string a, string b) => MokaContrast.Ratio(MokaCssColor.Parse(a), MokaCssColor.Parse(b));
 
 	/// <summary>A CSS <c>color-mix(in oklab, a p%, b)</c>.</summary>
-	internal static string MixOklab(string a, string b, double share)
-	{
-		(double L, double A, double B) x = Oklab(Linear(a));
-		(double L, double A, double B) y = Oklab(Linear(b));
-		(double r, double g, double bb) = FromOklab((x.L * share) + (y.L * (1 - share)), (x.A * share) + (y.A * (1 - share)), (x.B * share) + (y.B * (1 - share)));
-		return string.Create(CultureInfo.InvariantCulture, $"#{Byte(r):X2}{Byte(g):X2}{Byte(bb):X2}");
-	}
+	internal static string MixOklab(string a, string b, double share) =>
+		MokaColorMix.InOklab(MokaCssColor.Parse(a), MokaCssColor.Parse(b), share).ToHex(uppercase: true);
 
-	private static int Byte(double linear)
+	private static MokaLinearRgb Simulated(string hex, double[][]? m)
 	{
-		double c = Math.Clamp(linear, 0, 1);
-		double encoded = c <= 0.0031308 ? 12.92 * c : (1.055 * Math.Pow(c, 1 / 2.4)) - 0.055;
-		return (int)Math.Round(encoded * 255, MidpointRounding.AwayFromZero);
-	}
-
-	private static double Luminance(string hex)
-	{
-		(double r, double g, double b) = Linear(hex);
-		return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
-	}
-
-	private static (double R, double G, double B) Linear(string hex)
-	{
-		int rgb = int.Parse(hex.AsSpan(1, 6), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-		static double Channel(int value)
-		{
-			double c = value / 255.0;
-			return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-		}
-
-		return (Channel((rgb >> 16) & 0xFF), Channel((rgb >> 8) & 0xFF), Channel(rgb & 0xFF));
-	}
-
-	private static (double R, double G, double B) Simulated((double R, double G, double B) c, double[][]? m)
-	{
+		MokaLinearRgb c = MokaCssColor.Parse(hex).ToLinear();
 		if (m is null)
 		{
 			return c;
 		}
 
 		double Row(int i) => Math.Clamp((m[i][0] * c.R) + (m[i][1] * c.G) + (m[i][2] * c.B), 0, 1);
-		return (Row(0), Row(1), Row(2));
-	}
-
-	private static (double L, double A, double B) Oklab((double R, double G, double B) c)
-	{
-		double l = Math.Cbrt((0.4122214708 * c.R) + (0.5363325363 * c.G) + (0.0514459929 * c.B));
-		double m = Math.Cbrt((0.2119034982 * c.R) + (0.6806995451 * c.G) + (0.1073969566 * c.B));
-		double s = Math.Cbrt((0.0883024619 * c.R) + (0.2817188376 * c.G) + (0.6299787005 * c.B));
-		return ((0.2104542553 * l) + (0.7936177850 * m) - (0.0040720468 * s),
-			(1.9779984951 * l) - (2.4285922050 * m) + (0.4505937099 * s),
-			(0.0259040371 * l) + (0.7827717662 * m) - (0.8086757660 * s));
-	}
-
-	private static (double R, double G, double B) FromOklab(double lightness, double a, double b)
-	{
-		double l = Math.Pow(lightness + (0.3963377774 * a) + (0.2158037573 * b), 3);
-		double m = Math.Pow(lightness - (0.1055613458 * a) - (0.0638541728 * b), 3);
-		double s = Math.Pow(lightness - (0.0894841775 * a) - (1.2914855480 * b), 3);
-		return ((4.0767416621 * l) - (3.3077115913 * m) + (0.2309699292 * s),
-			(-1.2684380046 * l) + (2.6097574011 * m) - (0.3413193965 * s),
-			(-0.0041960863 * l) - (0.7034186147 * m) + (1.7076147010 * s));
+		return new MokaLinearRgb(Row(0), Row(1), Row(2));
 	}
 }

@@ -150,16 +150,16 @@ public class MokaTableShowMoreTests : BunitContext
 	}
 
 	[Fact]
-	public void TurningItOnAndOff_LoadsTheRowsAgain()
+	public void SwitchingThePagerLook_DrawsTheOtherPager()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table();
 
-		cut.Render(p => p.Add(t => t.ShowMore, false));
+		cut.Render(p => p.Add(t => t.ChildContent, DefaultColumnsWithPager(new Pager())));
 
 		Assert.Single(cut.FindComponents<MokaPagination>());
 		Assert.Empty(cut.FindAll(".moka-table-foot"));
 
-		cut.Render(p => p.Add(t => t.ShowMore, true));
+		cut.Render(p => p.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore)));
 
 		Assert.Empty(cut.FindComponents<MokaPagination>());
 		Assert.Equal(2, DataRows(cut).Count);
@@ -202,7 +202,7 @@ public class MokaTableShowMoreTests : BunitContext
 	[Fact]
 	public async Task ServerData_IsAskedForPageOneOfTheSizeShown()
 	{
-		List<MokaTableState> asked = [];
+		List<MokaTableRequest> asked = [];
 		IRenderedComponent<MokaTable<Person>> cut = ServerTable(asked);
 		await cut.WaitForStateAsync(() => DataRows(cut).Count == 2, Wait);
 
@@ -215,7 +215,7 @@ public class MokaTableShowMoreTests : BunitContext
 	[Fact]
 	public async Task ServerData_ShowAll_AsksForTheWholeSet()
 	{
-		List<MokaTableState> asked = [];
+		List<MokaTableRequest> asked = [];
 		IRenderedComponent<MokaTable<Person>> cut = ServerTable(asked);
 		await cut.WaitForStateAsync(() => DataRows(cut).Count == 2, Wait);
 
@@ -231,7 +231,6 @@ public class MokaTableShowMoreTests : BunitContext
 	{
 		TaskCompletionSource<MokaTableResult<Person>>? pending = null;
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
-			.Add(t => t.ShowMore, true)
 			.Add(t => t.PageSize, 2)
 			.Add(t => t.ServerData, state =>
 			{
@@ -243,7 +242,7 @@ public class MokaTableShowMoreTests : BunitContext
 				pending = new TaskCompletionSource<MokaTableResult<Person>>();
 				return pending.Task;
 			})
-			.Add(t => t.ChildContent, DefaultColumns));
+			.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore)));
 		await cut.WaitForStateAsync(() => DataRows(cut).Count == 2, Wait);
 
 		Task click = FootButtons(cut)[0].ClickAsync(new MouseEventArgs());
@@ -299,22 +298,20 @@ public class MokaTableShowMoreTests : BunitContext
 		Render<MokaTable<Person>>(p =>
 		{
 			p.Add(t => t.Items, Five);
-			p.Add(t => t.ShowMore, true);
 			p.Add(t => t.PageSize, pageSize);
-			p.Add(t => t.ChildContent, DefaultColumns);
+			p.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore));
 			extra?.Invoke(p);
 		});
 
-	private IRenderedComponent<MokaTable<Person>> ServerTable(List<MokaTableState> asked) =>
+	private IRenderedComponent<MokaTable<Person>> ServerTable(List<MokaTableRequest> asked) =>
 		Render<MokaTable<Person>>(p => p
-			.Add(t => t.ShowMore, true)
 			.Add(t => t.PageSize, 2)
 			.Add(t => t.ServerData, state =>
 			{
 				asked.Add(state);
 				return Task.FromResult(new MokaTableResult<Person> { Items = Five.Take(state.PageSize).ToList(), TotalItems = 5 });
 			})
-			.Add(t => t.ChildContent, DefaultColumns));
+			.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore)));
 
 	private static IReadOnlyList<IElement> FootButtons(IRenderedComponent<MokaTable<Person>> cut) =>
 		cut.FindAll(".moka-table-foot button");

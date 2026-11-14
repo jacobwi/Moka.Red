@@ -1,0 +1,17 @@
+<DemoSection Id="4-digit-masked-pin" Title="4-Digit masked PIN" Description="A short masked PIN, one box per digit.">
+	<MokaPinInput @bind-Value="_pinValue" OnComplete="HandlePinComplete"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
+		@(_pinComplete ?? "Enter all 4 digits...")
+	</MokaText>
+</DemoSection>
+
+@code {
+	private string _pinValue = "";
+
+	private string? _pinComplete;
+
+	private void HandlePinComplete(string pin)
+	{
+		_pinComplete = $"PIN entered: {pin}";
+	}
+}

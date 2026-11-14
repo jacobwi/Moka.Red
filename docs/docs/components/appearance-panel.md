@@ -6,9 +6,11 @@ order: 156
 
 # Appearance Panel
 
-`MokaAppearancePanel` is the settings screen for how an app looks, in up to four groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar as picture cards, then rows for density and the other choices. Components, when you ask for it, holds the looks of toasts, notifications, popups, lists, dialogs, buttons and tooltips, and Charts the chart look, the series colors, and texture and print. Every pick applies at once, with no Save button.
+`MokaAppearancePanel` is the settings screen for how an app looks, in up to four groups. Colors holds color mode and palette as picture cards and accent as swatches. Style holds the status bar, dock layouts and tables as picture cards, then rows for density and the other choices. Components, when you ask for it, holds the looks of toasts, notifications, popups, lists, dialogs, buttons and tooltips, and Charts the chart look, the series colors, and texture and print. Every pick applies at once, with no Save button.
 
 It behaves like an input. It takes a `MokaAppearance` and gives one back, and storing it is your app's job, per device or per account.
+
+It is for the people using an app. To design a theme, with seeds, pins, a contrast report and exports, use [`MokaThemeStudio`](/components/theme-studio), which builds its own style rows from this panel.
 
 ## Setup
 
@@ -56,6 +58,8 @@ For a scheme you already know, `ToTheme(isDark)` gives one theme.
 | `Rows` | `MokaAppearanceRows` | `Default` | Which rows show. See [Rows](#rows) |
 | `Palettes` | `IReadOnlyList<MokaAppearancePalette>` | `Presets` | The palettes to pick from. See [Your own palettes](#your-own-palettes) |
 | `Accents` | `IReadOnlyList<MokaAccent>` | `MokaAccent.Presets` | The accents to pick from. See [Your own accents](#your-own-accents) |
+| `Neutrals` | `IReadOnlyList<MokaAppearanceNeutral>` | `MokaAppearanceNeutral.Presets` | The swatches of the neutral row. See [A color of their own](#a-color-of-their-own) |
+| `CustomColors` | `bool` | `false` | Whether the accent and neutral rows offer a color picker after their swatches |
 | `OptionState` | `Func<MokaAppearanceOption, MokaAppearanceOptionState>?` | - | Hides or greys out single options. See [Hiding or disabling an option](#hiding-or-disabling-an-option) |
 | `Text` | `MokaAppearanceText` | `new()` | Every word it writes. See [Words](#words) |
 | `ChildContent` | `RenderFragment?` | - | Your own rows, after the built-in ones, in the last group shown |
@@ -84,6 +88,8 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `Mode` | `MokaColorMode` | `Dark` | `Light`, `Dark` or `System` |
 | `Palette` | `string?` | `null` | A palette's `Id`. Null, or an id no longer offered, is the first palette |
 | `Accent` | `string?` | `null` | An accent's `Id`. Null, or an id no longer offered, is the palette's own |
+| `CustomAccent` | `string?` | `null` | An accent of the person's own, as a CSS color. Wins over `Accent` |
+| `CustomNeutral` | `string?` | `null` | A neutral of the person's own, as a CSS color whose hue tints the surfaces. The original design ignores it |
 | `Density` | `MokaDensity?` | `null` | Comfortable or compact, every value of `MokaDensity` |
 | `TextSize` | `MokaTextSize?` | `null` | Normal or small |
 | `Corners` | `MokaCorners?` | `null` | Soft, medium or tight |
@@ -97,6 +103,9 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `Selection` | `MokaSelection?` | `null` | Ring, flat or glow |
 | `CurrentPlace` | `MokaCurrentPlace?` | `null` | Ring, solid, or solid with its glow inside |
 | `StatusBar` | `MokaStatusBarLook?` | `null` | How status bars are drawn |
+| `Docks` | `MokaDockLook?` | `null` | How dock layouts are drawn: classic, IDE, cards, minimal or terminal |
+| `Tables` | `MokaTableLook?` | `null` | How tables draw their rows |
+| `TableDensity` | `MokaTableDensity?` | `null` | How tightly tables space their rows. Null leaves it to each table's look |
 | `Descriptions` | `bool?` | `null` | Whether text saying what a thing is for shows |
 | `LabelTone` | `MokaLabelTone?` | `null` | How strong the label colors on tags, chips, colored folders and swatches are: vivid, muted or pastel |
 | `Toasts` | `MokaToastLook?` | `null` | How toasts are drawn |
@@ -138,7 +147,7 @@ If you passed your own `Palettes` or `Accents` to the panel, pass the same lists
 | `Hint` | `string?` | A line under the name |
 | `TakesStyleChoices` | `bool` | Whether density and the other style choices do anything on it |
 
-`MokaAppearancePalette.Presets` is `Red`, `Gate`, `Matrix`, `Ember` and `Original`. `Crisp` exists too but isn't in the list, since as a picture it looks just like Gate. `Ember` is `MokaTheme.Ember`: Matrix's colors with the Moka principles chosen as style, so its style rows start on those picks (glow, neutral text buttons, mono numbers, compact titles and the rest) and each can still be changed.
+`MokaAppearancePalette.Presets` is `Red`, `Gate`, `Crisp`, `Matrix`, `Ember` and `Original`. `Crisp` is Gate's colors with the style choices at their tightest (compact, small text, tight corners, Inter titles, flat selection); up to 0.5.x it wasn't in the list. `Ember` is `MokaTheme.Ember`: Matrix's colors with the Moka principles chosen as style, so its style rows start on those picks (glow, neutral text buttons, mono numbers, compact titles and the rest) and each can still be changed.
 
 ## Rows
 
@@ -173,6 +182,27 @@ The Current page row has a third option too, Solid inset (`MokaCurrentPlace.Soli
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance"
                      Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Elevation | MokaAppearanceRows.NumberFont"/>
+```
+
+## Dock layouts and tables
+
+Three style rows, part of `Style` and so of `All`:
+
+| Row | Flag | Value | Options |
+|-----|------|-------|---------|
+| Dock layouts | `Docks` | `MokaDockLook` | Classic, IDE, Cards, Minimal, Terminal |
+| Tables | `Tables` | `MokaTableLook` | Lined, Soft stripes, Cards, Sheet, Airy, Framed, List |
+| Table rows | `TableDensity` | `MokaTableDensity` | Compact, Standard, Comfortable |
+
+Dock layouts and tables are picture cards, a small layout or table drawn in each look; table rows are plain segments.
+`ToTheme` passes them to `MokaTheme.WithDocks`, `WithTables` and `WithTableDensity`. A theme that sets no table look
+draws Lined, and one that sets no density leaves it to each table's look, Comfortable for Airy and Compact for the
+rest, so the rows show what tables draw until someone picks. Their words are `Docks`, `Tables`, `TableDensity` and an
+entry per option on `MokaAppearanceText`.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance"
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Docks | MokaAppearanceRows.Tables | MokaAppearanceRows.TableDensity"/>
 ```
 
 ## Label colors
@@ -356,7 +386,31 @@ The panel shows each palette in a small window drawn with that palette's own the
 }
 ```
 
-Pass the same list to `ToThemes`. To let someone pick a color of their own, put a picker in one of [your own rows](#your-own-rows) and add its color to the list.
+Pass the same list to `ToThemes`. To let someone pick a color of their own, turn on `CustomColors` (next section).
+
+## A color of their own
+
+`CustomColors` adds a color picker after the accent row's swatches, and `MokaAppearanceRows.Neutral` adds a row for the neutral, the color whose hue tints the surfaces, borders and greys. Neither is on by default, so a panel looks as it did until it asks.
+
+```razor
+<MokaAppearancePanel @bind-Value="_appearance" CustomColors
+                     Rows="MokaAppearanceRows.Default | MokaAppearanceRows.Neutral"/>
+```
+
+- A color picked for the accent goes in `CustomAccent` and gets a swatch of its own, named `CustomAccent` in the words. On a palette of the new design `ToTheme` gives it to `MokaTheme.WithAccent`, which keeps its hue and strength with shades that hold their contrast; the original design takes it as given.
+- The neutral row offers `Neutrals` (grey, slate, stone, sage and plum, drawn mid-grey where the tint shows) and, with `CustomColors`, a picker. The color goes in `CustomNeutral`, and `ToTheme` then derives the theme from a seed (`MokaTheme.WithSeed`) with the accent in use and this neutral, keeping the palette's style. The row hides while a palette on the original design is picked.
+- "Use the palette's own" beside each row puts the palette's color back.
+
+Both are plain strings, so the value stores as it always has, and the themes `ToThemes` gives carry them: a theme with a custom neutral holds its seed, which `MokaThemeSerializer` writes and reads back. The palette cards preview the custom colors too.
+
+```blazor-preview
+@code {
+    MokaAppearance _appearance = new() { Palette = "gate", CustomNeutral = "#8E857A" };
+}
+
+<MokaAppearancePanel @bind-Value="_appearance" CustomColors
+                     Rows="MokaAppearanceRows.Palette | MokaAppearanceRows.Accent | MokaAppearanceRows.Neutral"/>
+```
 
 The density row offers every value of `MokaDensity`. `MokaTheme.WithDensity(double)` also scales the spacing by a number, which a `MokaAppearance` doesn't hold. Apply it to the themes `ToThemes` gives you, or put it in a palette.
 
@@ -374,7 +428,7 @@ The density row offers every value of `MokaDensity`. `MokaTheme.WithDensity(doub
 
 ## Words
 
-Every word comes from `MokaAppearanceText`. Set the ones to change.
+Every word comes from `MokaAppearanceText`. Set the ones to change. The neutral row's are `Neutral`, `NeutralFromPalette`, `UsePaletteNeutral` and `CustomNeutral`, the custom accent swatch's name is `CustomAccent`, and `Swatches` holds the color picker's own words.
 
 ```razor
 <MokaAppearancePanel @bind-Value="_appearance" Text="Swedish"/>

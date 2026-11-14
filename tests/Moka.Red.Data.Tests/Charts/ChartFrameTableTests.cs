@@ -19,6 +19,7 @@ public sealed class ChartFrameTableTests : BunitContext
 	{
 		this.StaticFrame();
 		IRenderedComponent<FrameChart> cut = Chart(Rows(3), p => p.Add(x => x.Label, "Traffic"));
+		cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("tbody tr").Count));
 
 		IElement region = cut.Find(".moka-chart-frame__table");
 		Assert.Equal("region", region.GetAttribute("role"));
@@ -35,7 +36,7 @@ public sealed class ChartFrameTableTests : BunitContext
 		this.StaticFrame();
 		IRenderedComponent<FrameChart> cut = Chart(Rows(120));
 
-		Assert.Equal(50, cut.FindAll("tbody tr").Count);
+		cut.WaitForAssertion(() => Assert.Equal(50, cut.FindAll("tbody tr").Count));
 		Assert.Equal(50, cut.FindComponent<MokaTable<int>>().Instance.PageSize);
 	}
 
@@ -61,10 +62,10 @@ public sealed class ChartFrameTableTests : BunitContext
 			.Add(x => x.View, MokaChartView.Table));
 
 		MokaTable<int> table = cut.FindComponent<MokaTable<int>>().Instance;
-		Func<MokaTableState, Task<MokaTableResult<int>>> load = table.ServerData!;
-		MokaTableResult<int> descending = await cut.InvokeAsync(() => load(new MokaTableState
+		Func<MokaTableRequest, Task<MokaTableResult<int>>> load = table.ServerData!;
+		MokaTableResult<int> descending = await cut.InvokeAsync(() => load(new MokaTableRequest
 		{
-			Page = 1, PageSize = 50, SortColumn = "LAN", SortDirection = MokaSortDirection.Descending
+			Page = 1, PageSize = 50, Sorts = [new MokaTableSort("LAN", MokaSortDirection.Descending)]
 		}));
 
 		Assert.Equal(120, descending.TotalItems);
@@ -125,11 +126,16 @@ public sealed class ChartFrameTableTests : BunitContext
 		[.. Enumerable.Range(0, count).Select(i => i * 2d)]
 	];
 
+	// The table reads its rows through ServerData, whose first request waits for the table's first render.
 	private IRenderedComponent<FrameChart> Chart(IReadOnlyList<IReadOnlyList<double>> data,
-		Action<ComponentParameterCollectionBuilder<FrameChart>>? more = null) =>
-		Render<FrameChart>(p =>
+		Action<ComponentParameterCollectionBuilder<FrameChart>>? more = null)
+	{
+		IRenderedComponent<FrameChart> cut = Render<FrameChart>(p =>
 		{
 			p.Add(x => x.Keys, Keys).Add(x => x.Data, data).Add(x => x.View, MokaChartView.Table);
 			more?.Invoke(p);
 		});
+		cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".moka-chart-frame__table tbody tr[data-row-index]")));
+		return cut;
+	}
 }

@@ -25,6 +25,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private IJSObjectReference? _module;
 	private bool? _prefersDark;
 	private MokaTheme? _previousTheme;
+	private MokaTheme? _previousParentTheme;
+	private string? _rootStyle;
 	private string? _themeStyle;
 	private int _watchHandle;
 
@@ -137,18 +139,29 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	/// <inheritdoc />
 	protected override void OnParametersSet() => ApplyTheme();
 
+	// Themes compare by value, so a theme built in markup, a new but equal instance on every render, costs nothing.
 	private void ApplyTheme()
 	{
 		MokaTheme activeTheme = ActiveTheme;
+		MokaTheme? parentTheme = ParentProvider?.ActiveTheme;
 
-		if (ReferenceEquals(activeTheme, _previousTheme))
+		if (Equals(activeTheme, _previousTheme) && Equals(parentTheme, _previousParentTheme))
 		{
 			return;
 		}
 
 		_previousTheme = activeTheme;
+		_previousParentTheme = parentTheme;
 		_themeSource.Theme = activeTheme;
-		_themeStyle = activeTheme.ToCssVariables();
+
+		// The outermost provider declares every token twice. On :root, for content outside its root such as the page canvas
+		// and the reconnect dialog. On its root, because a page can hold several outermost providers side by side (live
+		// previews, or panels drawn outside the app's provider), each writing :root, where the last would win for all of
+		// them. A nested root declares only what differs from the provider around it and what reads that, since every
+		// other token arrives inherited (see MokaThemeTokens.RootDeclarations).
+		_rootStyle = IsOutermost ? activeTheme.ToCssVariables() : null;
+		string declarations = parentTheme is null ? activeTheme.ToCssVariables() : MokaThemeTokens.RootDeclarations(activeTheme, parentTheme);
+		_themeStyle = declarations.Length == 0 ? null : declarations;
 
 		bool gate = activeTheme.Look == MokaLook.Gate;
 		_rootClass = new CssBuilder("moka-root")

@@ -34,7 +34,7 @@
 				@{ RenderCalendar(_leftMonth); }
 				@{ RenderCalendar(RightMonth); }
 			</div>
-			@if (_start.HasValue || _end.HasValue)
+			@if (ShownStart.HasValue || ShownEnd.HasValue)
 			{
 				<div class="moka-daterange__footer">
 					<button class="moka-daterange__clear" @onclick="ClearRange" type="button">Clear</button>

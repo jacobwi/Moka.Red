@@ -1,0 +1,19 @@
+<DemoSection Id="basics" Title="Basics" Description="Keeps its content at a ratio as the width changes.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<div style="width: 200px;">
+			<MokaAspectRatio Ratio="16/9">
+				<div style="background: var(--moka-color-primary); color: var(--moka-color-on-primary); display: flex; align-items: center; justify-content: center; height: 100%; font-size: var(--moka-font-size-sm);">16:9</div>
+			</MokaAspectRatio>
+		</div>
+		<div style="width: 150px;">
+			<MokaAspectRatio Ratio="1/1">
+				<div style="background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); display: flex; align-items: center; justify-content: center; height: 100%; font-size: var(--moka-font-size-sm);">1:1</div>
+			</MokaAspectRatio>
+		</div>
+		<div style="width: 200px;">
+			<MokaAspectRatio Ratio="4/3">
+				<div style="background: var(--moka-color-info); color: var(--moka-color-on-info); display: flex; align-items: center; justify-content: center; height: 100%; font-size: var(--moka-font-size-sm);">4:3</div>
+			</MokaAspectRatio>
+		</div>
+	</MokaFlexbox>
+</DemoSection>

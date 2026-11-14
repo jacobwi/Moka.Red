@@ -1,0 +1,14 @@
+<DemoSection Id="basics" Title="Basics" Description="An amount of money with its symbol.">
+	<div style="max-width: 240px;">
+		<MokaCurrencyInput @bind-Value="_currencyUsd" Label="Amount (USD)" CurrencySymbol="$" CurrencyCode="USD"/>
+	</div>
+	<div style="max-width: 240px; margin-top: 8px;">
+		<MokaCurrencyInput @bind-Value="_currencyEur" Label="Amount (EUR)" CurrencySymbol="&euro;" CurrencyCode="EUR"/>
+	</div>
+</DemoSection>
+
+@code {
+	private decimal? _currencyUsd = 42.50m;
+
+	private decimal? _currencyEur;
+}

@@ -28,7 +28,7 @@ public class MokaColumnNoWrapTests : BunitContext
 	public void NoWrap_MarksEveryCellOfItsColumn_AndNoOther()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(
-			p => p.Add(t => t.ShowFilters, true),
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
 			Name with { NoWrap = true, Filterable = true, Aggregate = MokaAggregateType.Count },
 			City with { Filterable = true });
 

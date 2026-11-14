@@ -1,0 +1,26 @@
+@using Moka.Red.Feedback.EmojiTypeahead
+@using Moka.Red.Primitives.Emoji
+
+<DemoSection Id="on-a-plain-textarea" Title="On a plain textarea" Description="For watches a field the typeahead doesn't wrap, here a plain textarea.">
+	<div>
+		<textarea @ref="_plain" rows="2" aria-label="Plain textarea" style="width: 100%; box-sizing: border-box;"></textarea>
+		<MokaEmojiTypeahead For="_plainRef" Options="_options"/>
+	</div>
+</DemoSection>
+
+@code {
+	private MokaEmojiOptions _options = new();
+
+	private ElementReference _plain;
+
+	private ElementReference? _plainRef;
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_plainRef = _plain;
+			StateHasChanged();
+		}
+	}
+}

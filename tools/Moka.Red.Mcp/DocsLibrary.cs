@@ -63,11 +63,16 @@ internal sealed record DocsPage(
 
 internal sealed partial class DocsLibrary
 {
-	private const string ComponentPrefix = "docs/components/";
 	private const string GuidePrefix = "docs/getting-started/";
+
+	// The layout components have a folder of their own on the docs site; to a reader they are component pages like the rest.
+	private static readonly string[] ComponentPrefixes = ["docs/components/", "docs/layout/"];
 
 	private readonly Dictionary<string, DocsPage> _bySlug = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Dictionary<string, DocsPage> _byComponent = new(StringComparer.OrdinalIgnoreCase);
+
+	// Each page's own component, longest first, for components named after one.
+	private readonly List<(string Component, DocsPage Page)> _owners;
 
 	public DocsLibrary()
 		: this(typeof(DocsLibrary).Assembly)
@@ -81,7 +86,7 @@ internal sealed partial class DocsLibrary
 
 		foreach (string resource in assembly.GetManifestResourceNames().Order(StringComparer.Ordinal))
 		{
-			bool isComponent = resource.StartsWith(ComponentPrefix, StringComparison.Ordinal);
+			bool isComponent = ComponentPrefixes.Any(prefix => resource.StartsWith(prefix, StringComparison.Ordinal));
 			bool isGuide = resource.StartsWith(GuidePrefix, StringComparison.Ordinal);
 			if (!isComponent && !isGuide)
 			{
@@ -114,6 +119,8 @@ internal sealed partial class DocsLibrary
 				_byComponent.TryAdd(component, page);
 			}
 		}
+
+		_owners = [.. components.Select(page => (OwnComponent(page.Slug), page)).OrderByDescending(owner => owner.Item1.Length)];
 	}
 
 	internal IReadOnlyList<DocsPage> ComponentPages { get; }
@@ -121,7 +128,14 @@ internal sealed partial class DocsLibrary
 	internal IReadOnlyList<DocsPage> GuidePages { get; }
 
 	internal DocsPage? ForComponent(string componentName) =>
-		_byComponent.GetValueOrDefault(componentName.Trim());
+		_byComponent.GetValueOrDefault(componentName.Trim()) ?? NamedAfter(componentName.Trim());
+
+	// A component named after a page's own one, the next word starting on a capital (MokaAnnouncerHost after
+	// MokaAnnouncer, MokaTablePager after MokaTable), belongs on that page when no page names it.
+	private DocsPage? NamedAfter(string componentName) =>
+		_owners.FirstOrDefault(owner => componentName.Length > owner.Component.Length
+		                                && componentName.StartsWith(owner.Component, StringComparison.Ordinal)
+		                                && char.IsUpper(componentName[owner.Component.Length])).Page;
 
 	internal DocsParameter? Parameter(string componentName, string parameterName) =>
 		ForComponent(componentName)?.Parameters.GetValueOrDefault(componentName)?.GetValueOrDefault(parameterName);
@@ -146,7 +160,8 @@ internal sealed partial class DocsLibrary
 		       ?? _byComponent.GetValueOrDefault("Moka" + key)
 		       ?? _bySlug.GetValueOrDefault(key)
 		       ?? _bySlug.GetValueOrDefault(Kebab(key.StartsWith("Moka", StringComparison.Ordinal) ? key["Moka".Length..] : key))
-		       ?? ComponentPages.FirstOrDefault(page => page.Title.Equals(key, StringComparison.OrdinalIgnoreCase));
+		       ?? ComponentPages.FirstOrDefault(page => page.Title.Equals(key, StringComparison.OrdinalIgnoreCase))
+		       ?? NamedAfter(key.StartsWith("Moka", StringComparison.Ordinal) ? key : "Moka" + key);
 	}
 
 	internal DocsPage? FindGuide(string topic) =>
@@ -284,8 +299,8 @@ internal sealed partial class DocsLibrary
 				continue;
 			}
 
-			string name = cells[nameColumn].Trim('`', ' ');
-			if (name.Length == 0 || !char.IsLetter(name[0]))
+			List<string> names = ParameterNames(cells[nameColumn]);
+			if (names.Count == 0)
 			{
 				continue;
 			}
@@ -302,13 +317,26 @@ internal sealed partial class DocsLibrary
 				tables[component] = rows;
 			}
 
-			rows.TryAdd(name, new DocsParameter(defaultValue, cells[descriptionColumn]));
+			foreach (string name in names)
+			{
+				rows.TryAdd(name, new DocsParameter(defaultValue, cells[descriptionColumn]));
+			}
 		}
 
 		return tables.ToDictionary(
 			entry => entry.Key,
 			entry => (IReadOnlyDictionary<string, DocsParameter>)entry.Value,
 			StringComparer.OrdinalIgnoreCase);
+	}
+
+	// A row can name several parameters, "`Class`, `Style`, `Id`" or "`Margin` / `MarginValue`", and show how one binds,
+	// "`Folder` / `@bind-Folder`". The names are the quoted ones that are identifiers.
+	private static List<string> ParameterNames(string cell)
+	{
+		List<string> quoted = [.. QuotedName().Matches(cell).Select(match => match.Groups[1].Value)];
+		string bare = cell.Trim('`', ' ');
+		List<string> candidates = quoted.Count > 0 ? quoted : [bare];
+		return [.. candidates.Where(name => name.Length > 0 && char.IsLetter(name[0]) && name.All(char.IsLetterOrDigit)).Distinct(StringComparer.Ordinal)];
 	}
 
 	private static string[] Cells(string row)
@@ -322,4 +350,7 @@ internal sealed partial class DocsLibrary
 
 	[GeneratedRegex(@"^#{2,4}\s+`?(Moka[A-Za-z0-9]+)", RegexOptions.Multiline)]
 	private static partial Regex ComponentHeading();
+
+	[GeneratedRegex("`([^`]+)`")]
+	private static partial Regex QuotedName();
 }

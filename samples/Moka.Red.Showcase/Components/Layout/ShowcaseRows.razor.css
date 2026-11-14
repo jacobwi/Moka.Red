@@ -1,0 +1,9 @@
+.showcase-rows {
+	display: flex;
+	flex-direction: column;
+}
+
+.showcase-rows ::deep .moka-appearance-row {
+	flex-direction: column;
+	align-items: stretch;
+}

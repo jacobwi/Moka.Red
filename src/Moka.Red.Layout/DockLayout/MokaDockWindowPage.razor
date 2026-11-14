@@ -1,0 +1,26 @@
+@page "/moka-dock-window"
+@namespace Moka.Red.Layout.DockLayout
+@layout MokaDockWindowLayout
+@implements IDisposable
+
+<PageTitle>@(_session?.Title ?? Words.InOtherWindow)</PageTitle>
+
+<div class="moka-dock-window">
+	@if (_session is null || _session.Ended)
+	{
+		<p class="moka-dock-window__notice" role="status">@Words.WindowGone</p>
+	}
+	else
+	{
+		<header class="moka-dock-window__bar">
+			<span class="moka-dock-window__title">@_session.Title</span>
+			<button type="button" class="moka-dock-window__back" @onclick="BringBack">
+				<MokaIcon Icon="MokaIcons.Navigation.Dock" SizeValue="14px"/>
+				<span>@Words.BringBack</span>
+			</button>
+		</header>
+		<main class="moka-dock-window__body">
+			@_session.Component.Render()
+		</main>
+	}
+</div>

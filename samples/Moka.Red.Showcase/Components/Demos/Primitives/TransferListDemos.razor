@@ -1,0 +1,14 @@
+<DemoSection Id="basic-transfer-list" Title="Basic transfer list" Description="Move items between two lists.">
+	<MokaTransferList TItem="string"
+	                  AvailableItems="_transferAvailable"
+	                  SelectedItems="_transferSelected"
+	                  AvailableTitle="Available Languages"
+	                  SelectedTitle="Selected Languages"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @string.Join(", ", _transferSelected)</MokaText>
+</DemoSection>
+
+@code {
+	private readonly IList<string> _transferAvailable = new List<string> { "C#", "TypeScript", "Python", "Rust", "Go" };
+
+	private readonly IList<string> _transferSelected = new List<string>();
+}

@@ -1,0 +1,51 @@
+<DemoSection Id="basics" Title="Basics" Description="Status along the bottom of an app or a panel.">
+	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface-variant);">
+		A status bar is rendered fixed at the bottom of this page. With <code>Fixed="false"</code> it sits under a panel
+		instead:
+	</p>
+	<div id="inline-statusbar" style="border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<div style="padding: var(--moka-spacing-lg);">A file list would be here.</div>
+		<MokaStatusBar Fixed="false">
+			<StartContent>
+				<MokaStatusBarItem Text="128 items"/>
+				<MokaStatusBarItem Text="3 selected, 4.2 MB"/>
+			</StartContent>
+			<EndContent>
+				<MokaStatusBarItem Icon="MokaIcons.Action.Download" Text="2 transfers" Tooltip="Running transfers"/>
+			</EndContent>
+		</MokaStatusBar>
+	</div>
+
+	<MokaStatusBar>
+		<StartContent>
+			<MokaStatusBarItem Icon="MokaIcons.File.Code" Text="main" Tooltip="Current branch"/>
+			<MokaStatusBarItem Text="Ln 42, Col 18" Tooltip="Cursor position"/>
+		</StartContent>
+		<EndContent>
+			<MokaStatusBarItem Text="UTF-8" Tooltip="File encoding"/>
+			<MokaStatusBarItem Text="C#" Tooltip="Language mode"/>
+			<MokaStatusBarItem Icon="MokaIcons.Status.CheckCircle" Text="0 Errors" Tooltip="No problems"/>
+		</EndContent>
+	</MokaStatusBar>
+</DemoSection>
+
+<DemoSection Id="status-bar-looks" Title="Status bar looks" Description="Every Look, each Expandable, so a narrow window folds what doesn't fit behind a +N button.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		@foreach (MokaStatusBarLook look in Enum.GetValues<MokaStatusBarLook>())
+		{
+			<MokaCaption Micro="true">@look</MokaCaption>
+			<MokaStatusBar Fixed="false" Look="look" Expandable="true">
+				<StartContent>
+					<MokaStatusBarItem Icon="MokaIcons.Status.CheckCircle" Text="Connected" Priority="10" OnClick="@(() => { })"/>
+					<MokaStatusBarSeparator/>
+					<MokaStatusBarItem Text="main" OnClick="@(() => { })"/>
+					<MokaStatusBarItem Text="2 problems" Tooltip="Open the problems list" OnClick="@(() => { })"/>
+				</StartContent>
+				<EndContent>
+					<MokaStatusBarItem Text="UTF-8"/>
+					<MokaStatusBarItem Text="Ln 12, Col 4" OnClick="@(() => { })"/>
+				</EndContent>
+			</MokaStatusBar>
+		}
+	</div>
+</DemoSection>

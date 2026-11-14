@@ -1,0 +1,243 @@
+<DemoSection Id="basics" Title="Basics" Description="Runs an action. Variant sets how loud it is, Color what it means." Tip="Put the main action last in a row. An icon-only button needs an aria-label and a MokaTooltip saying the same.">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+			<MokaButton Variant="MokaVariant.Filled">Filled</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined">Outlined</MokaButton>
+			<MokaButton Variant="MokaVariant.Text">Text</MokaButton>
+			<MokaButton Variant="MokaVariant.Soft">Soft</MokaButton>
+		</MokaFlexbox>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Variant">Filled, Outlined, Soft or Text: how loud it is</DemoParam>
+		<DemoParam Name="Color">What it means. Error for a delete</DemoParam>
+		<DemoParam Name="Size">Xs, Sm, Md or Lg</DemoParam>
+		<DemoParam Name="StartIcon, EndIcon">A MokaIcons definition beside the label</DemoParam>
+		<DemoParam Name="Loading">Busy: a spinner in the icon's place, focus and width kept, presses and form submits ignored</DemoParam>
+		<DemoParam Name="LoadingText">What a screen reader hears when it becomes busy. "Loading" by default</DemoParam>
+		<DemoParam Name="DisabledLook">Faded, Muted or Outline while disabled, ahead of the theme's WithDisabledButtons</DemoParam>
+		<DemoParam Name="Href">Renders a link. javascript: and data: addresses are dropped</DemoParam>
+		<DemoParam Name="Quiet">A 32 px icon-only button with no variant</DemoParam>
+	</Notes>
+	<Playground>
+		<ButtonPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="colors-filled" Title="Colors (filled)">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton Color="MokaColor.Primary">Primary</MokaButton>
+		<MokaButton Color="MokaColor.Secondary">Secondary</MokaButton>
+		<MokaButton Color="MokaColor.Error">Error</MokaButton>
+		<MokaButton Color="MokaColor.Warning">Warning</MokaButton>
+		<MokaButton Color="MokaColor.Success">Success</MokaButton>
+		<MokaButton Color="MokaColor.Info">Info</MokaButton>
+		<MokaButton Color="MokaColor.Surface">Surface</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="colors-soft" Title="Colors (soft)">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Primary">Primary</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Secondary</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Error">Error</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Warning">Warning</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Success">Success</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Info">Info</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="colors-outlined" Title="Colors (outlined)">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Primary</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Secondary</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error">Error</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Warning">Warning</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Success">Success</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Info">Info</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="sizes" Title="Sizes">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaButton Size="MokaSize.Xs">Extra Small</MokaButton>
+		<MokaButton Size="MokaSize.Sm">Small</MokaButton>
+		<MokaButton Size="MokaSize.Md">Medium</MokaButton>
+		<MokaButton Size="MokaSize.Lg">Large</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="with-icons" Title="With icons">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton StartIcon="MokaIcons.Action.Save">Save</MokaButton>
+		<MokaButton StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" Variant="MokaVariant.Outlined">Delete</MokaButton>
+		<MokaButton EndIcon="MokaIcons.Navigation.ArrowRight" Variant="MokaVariant.Text">Next</MokaButton>
+		<MokaButton StartIcon="MokaIcons.Action.Download" Variant="MokaVariant.Soft" Color="MokaColor.Info">Download</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="icon-only" Title="Icon only">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton StartIcon="MokaIcons.Action.Add" Size="MokaSize.Sm"/>
+		<MokaButton StartIcon="MokaIcons.Action.Edit" Variant="MokaVariant.Outlined"/>
+		<MokaButton StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" Variant="MokaVariant.Text"/>
+		<MokaButton StartIcon="MokaIcons.Action.Settings" Variant="MokaVariant.Soft" Color="MokaColor.Secondary"/>
+		<MokaButton StartIcon="MokaIcons.Navigation.MoreVertical" Variant="MokaVariant.Text" Color="MokaColor.Surface"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="states" Title="States">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton Disabled="true">Disabled</MokaButton>
+		<MokaButton Loading="true">Loading</MokaButton>
+		<MokaButton Disabled="true" Variant="MokaVariant.Outlined">Disabled Outlined</MokaButton>
+		<MokaButton Loading="true" Variant="MokaVariant.Soft" Color="MokaColor.Success">Saving...</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="busy" Title="Busy">
+	<p class="page-desc">Each one runs a two-second save. It keeps focus and its width, ignores presses until it's done, and a screen reader hears "Saving". The spinner takes the start icon's place, else the end icon's, else covers the label.</p>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<MokaButton StartIcon="MokaIcons.Action.Save" Loading="@_busyButtons.Contains(1)" LoadingText="Saving"
+		            OnClick="() => RunBusyAsync(1)">Save</MokaButton>
+		<MokaButton Loading="@_busyButtons.Contains(2)" LoadingText="Saving" OnClick="() => RunBusyAsync(2)">Save changes</MokaButton>
+		<MokaButton EndIcon="MokaIcons.Navigation.ArrowRight" Variant="MokaVariant.Outlined" Loading="@_busyButtons.Contains(3)"
+		            OnClick="() => RunBusyAsync(3)">Next</MokaButton>
+		<MokaTooltip Text="Refresh">
+			<MokaButton StartIcon="MokaIcons.Action.Refresh" Variant="MokaVariant.Soft" aria-label="Refresh"
+			            Loading="@_busyButtons.Contains(4)" OnClick="() => RunBusyAsync(4)"/>
+		</MokaTooltip>
+		<MokaTooltip Text="Delete">
+			<MokaButton Quiet StartIcon="MokaIcons.Action.Delete" Color="MokaColor.Error" aria-label="Delete"
+			            Loading="@_busyButtons.Contains(5)" OnClick="() => RunBusyAsync(5)"/>
+		</MokaTooltip>
+	</MokaFlexbox>
+	<p class="page-desc">Presses that ran: @_busyRuns</p>
+</DemoSection>
+
+<DemoSection Id="busy-submit" Title="Busy submit">
+	<p class="page-desc">Press Send or Enter in the field, then press again while it's busy: the form is sent once, by a click and by Enter.</p>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xl" Align="MokaAlign.End" Wrap>
+		<EditForm Model="_busyForm" OnValidSubmit="SendBusyFormAsync">
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.End">
+				<MokaTextField @bind-Value="_busyForm.Name" Label="Edit form"/>
+				<MokaButton Type="submit" Loading="_busyFormSending" LoadingText="Sending">Send</MokaButton>
+			</MokaFlexbox>
+		</EditForm>
+		<form @onsubmit="SendPlainFormAsync">
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.End">
+				<label class="page-desc" style="display: grid; gap: var(--moka-spacing-xs);">
+					Plain form
+					<input name="code" style="padding: var(--moka-spacing-sm);"/>
+				</label>
+				<MokaButton Type="submit" Loading="_plainFormSending" LoadingText="Sending">Send</MokaButton>
+			</MokaFlexbox>
+		</form>
+	</MokaFlexbox>
+	<p class="page-desc">Sent: @_busyFormSent from the edit form, @_plainFormSent from the plain form</p>
+</DemoSection>
+
+<DemoSection Id="disabled-looks" Title="Disabled looks">
+	<p class="page-desc">New design only. Faded is the default, the button's own colors dimmed. Muted and Outline draw every disabled button in neutral colors, so a solid one reads as unavailable rather than broken. Pick one for the app with MokaTheme.WithDisabledButtons, or for a button with DisabledLook.</p>
+	@foreach (MokaDisabledButtonLook look in Enum.GetValues<MokaDisabledButtonLook>())
+	{
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<span class="page-desc" style="min-width: 5rem;">@look</span>
+			<MokaButton Disabled DisabledLook="look">Create account</MokaButton>
+			<MokaButton Disabled DisabledLook="look" Color="MokaColor.Error">Delete</MokaButton>
+			<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+			<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Outlined">Outlined</MokaButton>
+			<MokaButton Disabled DisabledLook="look" Variant="MokaVariant.Text">Text</MokaButton>
+		</MokaFlexbox>
+	}
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+		<span class="page-desc" style="min-width: 5rem;">Enabled</span>
+		<MokaButton>Create account</MokaButton>
+		<MokaButton Color="MokaColor.Error">Delete</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined">Outlined</MokaButton>
+		<MokaButton Variant="MokaVariant.Text">Text</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="full-width" Title="Full width">
+	<div style="max-width: 400px;">
+		<MokaButton FullWidth="true" StartIcon="MokaIcons.Action.Download">Download Report</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="as-link" Title="As link">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+		<MokaButton Href="https://github.com/jacobwi/Moka.Red" Target="_blank">GitHub</MokaButton>
+		<MokaButton Href="https://example.com" Variant="MokaVariant.Outlined" Disabled="true">Disabled Link</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="outlined-row" Title="Outlined row" Description="Buttons joined into one control, in a row or a column.">
+	<MokaButtonGroup>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Left</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Center</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Right</MokaButton>
+	</MokaButtonGroup>
+</DemoSection>
+
+<DemoSection Id="filled-row" Title="Filled row">
+	<MokaButtonGroup>
+		<MokaButton Color="MokaColor.Primary">Save</MokaButton>
+		<MokaButton Color="MokaColor.Primary" StartIcon="MokaIcons.Navigation.ChevronDown"/>
+	</MokaButtonGroup>
+</DemoSection>
+
+<DemoSection Id="column" Title="Column">
+	<MokaButtonGroup Orientation="MokaDirection.Column">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option A</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option B</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Surface">Option C</MokaButton>
+	</MokaButtonGroup>
+</DemoSection>
+
+@code {
+	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
+
+	private readonly HashSet<int> _busyButtons = [];
+
+	private int _busyRuns;
+
+	private readonly BusyFormModel _busyForm = new();
+
+	private bool _busyFormSending;
+
+	private int _busyFormSent;
+
+	private bool _plainFormSending;
+
+	private int _plainFormSent;
+
+	private async Task RunBusyAsync(int button)
+	{
+		_busyButtons.Add(button);
+		_busyRuns++;
+		await Task.Delay(SaveTime);
+		_busyButtons.Remove(button);
+	}
+
+	private async Task SendBusyFormAsync()
+	{
+		_busyFormSending = true;
+		_busyFormSent++;
+		await Task.Delay(SaveTime);
+		_busyFormSending = false;
+	}
+
+	private async Task SendPlainFormAsync()
+	{
+		_plainFormSending = true;
+		_plainFormSent++;
+		await Task.Delay(SaveTime);
+		_plainFormSending = false;
+	}
+
+	private sealed class BusyFormModel
+	{
+		public string? Name { get; set; }
+	}
+}

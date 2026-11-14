@@ -1,0 +1,49 @@
+@using Moka.Red.Forms.SettingsForm
+
+<DemoSection Id="a-section-with-a-save-flow" Title="A section with a save flow" Description="While Dirty the form shows an Unsaved tag and a footer with Save and Put back, and asks before the page is left. The app keeps the values and the save. Save &quot;taken&quot; to see a refusal.">
+	<MokaSettingsForm Title="Profile" Lead="How others see you." Icon="MokaIcons.Content.Users"
+	                  Dirty="Dirty" Saving="_saving" CanSave="@(!string.IsNullOrWhiteSpace(_name))" Refusal="@_refusal"
+	                  OnSave="SaveAsync" OnReset="PutBack" Now="@($"Shown as {_savedName}")">
+		<MokaSettingsGroup Title="Name">
+			<MokaTextField Label="Display name" @bind-Value="_name"/>
+			<MokaTextField Label="Team" Optional @bind-Value="_team"/>
+		</MokaSettingsGroup>
+		<MokaSettingsGroup Title="Notifications" Help="Sent to the address on your account.">
+			<MokaSwitch @bind-Value="_digest" Label="A weekly digest"/>
+		</MokaSettingsGroup>
+	</MokaSettingsForm>
+</DemoSection>
+
+@code {
+	private string _name = "Avery";
+	private string _team = "Reports";
+	private bool _digest = true;
+	private string _savedName = "Avery";
+	private string _savedTeam = "Reports";
+	private bool _savedDigest = true;
+	private bool _saving;
+	private string? _refusal;
+
+	private bool Dirty => _name != _savedName || _team != _savedTeam || _digest != _savedDigest;
+
+	private async Task SaveAsync()
+	{
+		_saving = true;
+		_refusal = null;
+		await Task.Delay(400);
+		_saving = false;
+		if (string.Equals(_name, "taken", StringComparison.OrdinalIgnoreCase))
+		{
+			_refusal = "That name is taken.";
+			return;
+		}
+
+		(_savedName, _savedTeam, _savedDigest) = (_name, _team, _digest);
+	}
+
+	private void PutBack()
+	{
+		(_name, _team, _digest) = (_savedName, _savedTeam, _savedDigest);
+		_refusal = null;
+	}
+}

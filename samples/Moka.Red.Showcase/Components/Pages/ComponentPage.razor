@@ -1,0 +1,79 @@
+@page "/components/{Slug}"
+@using Moka.Red.Showcase.Components.Library
+@inject NavigationManager Navigation
+
+@if (_component is { } component)
+{
+	<PageTitle>@component.Title - Moka.Red</PageTitle>
+
+	<div class="component-page" @key="component">
+		<div class="component-page__main">
+			<MokaPageHeader Eyebrow="@component.Area" EyebrowHref="@AreaHref(component)" Title="@component.Title" Said="@component.Line">
+				<Actions>
+					@if (component.DocsHref is { } docs)
+					{
+						<MokaButton Href="@docs" Target="_blank" Variant="MokaVariant.Outlined" Size="MokaSize.Sm"
+						            EndIcon="MokaIcons.Content.ExternalLink">Docs</MokaButton>
+					}
+				</Actions>
+				<ChildContent>
+					<MokaDataList Look="MokaDataListLook.Inline" Items="Facts(component)" Class="component-page__facts"/>
+				</ChildContent>
+			</MokaPageHeader>
+
+			@if (component.Demos is { } demos)
+			{
+				<div class="component-page__demos">
+					<DynamicComponent Type="demos"/>
+				</div>
+			}
+
+			@if (component.ComponentTypes.Any())
+			{
+				<section class="component-page__parameters" id="@ParametersId" aria-labelledby="@($"{ParametersId}-title")">
+					<MokaHeading Level="2" Id="@($"{ParametersId}-title")">Parameters</MokaHeading>
+					@foreach (Type type in component.ComponentTypes)
+					{
+						<ParameterTable @key="type" Type="type" Named="@(component.Parts.Count > 0)"/>
+					}
+				</section>
+			}
+		</div>
+
+		<OnThisPage Href="@component.Href" Entries="Outline(component)"/>
+	</div>
+}
+
+@code {
+	private const string ParametersId = "parameters";
+
+	private LibraryComponent? _component;
+
+	[Parameter]
+	public string Slug { get; set; } = string.Empty;
+
+	protected override void OnParametersSet()
+	{
+		_component = LibraryCatalog.Find(Slug);
+		if (_component is null)
+		{
+			Navigation.NotFound();
+		}
+	}
+
+	private static string? AreaHref(LibraryComponent component) =>
+		LibraryCatalog.Areas.FirstOrDefault(area => area.Name == component.Area)?.Href.TrimStart('/');
+
+	private static IReadOnlyList<MokaDataListItem> Facts(LibraryComponent component) =>
+	[
+		new("Type", component.TypeName) { Mono = true, Copyable = true },
+		new("Package", component.Package) { Mono = true, Copyable = true },
+		new("Namespace", component.Namespace) { Mono = true, Copyable = true }
+	];
+
+	private static IReadOnlyList<DemoOutlineEntry> Outline(LibraryComponent component) =>
+	[
+		.. component.Demos is { } demos ? DemoSources.Outline(demos) : [],
+		.. component.ComponentTypes.Any() ? [new DemoOutlineEntry(ParametersId, "Parameters")] : Array.Empty<DemoOutlineEntry>()
+	];
+}

@@ -52,7 +52,10 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | The page. A flex column with a 16 px gap and `--moka-main-padding` around it, and 16 px at the sides on a phone. See [A page that fills the main area](#a-page-that-fills-the-main-area) |
-| `Entries` | `IReadOnlyList<MokaNavEntry>` | empty | The screens, in order. Groups show in the order they first appear |
+| `Entries` | `IReadOnlyList<MokaNavEntry>` | empty | The screens, in order. Groups show in the order they first appear. An entry's `Children` are listed under it. See [Pages with pages under them](#pages-with-pages-under-them) |
+| `CollapseOnRepeatClick` | `bool` | `true` | What a click on the label of an entry with children does when the person is already there: on its own page it opens or closes the list, and on a child's page it closes an open list, without going anywhere. Off, the click always goes to the entry's page |
+| `ShowGroupLabel` | `Func<string, string>?` | -- | The name of the arrow that opens an entry's children, given its label. Null says "Show" and the label |
+| `HideGroupLabel` | `Func<string, string>?` | -- | The name of the arrow that closes them. Null says "Hide" and the label |
 | `Brand` | `RenderFragment?` | -- | The logo and name over the menu. See [Brand](#brand) |
 | `Status` | `RenderFragment?` | -- | A word on how things are, under the name in the phone's drawer. It replaces the mono line there, and doesn't show on wider screens |
 | `Account` | `RenderFragment?` | -- | What's pinned under the list, usually a `MokaAccountCard` |
@@ -95,13 +98,14 @@ private static readonly MokaNavEntry[] Entries =
 | `Href` | `string` | The route as a link relative to the page's base address |
 | `Bottom` | `bool` | Set with `{ Bottom = true }`: listed at the bottom of the menu, under the list that scrolls and above the account card, such as Settings. Its group isn't shown there |
 | `ImageSource` | `string?` | Set with `{ ImageSource = ... }`: a picture in place of `Icon`, such as a plugin's own icon, as a URL or a `data:image/...` URI. `Icon` stays the fallback, shown when the address isn't one a picture can come from or the picture fails to load. See `MokaMenuItem.ImageSource` in [Navigation](navigation.md) |
+| `Children` | `IReadOnlyList<MokaNavEntry>` | Set with `{ Children = [...] }`: the screens listed under this one. The entry stays a page of its own. Children can hold children, and a child's `Group` and `Bottom` aren't read. Empty by default |
 
-`MokaNavEntry.Find(entries, path)` gives the entry a path belongs to, for a page's eyebrow or your own title.
+`MokaNavEntry.Find(entries, path)` gives the entry a path belongs to, children included, for a page's eyebrow or your own title. Between two equally long routes the one listed first wins, a parent before its children. `MokaNavEntry.Flatten(entries)` gives every entry, each followed by its children, for anything that lists every screen.
 
 The same list feeds the command palette:
 
 ```csharp
-Palette.RegisterMany(Entries.Select(entry => new MokaCommand
+Palette.RegisterMany(MokaNavEntry.Flatten(Entries).Select(entry => new MokaCommand
 {
     Id = $"go-{entry.Route}",
     Title = entry.Label,
@@ -111,6 +115,28 @@ Palette.RegisterMany(Entries.Select(entry => new MokaCommand
     Keywords = entry.Keywords
 }));
 ```
+
+### Pages with pages under them
+
+An entry with `Children` is a page that holds a list of pages, such as an area's overview with its parts under it. Its label is a link to its page, and an arrow beside it opens and closes the list.
+
+```csharp
+new("Components", "Feedback", "/feedback", MokaIcons.Status.Bell)
+{
+    Children =
+    [
+        new("", "Action bar", "/feedback/action-bar", MokaIcons.Content.Columns),
+        new("", "Alert", "/feedback/alert", MokaIcons.Status.Info)
+    ]
+}
+```
+
+- The list opens by itself while the entry's page or one of its children's is the current one, and the top bar on a phone names the child.
+- A click on the label goes to the entry's page and opens the list. When the person is already there, it opens or closes the list on the entry's own page, and on a child's page it closes an open list, without going anywhere. A list closed this way stays closed until another page in it is reached. `CollapseOnRepeatClick="false"` makes the label always go to the page.
+- Opening or closing the list isn't a pick, so the phone's drawer stays out. Going to a page closes it.
+- On the rail the entry's icon opens its list beside it, under a link to the entry's page.
+
+`MokaMenuItem` in [Navigation](navigation.md#a-group-that-is-also-a-page) has the rest, with the keys and what screen readers hear.
 
 ### Pills
 

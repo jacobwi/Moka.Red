@@ -19,7 +19,7 @@ order: 72
 | `FullWidth` | `bool` | `false` | Stretches the control across its container, with any margin inside it. Segments share the width equally |
 | `Size` | `MokaSize` | `Md` | Segment padding and font size: `Xs`, `Sm`, `Md`, `Lg` |
 | `MatchControlHeight` | `bool` | `false` | On the new design, the control is as tall as a text field or select of the same `Size`, so it lines up beside them. See [Matching Field Height](#matching-field-height) |
-| `Wrap` | `bool` | `true` | Segments that don't fit move to another row. `false` keeps one row and cuts the labels. See [One Row](#one-row) |
+| `Wrap` | `bool` | `true` | Segments that don't fit move to another row, and no label is ever cut. `false` keeps one row and cuts the labels. See [One Row](#one-row) |
 | `StackBelow` | `string?` | -- | A CSS length, such as `"30rem"`. Below it a `FullWidth` control stacks its segments one per row, every label whole. See [Stacking on a Phone](#stacking-on-a-phone) |
 | `Disabled` | `bool` | `false` | Disables every segment |
 | `ChildContent` | `RenderFragment?` | -- | `MokaSegment` elements |
@@ -265,6 +265,7 @@ The segments are native radios, so the browser checks the one clicked before .NE
 ## Behaviour
 
 - One segment is selected at a time. Clicking the selected segment again does nothing, so the selection cannot be cleared from the UI.
+- While the control wraps (the default), a segment is never narrower than its label: segments share a row equally, and one that doesn't fit moves to the next row whole. Only `Wrap="false"` cuts labels.
 - Values match with an ordinal, case-sensitive comparison. When `Value` matches no segment, none is selected.
 - The selected segment is raised onto the background color with a small shadow.
 - `Disabled` on the control disables every segment, and `Disabled` on a segment disables that one. Disabled segments are dimmed and ignore clicks and keys.

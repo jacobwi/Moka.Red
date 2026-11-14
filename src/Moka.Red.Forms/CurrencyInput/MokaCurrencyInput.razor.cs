@@ -108,9 +108,17 @@ public partial class MokaCurrencyInput
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		ShowAmount();
+	}
+
+	/// <inheritdoc />
+	protected override void OnCurrentValueRestored() => ShowAmount();
+
+	private void ShowAmount()
+	{
 		if (!_isFocused)
 		{
-			_displayValue = FormatAmount(Value);
+			_displayValue = FormatAmount(CurrentValue);
 		}
 	}
 
@@ -157,9 +165,9 @@ public partial class MokaCurrencyInput
 	{
 		_isFocused = true;
 		// Show raw number for editing
-		if (Value.HasValue)
+		if (CurrentValue is { } amount)
 		{
-			_displayValue = Value.Value.ToString(CultureInfo.InvariantCulture);
+			_displayValue = amount.ToString(CultureInfo.InvariantCulture);
 		}
 
 		return Task.CompletedTask;

@@ -1,0 +1,265 @@
+@namespace Moka.Red.ThemeGen
+@using Moka.Red.Core.Theming
+@using Moka.Red.Forms.ColorInput
+@using Moka.Red.Forms.SearchInput
+@using Moka.Red.Forms.Slider
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Forms.TextField
+@using Moka.Red.Layout.GridBackground
+@using Moka.Red.Navigation.Tabs
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Icon
+@using Moka.Red.Primitives.SegmentedControl
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Typography
+@using Moka.Red.ThemeGen.Appearance
+@using Moka.Red.ThemeGen.ImportExport
+@using Moka.Red.ThemeGen.Preview
+@using Moka.Red.ThemeGen.Studio
+
+@{
+	MokaTheme inspected = Inspected;
+	RenderFragment startRows = @<MokaAppearancePanel Value="_style" ValueChanged="PickStartAsync" Rows="MokaAppearanceRows.Palette" Palettes="_shownStarts" Accents="NoAccents"
+	                                                 Compact ShowReset="false" Text="StartWords" Nonce="@Nonce"/>;
+	RenderFragment styleRows = @<MokaAppearancePanel Value="_style" ValueChanged="SetStyleAsync" Rows="StyleRows" Palettes="_shownStarts" Accents="NoAccents"
+	                                                 Compact Defaults="StyleDefaults" Text="Text.Appearance" Nonce="@Nonce"/>;
+	RenderFragment darkPreview = @<MokaThemePreview PreviewTheme="_pair.Dark" Text="Text.Preview" Nonce="@Nonce"/>;
+	RenderFragment lightPreview = @<MokaThemePreview PreviewTheme="_pair.Light" Text="Text.Preview" Nonce="@Nonce"/>;
+	RenderFragment contrastPanel = @<div class="moka-theme-studio__report">
+		<MokaCaption>@Text.ContrastSummary(FailingCount, Report.Checks.Count)</MokaCaption>
+		<ul class="moka-theme-studio__checks">
+			@foreach (MokaContrastCheck check in OrderedChecks())
+			{
+				<li class="@CheckClass(check)">
+					<span class="moka-theme-studio__sample" style="@SampleStyle(check)" aria-hidden="true">@Text.Sample</span>
+					<span class="moka-theme-studio__check-text">
+						<span class="moka-theme-studio__check-use">@Text.CheckUse(check)</span>
+						<span class="moka-theme-studio__mono">@check.Foreground</span>
+						<span class="moka-theme-studio__mono">@check.Background</span>
+						<span class="moka-theme-studio__mono">@Text.ContrastFigures(check.Ratio, check.Apca, check.RequiredRatio)</span>
+					</span>
+					<MokaTag Text="@Verdict(check)" Color="VerdictColor(check)"/>
+				</li>
+			}
+		</ul>
+		@if (Report.Unresolved.Count > 0)
+		{
+			<MokaCaption>@Text.Unresolved(Report.Unresolved.Count)</MokaCaption>
+		}
+	</div>;
+	RenderFragment tokensPanel = @<div class="moka-theme-studio__tokens">
+		@if (_darkPins.Count > 0 || _lightPins.Count > 0)
+		{
+			<div>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Toggle.PinOff" OnClick="UnpinAllAsync">@Text.UnpinAll</MokaButton>
+			</div>
+		}
+		@if (ShownTokenGroups.Count == 0)
+		{
+			<MokaCaption>@Text.NoTokens</MokaCaption>
+		}
+		@foreach (IGrouping<MokaTokenGroup, MokaToken> group in ShownTokenGroups)
+		{
+			<MokaHeading Level="3" Micro>@Text.GroupName(group.Key)</MokaHeading>
+			<ul class="moka-theme-studio__token-list">
+				@foreach (MokaToken token in group)
+				{
+					string? value = TokenValue(token);
+					bool pinned = Inspected.Pins.ContainsKey(token.Name);
+					<li @key="token.Name" class="moka-theme-studio__token">
+						@if (token.Kind == MokaTokenKind.Color)
+						{
+							<span class="moka-theme-studio__swatch" style="@TokenSwatchStyle(token, value)" aria-hidden="true"></span>
+						}
+						<span class="moka-theme-studio__token-text">
+							<span class="moka-theme-studio__mono">@token.Name</span>
+							<span class="moka-theme-studio__token-value">@value</span>
+						</span>
+						@if (pinned)
+						{
+							<MokaTag Text="@Text.Pinned" Color="MokaColor.Primary"/>
+							<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" aria-label="@Text.UnpinLabel(token.Name)" OnClick="() => UnpinAsync(token)">@Text.Unpin</MokaButton>
+						}
+						else
+						{
+							<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" aria-label="@Text.PinLabel(token.Name)" OnClick="() => StartPin(token)">@Text.Pin</MokaButton>
+						}
+					</li>
+					@if (_editing == token.Name)
+					{
+						<li @key="PinEditorKey(token)" class="moka-theme-studio__pin-editor">
+							@if (token.Kind == MokaTokenKind.Color)
+							{
+								<MokaColorInput Label="@Text.PinValue" Value="@_editValue" ValueChanged="SetEditValue" ErrorText="@_editError" HelperText="@Text.PinColorHint"
+								                PickerLabel="@Text.PickColor"/>
+							}
+							else
+							{
+								<MokaTextField Label="@Text.PinValue" Value="@_editValue" ValueChanged="SetEditValue" ErrorText="@_editError" HelperText="@Text.PinOtherHint" Mono/>
+							}
+							<div class="moka-theme-studio__actions">
+								<MokaButton Size="MokaSize.Sm" StartIcon="MokaIcons.Toggle.Pin" OnClick="() => ApplyPinAsync(token)">@Text.ApplyPin</MokaButton>
+								<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="CancelPin">@Text.CancelPin</MokaButton>
+							</div>
+						</li>
+					}
+				}
+			</ul>
+		}
+	</div>;
+}
+
+<div class="@CssClass" style="@Style" id="@Id" @attributes="AdditionalAttributes">
+	<div class="moka-theme-studio__layout">
+		<aside class="moka-theme-studio__controls moka-thin-scrollbar" aria-labelledby="@ControlsHeadingId">
+			<header class="moka-theme-studio__head">
+				<MokaIcon Icon="MokaIcons.Action.Sliders" Size="MokaSize.Md" Color="MokaColor.Primary"/>
+				<MokaHeading Level="2" Id="@ControlsHeadingId" SizeValue="var(--moka-font-size-lg)" Weight="MokaFontWeight.Semibold">@Text.ControlsLabel</MokaHeading>
+			</header>
+
+			<div class="moka-theme-studio__panel-body">
+				<section class="moka-theme-studio__group">
+					@ThemeGate.For((_style, _shownStarts, StartWords, Nonce), startRows)
+				</section>
+
+				<section class="moka-theme-studio__group">
+					<MokaHeading Level="3" Micro>@Text.ColorsHeading</MokaHeading>
+					@if (TakesSeeds)
+					{
+						<MokaCaption>@Text.ColorsHint</MokaCaption>
+						@foreach (SeedSlot slot in Enum.GetValues<SeedSlot>())
+						{
+							SeedSlot current = slot;
+							bool own = SeedIsOwn(current);
+							<MokaColorInput @key="current" Look="MokaColorInputLook.Split" Label="@SeedLabel(current)" Value="@SeedValue(current)"
+							                ValueChanged="value => SetSeedAsync(current, value)" PickerLabel="@Text.PickColor"
+							                HelperText="@(own ? Text.SeedOwn : Text.SeedFromStart)">
+								<Actions>
+									@if (own && current is not (SeedSlot.Accent or SeedSlot.Neutral))
+									{
+										<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="() => ResetSeedAsync(current)">@Text.ResetSeed(SeedLabel(current))</MokaButton>
+									}
+								</Actions>
+							</MokaColorInput>
+						}
+
+						<div class="moka-theme-studio__field">
+							<MokaCaption Micro>@Text.Contrast</MokaCaption>
+							<MokaSegmentedControl Value="@CurrentContrast.ToString()" ValueChanged="SetContrastAsync" AriaLabel="@Text.Contrast" Size="MokaSize.Sm">
+								<MokaSegment Value="@nameof(MokaSeedContrast.Standard)" Text="@Text.ContrastStandard"/>
+								<MokaSegment Value="@nameof(MokaSeedContrast.More)" Text="@Text.ContrastMore"/>
+							</MokaSegmentedControl>
+						</div>
+
+						<MokaSlider Label="@Text.NeutralStrength" Value="NeutralStrength" ValueChanged="NonRendering.Handler<double>(QueueNeutralStrength)"
+						            Min="0" Max="0.1" Step="0.002" ValueFormat="0.000"
+						            HelperText="@(NeutralStrengthIsOwn ? Text.NeutralStrengthOwn : null)"/>
+						@if (!NeutralStrengthIsOwn)
+						{
+							<div>
+								<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="UseNeutralsOwnStrengthAsync">@Text.NeutralStrengthReset</MokaButton>
+							</div>
+						}
+					}
+					else
+					{
+						<MokaCaption>@Text.SeedsNeedNewDesign</MokaCaption>
+					}
+
+					<MokaSwitch Label="@Text.HighContrast" Value="_highContrast" ValueChanged="SetHighContrastAsync"/>
+				</section>
+
+				<section class="moka-theme-studio__group">
+					<MokaHeading Level="3" Micro>@Text.StyleHeading</MokaHeading>
+					@ThemeGate.For((_style, _shownStarts, Text.Appearance, Nonce), styleRows)
+				</section>
+			</div>
+		</aside>
+
+		<section class="moka-theme-studio__stage" aria-labelledby="@StageHeadingId">
+			<header class="moka-theme-studio__stage-head">
+				<div class="moka-theme-studio__stage-title">
+					<div class="moka-theme-studio__title-row">
+						<MokaIcon Icon="MokaIcons.Toggle.Eye" Size="MokaSize.Md" Color="MokaColor.Primary"/>
+						<MokaHeading Level="2" Id="@StageHeadingId" SizeValue="var(--moka-font-size-lg)" Weight="MokaFontWeight.Semibold">@Text.PreviewHeading</MokaHeading>
+					</div>
+					@if (_showChanges)
+					{
+						<p class="@ChangeLineClass">@(_changeLine ?? Text.ChangeHint)</p>
+					}
+				</div>
+				<div class="moka-theme-studio__stage-tools">
+					<MokaSwitch Label="@Text.ShowChanges" Value="_showChanges" ValueChanged="SetShowChangesAsync"/>
+					<MokaSegmentedControl Value="@_view.ToString()" ValueChanged="SetViewAsync" AriaLabel="@Text.ViewLabel" Size="MokaSize.Sm">
+						<MokaSegment Value="@nameof(MokaThemeStudioView.Dark)" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
+						<MokaSegment Value="@nameof(MokaThemeStudioView.Light)" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
+						<MokaSegment Value="@nameof(MokaThemeStudioView.Both)" Text="@Text.Both"/>
+					</MokaSegmentedControl>
+				</div>
+			</header>
+
+			<MokaGridBackground Pattern="MokaGridPattern.Dots" Tone="MokaGridTone.Neutral" FadeEdges="false" BackgroundColor="var(--moka-color-surface-variant)"
+			                    FillContent Class="moka-theme-studio__canvas">
+				<div class="moka-theme-studio__well" @ref="_well">
+					@if (_view != MokaThemeStudioView.Light)
+					{
+						<figure class="moka-theme-studio__frame">
+							<figcaption class="moka-theme-studio__caption">
+								<MokaIcon Icon="MokaIcons.Action.Moon" Size="MokaSize.Sm"/>
+								@Text.Dark
+							</figcaption>
+							<div class="moka-theme-studio__preview">@ThemeGate.For((_pair.Dark, Text.Preview, Nonce), darkPreview)</div>
+						</figure>
+					}
+					@if (_view != MokaThemeStudioView.Dark)
+					{
+						<figure class="moka-theme-studio__frame">
+							<figcaption class="moka-theme-studio__caption">
+								<MokaIcon Icon="MokaIcons.Action.Sun" Size="MokaSize.Sm"/>
+								@Text.Light
+							</figcaption>
+							<div class="moka-theme-studio__preview">@ThemeGate.For((_pair.Light, Text.Preview, Nonce), lightPreview)</div>
+						</figure>
+					}
+				</div>
+			</MokaGridBackground>
+		</section>
+
+		<aside class="moka-theme-studio__inspector moka-thin-scrollbar" aria-labelledby="@InspectorHeadingId">
+			<header class="moka-theme-studio__head">
+				<MokaIcon Icon="MokaIcons.Content.Layers" Size="MokaSize.Md" Color="MokaColor.Primary"/>
+				<MokaHeading Level="2" Id="@InspectorHeadingId" SizeValue="var(--moka-font-size-lg)" Weight="MokaFontWeight.Semibold">@Text.InspectorHeading</MokaHeading>
+			</header>
+
+			<div class="moka-theme-studio__panel-body">
+
+				@if (_view == MokaThemeStudioView.Both)
+				{
+					<MokaSegmentedControl Value="@(_inspectDark ? nameof(MokaThemeStudioView.Dark) : nameof(MokaThemeStudioView.Light))" ValueChanged="SetInspected"
+					                      AriaLabel="@Text.InspectLabel" Size="MokaSize.Sm" FullWidth>
+						<MokaSegment Value="@nameof(MokaThemeStudioView.Dark)" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
+						<MokaSegment Value="@nameof(MokaThemeStudioView.Light)" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
+					</MokaSegmentedControl>
+				}
+
+				<MokaTabs Items="_tabs" @bind-Active="_tab" Label="@Text.InspectorLabel" Stretch>
+					<Panel>
+						@switch (_tab)
+						{
+							case nameof(Tab.Contrast):
+								@ThemeGate.For((inspected, Text), contrastPanel)
+								break;
+							case nameof(Tab.Tokens):
+								<MokaSearchInput Label="@Text.SearchTokens" HideLabel Placeholder="@Text.SearchTokens" Value="@_searchText" ValueChanged="SetSearchText" OnSearch="SetSearch"/>
+								@ThemeGate.For((inspected, _search, _editing, _editVersion, Text), tokensPanel)
+								break;
+							default:
+								<MokaThemeImportExport Theme="inspected" @bind-Format="_format" OnImport="ImportAsync" Text="Text.Export"/>
+								break;
+						}
+					</Panel>
+				</MokaTabs>
+			</div>
+		</aside>
+	</div>
+</div>

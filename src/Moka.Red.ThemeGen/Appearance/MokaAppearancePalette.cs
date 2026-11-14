@@ -31,8 +31,8 @@ public sealed record MokaAppearancePalette(string Id, string Name, MokaTheme Dar
 	};
 
 	/// <summary>
-	///     The colors of <see cref="Gate" /> with its style choices at their tightest. Not in <see cref="Presets" />:
-	///     as a picture it looks just like Gate, so it's for an app that wants those starting choices.
+	///     The colors of <see cref="Gate" /> with its style choices at their tightest: compact density, small text, tight
+	///     corners, Inter titles and flat selection.
 	/// </summary>
 	public static MokaAppearancePalette Crisp { get; } = new("crisp", "Crisp", MokaTheme.Crisp, MokaTheme.CrispLight)
 	{
@@ -61,8 +61,8 @@ public sealed record MokaAppearancePalette(string Id, string Name, MokaTheme Dar
 	};
 
 	/// <summary>
-	///     The palettes offered unless an app passes its own: <see cref="Red" />, <see cref="Gate" />, <see cref="Matrix" />,
-	///     <see cref="Ember" /> and <see cref="Original" />.
+	///     The palettes offered unless an app passes its own: <see cref="Red" />, <see cref="Gate" />, <see cref="Crisp" />,
+	///     <see cref="Matrix" />, <see cref="Ember" /> and <see cref="Original" />.
 	/// </summary>
-	public static IReadOnlyList<MokaAppearancePalette> Presets { get; } = [Red, Gate, Matrix, Ember, Original];
+	public static IReadOnlyList<MokaAppearancePalette> Presets { get; } = [Red, Gate, Crisp, Matrix, Ember, Original];
 }

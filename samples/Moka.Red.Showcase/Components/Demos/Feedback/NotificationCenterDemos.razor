@@ -1,0 +1,82 @@
+@inject IMokaNotificationService NotificationService
+@inject IMokaToastService Toast
+
+<DemoSection Id="basics" Title="Basics" Description="A bell with a panel of the notifications pushed through IMokaNotificationService.">
+	<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+		<MokaNotificationCenter/>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Info" OnClick="PushInfoNotification">Push Info</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Success" OnClick="PushSuccessNotification">Push Success</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Warning" OnClick="PushWarningNotification">Push Warning</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" Color="MokaColor.Error" OnClick="PushErrorNotification">Push Error</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="actions-links-and-keys" Title="Actions, links and keys" Description="A notification can carry buttons, lead to a page, and take the place of an earlier one about the same thing. Start the build, then fail it: the failure replaces the running entry, unread at the top, with a link and a button.">
+	<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+		<MokaNotificationCenter/>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="StartBuild">Start build</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Error" OnClick="FailBuild">Fail build</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Success" OnClick="PassBuild">Pass build</MokaButton>
+	</div>
+	<MokaCaption>Open the bell after each step.</MokaCaption>
+</DemoSection>
+
+@code {
+	private const string BuildKey = "build-42";
+
+	private void StartBuild() => NotificationService.Push(new MokaNotification
+	{
+		Key = BuildKey,
+		Title = "Build 42",
+		Message = "Running the tests."
+	});
+
+	private void FailBuild() => NotificationService.Push(new MokaNotification
+	{
+		Key = BuildKey,
+		Title = "Build 42",
+		Message = "Two tests failed.",
+		Severity = MokaToastSeverity.Error,
+		Href = "components/log-viewer",
+		Actions =
+		[
+			new MokaNotificationAction("Run again", StartBuild) { Removes = true },
+			new MokaNotificationAction("Mute", () => Toast.ShowInfo("Build 42 is muted"))
+		]
+	});
+
+	private void PassBuild() => NotificationService.Push(new MokaNotification
+	{
+		Key = BuildKey,
+		Title = "Build 42",
+		Message = "Every test passed.",
+		Severity = MokaToastSeverity.Success,
+		Actions = [new MokaNotificationAction("Release", () => Toast.ShowSuccess("Build 42 is on its way")) { Removes = true }]
+	});
+
+	private int _notificationCounter;
+
+	private void PushInfoNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Info Notification", $"This is info notification #{_notificationCounter}.");
+	}
+
+	private void PushSuccessNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Task Completed", $"Build #{_notificationCounter} succeeded.", MokaToastSeverity.Success);
+	}
+
+	private void PushWarningNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Disk Space Low", $"Warning #{_notificationCounter}: Only 2GB remaining.", MokaToastSeverity.Warning);
+	}
+
+	private void PushErrorNotification()
+	{
+		_notificationCounter++;
+		NotificationService.Push("Deploy Failed", $"Error #{_notificationCounter}: Pipeline timed out.", MokaToastSeverity.Error);
+	}
+}

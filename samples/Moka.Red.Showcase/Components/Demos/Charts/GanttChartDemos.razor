@@ -1,0 +1,135 @@
+@using Moka.Red.Core.Charts
+@using System.Globalization
+
+<DemoSection Id="gantt" Title="Gantt">
+	<MokaGanttChart Title="Last night's jobs" Subtitle="Start to end, 00:00 to now" Rows="@Jobs" Now="@Night"
+	                TimeZone="TimeZoneInfo.Utc" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="many-jobs" Title="Many jobs" Description="Rows draw only as they scroll into view, past 200 rows.">
+	<MokaSegmentedControl Value="@_rows.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetRows" AriaLabel="Jobs">
+		<MokaSegment Value="10" Text="10 jobs"/>
+		<MokaSegment Value="1000" Text="1,000"/>
+		<MokaSegment Value="10000" Text="10,000"/>
+	</MokaSegmentedControl>
+	<MokaGanttChart Title="Today's runs" Rows="@_longJobs" Now="@Night.AddHours(14)" TimeZone="TimeZoneInfo.Utc"
+	                MaxHeight="420px" DataVersion="@_rows" Controls="Tools"/>
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export | MokaChartControls.ResetZoom;
+
+	private static readonly DateTimeOffset Midnight = new(2026, 11, 11, 0, 0, 0, TimeSpan.Zero);
+
+	private static readonly DateTimeOffset Night = Midnight.AddMinutes(310);
+
+	private static readonly MokaGanttRow[] Jobs =
+	[
+		new("Photos backup", Midnight.AddHours(1)) { End = Midnight.AddMinutes(160) },
+		new("Database dump", Midnight.AddMinutes(90)) { End = Midnight.AddMinutes(112) },
+		new("Index rebuild", Midnight.AddMinutes(120))
+			{ End = Midnight.AddMinutes(165), Status = MokaGanttStatus.Failed, Detail = "Disk full on /index" },
+		new("Offsite sync", Midnight.AddMinutes(170)) { Status = MokaGanttStatus.Running },
+		new("Thumbnails", Midnight.AddMinutes(180)) { End = Midnight.AddMinutes(255) },
+		new("Log rotation", Midnight.AddMinutes(270)) { End = Midnight.AddMinutes(274) },
+		new("Mail archive", Midnight.AddMinutes(200)) { End = Midnight.AddMinutes(200), Status = MokaGanttStatus.Skipped },
+		new("Report email", Midnight.AddMinutes(318)) { End = Midnight.AddMinutes(330), Status = MokaGanttStatus.Planned }
+	];
+
+	private string _preset = "Red";
+
+	private bool _dark = true;
+
+	private MokaChartLook _look = MokaChartLook.Quiet;
+
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+
+	private MokaChartTexture _texture = MokaChartTexture.None;
+
+	private int _rows = 1000;
+
+	private int _points = 100_000;
+
+	private MokaTheme _theme = MokaTheme.Red;
+
+	private MokaGanttRow[] _longJobs = [];
+
+	private MokaDotPlotRow[] _longDots = [];
+
+	private MokaScatterSeries[] _bigScatter = [];
+
+	protected override void OnInitialized()
+	{
+		BuildTheme();
+		BuildRows();
+		BuildPoints();
+	}
+
+	private void SetRows(string value)
+	{
+		_rows = int.Parse(value, CultureInfo.InvariantCulture);
+		BuildRows();
+	}
+
+	private void BuildTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Matrix" => _dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void BuildRows()
+	{
+		Random random = new(7);
+		string[] kinds = ["backup", "sync", "scan", "thumbs", "report", "index"];
+		_longJobs =
+		[
+			.. Enumerable.Range(0, _rows).Select(i =>
+			{
+				DateTimeOffset start = Midnight.AddMinutes(i * (14d * 60 / _rows) + random.NextDouble() * 30);
+				double minutes = 3 + random.NextDouble() * 80;
+				double roll = random.NextDouble();
+				MokaGanttStatus status = roll < 0.06 ? MokaGanttStatus.Failed : roll < 0.1 ? MokaGanttStatus.Skipped : MokaGanttStatus.Done;
+				bool running = start.AddMinutes(minutes) > Night.AddHours(14);
+				return new MokaGanttRow($"{kinds[i % kinds.Length]}-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}", start)
+				{
+					End = running ? null : start.AddMinutes(minutes),
+					Status = running ? MokaGanttStatus.Running : status
+				};
+			})
+		];
+		_longDots =
+		[
+			.. Enumerable.Range(0, _rows).Select(i => new MokaDotPlotRow(
+				$"device-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}.lan", Math.Round(4 + Math.Exp(random.NextDouble() * 5), 1)))
+		];
+	}
+
+	private void BuildPoints()
+	{
+		Random random = new(11);
+		MokaScatterPoint[] Cluster(int count, double size, double sizeSpread, double time, double timeSpread) =>
+		[
+			.. Enumerable.Range(0, count).Select(_ => new MokaScatterPoint(
+				Math.Max(0.1, size * Math.Exp(sizeSpread * Gauss(random))), Math.Max(1, time + timeSpread * Gauss(random))))
+		];
+		_bigScatter =
+		[
+			new MokaScatterSeries("Cached", Cluster(_points * 3 / 4, 40, 0.8, 30, 10)),
+			new MokaScatterSeries("Origin", Cluster(_points / 4, 160, 0.6, 180, 60))
+		];
+	}
+
+	private static double Gauss(Random random)
+	{
+		double u = 1 - random.NextDouble();
+		double v = random.NextDouble();
+		return Math.Sqrt(-2 * Math.Log(u)) * Math.Cos(2 * Math.PI * v);
+	}
+}

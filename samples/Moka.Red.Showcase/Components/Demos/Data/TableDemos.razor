@@ -1,0 +1,1595 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using System.Runtime.CompilerServices
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using Moka.Red.Showcase.Components.Demos.Data.Table
+@inject IMokaContextMenuService ContextMenu
+@inject IMokaToastService Toast
+@implements IDisposable
+
+<DemoSection Id="basic-table" Title="Basic table" Description="Rows of data with sorting, search, paging, selection, editing and export." Tip="Give ItemKey a stable id, so selection and open detail rows survive sorting and paging.">
+	<ChildContent>
+		<MokaTable Items="_people" ItemKey="p => p.Id" Title="People">
+			<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Email" Field="p => p.Email" HideOnMobile="true"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+			<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d" HideOnMobile="true"/>
+			<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+		</MokaTable>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items or ServerData">Rows in memory, or loaded a page at a time</DemoParam>
+		<DemoParam Name="ItemKey">Keeps rows matched as they change</DemoParam>
+		<DemoParam Name="MokaColumn">Title, Field, Format, Sortable, Width per column</DemoParam>
+		<DemoParam Name="Searchable, Selectable">A search box, and check boxes per row</DemoParam>
+		<DemoParam Name="Expandable, DetailTemplate">A detail row under each row</DemoParam>
+		<DemoParam Name="PageSize, ShowPagination">Paging, on by default</DemoParam>
+		<DemoParam Name="State, StorageKey">Everything someone changes, bound or kept</DemoParam>
+		<DemoParam Name="OnRowClick, OnRowContextMenu">What a click or right-click on a row does</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="row-context-menu" Title="Row context menu">
+	<p class="page-desc">Right-click any row. <code>OnRowContextMenu</code> surfaces the item + mouse event; the page opens the shared menu via <code>IMokaContextMenuService</code>.</p>
+	<MokaTable TItem="Person" Items="_people.Take(8)" ItemKey="p => p.Id" ShowPagination="false" Title="Right-click a row"
+	           OnRowContextMenu="HandleRowContextMenu">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="sticky-pager" Title="Sticky pager">
+	<p class="page-desc">A <code>MokaTablePager</code> with <code>Sticky</code> keeps the pager in view while the bounded body (<code>Height</code>) scrolls; <code>FixedHeader</code> pins the header.</p>
+	<MokaTable Items="_people" ItemKey="p => p.Id" Height="240px" FixedHeader="true" PageSize="8" Title="Sticky Footer">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+		<MokaTablePager Sticky PageSizeOptions="StickyPageSizes"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="searchable-and-sortable" Title="Searchable and sortable" Description="Text holds every word the table writes, the search box's placeholder among them.">
+	<MokaTable Items="_people" ItemKey="p => p.Id" Searchable="true" Title="Searchable People" Text="FilterPeopleText">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="selectable-rows" Title="Selectable rows">
+	<p style="font-size: var(--moka-font-size-xs); margin-bottom: var(--moka-spacing-xs);">Selected: @_tableSelectedItems.Count item(s)</p>
+	<MokaTable TItem="Person" Items="_people.Take(20)" ItemKey="p => p.Id" Selectable="true"
+	           SelectedItems="_tableSelectedItems" SelectedItemsChanged="HandleSelectionChanged"
+	           Title="Select Rows">
+		<ToolbarContent>
+			<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Outlined" OnClick="() => _tableSelectedItems = []">Clear</MokaButton>
+		</ToolbarContent>
+		<ChildContent>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+		</ChildContent>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="expandable-rows" Title="Expandable rows" Description="A detail template under each row.">
+	<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" Expandable="true" ShowPagination="false" Title="Expandable">
+		<ChildContent>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+			<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+		</ChildContent>
+		<DetailTemplate>
+			<div style="display: flex; gap: var(--moka-spacing-lg); font-size: var(--moka-font-size-xs);">
+				<div>
+					<strong>Email:</strong> @context.Email
+				</div>
+				<div>
+					<strong>Joined:</strong> @context.JoinDate.ToString("D")
+				</div>
+				<div>
+					<strong>ID:</strong> @context.Id
+				</div>
+			</div>
+		</DetailTemplate>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="footer-row" Title="Footer row" Description="Your own totals row in the footer.">
+	<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ShowPagination="false" Title="With Footer">
+		<ChildContent>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+		</ChildContent>
+		<FooterContent>
+			<tr>
+				<td colspan="2">
+					<strong>Total</strong>
+				</td>
+				<td style="text-align: right;">@_people.Take(10).Sum(p => p.Salary).ToString("C0")</td>
+			</tr>
+		</FooterContent>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="everything-on" Title="Everything on" Description="Search, selection, export, the column chooser, density, detail rows, selection and row actions.">
+	<MokaTable Items="_people" ItemKey="p => p.Id" Searchable="true" Selectable="true" Exportable="true"
+	           ShowColumnToggle="true" ShowRefresh="true" ShowDensityToggle="true"
+	           Title="Team Members" Striped="true" Expandable="true"
+	           SelectedItems="_tableSelectedItems" SelectedItemsChanged="@((HashSet<Person> items) => HandleSelectionChanged(items))">
+		<ChildContent>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Email" Field="p => p.Email" HideOnMobile="true"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Status" Field="p => p.Status">
+				<CellTemplate>
+					@{
+						var statusColor = context.Status switch
+						{
+							"Active" => MokaColor.Success,
+							"Pending" => MokaColor.Warning,
+							_ => MokaColor.Error
+						};
+					}
+					<MokaAttribute Variant="MokaVariant.Soft" Color="statusColor" Size="MokaSize.Xs">
+						@context.Status
+					</MokaAttribute>
+				</CellTemplate>
+			</MokaColumn>
+		</ChildContent>
+		<DetailTemplate>
+			<div style="padding: var(--moka-spacing-sm);">
+				<p>
+					<strong>ID:</strong> @context.Id
+				</p>
+				<p>
+					<strong>Email:</strong> @context.Email
+				</p>
+				<p>
+					<strong>Joined:</strong> @context.JoinDate.ToString("MMM dd, yyyy")
+				</p>
+				<p>
+					<strong>Salary:</strong> @context.Salary.ToString("C0")
+				</p>
+			</div>
+		</DetailTemplate>
+		<SelectionActions Context="selected">
+			<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Error">
+				Delete @selected.Count
+			</MokaButton>
+			<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Soft" Color="MokaColor.Info">
+				Export @selected.Count
+			</MokaButton>
+		</SelectionActions>
+		<RowActions Context="person">
+			<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Edit">Edit</MokaButton>
+			<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text" Color="MokaColor.Error" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+		</RowActions>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="keyboard" Title="Keyboard">
+	<p>Click a cell, then use the arrows, Home and End. Enter edits a Name, and raises the row click on an Email. Keys in the Note box stay in it.</p>
+	<MokaTable Items="_people.Take(5)" ItemKey="p => p.Id" ShowPagination="false" Title="@($"Rows clicked: {_rowClicks}, cells edited: {_cellEdits}")"
+	           OnRowClick="@((Person _) => _rowClicks++)" OnRowSave="@((MokaTableRowSave<Person> _) => _cellEdits++)">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name" Editable="true"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Note">
+			<CellTemplate>
+				<input aria-label="Note" @onclick:stopPropagation="true"/>
+			</CellTemplate>
+		</MokaColumn>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="kept-state" Title="Kept state" Description="StorageKey keeps the sort, search, page, page size, density and columns from visit to visit, in the browser's local storage. Sort a column, hide one or pick a density, then reload the page. Reset puts the table back as its parameters set it." Tip="Register an IMokaTableStateStore to keep the state per person on the server instead.">
+	<MokaTable @ref="_keptTable" TItem="Person" Items="_people" ItemKey="p => p.Id" StorageKey="showcase-people"
+	           Title="People" Searchable ShowColumnChooser ShowDensityToggle @bind-State="_keptState">
+		<ToolbarContent>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="ResetKeptAsync">Reset</MokaButton>
+		</ToolbarContent>
+		<ChildContent>
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name" Fixed/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+			<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+			<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+		</ChildContent>
+	</MokaTable>
+	<MokaCaption>@KeptSummary</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="densities" Title="Densities" Description="Compact, Standard and Comfortable. Density sets where a table starts, and the density someone picks with ShowDensityToggle is part of the state.">
+	<MokaGrid MinColumn="18rem" Style="gap: var(--moka-grid-gap);">
+		<MokaTable TItem="Person" Items="FourPeople" ItemKey="p => p.Id" Density="MokaTableDensity.Compact" Title="Compact" ShowPagination="false">
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		</MokaTable>
+		<MokaTable TItem="Person" Items="FourPeople" ItemKey="p => p.Id" Density="MokaTableDensity.Standard" Title="Standard" ShowPagination="false">
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		</MokaTable>
+		<MokaTable TItem="Person" Items="FourPeople" ItemKey="p => p.Id" Density="MokaTableDensity.Comfortable" Title="Comfortable" ShowPagination="false">
+			<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+			<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		</MokaTable>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="looks" Title="Looks" Description="Seven ways to draw the rows. Lined is the table as it has always looked. The looks draw on the new design; MokaTheme.Dark and Light draw Lined, except List, which is markup and works on both.">
+	<DemoChoice TValue="MokaTableLook" Label="Look" Options="TableLooks" @bind-Value="_tableLook"/>
+	<MokaTable TItem="Person" Items="SixPeople" ItemKey="p => p.Id" Look="_tableLook" ShowPagination="false">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name" Phone="MokaColumnPhone.Primary"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email" Phone="MokaColumnPhone.Secondary"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role" Phone="MokaColumnPhone.Secondary"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="no-header-row" Title="No header row">
+	<MokaTable Items="_people.Take(4)" ItemKey="p => p.Id" ShowHeader="false" ShowPagination="false" Label="People, no header row">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="striped-and-bordered" Title="Striped and bordered">
+	<MokaTable Items="_people.Take(8)" ItemKey="p => p.Id" Striped="true" Bordered="true" ShowPagination="false">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="cell-templates" Title="Cell templates" Description="Your own cell content. For people, statuses, money and the other common cells, the column kinds draw them for you.">
+	<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ShowPagination="false" Title="Custom Cells">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status">
+			<CellTemplate>
+				@{
+					var statusColor = context.Status switch
+					{
+						"Active" => MokaColor.Success,
+						"Inactive" => MokaColor.Error,
+						_ => MokaColor.Warning
+					};
+				}
+				<MokaAttribute Color="statusColor" Variant="MokaVariant.Soft" Size="MokaSize.Xs">@context.Status</MokaAttribute>
+			</CellTemplate>
+		</MokaColumn>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Align="MokaTextAlign.Right">
+			<CellTemplate>
+				<strong>@context.Salary.ToString("C0")</strong>
+			</CellTemplate>
+		</MokaColumn>
+		<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="server-data" Title="Server data" Description="Loaded a page at a time through ServerData, with skeleton rows while it waits. The search, the sort and the filter row reach the source as a MokaTableRequest.">
+	<MokaTable TItem="Person" ServerData="LoadServerDataAsync" ItemKey="p => p.Id" Searchable="true" Title="Server Data">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name" Filterable="true"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role" Filterable="true" FilterType="MokaColumnFilterType.Select"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status" Filterable="true" FilterType="MokaColumnFilterType.Select"/>
+	</MokaTable>
+	<MokaCaption>The source received: @_serverRequest</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="typed-filters" Title="Typed filters" Description="Filters are part of the state, each a column, an operator and values written in the invariant culture. Pick one: it goes to the source, which applies it, and the caption shows the request the source received.">
+	<div class="button-row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => FilterBy(new MokaTableFilter("Salary", MokaFilterOperator.AtLeast, "150000")))">Salary at least 150,000</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => FilterBy(new MokaTableFilter("Role", MokaFilterOperator.IsAnyOf, ["Admin", "Editor"])))">Admins or editors</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="FilterJoinedThisYear">Joined in the last year</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => FilterBy(new MokaTableFilter("Name", MokaFilterOperator.EndsWith, "7")))">Name ends with 7</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="ClearTypedFilters">Clear</MokaButton>
+	</div>
+	<MokaTable TItem="Person" ServerData="LoadTypedAsync" ItemKey="p => p.Id" @bind-State="_typedState" Title="Filtered on the server">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Joined" Field="p => p.JoinDate" Format="d"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+	</MokaTable>
+	<MokaCaption>The source received: @_typedRequest</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="pinned-columns-and-heading-groups" Title="Pinned columns and heading groups" Description="The number and the customer stay at the start and the actions at the end while the rows scroll sideways. Shipping and Amounts are headings over their columns, and a heading splits where a pinned column leaves it. The column menu pins and unpins any column.">
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.Recent" ItemKey="o => o.Number" MinWidth="1400px" ColumnMenu PageSize="8" Title="Orders">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap Pin="MokaColumnPin.Start"/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer" NoWrap Pin="MokaColumnPin.Start"/>
+		<MokaColumnGroup Title="Shipping">
+			<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region"/>
+			<MokaColumn TItem="DemoOrder" Title="Carrier" Field="o => o.Carrier"/>
+			<MokaColumn TItem="DemoOrder" Title="Address" Field="o => o.Address" NoWrap/>
+			<MokaDateColumn TItem="DemoOrder" Title="Placed" Value="o => o.Placed" Format="g"/>
+		</MokaColumnGroup>
+		<MokaColumnGroup Title="Amounts">
+			<MokaNumberColumn TItem="DemoOrder" Title="Items" Value="o => o.Items" Format="N0"/>
+			<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR"/>
+		</MokaColumnGroup>
+		<MokaStatusColumn TItem="DemoOrder" Title="Status" Status="o => o.Status" Tone="DemoOrders.StatusTone" Look="MokaStatusLook.Dot"/>
+		<MokaActionsColumn TItem="DemoOrder" Actions="OrderActions" Pin="MokaColumnPin.End"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="filter-controls" Title="Filter controls" Description="Five ways to filter the same rows, and every one reads and writes the same filters. Set a filter in one mode and switch: the chips, the menus and the builder show it. Quick filters count the rows each keeps.">
+	<DemoControl Label="Filter controls">
+		<MokaSegmentedControl Value="@_filterMode.ToString()" ValueChanged="PickFilterMode" AriaLabel="Filter controls">
+			<MokaSegment Value="@nameof(FilterMode.Row)" Text="Filter row"/>
+			<MokaSegment Value="@nameof(FilterMode.Menus)" Text="Menus and chips"/>
+			<MokaSegment Value="@nameof(FilterMode.Quick)" Text="Quick filters"/>
+			<MokaSegment Value="@nameof(FilterMode.Facets)" Text="Facets"/>
+			<MokaSegment Value="@nameof(FilterMode.Builder)" Text="Builder"/>
+		</MokaSegmentedControl>
+	</DemoControl>
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.All" ItemKey="o => o.Number" PageSize="8" Title="Orders"
+	           FilterControls="FilterControlsOf(_filterMode)" QuickFilters="@(_filterMode == FilterMode.Quick ? DemoOrders.QuickFilters : null)">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer" Filterable/>
+		<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region" Filterable FilterType="MokaColumnFilterType.MultiSelect"/>
+		<MokaColumn TItem="DemoOrder" Title="Carrier" Field="o => o.Carrier" Filterable FilterType="MokaColumnFilterType.MultiSelect"/>
+		<MokaStatusColumn TItem="DemoOrder" Title="Status" Status="o => o.Status" Tone="DemoOrders.StatusTone" Filterable/>
+		<MokaDateColumn TItem="DemoOrder" Title="Placed" Value="o => o.Placed" Format="d" Filterable/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Filterable/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="search-highlight" Title="Search highlight" Description="HighlightSearch marks what the search found in the cells that write their text. The search binds, so the buttons below search from outside the table and the line under it shows what someone typed.">
+	<div class="button-row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => _fileSearch = "report")">Find reports</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => _fileSearch = "log")">Find logs</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="@(() => _fileSearch = null)">Clear</MokaButton>
+	</div>
+	<MokaTable TItem="DemoFileEntry" Items="DemoOrders.Files" ItemKey="f => f.Name" Searchable HighlightSearch @bind-Search="_fileSearch"
+	           Debounce="TimeSpan.FromMilliseconds(150)" ShowPagination="false" Title="Files">
+		<MokaColumn TItem="DemoFileEntry" Title="Name" Field="f => f.Name"/>
+		<MokaColumn TItem="DemoFileEntry" Title="Folder" Field="f => f.Folder"/>
+		<MokaColumn TItem="DemoFileEntry" Title="Owner" Field="f => f.Owner"/>
+		<MokaBytesColumn TItem="DemoFileEntry" Title="Size" Value="f => f.Size"/>
+	</MokaTable>
+	<MokaCaption>Search: @(string.IsNullOrEmpty(_fileSearch) ? "nothing" : $"\"{_fileSearch}\"")</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="column-menu" Title="Column menu" Description="ColumnMenu puts a menu in each heading: sort, filter, pin, group by, hide and fit the column. Group by a column to see the group bar, and pick it again to stop grouping.">
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.Recent" ItemKey="o => o.Number" ColumnMenu MultiSort PageSize="8"
+	           FilterControls="MokaTableFilterControls.Chips" Title="Orders">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer" Filterable/>
+		<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region" Filterable FilterType="MokaColumnFilterType.MultiSelect"/>
+		<MokaStatusColumn TItem="DemoOrder" Title="Status" Status="o => o.Status" Tone="DemoOrders.StatusTone" Filterable/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Aggregate="MokaAggregateType.Sum"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="server-facets-and-totals" Title="Server facets and totals" Description="A ServerData source that answers the whole request: the facet panel's values and the quick filters' counts under FacetsFromServer, the footer's totals over every page, and each region's count and total in its heading. The line under the table shows what the source was asked.">
+	<MokaTable TItem="DemoOrder" ServerData="LoadOrdersAsync" ItemKey="o => o.Number" PageSize="10" Title="Orders" Searchable
+	           FacetsFromServer FilterControls="MokaTableFilterControls.Facets | MokaTableFilterControls.Chips"
+	           QuickFilters="DemoOrders.QuickFilters" GroupBy="Region" ItemsName="orders">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap Aggregate="MokaAggregateType.Count"/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+		<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region" Filterable FilterType="MokaColumnFilterType.MultiSelect"/>
+		<MokaColumn TItem="DemoOrder" Title="Carrier" Field="o => o.Carrier" Filterable FilterType="MokaColumnFilterType.MultiSelect"/>
+		<MokaStatusColumn TItem="DemoOrder" Title="Status" Status="o => o.Status" Tone="DemoOrders.StatusTone" Filterable/>
+		<MokaDateColumn TItem="DemoOrder" Title="Placed" Value="o => o.Placed" Format="d"/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Aggregate="MokaAggregateType.Sum"/>
+	</MokaTable>
+	<MokaCaption>The source was asked for: @_ordersRequest</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="nested-groups" Title="Nested groups" Description="Grouped by region, then by status, across every page: a page that starts inside a group draws its headings again, and each heading counts and totals its whole group. The group bar folds and opens every group.">
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.All" ItemKey="o => o.Number" ColumnMenu PageSize="12" State="NestedGroups" Title="Orders by region and status">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap Aggregate="MokaAggregateType.Count"/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+		<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region"/>
+		<MokaColumn TItem="DemoOrder" Title="Status" Field="o => o.Status"/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Aggregate="MokaAggregateType.Sum"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="row-clicks-and-pinned-rows" Title="Row clicks and pinned rows" Description="A click picks a row the way a file list does: Ctrl or Cmd adds one, Shift picks a run. A double click opens it. The watched order stays at the top and the totals at the bottom whatever the sort and the page. The button over the toggles, or the two below, open and close every detail row.">
+	<div class="button-row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ExpandAllRowsAsync">Expand all</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="CollapseAllRowsAsync">Collapse all</MokaButton>
+	</div>
+	<MokaTable @ref="_clickTable" TItem="DemoOrder" Items="DemoOrders.Recent" ItemKey="o => o.Number" PageSize="8" Title="Orders"
+	           Selectable SelectOnRowClick @bind-SelectedItems="_clickPicked" OnRowDoubleClick="OpenOrder"
+	           PinnedTop="WatchedOrders" PinnedBottom="RecentTotals" Expandable ShowExpandAll>
+		<ChildContent>
+			<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+			<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+			<MokaNumberColumn TItem="DemoOrder" Title="Items" Value="o => o.Items" Format="N0"/>
+			<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR"/>
+		</ChildContent>
+		<DetailTemplate Context="order">
+			<MokaText Size="MokaSize.Sm">@order.Customer ordered @order.Items items on @order.Placed.ToString("D", CultureInfo.CurrentCulture), sent by @order.Carrier to @order.Address.</MokaText>
+		</DetailTemplate>
+	</MokaTable>
+	<MokaCaption>@_clickPicked.Count picked. @_opened</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="owned-selection" Title="Owned selection" Description="The page passes SelectedItems and handles SelectedItemsChanged, so it owns the selection. It takes up to three rows and hands back nothing for a fourth, and the table undoes that pick.">
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.Few" ItemKey="o => o.Number" Selectable ShowPagination="false"
+	           SelectedItems="_ownedPicked" SelectedItemsChanged="PickOwned" Title="Pick up to three">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR"/>
+	</MokaTable>
+	<MokaCaption>@_ownedPicked.Count of 3 picked. @_ownedNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="no-results-and-a-failed-load" Title="No results and a failed load" Description="A search that leaves no row says so, with a button that clears it. A ServerData load that throws shows inside the table with Try again, and stays out of the error boundary: turn the switch off, then press Try again.">
+	<MokaGrid MinColumn="20rem" Gap="MokaSpacingScale.Md">
+		<div class="table-demo-stack">
+			<div class="button-row">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="@(() => _missingSearch = "no such file")">Search for a file nobody has</MokaButton>
+			</div>
+			<MokaTable TItem="DemoFileEntry" Items="DemoOrders.Files" ItemKey="f => f.Name" Searchable @bind-Search="_missingSearch" PageSize="5" Title="Files">
+				<MokaColumn TItem="DemoFileEntry" Title="Name" Field="f => f.Name"/>
+				<MokaColumn TItem="DemoFileEntry" Title="Folder" Field="f => f.Folder"/>
+			</MokaTable>
+		</div>
+		<div class="table-demo-stack">
+			<MokaSwitch @bind-Value="_failLoads" Label="Fail the loads"/>
+			<MokaTable TItem="DemoOrder" ServerData="LoadFlakyAsync" ItemKey="o => o.Number" PageSize="5" ItemsName="orders" ShowRefresh
+			           OnLoadFailed="NoteFailure" Title="Orders">
+				<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+				<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+				<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR"/>
+			</MokaTable>
+			<MokaCaption>@_failureNote</MokaCaption>
+		</div>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="app-wide-look-and-density" Title="App-wide look and density" Description="MokaTheme.WithTables and WithTableDensity set the look and the density of every table that doesn't set its own, here on a nested MokaThemeProvider. They are style choices of the new design: on MokaTheme.Dark and Light the theme stays as it is and tables draw Lined.">
+	<DemoChoice TValue="MokaTableLook" Label="WithTables" Options="TableLooks" Value="_themeLook" ValueChanged="PickThemeLook"/>
+	<DemoChoice TValue="MokaTableDensity" Label="WithTableDensity" Options="TableDensities" Value="_themeDensity" ValueChanged="PickThemeDensity"/>
+	<MokaThemeProvider Theme="_tableTheme">
+		<MokaTable TItem="DemoOrder" Items="DemoOrders.Few" ItemKey="o => o.Number" ShowPagination="false" Title="Orders">
+			<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap Phone="MokaColumnPhone.Trailing"/>
+			<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer" Phone="MokaColumnPhone.Primary"/>
+			<MokaColumn TItem="DemoOrder" Title="Region" Field="o => o.Region" Phone="MokaColumnPhone.Secondary"/>
+			<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Phone="MokaColumnPhone.Secondary"/>
+		</MokaTable>
+	</MokaThemeProvider>
+</DemoSection>
+
+<DemoSection Id="pagers" Title="Pagers" Description="A MokaTablePager among the columns says which of the seven pagers the table draws. Without one it draws Numbered.">
+	<DemoChoice TValue="MokaPagerLook" Label="Pager" Options="PagerLooks" @bind-Value="_pagerLook"/>
+	<MokaTable TItem="Device" Items="Devices" PageSize="5" ItemKey="d => d.Name">
+		<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+		<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true"/>
+		<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right" DefaultSort="MokaSortDirection.Descending">
+			<CellTemplate Context="d">@d.Rate</CellTemplate>
+		</MokaColumn>
+		<MokaTablePager Look="_pagerLook" PageSizeOptions="DevicePageSizes"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="pager-at-both-ends" Title="Pager at both ends" Description="Position puts the numbered pager under the rows, above them or both, here with the sizes someone can pick.">
+	<MokaTable Items="_people" ItemKey="p => p.Id" PageSize="5">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaTablePager Position="MokaTablePaginationPosition.Both" PageSizeOptions="PeoplePageSizes" MaxVisiblePages="3"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="cursor-paging" Title="Cursor paging" Description="A source that hands out a cursor for the next and the previous page, and never counts the rows. The cursor pager draws Newer and Older and passes the cursor back in MokaTableRequest.Cursor.">
+	<MokaTable TItem="FeedEvent" ServerData="LoadFeedAsync" ItemKey="e => e.Number" PageSize="6" Title="Activity">
+		<MokaColumn TItem="FeedEvent" Title="Number" Field="e => e.Number" Width="5rem" Mono="true" Sortable="false"/>
+		<MokaColumn TItem="FeedEvent" Title="When" Field="e => e.At" Format="g" Sortable="false"/>
+		<MokaColumn TItem="FeedEvent" Title="Message" Field="e => e.Message" Sortable="false"/>
+		<MokaTablePager Look="MokaPagerLook.Cursor"/>
+	</MokaTable>
+	<MokaCaption>Last cursor asked for: @(_feedCursor ?? "none, the newest page")</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="empty" Title="Empty">
+	<MokaTable Items="Enumerable.Empty<Person>()" ItemKey="p => p.Id" ShowPagination="false" Title="Empty Table">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="fixed-height" Title="Fixed height" Description="A bounded body that scrolls under a fixed header.">
+	<MokaTable Items="_people.Take(50)" ItemKey="p => p.Id" Height="250px" FixedHeader="true" ShowPagination="false" Title="Scrollable">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="sort-by-several-columns" Title="Sort by several columns" Description="DefaultSort sets the sort a table starts with: here Role, then Salary from the top.">
+	<MokaTable Items="_people.Take(30)" ItemKey="p => p.Id" MultiSort="true" ShowPagination="false"
+	           Title="Multi-Sort Table" Searchable="true">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role" DefaultSort="MokaSortDirection.Ascending"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right" DefaultSort="MokaSortDirection.Descending"/>
+	</MokaTable>
+	<MokaCaption>Click a column header to sort. Hold Shift and click additional columns for multi-sort.</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="column-reorder" Title="Column reorder" Description="Drag a column header to move the column.">
+	<MokaTable Items="_people.Take(10)" ItemKey="p => p.Id" ColumnReorderable="true" ShowPagination="false" Title="Drag Column Headers">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Status" Field="p => p.Status"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="totals" Title="Totals" Description="A sum, an average or a count under a column.">
+	<MokaTable Items="_people.Take(20)" ItemKey="p => p.Id" ShowPagination="false" Title="Salary Report">
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"
+		            Aggregate="MokaAggregateType.Sum" AggregateFormat="C0"/>
+		<MokaColumn TItem="Person" Title="Salary (Avg)" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"
+		            Aggregate="MokaAggregateType.Average" AggregateFormat="C0"/>
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Align="MokaTextAlign.Right"
+		            Aggregate="MokaAggregateType.Count"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="virtualized" Title="Virtualized" Description="Draws only the rows in view, without paging.">
+	<MokaTable Items="_people" ItemKey="p => p.Id" Virtualize="true" Height="300px"
+	           FixedHeader="true" ShowPagination="false" Title="Virtualized" Searchable="true">
+		<MokaColumn TItem="Person" Title="ID" Field="p => p.Id" Width="60px"/>
+		<MokaColumn TItem="Person" Title="Name" Field="p => p.Name"/>
+		<MokaColumn TItem="Person" Title="Email" Field="p => p.Email"/>
+		<MokaColumn TItem="Person" Title="Role" Field="p => p.Role"/>
+		<MokaColumn TItem="Person" Title="Salary" Field="p => p.Salary" Format="C0" Align="MokaTextAlign.Right"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="values-on-one-line" Title="Values on one line" Description="NoWrap keeps a column's values on one line; with a Width a longer value ends in an ellipsis. Drag a heading's edge to narrow a column. Below 720 px the rows become a list, and the values stay on one line there too.">
+	<div style="max-width: 36rem;">
+		<MokaTable TItem="AuditEntry" Items="_audit" ShowPagination="false">
+			<MokaColumn TItem="AuditEntry" Title="Event" Field="x => x.Id" Mono NoWrap Width="7rem" Phone="MokaColumnPhone.Trailing"/>
+			<MokaColumn TItem="AuditEntry" Title="Who" Field="x => x.Who" NoWrap Phone="MokaColumnPhone.Primary"/>
+			<MokaColumn TItem="AuditEntry" Title="Action" Field="x => x.Action" Mono NoWrap Phone="MokaColumnPhone.Secondary"/>
+			<MokaColumn TItem="AuditEntry" Title="Detail" Field="x => x.Detail"/>
+		</MokaTable>
+	</div>
+</DemoSection>
+
+<DemoSection Id="everything-together" Title="Everything together" Description="Tick two boxes for the bulk bar, then shift-click a third for a run. Pick a zone, then &quot;Save this view&quot;. The foot shows more rows. Columns opens the chooser. Drag a heading to move it (Name is fixed), or Tab to its right edge and press Left, Right or Home. Below 720 px each row is a list item from its columns' Phone slots.">
+	<MokaSegmentedControl Value="@_zone" ValueChanged="PickZone" AriaLabel="Zone">
+		<MokaSegment Value="All" Text="All zones"/>
+		<MokaSegment Value="Home" Text="Home"/>
+		<MokaSegment Value="Guests" Text="Guests"/>
+		<MokaSegment Value="Things" Text="Things"/>
+	</MokaSegmentedControl>
+
+	@DevicesTable
+
+	<MokaCard Inner>
+		<MokaLabel Micro>What the table raised</MokaLabel>
+		<MokaCode Block="true">@_log</MokaCode>
+		<MokaLabel Micro>State, kept by this page, not the table</MokaLabel>
+		<MokaCode Block="true">@DevicesStateText</MokaCode>
+	</MokaCard>
+</DemoSection>
+
+<DemoSection Id="a-device-list-in-a-card" Title="A device list in a card" Description="The toolbar inside the card, the detail toggle at each row's end with one row open at a time, the rows called devices, Rate sorting largest first and never clearing, an icon Clear on the bulk bar and a foot under the rows. Nothing around the rows scrolls, so the header sticks to the page under the app bar. The Zone column hides below 1100 px, header and all. &quot;Show older&quot; adds rows to the same list and asks for them to be drawn.">
+	<MokaSwitch @bind-Value="_minWidth" Label="MinWidth 900px, so the rows scroll sideways instead"/>
+	<MokaTable TItem="Device" Items="_older" ItemKey="d => d.Name" Label="Devices" ItemsName="devices" ItemName="d => d.Name"
+	           Framed="true" ToolbarInFrame="true" Title="Devices" Searchable="true" Text="SearchDevicesText"
+	           Responsive="false" MinWidth="@(_minWidth ? "900px" : null)"
+	           Expandable="true" ExpandTogglePosition="MokaTableTogglePosition.End" SingleExpand="true"
+	           Selectable="true" BulkClearIcon="true" PageSize="5" AllowUnsort="false"
+	           @ref="_olderTable">
+		<BulkActions Context="picked">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Limit</MokaButton>
+		</BulkActions>
+		<DetailTemplate Context="d">
+			<MokaText>@d.Name is in @d.Zone at @d.Address, last seen @d.Seen.</MokaText>
+		</DetailTemplate>
+		<FootContent>
+			<span>All @_older.Count.ToString(CultureInfo.CurrentCulture) devices</span>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="ShowOlderAsync">Show older</MokaButton>
+		</FootContent>
+		<ChildContent>
+			<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+			<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary"/>
+			<MokaColumn TItem="Device" Title="Zone" Field="d => d.Zone" Class="demo-hide-narrow" Phone="MokaColumnPhone.Secondary"/>
+			<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right"
+			            SortDescendingFirst="true" Phone="MokaColumnPhone.Trailing">
+				<CellTemplate Context="d">@d.Rate</CellTemplate>
+			</MokaColumn>
+			<MokaTablePager Look="MokaPagerLook.LoadMore"/>
+		</ChildContent>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="inside-a-card" Title="Inside a card" Description="Bleed runs the rows to the card's edges and its bottom corners.">
+	<MokaTable TItem="Device" Items="FourDevices" Bleed="true" ItemKey="d => d.Name">
+		<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+		<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary"/>
+		<MokaColumn TItem="Device" Title="Seen" Field="d => d.Seen" Phone="MokaColumnPhone.Trailing"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="loading-in-the-real-columns" Title="Loading, in the real columns">
+	<MokaSwitch @bind-Value="_loading" Label="Loading"/>
+	<MokaTable TItem="Device" Items="ThreeDevices" Loading="_loading" LoadingRows="3" Selectable="true" Framed="true" ItemKey="d => d.Name">
+		<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+		<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Width="30%" Phone="MokaColumnPhone.Secondary"/>
+		<MokaColumn TItem="Device" Title="Rate" Field="d => d.Rate" Mono="true" Width="20%" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="empty-2" Title="Empty">
+	<MokaGrid MinColumn="300px" Style="gap: var(--moka-grid-gap);">
+		<MokaTable TItem="Device" Items="NoDevices" Framed="true"
+		           EmptyIcon="MokaIcons.Action.Search" EmptyTitle="No device matches" EmptyText="Try another zone, or clear the search.">
+			<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+			<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+		</MokaTable>
+		<MokaTable TItem="Device" Items="NoDevices" Framed="true">
+			<Empty>
+				<MokaEmptyState Framed="true" Title="An Empty fragment" Description="Your own content, with room for a button.">
+					<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Add a device</MokaButton>
+				</MokaEmptyState>
+			</Empty>
+			<ChildContent>
+				<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+				<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+			</ChildContent>
+		</MokaTable>
+		<MokaTable TItem="Device" Items="NoDevices">
+			<MokaColumn TItem="Device" Title="Name" Field="d => d.Name"/>
+			<MokaColumn TItem="Device" Title="Address" Field="d => d.Address"/>
+		</MokaTable>
+	</MokaGrid>
+	<MokaCaption>The last one sets none of them, and says what it always said.</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="a-list-that-ticks" Title="A list that ticks" Description="A new list every second, with a new rate on one row. Rows keep their DOM and their state, so a ticked box, a hover and focus stay where they are, and only the cell that moved goes to the browser.">
+	<MokaTable TItem="Device" Items="_ticking" ItemKey="d => d.Name" Selectable="true" ItemName="d => d.Name" Framed="true"
+	           ShowPagination="false">
+		<BulkActions Context="picked">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked, ticking: true)">Limit</MokaButton>
+		</BulkActions>
+		<ChildContent>
+			<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Phone="MokaColumnPhone.Primary"/>
+			<MokaColumn TItem="Device" Title="Zone" Field="d => d.Zone" Phone="MokaColumnPhone.Secondary"/>
+			<MokaColumn TItem="Device" Title="Rate" Field="d => d.Rate" Mono="true" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing"/>
+		</ChildContent>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="editing-cells-and-rows" Title="Editing cells and rows" Description="Every editor the table has: text, a number that can be empty, money, a list, a choice from an enum, a date, a check box, a switch and stars. In Cell mode Enter, F2 or a double click opens one cell, Tab saves it and opens the next, and a click elsewhere saves it. In Row mode the whole row opens, with Save and Cancel at its end.">
+	<DemoChoice TValue="MokaTableEditMode" Label="EditMode" Options="EditModes" @bind-Value="_editMode"/>
+	<MokaTable TItem="StockLine" Items="_stock" ItemKey="s => s.Id" EditMode="_editMode" OnRowSave="SaveStock" ShowPagination="false"
+	           MinWidth="1100px" Title="Stock">
+		<MokaColumn TItem="StockLine" Title="Name" Field="s => s.Name" Editable SetField="@((s, v) => s with { Name = (string?)v ?? string.Empty })"/>
+		<MokaStatusColumn TItem="StockLine" Title="Category" Status="s => s.Category" EditOptions="StockCategories" Editable
+		                  SetStatus="@((s, v) => s with { Category = v ?? s.Category })"/>
+		<MokaColumn TItem="StockLine" Title="Shelf" Field="s => s.Shelf" Editable SetField="@((s, v) => s with { Shelf = v is StockShelf shelf ? shelf : s.Shelf })"/>
+		<MokaNumberColumn TItem="StockLine" Title="Stock" Value="s => s.Stock" Format="N0" Editable SetValue="@((s, v) => s with { Stock = v })"/>
+		<MokaMoneyColumn TItem="StockLine" Title="Price" Value="s => s.Price" Currency="EUR" Editable SetValue="@((s, v) => s with { Price = v ?? 0m })"/>
+		<MokaDateColumn TItem="StockLine" Title="Checked" Value="s => s.Checked" Format="d" Editable SetValue="@((s, v) => s with { Checked = v ?? s.Checked })"/>
+		<MokaYesNoColumn TItem="StockLine" Title="Active" Value="s => s.Active" Editable SetValue="@((s, v) => s with { Active = v ?? false })"/>
+		<MokaYesNoColumn TItem="StockLine" Title="Reorder" Value="s => s.Reorder" Look="MokaYesNoLook.Switch" Editable SetValue="@((s, v) => s with { Reorder = v ?? false })"/>
+		<MokaRatingColumn TItem="StockLine" Title="Rating" Value="s => s.Rating" Editable SetValue="@((s, v) => s with { Rating = v ?? 0 })"/>
+		<MokaEditColumn TItem="StockLine" ShowDelete="false"/>
+	</MokaTable>
+	<MokaCaption>@_stockNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="checks-and-refused-saves" Title="Checks and refused saves" Description="DataAnnotationsValidator in Validators checks the attributes on the model before a save: empty the name, or give an age under 18. The page's own save refuses too, through AddError: name a second person Ada, or give an address at example.org. The row stays open with each message.">
+	<MokaTable TItem="Signup" Items="_signups" ItemKey="s => s.Id" EditMode="MokaTableEditMode.Row" OnRowSave="SaveSignup" ShowPagination="false"
+	           Title="Sign-ups">
+		<Validators>
+			<DataAnnotationsValidator/>
+		</Validators>
+		<ChildContent>
+			<MokaColumn TItem="Signup" Title="Name" Field="s => s.Name" Editable SetField="@((s, v) => s with { Name = (string?)v ?? string.Empty })"/>
+			<MokaNumberColumn TItem="Signup" Title="Age" Value="s => s.Age" Format="N0" Editable SetValue="@((s, v) => s with { Age = v })"/>
+			<MokaColumn TItem="Signup" Title="Email" Field="s => s.Email" Editable SetField="@((s, v) => s with { Email = (string?)v ?? string.Empty })"/>
+			<MokaEditColumn TItem="Signup" ShowDelete="false"/>
+		</ChildContent>
+	</MokaTable>
+	<MokaCaption>@_signupNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="adding-deleting-and-undo" Title="Adding, deleting and undo" Description="NewItem puts an Add button in the toolbar, which opens a new row at the top or the bottom. Delete asks first in a dialog. After a save a line under the rows says what changed, and Undo, or Ctrl+Z on a cell, puts it back.">
+	<DemoChoice TValue="MokaTableAddPosition" Label="AddRowPosition" Options="AddPositions" @bind-Value="_addAt"/>
+	<MokaTable TItem="StockLine" Items="_shelfStock" ItemKey="s => s.Id" ItemName="s => s.Name" NewItem="NewShelfLine" AddRowPosition="_addAt"
+	           OnRowSave="SaveShelfLine" OnRowDelete="DeleteShelfLine" ShowPagination="false" Title="Shelf">
+		<MokaColumn TItem="StockLine" Title="Name" Field="s => s.Name" Editable SetField="@((s, v) => s with { Name = (string?)v ?? string.Empty })"/>
+		<MokaNumberColumn TItem="StockLine" Title="Stock" Value="s => s.Stock" Format="N0" Editable SetValue="@((s, v) => s with { Stock = v })"/>
+		<MokaMoneyColumn TItem="StockLine" Title="Price" Value="s => s.Price" Currency="EUR" Editable SetValue="@((s, v) => s with { Price = v ?? 0m })"/>
+		<MokaEditColumn TItem="StockLine"/>
+	</MokaTable>
+	<MokaCaption>@_shelfNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="export-to-csv-and-excel" Title="Export to CSV and Excel" Description="With both formats the export button opens a menu. The file holds every row the search keeps, not just the page, in the sort order, saved as orders.csv or orders.xlsx. The workbook keeps numbers, money and dates as typed cells, with the total under them.">
+	<MokaTable TItem="DemoOrder" Items="DemoOrders.Recent" ItemKey="o => o.Number" Exportable ExportFormats="BothExportFormats" ExportFileName="orders"
+	           Searchable PageSize="8" Title="Orders">
+		<MokaColumn TItem="DemoOrder" Title="Number" Field="o => o.Reference" Mono NoWrap/>
+		<MokaColumn TItem="DemoOrder" Title="Customer" Field="o => o.Customer"/>
+		<MokaStatusColumn TItem="DemoOrder" Title="Status" Status="o => o.Status" Tone="DemoOrders.StatusTone"/>
+		<MokaDateColumn TItem="DemoOrder" Title="Placed" Value="o => o.Placed" Format="g"/>
+		<MokaNumberColumn TItem="DemoOrder" Title="Items" Value="o => o.Items" Format="N0"/>
+		<MokaMoneyColumn TItem="DemoOrder" Title="Total" Value="o => o.Total" Currency="EUR" Aggregate="MokaAggregateType.Sum"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="copying-rows-and-blocks-of-cells" Title="Copying rows and blocks of cells" Description="Tick rows and press Copy in the selection bar, or Ctrl+C on a cell: the rows go to the clipboard as tab-separated text with the headings. Drag over cells, or hold Shift and press the arrows, to mark a block; Ctrl+C copies it without headings, and Ctrl+V pastes a block from a spreadsheet into the editable cells. Paste into the box below to see what was copied.">
+	<MokaTable TItem="StockLine" Items="_copyStock" ItemKey="s => s.Id" Selectable CopySelectedRows CellRanges OnRowSave="SaveCopyLine"
+	           ShowPagination="false" Title="Stock">
+		<MokaColumn TItem="StockLine" Title="Name" Field="s => s.Name" Editable SetField="@((s, v) => s with { Name = (string?)v ?? string.Empty })"/>
+		<MokaStatusColumn TItem="StockLine" Title="Category" Status="s => s.Category"/>
+		<MokaNumberColumn TItem="StockLine" Title="Stock" Value="s => s.Stock" Format="N0" Editable SetValue="@((s, v) => s with { Stock = v })"/>
+		<MokaMoneyColumn TItem="StockLine" Title="Price" Value="s => s.Price" Currency="EUR" Editable SetValue="@((s, v) => s with { Price = v ?? 0m })"/>
+		<MokaYesNoColumn TItem="StockLine" Title="Active" Value="s => s.Active" Editable SetValue="@((s, v) => s with { Active = v ?? false })"/>
+	</MokaTable>
+	<MokaCaption>@_copyNote</MokaCaption>
+	<MokaTextArea @bind-Value="_pasteBox" Label="Paste here" Rows="4" Mono/>
+</DemoSection>
+
+<DemoSection Id="rows-from-a-server-window-by-window" Title="Rows from a server, window by window" Description="Four hundred thousand rows: ServerData with Virtualize loads them window by window as they scroll into view, with a placeholder row for each still on its way, and a window scrolled past before it arrives is cancelled. Ctrl+End goes to the last row. Open a row's detail and scroll: the rows keep their numbers for screen readers. Browsers cap how tall a scroll can be, which puts the most rows near 480,000 in Firefox.">
+	<MokaTable TItem="LedgerEntry" ServerData="LoadLedgerAsync" ItemKey="e => e.Entry" Virtualize Height="420px" FixedHeader
+	           Expandable Title="Ledger">
+		<ChildContent>
+			<MokaNumberColumn TItem="LedgerEntry" Title="Entry" Value="e => e.Entry" Format="N0"/>
+			<MokaColumn TItem="LedgerEntry" Title="Account" Field="e => e.Account" Sortable="false"/>
+			<MokaColumn TItem="LedgerEntry" Title="Memo" Field="e => e.Memo" Sortable="false"/>
+			<MokaMoneyColumn TItem="LedgerEntry" Title="Amount" Value="e => e.Amount" Currency="EUR" Sortable="false"/>
+			<MokaDateColumn TItem="LedgerEntry" Title="Posted" Value="e => e.Posted" Format="g" Sortable="false"/>
+		</ChildContent>
+		<DetailTemplate>
+			<MokaCaption>Entry @context.Entry.ToString("N0", CultureInfo.CurrentCulture) was posted to @context.Account.</MokaCaption>
+		</DetailTemplate>
+	</MokaTable>
+	<MokaCaption>@_ledgerNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="sixty-columns" Title="Sixty columns" Description="VirtualizeColumns draws only the cells of the columns in view, and scrolling sideways draws the ones that come in. The sensor and the site stay pinned at the start and the total at the end. Group by site to see each heading's totals over the columns in view.">
+	<DemoToggle Label="Group by site" @bind-Value="_groupReadings"/>
+	<MokaTable TItem="Reading" Items="Readings" ItemKey="r => r.Id" VirtualizeColumns GroupBy="@(_groupReadings ? "Site" : null)" PageSize="15"
+	           Title="Readings">
+		<MokaColumn TItem="Reading" Title="Sensor" Field="r => r.Sensor" Mono NoWrap Pin="MokaColumnPin.Start" Width="8rem"/>
+		<MokaColumn TItem="Reading" Title="Site" Field="r => r.Site" Pin="MokaColumnPin.Start" Width="7rem"/>
+		@for (int hour = 0; hour < ReadingHours; hour++)
+		{
+			<MokaNumberColumn TItem="Reading" Title="@HourTitles[hour]" Value="HourValues[hour]" Format="N1" Width="6rem"
+			                  Aggregate="MokaAggregateType.Sum"/>
+		}
+		<MokaNumberColumn TItem="Reading" Title="Total" Value="r => r.Total" Format="N1" Width="7rem" Pin="MokaColumnPin.End"
+		                  Aggregate="MokaAggregateType.Sum"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="a-streaming-log" Title="A streaming log" Description="ItemStream reads rows from an IAsyncEnumerable and shows them as they come, a frame at a time, with a row under them counting them and a Stop button. The search, the sort and the pager work on what has arrived. Turn on the break and read again: the stream fails at line 900, and Retry reads it again from the start.">
+	<div class="button-row">
+		<DemoToggle Label="Break the next read" @bind-Value="_breakLog"/>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ReadLogAgain">Read again</MokaButton>
+	</div>
+	<MokaTable TItem="LogLine" ItemStream="_logStream" ItemKey="l => l.Number" Searchable Virtualize Height="360px" FixedHeader
+	           ShowPagination="false" Title="Service log">
+		<MokaNumberColumn TItem="LogLine" Title="Line" Value="l => l.Number" Format="N0" Width="6rem"/>
+		<MokaDateColumn TItem="LogLine" Title="Time" Value="l => l.At" Format="HH:mm:ss.fff" Width="9rem"/>
+		<MokaStatusColumn TItem="LogLine" Title="Level" Status="l => l.Level" Tone="LogTone" Width="7rem"/>
+		<MokaColumn TItem="LogLine" Title="Message" Field="l => l.Message"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="keyboard-guide" Title="Keyboard guide" Description="The keys a table takes once a cell has focus. Tab reaches the table once; the arrows move inside it.">
+	<MokaDataList Orientation="MokaDirection.Row" TermWidth="14rem">
+		<div><dt><MokaKbd>Arrows</MokaKbd> <MokaKbd>Home</MokaKbd> <MokaKbd>End</MokaKbd></dt><dd>Move between cells, and to the first or last cell of the row</dd></div>
+		<div><dt><MokaKbd>Page Up</MokaKbd> <MokaKbd>Page Down</MokaKbd></dt><dd>Move a screen of rows up or down</dd></div>
+		<div><dt><MokaKbd>Ctrl</MokaKbd> <MokaKbd>Home</MokaKbd> / <MokaKbd>End</MokaKbd></dt><dd>Move to the first or the last cell of the whole table</dd></div>
+		<div><dt><MokaKbd>Enter</MokaKbd> <MokaKbd>F2</MokaKbd></dt><dd>Open an editable cell</dd></div>
+		<div><dt><MokaKbd>Enter</MokaKbd></dt><dd>In an editor, save</dd></div>
+		<div><dt><MokaKbd>Esc</MokaKbd></dt><dd>In an editor, put the value back; on a marked block, let go of it</dd></div>
+		<div><dt><MokaKbd>Tab</MokaKbd> <MokaKbd>Shift</MokaKbd> <MokaKbd>Tab</MokaKbd></dt><dd>In a cell editor, save and open the next or the previous editable cell</dd></div>
+		<div><dt><MokaKbd>Ctrl</MokaKbd> <MokaKbd>Z</MokaKbd></dt><dd>Undo the last save</dd></div>
+		<div><dt><MokaKbd>Shift</MokaKbd> <MokaKbd>Arrows</MokaKbd></dt><dd>Mark a block of cells</dd></div>
+		<div><dt><MokaKbd>Ctrl</MokaKbd> <MokaKbd>C</MokaKbd></dt><dd>Copy the marked block, the picked rows, or the cell</dd></div>
+		<div><dt><MokaKbd>Ctrl</MokaKbd> <MokaKbd>V</MokaKbd></dt><dd>Paste a block from a spreadsheet into the editable cells</dd></div>
+		<div><dt><MokaKbd>Space</MokaKbd></dt><dd>Pick or let go of the row, when rows can be picked</dd></div>
+	</MokaDataList>
+</DemoSection>
+
+@code {
+	private record Person(int Id, string Name, string Email, string Role, string Status, DateTime JoinDate, decimal Salary);
+
+	private static readonly List<Person> _people = Enumerable.Range(1, 247).Select(i => new Person(
+		i,
+		$"Person {i}",
+		$"person{i}@example.com",
+		new[] { "Admin", "User", "Editor", "Viewer" }[i % 4],
+		new[] { "Active", "Inactive", "Pending" }[i % 3],
+		DateTime.Today.AddDays(-i * 7),
+		50000m + i * 500m
+	)).ToList();
+
+	private static readonly Person[] FourPeople = [.. _people.Take(4)];
+
+	private static readonly Person[] SixPeople = [.. _people.Take(6)];
+
+	private static readonly MokaTableText FilterPeopleText = MokaTableText.Default with { SearchPlaceholder = "Filter people..." };
+
+	private static readonly MokaTableText SearchDevicesText = MokaTableText.Default with { SearchPlaceholder = "Search devices" };
+
+	private static readonly MokaTableLook[] TableLooks = Enum.GetValues<MokaTableLook>();
+
+	private static readonly MokaPagerLook[] PagerLooks = Enum.GetValues<MokaPagerLook>();
+
+	private static readonly int[] DevicePageSizes = [5, 10];
+
+	private static readonly int[] PeoplePageSizes = [5, 10, 25];
+
+	private static readonly int[] StickyPageSizes = [8, 16, 32];
+
+	private void HandleRowContextMenu(MokaItemContextMenuArgs<Person> args)
+	{
+		Person p = args.Item;
+		ContextMenu.Show(args.MouseEvent,
+		[
+			new MokaContextMenuItem { Text = $"Open {p.Name}", Icon = MokaIcons.Toggle.Eye, OnClickSync = () => Toast.ShowInfo($"Open {p.Name}") },
+			new MokaContextMenuItem { Text = "Edit", Icon = MokaIcons.Action.Edit, OnClickSync = () => Toast.ShowInfo($"Edit {p.Name}") },
+			new MokaContextMenuItem { Text = "Copy email", OnClickSync = () => Toast.ShowSuccess(p.Email) },
+			new MokaContextMenuItem { Text = "Delete", Icon = MokaIcons.Action.Delete, DividerBefore = true, OnClickSync = () => Toast.ShowError($"Delete {p.Name}") }
+		]);
+	}
+
+	private HashSet<Person> _tableSelectedItems = [];
+
+	private void HandleSelectionChanged(HashSet<Person> items)
+	{
+		_tableSelectedItems = items;
+	}
+
+	private int _rowClicks;
+
+	private int _cellEdits;
+
+	private MokaTable<Person>? _keptTable;
+
+	private MokaTableState? _keptState;
+
+	private string KeptSummary => _keptState is null
+		? "Nothing changed yet."
+		: $"Sorted by {DescribeSorts(_keptState.Sorts)}, page {_keptState.Page}, {_keptState.Density}, {_keptState.Columns.Count(column => column.Hidden)} hidden.";
+
+	private async Task ResetKeptAsync()
+	{
+		if (_keptTable is not null)
+		{
+			await _keptTable.ResetStateAsync();
+		}
+	}
+
+	private MokaTableLook _tableLook = MokaTableLook.Sheet;
+
+	private MokaPagerLook _pagerLook = MokaPagerLook.Numbered;
+
+	private string _serverRequest = "nothing yet";
+
+	private async Task<MokaTableResult<Person>> LoadServerDataAsync(MokaTableRequest request)
+	{
+		_serverRequest = DescribeRequest(request);
+		StateHasChanged();
+		await Task.Delay(400, request.CancellationToken);
+		return PeopleQuery.Run(request);
+	}
+
+	private MokaTableState? _typedState;
+
+	private string _typedRequest = "nothing yet";
+
+	private async Task<MokaTableResult<Person>> LoadTypedAsync(MokaTableRequest request)
+	{
+		_typedRequest = DescribeRequest(request);
+		StateHasChanged();
+		await Task.Delay(250, request.CancellationToken);
+		return PeopleQuery.Run(request);
+	}
+
+	private void FilterBy(MokaTableFilter filter) =>
+		_typedState = (_typedState ?? new MokaTableState()) with { Filters = [filter], Page = 1 };
+
+	private void FilterJoinedThisYear() =>
+		FilterBy(new MokaTableFilter("Joined", MokaFilterOperator.Between,
+			[DateTime.Today.AddYears(-1).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)]));
+
+	private void ClearTypedFilters() =>
+		_typedState = (_typedState ?? new MokaTableState()) with { Filters = [], Page = 1 };
+
+	private static readonly DemoQuery<Person> PeopleQuery = new(_people,
+	[
+		new DemoColumn<Person>("ID", p => p.Id.ToString(CultureInfo.InvariantCulture)) { Number = p => p.Id },
+		new DemoColumn<Person>("Name", p => p.Name) { Searched = true },
+		new DemoColumn<Person>("Role", p => p.Role) { Searched = true },
+		new DemoColumn<Person>("Status", p => p.Status),
+		new DemoColumn<Person>("Joined", p => p.JoinDate.ToString("d", CultureInfo.CurrentCulture)) { Date = p => new DateTimeOffset(p.JoinDate) },
+		new DemoColumn<Person>("Salary", p => p.Salary.ToString("C0", CultureInfo.CurrentCulture)) { Number = p => (double)p.Salary }
+	]);
+
+	private static string DescribeRequest(MokaTableRequest request)
+	{
+		string filters = request.Filters.Count == 0
+			? "no filters"
+			: string.Join("; ", request.Filters.Select(filter => $"{filter.Column} {filter.Operator} {string.Join(", ", filter.Values)}"));
+		return $"page {request.Page} of {request.PageSize}, search \"{request.Search}\", sorted by {DescribeSorts(request.Sorts)}, {filters}";
+	}
+
+	private static string DescribeSorts(IReadOnlyList<MokaTableSort>? sorts) =>
+		sorts is { Count: > 0 } ? string.Join(", ", sorts.Select(sort => $"{sort.Column} {sort.Direction}")) : "nothing";
+
+	private sealed record FeedEvent(int Number, DateTime At, string Message);
+
+	private static readonly FeedEvent[] _feed =
+	[
+		.. Enumerable.Range(1, 40).Reverse().Select(i => new FeedEvent(i, DateTime.Today.AddHours(-41 + i), $"Backup {i} finished"))
+	];
+
+	private string? _feedCursor;
+
+	// A source that pages by cursor and never counts the rows. The cursor is opaque to the table; this one only
+	// remembers where a page starts.
+	private async Task<MokaTableResult<FeedEvent>> LoadFeedAsync(MokaTableRequest request)
+	{
+		_feedCursor = request.Cursor;
+		StateHasChanged();
+		await Task.Delay(250, request.CancellationToken);
+		int start = request.Cursor is { Length: > 1 } cursor ? int.Parse(cursor[1..], CultureInfo.InvariantCulture) : 0;
+		int next = start + request.PageSize;
+		return new MokaTableResult<FeedEvent>
+		{
+			Items = [.. _feed.Skip(start).Take(request.PageSize)],
+			NextCursor = next < _feed.Length ? FeedCursor(next) : null,
+			PreviousCursor = start > 0 ? FeedCursor(Math.Max(0, start - request.PageSize)) : null
+		};
+	}
+
+	private static string FeedCursor(int start) => string.Create(CultureInfo.InvariantCulture, $"c{start}");
+
+	private static readonly AuditEntry[] _audit =
+	[
+		new("evt_01HZY3K9Q2W7TX4M", "Grace Hopper", "library.key.rotate", "Started key generation 4 for Photos after a member left."),
+		new("evt_01HZY3M1B8D2RZ0Q", "Alan Turing", "share.link.create", "A link to Holiday 2026 that expires in 7 days."),
+		new("evt_01HZY3P4C7F9KQ5L", "Barbara Liskov", "device.wipe.order", "Asked Old laptop to remove every file it keeps."),
+		new("evt_01HZY3R6D2H8MN3V", "Ada Lovelace", "plugin.install", "Office Preview 1.0.1 from the community catalog.")
+	];
+
+	private sealed record AuditEntry(string Id, string Who, string Action, string Detail);
+
+	private static readonly Device[] Devices =
+	[
+		new("Backup drive", "192.168.1.12", "Home", "2 min ago", 0),
+		new("Kitchen speaker", "192.168.1.18", "Things", "Now", 1_200_000),
+		new("Living room TV", "192.168.1.31", "Things", "Now", 4_600_000),
+		new("Office desktop", "192.168.1.24", "Home", "Now", 12_400_000),
+		new("Phone", "192.168.1.52", "Home", "4 min ago", 0),
+		new("Printer", "192.168.1.40", "Guests", "20 min ago", 0),
+		new("Tablet", "192.168.1.57", "Guests", "1 h ago", 0),
+		new("Thermostat", "192.168.1.63", "Things", "Now", 2_000),
+		new("Doorbell", "192.168.1.71", "Things", "Now", 48_000),
+		new("Guest laptop", "192.168.1.84", "Guests", "6 min ago", 310_000),
+		new("Game console", "192.168.1.90", "Home", "1 h ago", 0),
+		new("Robot vacuum", "192.168.1.95", "Things", "3 h ago", 0),
+		new("Baby monitor", "192.168.1.98", "Things", "Now", 860_000),
+		new("Visitor phone", "192.168.1.103", "Guests", "Yesterday", 0)
+	];
+
+	private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
+
+	private const string ZoneColumn = "Zone";
+
+	private readonly List<MokaTableView> _views =
+	[
+		new("Everything", new MokaTableState()),
+		new("Guests", new MokaTableState { Filters = [new MokaTableFilter(ZoneColumn, MokaFilterOperator.Is, "Guests")] }),
+		new("Things", new MokaTableState { Filters = [new MokaTableFilter(ZoneColumn, MokaFilterOperator.Is, "Things")] })
+	];
+
+	private IReadOnlyList<MokaTableView> _viewsShown = [];
+
+	private MokaTableState? _devicesState;
+
+	private List<Device> _ticking = [.. Devices.Take(5)];
+
+	private Timer? _timer;
+
+	private string _zone = "All";
+
+	private string _log = "Nothing yet.";
+
+	[SupplyParameterFromQuery(Name = "phone")]
+	private bool Phone { get; set; }
+
+	private string DevicesStateText => _devicesState is null
+		? "Nothing arranged yet."
+		: JsonNode.Parse(_devicesState.ToJson())?.ToJsonString(Indented) ?? string.Empty;
+
+	private RenderFragment DevicesTable =>
+		@<MokaTable TItem="Device" Items="Devices" ItemKey="d => d.Name" Framed="true"
+		            Searchable="true" Text="SearchDevicesText"
+		            Views="_viewsShown" ViewSaved="SaveView" ViewForgotten="ForgetView"
+		            ShowColumnChooser="true" ColumnReorderable="true" State="_devicesState" StateChanged="DevicesStateChanged"
+		            Selectable="true" ItemName="d => d.Name" PageSize="8">
+			<BulkActions Context="picked">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Limit</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => Note(picked)">Block</MokaButton>
+			</BulkActions>
+			<ChildContent>
+				<MokaColumn TItem="Device" Title="Name" Field="d => d.Name" Fixed="true" Width="28%" Phone="MokaColumnPhone.Primary"
+				            DefaultSort="MokaSortDirection.Ascending"/>
+				<MokaColumn TItem="Device" Title="Address" Field="d => d.Address" Mono="true" Phone="MokaColumnPhone.Secondary">
+					<CellTemplate Context="d">
+						<MokaCopyable Text="@d.Address" Label="address"/>
+					</CellTemplate>
+				</MokaColumn>
+				<MokaColumn TItem="Device" Title="@ZoneColumn" Field="d => d.Zone" Phone="MokaColumnPhone.Secondary">
+					<CellTemplate Context="d">
+						<MokaTag Text="@d.Zone" Color="ZoneColor(d.Zone)" Pill="true" Size="MokaSize.Sm"/>
+					</CellTemplate>
+				</MokaColumn>
+				<MokaColumn TItem="Device" Title="Seen" Field="d => d.Seen" Sortable="false"/>
+				<MokaColumn TItem="Device" Title="Rate" Field="d => d.BytesPerSecond" Mono="true" Align="MokaTextAlign.Right" Phone="MokaColumnPhone.Trailing">
+					<CellTemplate Context="d">@d.Rate</CellTemplate>
+				</MokaColumn>
+				<MokaTablePager Look="MokaPagerLook.LoadMore"/>
+			</ChildContent>
+		</MokaTable>;
+
+	protected override void OnInitialized()
+	{
+		_viewsShown = [.. _views];
+		_logStream = ReadLogAsync();
+		if (!Phone)
+		{
+			_timer = new Timer(_ => InvokeAsync(Tick), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		}
+	}
+
+	public void Dispose() => _timer?.Dispose();
+
+	private static MokaColor ZoneColor(string zone) => zone switch
+	{
+		"Home" => MokaColor.Info,
+		"Things" => MokaColor.Warning,
+		_ => MokaColor.Secondary
+	};
+
+	private void Tick()
+	{
+		int moved = Random.Shared.Next(_ticking.Count);
+		_ticking = _ticking
+			.Select((device, i) => i == moved ? device with { BytesPerSecond = Random.Shared.Next(1, 20_000_000) } : device)
+			.ToList();
+		StateHasChanged();
+	}
+
+	// The zone is a filter in the table's state, so picking a saved view moves the segments too.
+	private void PickZone(string zone)
+	{
+		_zone = zone;
+		_devicesState = (_devicesState ?? new MokaTableState()) with
+		{
+			Filters = zone == "All" ? [] : [new MokaTableFilter(ZoneColumn, MokaFilterOperator.Is, zone)],
+			Page = 1
+		};
+	}
+
+	private void DevicesStateChanged(MokaTableState state)
+	{
+		_devicesState = state;
+		_zone = state.Filters.FirstOrDefault(filter => filter.Column == ZoneColumn)?.Value ?? "All";
+		_log = $"StateChanged: sorted by {DescribeSorts(state.Sorts)}, {state.Filters.Count} filter(s), page {state.Page}";
+	}
+
+	private void SaveView(MokaTableView view)
+	{
+		_views.Add(view);
+		_viewsShown = [.. _views];
+		_log = $"ViewSaved: {view.Name}";
+	}
+
+	private void ForgetView(MokaTableView view)
+	{
+		_views.Remove(view);
+		_viewsShown = [.. _views];
+		_log = $"ViewForgotten: {view.Name}";
+	}
+
+	private void Note(IReadOnlyList<Device> picked, bool ticking = false) =>
+		_log = $"{(ticking ? "Ticking list" : "Bulk action")} on {picked.Count.ToString(CultureInfo.CurrentCulture)}: {string.Join(", ", picked.Select(d => d.Name))}";
+
+	private sealed record Device(string Name, string Address, string Zone, string Seen, long BytesPerSecond)
+	{
+		public string Rate => BytesPerSecond switch
+		{
+			0 => "0 B/s",
+			< 1_000_000 => FormattableString.Invariant($"{BytesPerSecond / 1_000} KB/s"),
+			_ => FormattableString.Invariant($"{BytesPerSecond / 1_000_000d:0.0} MB/s")
+		};
+	}
+
+	private bool _minWidth;
+
+	private readonly List<Device> _older = [.. Devices.Take(7)];
+
+	private MokaTable<Device>? _olderTable;
+
+	// Added to the same list, as a log that loads older entries does, so the table is told rather than finding out.
+	private async Task ShowOlderAsync()
+	{
+		int next = _older.Count;
+		_older.AddRange(Enumerable.Range(next, 4).Select(i => Devices[i % Devices.Length] with { Name = $"Older device {i}" }));
+		if (_olderTable is not null)
+		{
+			await _olderTable.ShowAtLeastAsync(_older.Count);
+		}
+	}
+
+	private static readonly Device[] FourDevices = [.. Devices.Take(4)];
+
+	private static readonly Device[] ThreeDevices = [.. Devices.Take(3)];
+
+	private bool _loading = true;
+
+	private static readonly Device[] NoDevices = [];
+
+	private static readonly MokaTableDensity[] TableDensities = Enum.GetValues<MokaTableDensity>();
+
+	private static readonly MokaTableState NestedGroups = new() { Groups = ["Region", "Status"] };
+
+	private static readonly IReadOnlyList<DemoOrder> WatchedOrders = [DemoOrders.All[120]];
+
+	private static readonly IReadOnlyList<DemoOrder> RecentTotals = [DemoOrders.TotalOf("All 40 orders", DemoOrders.Recent)];
+
+	private IReadOnlyList<MokaTableAction<DemoOrder>>? _orderActions;
+
+	private IReadOnlyList<MokaTableAction<DemoOrder>> OrderActions => _orderActions ??=
+	[
+		new MokaTableAction<DemoOrder>("Open", MokaIcons.Toggle.Eye, order => ShowAsync($"Open {order.Reference}")),
+		new MokaTableAction<DemoOrder>("Archive", MokaIcons.File.Archive, order => ShowAsync($"Archived {order.Reference}"))
+	];
+
+	private Task ShowAsync(string message)
+	{
+		Toast.ShowInfo(message);
+		return Task.CompletedTask;
+	}
+
+	private enum FilterMode
+	{
+		Row,
+		Menus,
+		Quick,
+		Facets,
+		Builder
+	}
+
+	private FilterMode _filterMode = FilterMode.Row;
+
+	private void PickFilterMode(string mode)
+	{
+		if (Enum.TryParse(mode, out FilterMode picked))
+		{
+			_filterMode = picked;
+		}
+	}
+
+	private static MokaTableFilterControls FilterControlsOf(FilterMode mode) => mode switch
+	{
+		FilterMode.Menus => MokaTableFilterControls.Menus | MokaTableFilterControls.Chips,
+		FilterMode.Quick => MokaTableFilterControls.Chips,
+		FilterMode.Facets => MokaTableFilterControls.Facets | MokaTableFilterControls.Chips,
+		FilterMode.Builder => MokaTableFilterControls.Builder | MokaTableFilterControls.Chips,
+		_ => MokaTableFilterControls.Row
+	};
+
+	private string? _fileSearch;
+
+	private string _ordersRequest = "nothing yet";
+
+	private async Task<MokaTableResult<DemoOrder>> LoadOrdersAsync(MokaTableRequest request)
+	{
+		_ordersRequest = DescribeServerRequest(request);
+		StateHasChanged();
+		await Task.Delay(300, request.CancellationToken);
+		return DemoOrders.Query.Run(request);
+	}
+
+	private static string DescribeServerRequest(MokaTableRequest request)
+	{
+		string groups = request.Groups.Count > 0 ? string.Join(", ", request.Groups) : "nothing";
+		string totals = request.Aggregates.Count > 0 ? string.Join(", ", request.Aggregates.Select(total => $"{total.Column} {total.Type}")) : "nothing";
+		string facets = request.Facets.Count > 0 ? string.Join(", ", request.Facets) : "none";
+		string quick = request.QuickFilter?.Name ?? "All";
+		return $"page {request.Page}, grouped by {groups}, totals of {totals}, facets for {facets}, {request.QuickFilterCounts.Count} quick filter counts, quick filter {quick}, {request.Filters.Count} filter(s)";
+	}
+
+	private MokaTable<DemoOrder>? _clickTable;
+
+	private HashSet<DemoOrder> _clickPicked = [];
+
+	private string _opened = "Double-click a row to open it.";
+
+	private void OpenOrder(DemoOrder order) => _opened = $"Opened {order.Reference} for {order.Customer}.";
+
+	private async Task ExpandAllRowsAsync()
+	{
+		if (_clickTable is not null)
+		{
+			await _clickTable.ExpandAllAsync();
+		}
+	}
+
+	private async Task CollapseAllRowsAsync()
+	{
+		if (_clickTable is not null)
+		{
+			await _clickTable.CollapseAllAsync();
+		}
+	}
+
+	private HashSet<DemoOrder> _ownedPicked = [];
+
+	private string _ownedNote = string.Empty;
+
+	// Handing nothing back refuses the change, and the table undoes it once this has run.
+	private void PickOwned(HashSet<DemoOrder> picked)
+	{
+		if (picked.Count > 3)
+		{
+			_ownedNote = "A fourth pick was undone.";
+			return;
+		}
+
+		_ownedPicked = picked;
+		_ownedNote = string.Empty;
+	}
+
+	private string? _missingSearch;
+
+	private bool _failLoads = true;
+
+	private string _failureNote = "No load has failed yet.";
+
+	private async Task<MokaTableResult<DemoOrder>> LoadFlakyAsync(MokaTableRequest request)
+	{
+		await Task.Delay(250, request.CancellationToken);
+		if (_failLoads)
+		{
+			throw new InvalidOperationException("The order service didn't answer.");
+		}
+
+		return DemoOrders.Query.Run(request);
+	}
+
+	private void NoteFailure(Exception error) => _failureNote = $"OnLoadFailed heard: {error.Message}";
+
+	[CascadingParameter]
+	private MokaTheme? AmbientTheme { get; set; }
+
+	private MokaTheme? _themeBase;
+
+	private MokaTheme _tableTheme = MokaTheme.Default;
+
+	private MokaTableLook _themeLook = MokaTableLook.SoftStripes;
+
+	private MokaTableDensity _themeDensity = MokaTableDensity.Standard;
+
+	protected override void OnParametersSet()
+	{
+		if (_themeBase is null || !ReferenceEquals(_themeBase, AmbientTheme))
+		{
+			_themeBase = AmbientTheme;
+			BuildTableTheme();
+		}
+	}
+
+	private void PickThemeLook(MokaTableLook look)
+	{
+		_themeLook = look;
+		BuildTableTheme();
+	}
+
+	private void PickThemeDensity(MokaTableDensity density)
+	{
+		_themeDensity = density;
+		BuildTableTheme();
+	}
+
+	// A provider compares its theme by reference and writes every token out again when it changes, so the theme is built
+	// when a choice changes rather than on every render.
+	private void BuildTableTheme() => _tableTheme = (_themeBase ?? MokaTheme.Default).WithTables(_themeLook).WithTableDensity(_themeDensity);
+
+	private enum StockShelf
+	{
+		Front,
+		Back,
+		Store
+	}
+
+	private sealed record StockLine(
+		int Id,
+		string Name,
+		string Category,
+		double? Stock,
+		decimal Price,
+		DateTimeOffset Checked,
+		bool Active,
+		bool Reorder,
+		double Rating,
+		StockShelf Shelf);
+
+	private static readonly DateTimeOffset StockDay = new(2026, 11, 2, 9, 30, 0, TimeSpan.Zero);
+
+	private static readonly IReadOnlyList<MokaFilterOption> StockCategories =
+		[new("Tools", "Tools"), new("Garden", "Garden"), new("Paint", "Paint")];
+
+	private static List<StockLine> NewStock() =>
+	[
+		new(1, "Claw hammer", "Tools", 24, 18.50m, StockDay, true, false, 4, StockShelf.Front),
+		new(2, "Garden hose", "Garden", null, 32.00m, StockDay.AddDays(-3), true, true, 3, StockShelf.Back),
+		new(3, "Wall paint, white", "Paint", 60, 27.90m, StockDay.AddDays(-8), true, false, 5, StockShelf.Store),
+		new(4, "Pruning shears", "Garden", 9, 21.75m, StockDay.AddDays(-1), false, true, 4, StockShelf.Front),
+		new(5, "Screwdriver set", "Tools", 15, 24.00m, StockDay.AddDays(-12), true, false, 3, StockShelf.Back),
+		new(6, "Paint roller", "Paint", null, 7.40m, StockDay.AddDays(-5), true, true, 2, StockShelf.Store)
+	];
+
+	private static readonly MokaTableEditMode[] EditModes = Enum.GetValues<MokaTableEditMode>();
+
+	private MokaTableEditMode _editMode = MokaTableEditMode.Cell;
+
+	private List<StockLine> _stock = NewStock();
+
+	private string _stockNote = "Nothing saved yet.";
+
+	private void SaveStock(MokaTableRowSave<StockLine> save)
+	{
+		_stock = WithLine(_stock, save.Updated);
+		_stockNote = $"{save.Kind} of {save.Updated.Name}: {DescribeChanges(save.Changes)}.";
+	}
+
+	private static List<StockLine> WithLine(List<StockLine> lines, StockLine updated) =>
+		[.. lines.Select(line => line.Id == updated.Id ? updated : line)];
+
+	private static string DescribeChanges(IReadOnlyList<MokaTableCellChange> changes) =>
+		changes.Count == 0
+			? "nothing changed"
+			: string.Join(", ", changes.Select(change => $"{change.Column} {ShowValue(change.OldValue)} to {ShowValue(change.NewValue)}"));
+
+	private static string ShowValue(object? value) => value switch
+	{
+		null => "empty",
+		DateTimeOffset day => day.ToString("d", CultureInfo.CurrentCulture),
+		IFormattable formattable => formattable.ToString(null, CultureInfo.CurrentCulture),
+		_ => value.ToString() ?? string.Empty
+	};
+
+	private sealed record Signup(
+		int Id,
+		[property: Required(ErrorMessage = "Give a name.")]
+		[property: StringLength(24, ErrorMessage = "A name is at most 24 letters.")]
+		string Name,
+		[property: Range(18.0, 120.0, ErrorMessage = "Age is 18 to 120.")]
+		double? Age,
+		[property: Required(ErrorMessage = "Give an email address.")]
+		[property: EmailAddress(ErrorMessage = "That isn't an email address.")]
+		string Email);
+
+	private List<Signup> _signups =
+	[
+		new(1, "Ada", 34, "ada@example.com"),
+		new(2, "Lena", 27, "lena@example.com"),
+		new(3, "Omar", null, "omar@example.com")
+	];
+
+	private string _signupNote = "Nothing saved yet.";
+
+	private void SaveSignup(MokaTableRowSave<Signup> save)
+	{
+		Signup signup = save.Updated;
+		if (_signups.Exists(other => other.Id != signup.Id && string.Equals(other.Name, signup.Name, StringComparison.OrdinalIgnoreCase)))
+		{
+			save.AddError("Name", $"{signup.Name} is taken.");
+		}
+
+		if (signup.Email.EndsWith("@example.org", StringComparison.OrdinalIgnoreCase))
+		{
+			save.AddError("The mail server refuses example.org addresses.");
+		}
+
+		if (save.Errors.Count > 0)
+		{
+			_signupNote = $"Refused: {string.Join(" ", save.Errors.Select(error => error.Value))}";
+			return;
+		}
+
+		_signups = [.. _signups.Select(other => other.Id == signup.Id ? signup : other)];
+		_signupNote = $"Saved {signup.Name}: {DescribeChanges(save.Changes)}.";
+	}
+
+	private static readonly MokaTableAddPosition[] AddPositions = Enum.GetValues<MokaTableAddPosition>();
+
+	private MokaTableAddPosition _addAt = MokaTableAddPosition.Top;
+
+	private List<StockLine> _shelfStock = [.. NewStock().Take(4)];
+
+	private string _shelfNote = "Nothing saved yet.";
+
+	private StockLine NewShelfLine() =>
+		new(_shelfStock.Count == 0 ? 1 : _shelfStock.Max(line => line.Id) + 1, string.Empty, "Tools", null, 0m, StockDay, true, false, 0, StockShelf.Front);
+
+	private void SaveShelfLine(MokaTableRowSave<StockLine> save)
+	{
+		if (save.IsNew && string.IsNullOrWhiteSpace(save.Updated.Name))
+		{
+			save.AddError("Name", "Give the item a name.");
+			return;
+		}
+
+		_shelfStock = save.IsNew
+			? _addAt == MokaTableAddPosition.Top ? [save.Updated, .. _shelfStock] : [.. _shelfStock, save.Updated]
+			: WithLine(_shelfStock, save.Updated);
+		_shelfNote = $"{save.Kind} of {save.Updated.Name}: {DescribeChanges(save.Changes)}.";
+	}
+
+	private void DeleteShelfLine(StockLine line)
+	{
+		_shelfStock = [.. _shelfStock.Where(other => other.Id != line.Id)];
+		_shelfNote = $"Deleted {line.Name}.";
+	}
+
+	private static readonly MokaTableExportFormats BothExportFormats = MokaTableExportFormats.Csv | MokaTableExportFormats.Excel;
+
+	private List<StockLine> _copyStock = NewStock();
+
+	private string _copyNote = "Nothing pasted yet.";
+
+	private string _pasteBox = string.Empty;
+
+	private void SaveCopyLine(MokaTableRowSave<StockLine> save)
+	{
+		_copyStock = WithLine(_copyStock, save.Updated);
+		_copyNote = $"{save.Kind} into {save.Updated.Name}: {DescribeChanges(save.Changes)}.";
+	}
+
+	private sealed record LedgerEntry(int Entry, string Account, string Memo, decimal Amount, DateTimeOffset Posted)
+	{
+		private static readonly string[] Accounts = ["Sales", "Rent", "Payroll", "Supplies", "Travel", "Utilities"];
+
+		private static readonly string[] Memos = ["Invoice paid", "Monthly charge", "Refund", "Card payment", "Transfer", "Adjustment"];
+
+		private static readonly DateTimeOffset Opened = new(2020, 1, 1, 8, 0, 0, TimeSpan.Zero);
+
+		// Every value comes from the entry's number, so any window is made on the spot.
+		public static LedgerEntry At(int index) => new(
+			index + 1,
+			Accounts[index * 7 % Accounts.Length],
+			Memos[index * 5 % Memos.Length],
+			Math.Round((index * 7919 % 200000 - 100000) / 100m, 2),
+			Opened.AddMinutes(index * 3));
+	}
+
+	private const int LedgerSize = 400_000;
+
+	private int _ledgerAsked;
+
+	private int _ledgerCancelled;
+
+	private string _ledgerNote = "No window asked for yet.";
+
+	private async Task<MokaTableResult<LedgerEntry>> LoadLedgerAsync(MokaTableRequest request)
+	{
+		_ledgerAsked++;
+		try
+		{
+			await Task.Delay(150, request.CancellationToken);
+		}
+		catch (OperationCanceledException)
+		{
+			_ledgerCancelled++;
+			throw;
+		}
+
+		bool newestFirst = request.Sorts is [{ Column: "Entry", Direction: MokaSortDirection.Descending }, ..];
+		int count = Math.Clamp(LedgerSize - request.StartIndex, 0, request.PageSize);
+		List<LedgerEntry> window =
+			[.. Enumerable.Range(request.StartIndex, count).Select(i => LedgerEntry.At(newestFirst ? LedgerSize - 1 - i : i))];
+		_ledgerNote = string.Create(CultureInfo.CurrentCulture,
+			$"The last window held rows {request.StartIndex + 1:N0} to {request.StartIndex + count:N0} of {LedgerSize:N0}. Windows asked for: {_ledgerAsked}, cancelled: {_ledgerCancelled}.");
+		StateHasChanged();
+		return new MokaTableResult<LedgerEntry> { Items = window, TotalItems = LedgerSize };
+	}
+
+	private const int ReadingHours = 57;
+
+	private sealed record Reading(int Id, string Sensor, string Site, double[] Values)
+	{
+		public double Total => Values.Sum();
+	}
+
+	private static readonly string[] ReadingSites = ["North yard", "South yard", "Dock"];
+
+	private static readonly string[] HourTitles = [.. Enumerable.Range(1, ReadingHours).Select(hour => $"Hour {hour}")];
+
+	// Made once, so the columns get the same delegate on every render.
+	private static readonly Func<Reading, double?>[] HourValues =
+		[.. Enumerable.Range(0, ReadingHours).Select(hour => (Func<Reading, double?>)(reading => reading.Values[hour]))];
+
+	private static readonly List<Reading> Readings =
+	[
+		.. Enumerable.Range(1, 90).Select(i => new Reading(
+			i,
+			string.Create(CultureInfo.InvariantCulture, $"S-{i:000}"),
+			ReadingSites[i % ReadingSites.Length],
+			[.. Enumerable.Range(0, ReadingHours).Select(hour => Math.Round((i * 7 + hour * 13) % 50 * 0.37, 1))]))
+	];
+
+	private bool _groupReadings;
+
+	private sealed record LogLine(int Number, DateTimeOffset At, string Level, string Message);
+
+	private static readonly string[] LogLevels = ["Info", "Info", "Info", "Debug", "Warning", "Info", "Error"];
+
+	private static readonly string[] LogMessages =
+	[
+		"Request served", "Cache refreshed", "Job queued", "Connection opened", "Slow response", "User signed in", "Retrying upload"
+	];
+
+	private IAsyncEnumerable<LogLine>? _logStream;
+
+	private bool _breakLog;
+
+	private bool _logBroke;
+
+	private void ReadLogAgain()
+	{
+		_logBroke = false;
+		_logStream = ReadLogAsync();
+	}
+
+	// Breaks once at line 900 while the switch is on, so Retry reads the whole log the second time.
+	private async IAsyncEnumerable<LogLine> ReadLogAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+	{
+		DateTimeOffset start = new(2026, 11, 14, 8, 0, 0, TimeSpan.Zero);
+		for (int i = 1; i <= 3000; i++)
+		{
+			if (i % 20 == 0)
+			{
+				await Task.Delay(40, cancellationToken);
+			}
+
+			if (i == 900 && _breakLog && !_logBroke)
+			{
+				_logBroke = true;
+				throw new IOException("The log file went away at line 900.");
+			}
+
+			yield return new LogLine(i, start.AddMilliseconds(i * 137), LogLevels[i * 3 % LogLevels.Length], LogMessages[i * 5 % LogMessages.Length]);
+		}
+	}
+
+	private static MokaColor? LogTone(LogLine line) => line.Level switch
+	{
+		"Error" => MokaColor.Error,
+		"Warning" => MokaColor.Warning,
+		"Debug" => MokaColor.Secondary,
+		_ => MokaColor.Info
+	};
+}

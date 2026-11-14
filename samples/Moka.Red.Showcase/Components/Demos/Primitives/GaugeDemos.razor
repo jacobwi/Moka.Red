@@ -1,0 +1,88 @@
+<DemoSection Id="cpu-usage" Title="CPU usage" Description="A value on an arc dial.">
+	<MokaGauge Value="72" Label="CPU Usage" Color="MokaColor.Primary"/>
+</DemoSection>
+
+<DemoSection Id="a-grade-in-the-middle" Title="A grade in the middle" Description="Display draws short text large where the number goes, in the theme's number font, and the number moves to a small line.">
+	<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl);">
+		@foreach (Grade grade in _grades)
+		{
+			<MokaGauge Value="grade.Score" Display="@grade.Letter" Format="0' of 100'" Color="grade.Color"
+			           Label="@($"Security grade {grade.Letter}")"/>
+		}
+		<MokaGauge Value="58" Display="D" DisplayColor="MokaColor.Warning" Color="MokaColor.Warning" Word="Needs work"
+		           Label="Grade with a word"/>
+	</div>
+	<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-lg);">
+		<MokaGauge Value="412" AutoScale Display="Fast" Label="Mbit/s down"/>
+		<MokaGauge Value="72" Display="B" StartAngle="-120" EndAngle="120" Format="0'%'" Label="An arc with a display"/>
+		<MokaGauge Value="92" Display="A" SizeValue="200px" Color="MokaColor.Success" Label="A larger grade"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-grade-in-a-small-ring" Title="A grade in a small ring" Description="In a 64 px ring the grade follows the ring's width; DisplaySize sets it outright.">
+	<MokaGauge Value="41" Display="D" DisplaySize="1.75rem" ShowValue="false" SizeValue="64px" DisplayColor="MokaColor.Warning"
+	           Color="MokaColor.Warning" Label="DisplaySize"/>
+</DemoSection>
+
+<DemoSection Id="a-word-under-the-number" Title="A word under the number">
+	<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: var(--moka-spacing-xl);">
+		<MokaGauge Value="@_score" Word="@ScoreWord" Color="@ScoreColor" Label="Network health"/>
+		<MokaGauge Value="@_score" Word="@ScoreWord" Color="@ScoreColor" Label="Network health" SizeValue="96px"/>
+	</div>
+	<div style="display: flex; justify-content: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveScore(-15)">Lower</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveScore(15)">Raise</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-scale-that-grows-with-the-value" Title="A scale that grows with the value">
+	<div style="display: flex; justify-content: center;">
+		<MokaGauge Value="@_rate" AutoScale Max="@_rateFloor" Label="Mbit/s down"/>
+	</div>
+	<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _rate = Math.Max(1, _rate / 4)">Slower</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _rate *= 1.6">Faster</MokaButton>
+		<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="StartScaleOver">Start the scale over</MokaButton>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly Grade[] _grades =
+	[
+		new("A", 92, MokaColor.Success),
+		new("B", 81, MokaColor.Info),
+		new("C", 73, MokaColor.Warning),
+		new("F", 38, MokaColor.Error)
+	];
+
+	private sealed record Grade(string Letter, double Score, MokaColor Color);
+
+	private double _score = 84;
+
+	private string ScoreWord => _score switch
+	{
+		>= 70 => "Good",
+		>= 40 => "Fair",
+		_ => "Poor"
+	};
+
+	private MokaColor ScoreColor => _score switch
+	{
+		>= 70 => MokaColor.Success,
+		>= 40 => MokaColor.Warning,
+		_ => MokaColor.Error
+	};
+
+	private void MoveScore(int by) => _score = Math.Clamp(_score + by, 0, 100);
+
+	private double _rate = 412;
+
+	private double _rateFloor = 100;
+
+	// Only a new Max brings a raised scale back down, so this alternates between two.
+	private void StartScaleOver()
+	{
+		_rate = 40;
+		_rateFloor = _rateFloor == 100 ? 50 : 100;
+	}
+}

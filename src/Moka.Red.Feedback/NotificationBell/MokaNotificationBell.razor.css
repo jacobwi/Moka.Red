@@ -249,6 +249,22 @@ button.moka-notification-bell__item-main:hover {
 	border-top: 1px solid color-mix(in srgb, var(--moka-color-outline) 30%, transparent);
 }
 
+/* Inline: the list sits in the page, open, with no bell, so it takes the width it is given and no popup shadow. */
+.moka-notification-bell--inline {
+	display: flex;
+}
+
+.moka-notification-bell--inline .moka-notification-bell__dropdown {
+	position: relative;
+	z-index: auto;
+	flex: 1;
+	width: auto;
+	min-width: 0;
+	max-height: none;
+	margin-top: 0;
+	box-shadow: none;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-notification-bell__trigger {
@@ -732,4 +748,10 @@ button.moka-notification-bell__item-main:hover {
 .moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-message,
 .moka-gate .moka-notification-bell--terminal .moka-notification-bell__item-time {
 	font-size: var(--moka-font-size-xs);
+}
+
+/* Inline sits in the page rather than over it, so no look gives it a popup's shadow or blur. */
+.moka-gate .moka-notification-bell--inline .moka-notification-bell__dropdown {
+	box-shadow: none;
+	backdrop-filter: none;
 }

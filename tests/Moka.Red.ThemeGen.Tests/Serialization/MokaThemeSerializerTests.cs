@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Moka.Red.Core.Theming;
+using Moka.Red.Data.Table;
 using Moka.Red.ThemeGen.Serialization;
 
 namespace Moka.Red.ThemeGen.Tests.Serialization;
@@ -35,6 +36,47 @@ public class MokaThemeSerializerTests
 			cancellationToken: TestContext.Current.CancellationToken);
 
 		ThemeReflection.AssertSameProperties(theme, restored);
+	}
+
+	[Fact]
+	public void Json_RoundTripsPinsAndASeed()
+	{
+		MokaTheme theme = MokaTheme.FromSeed(new MokaThemeSeed { Accent = "#7C3AED", Neutral = "#1C1917", Contrast = MokaSeedContrast.More }, true)
+			.WithToken("--moka-color-primary", "#00B894")
+			.WithToken("--moka-card-padding", "12px 16px");
+
+		MokaTheme? restored = MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme));
+
+		Assert.NotNull(restored);
+		Assert.Equal(theme.Seed, restored.Seed);
+		Assert.Equal(theme.Pins.OrderBy(pin => pin.Key, StringComparer.Ordinal), restored.Pins.OrderBy(pin => pin.Key, StringComparer.Ordinal));
+		Assert.Equal(theme, restored);
+		Assert.Equal(theme.ToCssVariables(), restored.ToCssVariables());
+	}
+
+	[Fact]
+	public async Task CSharp_CompilesBackPins()
+	{
+		MokaTheme theme = MokaTheme.Gate.WithToken("--moka-color-primary", "#00B894").WithToken("--moka-radius-card", "6px");
+
+		ScriptOptions options = ScriptOptions.Default
+			.AddReferences(typeof(MokaTheme).Assembly)
+			.AddImports("Moka.Red.Core.Theming");
+		MokaTheme restored = await CSharpScript.EvaluateAsync<MokaTheme>(MokaThemeSerializer.ToCSharp(theme), options,
+			cancellationToken: TestContext.Current.CancellationToken);
+
+		Assert.Equal(theme, restored);
+	}
+
+	[Theory]
+	[InlineData("{ \"pins\": { \"--moka-nothing\": \"#fff\" } }")]
+	[InlineData("{ \"pins\": { \"--moka-color-primary\": \"12px\" } }")]
+	[InlineData("{ \"seed\": { \"neutral\": \"#111723\" } }")]
+	[InlineData("{ \"seed\": { \"accent\": \"not a color\" } }")]
+	public void Json_RefusesABadPinOrSeed(string json)
+	{
+		Assert.False(MokaThemeSerializer.TryFromJson(json, out _, out string? error));
+		Assert.False(string.IsNullOrWhiteSpace(error));
 	}
 
 	[Fact]
@@ -154,6 +196,7 @@ public class MokaThemeSerializerTests
 		{ "callouts", MokaTheme.Red.WithCallouts(MokaCalloutLook.Edge) },
 		{ "switches", MokaTheme.Red.WithSwitches(MokaSwitchLook.Tinted) },
 		{ "settingsHeaders", MokaTheme.Red.WithSettingsHeaders(MokaSettingsHeaderLook.Tinted) },
+		{ "docks", MokaTheme.Red.WithDocks(MokaDockLook.Ide) },
 		{ "currentPlace", MokaTheme.Red.WithCurrentPlace(MokaCurrentPlace.SolidInset) },
 		{ "fontFamilyNumber", MokaTheme.Red.WithNumberFont(MokaNumberFont.Mono) },
 		{ "cardTitleCase", MokaTheme.Red.WithLetterCase(MokaLetterCase.Controls) },
@@ -197,17 +240,98 @@ public class MokaThemeSerializerTests
 	[Fact]
 	public void CSharp_WritesThePrincipleChoices()
 	{
-		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Ember);
+		Assert.Equal(Calls(".WithElevation(MokaElevation.Glow)"), MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithElevation(MokaElevation.Glow)));
+		Assert.Equal(Calls(".WithTextButtons(MokaTextButtonColor.Neutral)"), MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithTextButtons(MokaTextButtonColor.Neutral)));
+		Assert.Equal(Calls(".WithCallouts(MokaCalloutLook.Edge)"), MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithCallouts(MokaCalloutLook.Edge)));
+		Assert.Equal(Calls(".WithSwitches(MokaSwitchLook.Tinted)"), MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithSwitches(MokaSwitchLook.Tinted)));
+		Assert.Equal(Calls(".WithCurrentPlace(MokaCurrentPlace.SolidInset)"), MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithCurrentPlace(MokaCurrentPlace.SolidInset)));
+		Assert.Equal(Calls(".WithTitleSize(MokaTitleSize.Compact)", ".WithNumberFont(MokaNumberFont.Mono)"),
+			MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithNumberFont(MokaNumberFont.Mono).WithTitleSize(MokaTitleSize.Compact)));
 
-		Assert.Contains("Elevation = MokaElevation.Glow,", code, StringComparison.Ordinal);
-		Assert.Contains("TextButtons = MokaTextButtonColor.Neutral,", code, StringComparison.Ordinal);
-		Assert.Contains("Callouts = MokaCalloutLook.Edge,", code, StringComparison.Ordinal);
-		Assert.Contains("Switches = MokaSwitchLook.Tinted,", code, StringComparison.Ordinal);
-		Assert.Contains("SettingsHeaders = MokaSettingsHeaderLook.Tinted,", code, StringComparison.Ordinal);
-		Assert.Contains("CurrentPlace = MokaCurrentPlace.SolidInset,", code, StringComparison.Ordinal);
-		Assert.Contains("FontFamilyNumber = \"var(--moka-font-family-mono)\",", code, StringComparison.Ordinal);
-		Assert.Contains("NumberTracking = \"0\"", code, StringComparison.Ordinal);
-		Assert.Contains("FontSizeHeading = \"1.0625rem\",", code, StringComparison.Ordinal);
+		static string Calls(params string[] calls) => string.Join(Environment.NewLine + "\t", ["MokaTheme.Gate", .. calls]);
+	}
+
+	// The shortest chain wins: Ember with Red's surfaces is closer to it than Red with Ember's choices.
+	[Fact]
+	public void CSharp_StartsFromThePresetClosestToTheTheme() =>
+		Assert.StartsWith("MokaTheme.Ember" + Environment.NewLine, MokaThemeSerializer.ToCSharp(MokaTheme.Ember.WithSurfaces(MokaSurfaces.Graphite)), StringComparison.Ordinal);
+
+	[Theory]
+	[MemberData(nameof(Presets))]
+	public void CSharp_WritesAPresetByItsName(string name, MokaTheme preset) =>
+		Assert.Equal($"MokaTheme.{name}", MokaThemeSerializer.ToCSharp(preset));
+
+	public static TheoryData<string, MokaTheme> Presets => new()
+	{
+		{ nameof(MokaTheme.Red), MokaTheme.Red }, { nameof(MokaTheme.RedLight), MokaTheme.RedLight }, { nameof(MokaTheme.Gate), MokaTheme.Gate },
+		{ nameof(MokaTheme.CrispLight), MokaTheme.CrispLight }, { nameof(MokaTheme.Ember), MokaTheme.Ember }, { nameof(MokaTheme.MatrixLight), MokaTheme.MatrixLight },
+		{ nameof(MokaTheme.Dark), MokaTheme.Dark }, { nameof(MokaTheme.Light), MokaTheme.Light }
+	};
+
+	[Fact]
+	public void CSharp_WritesASeedThroughFromSeed()
+	{
+		MokaTheme theme = MokaTheme.FromSeed(new MokaThemeSeed { Accent = "#7C3AED", Neutral = "#1C1917", Contrast = MokaSeedContrast.More }, true)
+			.WithDensity(MokaDensity.Compact)
+			.WithToken("--moka-radius-card", "6px");
+
+		string code = MokaThemeSerializer.ToCSharp(theme);
+
+		Assert.StartsWith("MokaTheme.FromSeed(new MokaThemeSeed", code, StringComparison.Ordinal);
+		Assert.Contains("Accent = \"#7C3AED\"", code, StringComparison.Ordinal);
+		Assert.Contains("Contrast = MokaSeedContrast.More", code, StringComparison.Ordinal);
+		Assert.Contains("}, dark: true)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithDensity(MokaDensity.Compact)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithToken(\"--moka-radius-card\", \"6px\")", code, StringComparison.Ordinal);
+		Assert.DoesNotContain("new MokaPalette", code, StringComparison.Ordinal);
+	}
+
+	public static TheoryData<string, MokaTheme> RecipeThemes => new()
+	{
+		{ "seed", MokaTheme.FromSeed(new MokaThemeSeed { Accent = "#0EA5E9", Neutral = "#64748B", Success = "#16A34A", NeutralChroma = 0.02 }, false) },
+		{ "seeded crisp", MokaTheme.Crisp.WithSeed(new MokaThemeSeed { Accent = "#E11D48" }).WithHighContrast() },
+		{ "seed with style and pins", MokaTheme.FromSeed(new MokaThemeSeed { Accent = "#F59E0B" }, true).WithCorners(MokaCorners.Tight)
+			.WithLetterCase(MokaLetterCase.Controls).WithComponentStyle(MokaComponentStyle.Terminal).WithCharts(MokaChartLook.Quiet)
+			.WithToken("--moka-color-surface", "#101418") },
+		{ "accent preset", MokaTheme.GateLight.WithAccent(MokaAccent.Orchid).WithTextSize(MokaTextSize.Small) },
+		{ "custom accent", MokaTheme.Red.WithAccent("#12B886").WithSurfaces(MokaSurfaces.BlueGrey) },
+		{ "original accent", MokaTheme.Light.WithAccent("#0277bd").WithDensity(0.75) },
+		{ "high contrast", MokaTheme.Matrix.WithHighContrast().WithTooltipArrows().WithDescriptions(false) }
+	};
+
+	[Theory]
+	[MemberData(nameof(RecipeThemes))]
+	public async Task CSharp_TheWithChain_CompilesBackToAnEqualTheme(string name, MokaTheme theme)
+	{
+		string code = MokaThemeSerializer.ToCSharp(theme);
+
+		Assert.DoesNotContain("Palette = new", code, StringComparison.Ordinal);
+		MokaTheme restored = await CSharpScript.EvaluateAsync<MokaTheme>(code, ScriptOptions.Default
+			.AddReferences(typeof(MokaTheme).Assembly)
+			.AddImports("Moka.Red.Core.Theming"), cancellationToken: TestContext.Current.CancellationToken);
+		Assert.True(Equals(theme, restored), $"{name} came back different:{Environment.NewLine}{code}");
+	}
+
+	[Fact]
+	public void CSharp_WritesAThemeNoChainReaches_AsAnInitializer()
+	{
+		MokaTheme theme = MokaTheme.Gate with { Palette = MokaTheme.Gate.Palette with { Surface = "#123456" } };
+
+		Assert.StartsWith("new MokaTheme", MokaThemeSerializer.ToCSharp(theme), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Css_WritesTheRootClassesAndTheColorScheme()
+	{
+		string dark = MokaThemeSerializer.ToCss(MokaTheme.Red.WithButtons(MokaButtonLook.Soft).WithTooltips(MokaTooltipLook.Glass));
+		string light = MokaThemeSerializer.ToCss(MokaTheme.Light);
+
+		Assert.StartsWith("/* Root classes: moka-root moka-dark moka-gate moka-popups-standard moka-buttons-soft moka-tooltips-glass */", dark, StringComparison.Ordinal);
+		Assert.Contains("\tcolor-scheme: dark;", dark, StringComparison.Ordinal);
+		Assert.Contains("\tbackground: var(--moka-color-background);", dark, StringComparison.Ordinal);
+		Assert.StartsWith("/* Root classes: moka-root */", light, StringComparison.Ordinal);
+		Assert.Contains("\tcolor-scheme: light;", light, StringComparison.Ordinal);
+		Assert.DoesNotContain("\tbackground: var(", light, StringComparison.Ordinal);
 	}
 
 	[Theory]
@@ -273,10 +397,10 @@ public class MokaThemeSerializerTests
 		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Red.WithTooltips(MokaTooltipLook.Terminal).WithTooltipArrows(true)
 			.WithTooltipMotion(MokaTooltipMotion.Instant).WithTooltipSize(MokaTooltipSize.Compact));
 
-		Assert.Contains("Tooltips = MokaTooltipLook.Terminal,", code, StringComparison.Ordinal);
-		Assert.Contains("TooltipArrows = true,", code, StringComparison.Ordinal);
-		Assert.Contains("TooltipMotion = MokaTooltipMotion.Instant,", code, StringComparison.Ordinal);
-		Assert.Contains("TooltipSize = MokaTooltipSize.Compact,", code, StringComparison.Ordinal);
+		Assert.Contains(".WithTooltips(MokaTooltipLook.Terminal)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithTooltipArrows(true)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithTooltipMotion(MokaTooltipMotion.Instant)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithTooltipSize(MokaTooltipSize.Compact)", code, StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -322,22 +446,63 @@ public class MokaThemeSerializerTests
 
 	[Fact]
 	public void CSharp_WritesTheLabelTone() =>
-		Assert.Contains("LabelTone = MokaLabelTone.Muted,",
-			MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithLabelTone(MokaLabelTone.Muted)), StringComparison.Ordinal);
+		Assert.Equal("MokaTheme.Gate" + Environment.NewLine + "\t.WithLabelTone(MokaLabelTone.Muted)",
+			MokaThemeSerializer.ToCSharp(MokaTheme.Gate.WithLabelTone(MokaLabelTone.Muted)));
 
 	[Fact]
 	public void CSharp_WritesEachComponentLook()
 	{
 		string code = MokaThemeSerializer.ToCSharp(MokaTheme.Red.WithComponentStyle(MokaComponentStyle.Soft).WithToastStacking(MokaToastStacking.Pile));
 
-		Assert.Contains("Toasts = MokaToastLook.IconTile,", code, StringComparison.Ordinal);
-		Assert.Contains("ToastStacking = MokaToastStacking.Pile,", code, StringComparison.Ordinal);
-		Assert.Contains("Notifications = MokaNotificationLook.Inbox,", code, StringComparison.Ordinal);
-		Assert.Contains("Popups = MokaPopupLook.Elevated,", code, StringComparison.Ordinal);
-		Assert.Contains("Lists = MokaListLook.Check,", code, StringComparison.Ordinal);
-		Assert.Contains("Dialogs = MokaDialogLook.IconLead,", code, StringComparison.Ordinal);
-		Assert.Contains("Buttons = MokaButtonLook.Soft,", code, StringComparison.Ordinal);
+		Assert.Contains(".WithToasts(MokaToastLook.IconTile)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithToastStacking(MokaToastStacking.Pile)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithNotifications(MokaNotificationLook.Inbox)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithPopups(MokaPopupLook.Elevated)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithLists(MokaListLook.Check)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithDialogs(MokaDialogLook.IconLead)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithButtons(MokaButtonLook.Soft)", code, StringComparison.Ordinal);
 	}
+
+	[Fact]
+	public void CSharp_WritesTheDockLook() =>
+		Assert.Equal("MokaTheme.Red" + Environment.NewLine + "\t.WithDocks(MokaDockLook.Cards)",
+			MokaThemeSerializer.ToCSharp(MokaTheme.Red.WithDocks(MokaDockLook.Cards)));
+
+	// A theme exported before dock looks existed reads back classic, and one the reader doesn't know is refused.
+	[Fact]
+	public void Json_ReadsTheDockLook_ClassicWhenMissing_AndRefusesAnUnknownOne()
+	{
+		Assert.Equal(MokaDockLook.Classic, MokaThemeSerializer.FromJson("""{ "look": "Gate" }""")!.Docks);
+		Assert.Equal(MokaDockLook.Minimal, MokaThemeSerializer.FromJson("""{ "look": "Gate", "DOCKS": "minimal" }""")!.Docks);
+		Assert.False(MokaThemeSerializer.TryFromJson("""{ "look": "Gate", "docks": "Floating" }""", out _, out string? error));
+		Assert.Equal("docks must be one of Classic, Ide, Cards, Minimal, Terminal.", error);
+	}
+
+	// The table choices are null until a theme sets them, so the JSON carries them only then, and the C# names their
+	// enums in full: they keep the table's namespace, which a file importing Moka.Red.Core.Theming alone doesn't have.
+	[Fact]
+	public async Task TheTableChoices_AreWrittenOnlyWhenSet_AndCompileBack()
+	{
+		MokaTheme theme = MokaTheme.Red.WithTables(MokaTableLook.Sheet).WithTableDensity(MokaTableDensity.Standard);
+
+		Assert.DoesNotContain("\"tables\"", MokaThemeSerializer.ToJson(MokaTheme.Red), StringComparison.Ordinal);
+		Assert.DoesNotContain("\"tableDensity\"", MokaThemeSerializer.ToJson(MokaTheme.Red), StringComparison.Ordinal);
+		Assert.Null(MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(MokaTheme.Red))!.Tables);
+		Assert.Equal(theme, MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme)));
+
+		string code = MokaThemeSerializer.ToCSharp(theme);
+		Assert.Contains(".WithTables(Moka.Red.Data.Table.MokaTableLook.Sheet)", code, StringComparison.Ordinal);
+		MokaTheme restored = await CSharpScript.EvaluateAsync<MokaTheme>(code, ScriptOptions.Default
+			.AddReferences(typeof(MokaTheme).Assembly)
+			.AddImports("Moka.Red.Core.Theming"), cancellationToken: TestContext.Current.CancellationToken);
+		Assert.Equal(theme, restored);
+	}
+
+	// The CSS export carries what the outermost provider writes, and a dock look isn't on its root: each layout reads it
+	// from the cascaded theme.
+	[Fact]
+	public void Css_LeavesTheDockLookOut() =>
+		Assert.Equal(MokaThemeSerializer.ToCss(MokaTheme.Red), MokaThemeSerializer.ToCss(MokaTheme.Red.WithDocks(MokaDockLook.Terminal)));
 
 	[Fact]
 	public void CSharp_EscapesQuotesAndBackslashes()

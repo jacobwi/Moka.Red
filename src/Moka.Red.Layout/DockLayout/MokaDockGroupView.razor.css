@@ -1,0 +1,422 @@
+/* A group's frame: its header and the slot its panels are drawn over. The panels' hosts are not inside it, so a
+   layout nested in a panel never matches these rules. */
+.moka-dock-group {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	overflow: hidden;
+}
+
+.moka-dock-group--content {
+	background: transparent;
+}
+
+.moka-dock-group--maximized {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+}
+
+.moka-dock-group > .moka-dock-group__slot {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+}
+
+.moka-dock-panel--collapsed > .moka-dock-group__slot,
+.moka-dock-group--stack-closed > .moka-dock-group__slot {
+	display: none;
+}
+
+/* ── Header ── */
+.moka-dock-group > .moka-dock-panel-header {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	user-select: none;
+}
+
+.moka-dock-panel-title-area {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-dock-panel-title {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	line-height: 1.3;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-dock-panel-actions {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-dock-panel-custom-actions {
+	display: contents;
+}
+
+.moka-dock-panel-custom-actions[hidden] {
+	display: none;
+}
+
+.moka-dock-panel-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	opacity: 0.7;
+	transition: background-color var(--moka-transition-fast);
+}
+
+.moka-dock-panel-toggle:hover {
+	background: var(--moka-color-surface-variant);
+	opacity: 1;
+}
+
+/* A header that starts a drag of the whole group shows it. */
+.moka-dock-group[data-moka-dock-mode="docked"] > .moka-dock-panel-header[data-moka-dock-grip]:not([data-moka-dock-grip=""]) {
+	cursor: grab;
+}
+
+.moka-dock-group[data-moka-dock-mode="floating"] > .moka-dock-panel-header {
+	cursor: move;
+	touch-action: none;
+}
+
+/* ── A folded group: a strip whose header fills it ── */
+.moka-dock-panel--collapsed > .moka-dock-panel-header {
+	flex: 1 1 auto;
+	min-height: 0;
+	border-bottom: none;
+}
+
+.moka-dock-panel--top.moka-dock-panel--collapsed > .moka-dock-panel-header,
+.moka-dock-panel--bottom.moka-dock-panel--collapsed > .moka-dock-panel-header {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed > .moka-dock-panel-header,
+.moka-dock-panel--right.moka-dock-panel--collapsed > .moka-dock-panel-header {
+	flex-direction: column;
+	justify-content: flex-start;
+	padding: var(--moka-spacing-xs) 0;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed > .moka-dock-panel-header > .moka-dock-panel-actions,
+.moka-dock-panel--right.moka-dock-panel--collapsed > .moka-dock-panel-header > .moka-dock-panel-actions {
+	order: -1;
+}
+
+.moka-dock-panel--left.moka-dock-panel--collapsed > .moka-dock-panel-header > .moka-dock-panel-title-area,
+.moka-dock-panel--right.moka-dock-panel--collapsed > .moka-dock-panel-header > .moka-dock-panel-title-area {
+	min-height: 0;
+	writing-mode: vertical-rl;
+}
+
+/* ── Tabs ── */
+.moka-dock-tabs {
+	display: flex;
+	flex: 1 1 auto;
+	align-self: stretch;
+	min-width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+}
+
+.moka-dock-tabs > .moka-dock-tab-wrap {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+}
+
+.moka-dock-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	height: 100%;
+	padding: 0 var(--moka-spacing-md);
+	border: 0;
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-medium);
+	white-space: nowrap;
+	cursor: pointer;
+	transition: color var(--moka-transition-fast), background-color var(--moka-transition-fast), border-color var(--moka-transition-fast);
+}
+
+.moka-dock-tab:hover,
+.moka-dock-tab--selected {
+	color: var(--moka-color-on-surface);
+}
+
+/* Inset, because the strip scrolls and would clip a ring drawn outside the tab. */
+.moka-dock-tab:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 2px var(--moka-color-primary);
+}
+
+.moka-dock-tab__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 14rem;
+}
+
+.moka-dock-tabs--underline > .moka-dock-tab-wrap > .moka-dock-tab {
+	border-bottom: 2px solid transparent;
+}
+
+.moka-dock-tabs--underline > .moka-dock-tab-wrap > .moka-dock-tab--selected {
+	border-bottom-color: var(--moka-color-primary);
+}
+
+.moka-dock-tabs--editor {
+	gap: var(--moka-border-width);
+	margin-bottom: calc(var(--moka-border-width) * -1);
+}
+
+.moka-dock-tabs--editor > .moka-dock-tab-wrap {
+	border: var(--moka-border-width) solid transparent;
+	border-bottom: 0;
+	border-radius: var(--moka-radius-sm) var(--moka-radius-sm) 0 0;
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-dock-tabs--editor > .moka-dock-tab-wrap--selected {
+	border-color: var(--moka-color-outline-variant);
+	background: var(--moka-color-surface);
+	box-shadow: 0 var(--moka-border-width) 0 var(--moka-color-surface);
+}
+
+.moka-dock-tabs--editor > .moka-dock-tab-wrap > .moka-dock-tab {
+	padding-inline-end: var(--moka-spacing-xs);
+}
+
+.moka-dock-tabs--pills {
+	gap: var(--moka-spacing-xxs);
+	align-self: center;
+}
+
+.moka-dock-tabs--pills > .moka-dock-tab-wrap > .moka-dock-tab {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	border-radius: var(--moka-radius-full);
+}
+
+.moka-dock-tabs--pills > .moka-dock-tab-wrap > .moka-dock-tab--selected {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-dock-tab-wrap ::deep .moka-dock-tab__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin-inline-end: var(--moka-spacing-xs);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	opacity: 0;
+}
+
+.moka-dock-tab-wrap:hover ::deep .moka-dock-tab__close,
+.moka-dock-tab-wrap--selected ::deep .moka-dock-tab__close,
+.moka-dock-tab-wrap ::deep .moka-dock-tab__close:focus-visible {
+	opacity: 1;
+}
+
+.moka-dock-tab-wrap ::deep .moka-dock-tab__close:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+/* The All tabs button shows only while the strip's tabs don't all fit, which the layout's script says. */
+.moka-dock-tabs:not([data-moka-overflow]) + .moka-dock-tabs__more {
+	display: none;
+}
+
+.moka-dock-tabs__more {
+	display: inline-flex;
+	flex: none;
+}
+
+/* ── Switcher and stack headers ── */
+.moka-dock-switcher {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-dock-switcher ::deep .moka-dock-switcher__button,
+.moka-dock-panel-header > .moka-dock-stack-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+	max-width: 100%;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.moka-dock-switcher ::deep .moka-dock-switcher__button:hover,
+.moka-dock-panel-header > .moka-dock-stack-toggle:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-dock-panel-header > .moka-dock-stack-toggle {
+	flex: 1;
+	justify-content: flex-start;
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dock-panel-title {
+	text-transform: var(--moka-card-title-case);
+	letter-spacing: var(--moka-card-title-tracking);
+}
+
+.moka-gate .moka-dock-panel-toggle {
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+	opacity: 1;
+	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dock-panel-toggle:hover {
+	background: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-dock-tab {
+	font-size: var(--moka-font-size-menu);
+	letter-spacing: var(--moka-control-tracking);
+	text-transform: var(--moka-control-case);
+}
+
+.moka-gate .moka-dock-tabs--pills > .moka-dock-tab-wrap > .moka-dock-tab--selected {
+	background: var(--moka-color-neutral-bg);
+}
+
+.moka-gate .moka-dock-tabs--editor > .moka-dock-tab-wrap {
+	border-radius: var(--moka-radius-md) var(--moka-radius-md) 0 0;
+}
+
+/* IDE: the header is the tab strip, edge to edge. */
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-group > .moka-dock-panel-header {
+	min-height: var(--moka-height-toolbar-dense);
+	padding: 0 var(--moka-spacing-xs) 0 0;
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-group > .moka-dock-panel-header > .moka-dock-panel-title-area {
+	padding-inline-start: var(--moka-spacing-md);
+}
+
+.moka-gate .moka-dock-layout--ide > .moka-dock-main .moka-dock-group--active .moka-dock-tab--selected {
+	color: var(--moka-color-primary-text);
+}
+
+/* Cards: each group a raised card on the page background. */
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-group {
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-card);
+	box-shadow: var(--moka-shadow-2);
+}
+
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-group--content {
+	background: var(--moka-color-surface);
+}
+
+.moka-gate .moka-dock-layout--cards > .moka-dock-main .moka-dock-group > .moka-dock-panel-header {
+	border-bottom-color: transparent;
+	padding: var(--moka-spacing-sm) var(--moka-card-padding) 0;
+}
+
+/* Minimal: tinted panes, and a header that shows only while its group is hovered or holds focus. */
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group > .moka-dock-panel-header {
+	border-bottom-color: transparent;
+	opacity: 0;
+	transition: opacity var(--moka-transition-normal);
+}
+
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group:hover > .moka-dock-panel-header,
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group:focus-within > .moka-dock-panel-header,
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group[data-moka-dock-focus] > .moka-dock-panel-header,
+.moka-gate .moka-dock-layout--minimal > .moka-dock-main .moka-dock-group[data-moka-dock-hover] > .moka-dock-panel-header {
+	opacity: 1;
+}
+
+/* Terminal: monospace titles in brackets, square corners, and the accent along the active group's edge. */
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-group {
+	border-inline-start: 2px solid transparent;
+	border-radius: 0;
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-group--active {
+	border-inline-start-color: var(--moka-color-primary);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-panel-title,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-tab {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-panel-title::before,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-tab__text::before {
+	content: "[ ";
+	color: var(--moka-color-primary);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-panel-title::after,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-tab__text::after {
+	content: " ]";
+	color: var(--moka-color-primary);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-tab,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-panel-toggle,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-main .moka-dock-tab-wrap {
+	border-radius: 0;
+}

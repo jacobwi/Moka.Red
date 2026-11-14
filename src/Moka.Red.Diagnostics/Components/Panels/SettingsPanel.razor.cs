@@ -38,95 +38,37 @@ public sealed partial class SettingsPanel : ComponentBase
 		}
 	}
 
-	private async Task HandlePositionChange(ChangeEventArgs e)
-	{
-		if (Options is null || e.Value is not string value)
-		{
-			return;
-		}
+	// The controls bind their setting, so a value the setter clamps (a width past 600) shows as clamped.
+	private Task SetPosition(OverlayPosition position) => Apply(options => options.Position = position);
 
-		if (Enum.TryParse(value, out OverlayPosition position))
-		{
-			Options.Position = position;
-			await NotifyChanged();
-		}
-	}
+	private Task SetPanelWidth(int width) => Apply(options => options.PanelWidth = Math.Clamp(width, 300, 600));
 
-	private async Task HandlePanelWidthChange(ChangeEventArgs e)
-	{
-		if (Options is null || e.Value is not string value)
-		{
-			return;
-		}
+	private Task SetMinLogLevel(LogLevel level) => Apply(options => options.MinConsoleLogLevel = level);
 
-		if (int.TryParse(value, out int width))
-		{
-			Options.PanelWidth = Math.Clamp(width, 300, 600);
-			await NotifyChanged();
-		}
-	}
+	private Task SetMaxEventLog(int max) => Apply(options => options.MaxEventLogEntries = Math.Clamp(max, 100, 1000));
 
-	private async Task HandleMinLogLevelChange(ChangeEventArgs e)
-	{
-		if (Options is null || e.Value is not string value)
-		{
-			return;
-		}
+	private Task SetRenderTracking(bool on) => Apply(options => options.RenderTrackingEnabled = on);
 
-		if (Enum.TryParse(value, out LogLevel level))
-		{
-			Options.MinConsoleLogLevel = level;
-			await NotifyChanged();
-		}
-	}
+	private Task SetJsInteropTracking(bool on) => Apply(options => options.JsInteropTrackingEnabled = on);
 
-	private async Task HandleMaxEventLogChange(ChangeEventArgs e)
-	{
-		if (Options is null || e.Value is not string value)
-		{
-			return;
-		}
+	private Task SetAutoExpand(bool on) => Apply(options => options.StartExpanded = on);
 
-		if (int.TryParse(value, out int max))
-		{
-			Options.MaxEventLogEntries = Math.Clamp(max, 100, 1000);
-			await NotifyChanged();
-		}
-	}
-
-	private async Task TogglePause()
+	private async Task SetPaused(bool paused)
 	{
 		if (_diagnosticsService is not null)
 		{
-			_diagnosticsService.IsPaused = !_diagnosticsService.IsPaused;
+			_diagnosticsService.IsPaused = paused;
 			await NotifyChanged();
 		}
 	}
 
-	private async Task ToggleRenderTracking(ChangeEventArgs e)
+	private async Task Apply(Action<DiagnosticsOptions> change)
 	{
-		if (Options is not null && e.Value is bool val)
+		if (Options is not null)
 		{
-			Options.RenderTrackingEnabled = val;
+			change(Options);
 			await NotifyChanged();
 		}
 	}
 
-	private async Task ToggleJsInteropTracking(ChangeEventArgs e)
-	{
-		if (Options is not null && e.Value is bool val)
-		{
-			Options.JsInteropTrackingEnabled = val;
-			await NotifyChanged();
-		}
-	}
-
-	private async Task ToggleAutoExpand(ChangeEventArgs e)
-	{
-		if (Options is not null && e.Value is bool val)
-		{
-			Options.StartExpanded = val;
-			await NotifyChanged();
-		}
-	}
 }

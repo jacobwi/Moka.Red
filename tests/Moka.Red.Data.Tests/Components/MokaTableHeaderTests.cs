@@ -69,8 +69,7 @@ public class MokaTableHeaderTests : BunitContext
 	public void SortFromTheParent_SetsAriaSort()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
-			.Add(t => t.SortColumn, "City")
-			.Add(t => t.SortDirection, MokaSortDirection.Descending));
+			.Add(t => t.State, SortedBy("City", MokaSortDirection.Descending)));
 
 		Assert.Equal("descending", HeaderCell(cut, "City").GetAttribute("aria-sort"));
 	}

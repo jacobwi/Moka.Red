@@ -1,0 +1,29 @@
+@implements IDisposable
+@inject IMokaHotkeyService Hotkeys
+
+<DemoSection Id="a-shortcut-a-page-registers" Title="A shortcut a page registers" Description="IMokaHotkeyService.Register adds a shortcut while the page is open and hands back what removes it. The one MokaHotkeyHost in the layout listens; nothing fires while a modal is open.">
+	<div class="button-row">
+		<MokaKbd>Alt</MokaKbd><MokaKbd>K</MokaKbd>
+		<MokaCaption>Pressed @_count @(_count == 1 ? "time" : "times").</MokaCaption>
+	</div>
+</DemoSection>
+
+@code {
+	private IDisposable? _registration;
+	private int _count;
+
+	protected override void OnInitialized() =>
+		_registration = Hotkeys.Register(new MokaHotkey
+		{
+			Keys = "Alt+K",
+			Description = "Count a press",
+			Group = "Hotkeys example",
+			OnInvoke = () => InvokeAsync(() =>
+			{
+				_count++;
+				StateHasChanged();
+			})
+		});
+
+	public void Dispose() => _registration?.Dispose();
+}

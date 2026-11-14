@@ -13,13 +13,17 @@ namespace Moka.Red.Forms.ColorWheel;
 /// </summary>
 public partial class MokaColorWheel : MokaVisualComponentBase
 {
+	// The hex the wheel shows or last reported, apart from Value. The HSL fields hold the exact position, which a
+	// round trip through hex would nudge, so they are read again only when the hex changes from outside.
+	private readonly MokaInputValue<string> _input;
 	private double _hue;
-	private string? _lastValue;
+	private string? _hslFor;
 	private double _lightness = 50;
 	private double _saturation = 100;
 
-	// The hex the wheel shows or last reported. The HSL fields above hold the exact position.
-	private string? _value;
+	/// <summary>Creates the wheel. It shows its own color until the parent passes one.</summary>
+	public MokaColorWheel() =>
+		_input = new MokaInputValue<string>(ShowParentColor, DispatchExceptionAsync, Value, StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>The current color value as a hex string (e.g., "#ff0000").</summary>
 	[Parameter]
@@ -91,37 +95,62 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		.Build();
 
 	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		SyncFromShownColor();
+	}
 
-		// Value is parsed only when the parent passes a new one. Parsing it on every parent render
-		// put an unbound wheel back on its first color. A bound parent echoing the wheel's own hex
-		// is skipped too, since the round trip through hex would nudge the sliders.
-		if (string.Equals(_lastValue, Value, StringComparison.Ordinal))
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_input.Stop();
+		return base.DisposeAsyncCore();
+	}
+
+	private void ShowParentColor()
+	{
+		SyncFromShownColor();
+		StateHasChanged();
+	}
+
+	// A bound parent echoing the wheel's own hex leaves the sliders where they are.
+	private void SyncFromShownColor()
+	{
+		if (string.Equals(_hslFor, _input.Shown, StringComparison.OrdinalIgnoreCase))
 		{
 			return;
 		}
 
-		_lastValue = Value;
-		if (!string.Equals(_value, Value, StringComparison.OrdinalIgnoreCase))
-		{
-			_value = Value;
-			ParseHexToHsl(Value);
-		}
+		_hslFor = _input.Shown;
+		ParseHexToHsl(_input.Shown ?? string.Empty);
 	}
 
-	private void ParseHexToHsl(string hex)
+	private bool ParseHexToHsl(string hex)
 	{
 		if (string.IsNullOrWhiteSpace(hex))
 		{
-			return;
+			return false;
 		}
 
 		hex = hex.TrimStart('#');
 		if (hex.Length is not (6 or 3))
 		{
-			return;
+			return false;
 		}
 
 		if (hex.Length == 3)
@@ -131,20 +160,21 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 
 		if (!int.TryParse(hex[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int r))
 		{
-			return;
+			return false;
 		}
 
 		if (!int.TryParse(hex[2..4], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int g))
 		{
-			return;
+			return false;
 		}
 
 		if (!int.TryParse(hex[4..6], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int b))
 		{
-			return;
+			return false;
 		}
 
 		RgbToHsl(r, g, b, out _hue, out _saturation, out _lightness);
+		return true;
 	}
 
 	private static void RgbToHsl(int r, int g, int b, out double h, out double s, out double l)
@@ -242,7 +272,7 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 
 	private string LightnessText => _lightness.ToString("F0", CultureInfo.InvariantCulture);
 
-	private async Task OnHueChanged(string? typed)
+	private void OnHueChanged(string? typed)
 	{
 		if (Disabled)
 		{
@@ -252,11 +282,11 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double hue))
 		{
 			_hue = Math.Clamp(hue, 0, 360);
-			await EmitValueAsync();
+			EmitValue();
 		}
 	}
 
-	private async Task OnSaturationChanged(string? typed)
+	private void OnSaturationChanged(string? typed)
 	{
 		if (Disabled)
 		{
@@ -266,11 +296,11 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double sat))
 		{
 			_saturation = Math.Clamp(sat, 0, 100);
-			await EmitValueAsync();
+			EmitValue();
 		}
 	}
 
-	private async Task OnLightnessChanged(string? typed)
+	private void OnLightnessChanged(string? typed)
 	{
 		if (Disabled)
 		{
@@ -280,24 +310,21 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 		if (double.TryParse(typed, CultureInfo.InvariantCulture, out double lit))
 		{
 			_lightness = Math.Clamp(lit, 0, 100);
-			await EmitValueAsync();
+			EmitValue();
 		}
 	}
 
-	private async Task OnHexInput(ChangeEventArgs e)
+	// Text that isn't a hex color is put back to the color showing, as the bound box tells Blazor what it holds.
+	private void OnHexInput(string? typed)
 	{
-		if (Disabled)
+		string hex = typed ?? string.Empty;
+		if (Disabled || !hex.StartsWith('#') || hex.Length != 7 || !ParseHexToHsl(hex))
 		{
 			return;
 		}
 
-		string hex = e.Value?.ToString() ?? string.Empty;
-		if (hex.StartsWith('#') && hex.Length == 7)
-		{
-			ParseHexToHsl(hex);
-			_value = hex;
-			await ValueChanged.InvokeAsync(hex);
-		}
+		_hslFor = hex;
+		_input.Pick(hex, ValueChanged);
 	}
 
 	/// <summary>
@@ -306,7 +333,7 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 	///     X axis = saturation (0-100%), Y axis = lightness (100% at top, 0% at bottom).
 	///     We approximate the SL area pixel size from the known wheel rem sizes minus padding.
 	/// </summary>
-	private async Task OnSlAreaClick(MouseEventArgs e)
+	private void OnSlAreaClick(MouseEventArgs e)
 	{
 		if (Disabled)
 		{
@@ -327,15 +354,16 @@ public partial class MokaColorWheel : MokaVisualComponentBase
 
 		_saturation = Math.Clamp(e.OffsetX / slSize * 100.0, 0, 100);
 		_lightness = Math.Clamp(100.0 - e.OffsetY / slSize * 100.0, 0, 100);
-		await EmitValueAsync();
+		EmitValue();
 	}
 
 	/// <summary>Has internal color state.</summary>
 	protected override bool ShouldRender() => true;
 
-	private async Task EmitValueAsync()
+	private void EmitValue()
 	{
-		_value = CurrentHexColor;
-		await ValueChanged.InvokeAsync(_value);
+		_hslFor = CurrentHexColor;
+		_input.Pick(_hslFor, ValueChanged);
 	}
+
 }

@@ -1,0 +1,27 @@
+<DemoSection Id="basics" Title="Basics" Description="A menu of actions from a button.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaDropdown>
+			<ChildContent>
+				<MokaButton EndIcon="MokaIcons.Navigation.ChevronDown">Actions</MokaButton>
+			</ChildContent>
+			<Items>
+				<MokaDropdownItem Text="Edit" Icon="MokaIcons.Action.Edit"/>
+				<MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy"/>
+				<MokaDropdownItem Divider/>
+				<MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete"/>
+			</Items>
+		</MokaDropdown>
+
+		<MokaDropdown Position="MokaPopoverPosition.BottomEnd">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">More</MokaButton>
+			</ChildContent>
+			<Items>
+				<MokaDropdownItem Text="Settings" Icon="MokaIcons.Action.Settings"/>
+				<MokaDropdownItem Text="Help" Icon="MokaIcons.Status.HelpCircle"/>
+				<MokaDropdownItem Divider/>
+				<MokaDropdownItem Text="Logout" Disabled/>
+			</Items>
+		</MokaDropdown>
+	</MokaFlexbox>
+</DemoSection>

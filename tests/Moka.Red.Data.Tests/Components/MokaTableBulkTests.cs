@@ -271,9 +271,9 @@ public class MokaTableBulkTests : BunitContext
 		IRenderedComponent<MokaTable<Person>> cut = Table();
 		await Tick(cut, 0);
 
-		cut.Instance.OnCellKey(2, 0, "Shift+ ");
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(2, 0, "Shift+ "));
 
-		cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("tbody input[type=checkbox]:checked").Count), TimeSpan.FromSeconds(10));
+		Assert.Equal(3, cut.FindAll("tbody input[type=checkbox]:checked").Count);
 	}
 
 	// A list that ticks: the same device with a new rate is a new, unequal record, and its box used to go blank.

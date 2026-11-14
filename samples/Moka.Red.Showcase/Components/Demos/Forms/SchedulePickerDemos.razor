@@ -1,0 +1,8 @@
+<DemoSection Id="weekday-9-5" Title="Weekday 9-5" Description="Time slots across a week, picked by dragging.">
+	<MokaSchedulePicker @bind-SelectedSlots="_scheduleSlots"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected slots: @_scheduleSlots.Count</MokaText>
+</DemoSection>
+
+@code {
+	private IList<MokaTimeSlot> _scheduleSlots = new List<MokaTimeSlot>();
+}

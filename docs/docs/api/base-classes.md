@@ -130,6 +130,21 @@ JS interop, CSS composition, and disposal support.
 `RootClass`, Blazor's built-in validation classes (`valid`, `invalid`, `modified`), and
 the user's `Class` parameter.
 
+`CurrentValue` and `CurrentValueAsString` hide `InputBase<TValue>`'s members of the same
+name, which write the component's own `Value` parameter. Here the value the input shows is
+kept apart from `Value`, which always holds what the parent passed. A parent that passes
+`Value` and listens to `ValueChanged` owns the value: once its handler has finished, the
+input shows `Value` again unless the parent passed a new one, so a refused change is undone.
+Render from `CurrentValue`, never from `Value`. An input that keeps state worked out from
+the value, such as a color picker's hue, updates it in `OnCurrentValueRestored` as well as
+in `OnParametersSet`. A native element that holds the value in the browser binds it with
+`@bind:get` and `@bind:set`, so the render that puts a value back reaches the screen.
+
+`MokaInputValue<TValue>` holds that rule for any component. An input on another base, or
+one that binds a second value (`CreateInputValue<T>`), calls its `Take` from
+`SetParametersAsync`, renders `Shown`, calls `Pick` for a change, `AfterRender` from
+`OnAfterRender` and `Stop` when disposed.
+
 ## MokaSegmentedInputBase
 
 The OTP, PIN, IP and MAC inputs render several boxes for one value, so they extend

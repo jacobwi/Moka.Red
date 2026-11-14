@@ -1,0 +1,69 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.Meter
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's value, between <see cref="Min" /> and <see cref="Max" />, or null to draw nothing.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, double?>? Value { get; set; }
+
+	/// <summary>The value of an empty bar. Default 0.</summary>
+	[Parameter]
+	public double Min { get; set; }
+
+	/// <summary>The value of a full bar. Default 100.</summary>
+	[Parameter]
+	public double Max { get; set; } = 100;
+
+	/// <summary>Writes the value beside the bar. Default false.</summary>
+	[Parameter]
+	public bool ShowFigure { get; set; }
+
+	/// <summary>How the figure is written, as <c>MokaMeter</c> writes it. Default "0", with no decimals.</summary>
+	[Parameter]
+	public string FigureFormat { get; set; } = "0";
+
+	/// <summary>From this value up the bar is drawn as a warning, with an icon and a word.</summary>
+	[Parameter]
+	public double? WarnAt { get; set; }
+
+	/// <summary>From this value up the bar is drawn as critical, with an icon and a word.</summary>
+	[Parameter]
+	public double? CriticalAt { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Value is not null;
+
+	/// <inheritdoc />
+	protected internal override string? KindCellClass => "moka-table-cell--figures";
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		if (Value?.Invoke(item) is not { } value)
+		{
+			return static _ => { };
+		}
+
+		return @<MokaMeter Value="value" Min="Min" Max="Max" ShowValue="ShowFigure" Format="@FigureFormat"
+		                   WarnAt="WarnAt" CriticalAt="CriticalAt" Size="MokaSize.Sm" aria-label="@Title"/>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => (Min, Max, ShowFigure, FigureFormat, WarnAt, CriticalAt);
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Value?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) =>
+		Value?.Invoke(item) is { } value ? value.ToString(FigureFormat, CultureInfo.CurrentCulture) : string.Empty;
+
+	/// <inheritdoc />
+	protected internal override string ExportTextOf(TItem item) =>
+		Value?.Invoke(item) is { } value ? value.ToString(CultureInfo.InvariantCulture) : string.Empty;
+}

@@ -1,0 +1,12 @@
+<DemoSection Id="basic-form-builder" Title="Basic form builder" Description="Design a form by dragging fields in, then export it.">
+	<MokaFormBuilder @bind-Fields="_builderFields" ExportFormat="MokaFormExportFormat.Razor"/>
+</DemoSection>
+
+@code {
+	private IList<MokaFormField> _builderFields = new List<MokaFormField>
+	{
+		new() { Type = MokaFormFieldType.TextField, Label = "Full Name", Placeholder = "Jane Doe", Required = true },
+		new() { Type = MokaFormFieldType.Email, Label = "Email", Placeholder = "jane@example.com", Required = true },
+		new() { Type = MokaFormFieldType.Select, Label = "Department", Options = ["Engineering", "Design", "Marketing"] }
+	};
+}

@@ -1,0 +1,21 @@
+<DemoSection Id="basics" Title="Basics" Description="A value with a quiet copy button beside it. Inside moka-quiet-copies the button waits for the row to be hovered.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md">
+		<MokaCopyable Text="192.168.1.24" Label="IPv4"/>
+		<MokaCopyable Text="a4:83:e7:2f:10:9c" Label="MAC"/>
+		<MokaCopyable Text="Plain text, not mono" Mono="false"/>
+		<MokaCopyable Text="2001:0db8:85a3:0000:0000:8a2e:0370:7334" Label="IPv6" Style="max-width: 180px;"/>
+		<div style="max-width: 200px;">
+			<MokaCopyable Text="2001:0db8:85a3:0000:0000:8a2e:0370:7334" Label="IPv6" Wrap/>
+		</div>
+		<MokaCopyable Text="sk-live-1234567890abcdef" Label="VPN key">sk-live-...cdef</MokaCopyable>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="quiet-until-the-row-is-hovered" Title="Quiet until the row is hovered">
+	<div class="moka-quiet-copies" style="padding: var(--moka-spacing-sm) 0;">
+		Office desktop <MokaCopyable Text="192.168.1.24" Label="office desktop's address"/>
+	</div>
+	<div class="moka-quiet-copies" style="padding: var(--moka-spacing-sm) 0;">
+		Printer <MokaCopyable Text="192.168.1.40" Label="printer's address"/>
+	</div>
+</DemoSection>

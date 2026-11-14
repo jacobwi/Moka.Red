@@ -125,7 +125,7 @@ public abstract class MokaTextInputBase<TValue> : MokaVisualInputBase<TValue>
 
 	/// <summary>
 	///     Called when a debounced input value is ready to be processed. Parses and applies the value
-	///     through <see cref="Microsoft.AspNetCore.Components.Forms.InputBase{TValue}.CurrentValueAsString" />.
+	///     through <see cref="MokaInputBase{TValue}.CurrentValueAsString" />.
 	/// </summary>
 	/// <param name="value">The debounced string value.</param>
 	protected virtual void OnDebouncedInput(string? value) => CurrentValueAsString = value;

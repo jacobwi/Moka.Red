@@ -1,0 +1,23 @@
+<div class="dock-document">
+	<div class="dock-document__bar">
+		<MokaIcon Icon="MokaIcons.File.FileText" Size="MokaSize.Sm"/>
+		<span class="dock-document__name">@File.Name</span>
+		@if (File.Dirty)
+		{
+			<MokaTag Text="Unsaved" Color="MokaColor.Warning" Size="MokaSize.Sm"/>
+		}
+		<MokaButton Class="dock-document__save" Size="MokaSize.Xs" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Save"
+		            Disabled="@(!File.Dirty)" OnClick="File.Save">Save</MokaButton>
+	</div>
+	<MokaTextArea Value="@File.Text" ValueChanged="SetText" Mono Rows="10" aria-label="@($"Text of {File.Name}")"/>
+</div>
+
+@code {
+
+	[Parameter]
+	[EditorRequired]
+	public DockFile File { get; set; } = default!;
+
+	private void SetText(string? text) => File.SetText(text ?? string.Empty);
+
+}

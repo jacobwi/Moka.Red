@@ -1,0 +1,26 @@
+<DemoSection Id="basics" Title="Basics" Description="A trail on the left, search in the middle, actions on the right.">
+	<MokaCommandBar SearchPlaceholder="Search files, commands...">
+		<LeftContent>
+			<MokaBreadcrumb>
+				<MokaBreadcrumbItem Text="Overview" Href="./" Icon="MokaIcons.Navigation.Home"/>
+				<MokaBreadcrumbItem Text="Components" Href="components"/>
+				<MokaBreadcrumbItem Text="Command bar"/>
+			</MokaBreadcrumb>
+		</LeftContent>
+		<RightContent>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Share</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Color="MokaColor.Primary">Save</MokaButton>
+		</RightContent>
+	</MokaCommandBar>
+</DemoSection>
+
+<DemoSection Id="dense-and-elevated" Title="Dense & elevated">
+	<MokaCommandBar Dense Elevated Bordered="false" SearchPlaceholder="Quick search...">
+		<LeftContent>
+			<MokaText Size="MokaSize.Xs" Weight="MokaFontWeight.Semibold">Editor</MokaText>
+		</LeftContent>
+		<RightContent>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Settings"/>
+		</RightContent>
+	</MokaCommandBar>
+</DemoSection>

@@ -28,10 +28,14 @@ public class MokaTableGroupingTests : BunitContext
 		Render<MokaTable<Task>>(p =>
 		{
 			p.Add(x => x.Items, Tasks);
-			p.Add(x => x.GroupBy, t => t.Status);
+			p.Add(x => x.GroupBy, "Status");
 			p.AddChildContent<MokaColumn<Task>>(c => c
 				.Add(x => x.Title, "Name")
 				.Add(x => x.Field, t => t.Name));
+			p.AddChildContent<MokaColumn<Task>>(c => c
+				.Add(x => x.Title, "Status")
+				.Add(x => x.Field, t => t.Status)
+				.Add(x => x.Visible, false));
 			extra?.Invoke(p);
 		});
 
@@ -138,11 +142,8 @@ public class MokaTableGroupingTests : BunitContext
 
 		table.Render(p => p
 			.Add(x => x.Items, Tasks)
-			.Add(x => x.GroupBy, (Func<Task, string>)(t => t.Status))
-			.Add(x => x.InitiallyCollapsedGroups, initial)
-			.AddChildContent<MokaColumn<Task>>(c => c
-				.Add(x => x.Title, "Name")
-				.Add(x => x.Field, (Func<Task, object?>)(t => t.Name))));
+			.Add(x => x.GroupBy, "Status")
+			.Add(x => x.InitiallyCollapsedGroups, initial));
 
 		Assert.Equal(4, BodyRows(table).Count);
 	}
@@ -192,7 +193,7 @@ public class MokaTableGroupingTests : BunitContext
 		IRenderedComponent<MokaTable<Task>> table = Render<MokaTable<Task>>(p =>
 		{
 			p.Add(x => x.Items, Tasks);
-			p.Add(x => x.GroupBy, t => t.Status);
+			p.Add(x => x.GroupBy, "Status");
 			p.AddChildContent<MokaColumn<Task>>(c => c.Add(x => x.Title, "Name").Add(x => x.Field, t => t.Name));
 			p.AddChildContent<MokaColumn<Task>>(c => c.Add(x => x.Title, "Status").Add(x => x.Field, t => t.Status));
 		});

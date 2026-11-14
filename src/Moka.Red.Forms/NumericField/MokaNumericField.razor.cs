@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Numerics;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
@@ -8,13 +7,28 @@ using Moka.Red.Forms.Common;
 namespace Moka.Red.Forms.NumericField;
 
 /// <summary>
-///     A numeric input field that supports any numeric type via generic math.
-///     Uses text input with numeric inputmode for better mobile UX.
+///     A numeric input field for any number type of the base library, read through its generic math. Uses text input
+///     with numeric inputmode for better mobile UX. A nullable type, such as <c>int?</c>, makes an empty box null.
 /// </summary>
-/// <typeparam name="TValue">A numeric type that implements <see cref="INumber{TSelf}" />.</typeparam>
-public partial class MokaNumericField<TValue> where TValue : struct, INumber<TValue>
+/// <typeparam name="TValue">
+///     <see cref="int" />, <see cref="long" />, <see cref="short" />, <see cref="byte" />, <see cref="sbyte" />,
+///     <see cref="uint" />, <see cref="ulong" />, <see cref="ushort" />, <see cref="Int128" />, <see cref="UInt128" />,
+///     <see cref="nint" />, <see cref="nuint" />, <see cref="double" />, <see cref="float" />, <see cref="decimal" />,
+///     <see cref="Half" />, <see cref="BigInteger" />, or the nullable form of one of them.
+/// </typeparam>
+public partial class MokaNumericField<TValue>
 {
 	private readonly string _generatedId = $"moka-numericfield-{Guid.NewGuid():N}";
+
+	/// <summary>Checks the type once, as Blazor's own number input does, rather than failing on the first edit.</summary>
+	/// <exception cref="InvalidOperationException">The type isn't a number type the field reads.</exception>
+	public MokaNumericField()
+	{
+		if (!MokaNumberText<TValue>.IsSupported)
+		{
+			throw new InvalidOperationException($"The type '{typeof(TValue)}' is not a number type MokaNumericField reads.");
+		}
+	}
 
 	// Id goes on the input, not a wrapper, so a label's for and getElementById reach the control.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
@@ -125,26 +139,25 @@ public partial class MokaNumericField<TValue> where TValue : struct, INumber<TVa
 	///     Written in the invariant culture, the one the text is read back in. InputBase would write the
 	///     current culture's "1,5" on a German page, and the next edit would read it back as 15.
 	/// </remarks>
-	protected override string? FormatValueAsString(TValue value) => value.ToString(null, CultureInfo.InvariantCulture);
+	protected override string? FormatValueAsString(TValue? value) => MokaNumberText<TValue>.Format(value);
 
 	/// <inheritdoc />
+	/// <remarks>An empty box is null for a nullable type, and zero for any other.</remarks>
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)
 	{
 		if (string.IsNullOrWhiteSpace(value))
 		{
-			result = default;
+			result = default!;
 			validationErrorMessage = string.Empty;
 			return true;
 		}
 
-		if (TValue.TryParse(value, CultureInfo.InvariantCulture, out TValue parsed))
+		if (MokaNumberText<TValue>.TryParse(value, out result))
 		{
-			result = parsed;
 			validationErrorMessage = string.Empty;
 			return true;
 		}
 
-		result = default;
 		validationErrorMessage = $"'{value}' is not a valid number.";
 		return false;
 	}

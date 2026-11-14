@@ -1,0 +1,138 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.Image
+@using Moka.Red.Primitives.Media
+
+@code {
+	/// <inheritdoc />
+	protected internal override string? KindName => Words.Image;
+
+	private RenderFragment<TItem>? _cell;
+	private RenderFragment? _viewer;
+	private bool _viewerUsed;
+	private bool _open;
+	private int _index;
+	private IReadOnlyList<MokaMediaItem> _images = [];
+
+	/// <summary>The address of the row's full image, shown in the viewer. A row without one draws nothing.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Src { get; set; }
+
+	/// <summary>The address of a smaller picture for the cell. Null, the default, draws the full image small.</summary>
+	[Parameter]
+	public Func<TItem, string?>? Thumbnail { get; set; }
+
+	/// <summary>
+	///     What the image shows, for screen readers and the viewer: the button is named "Open" and this. It is what the
+	///     column sorts, filters, searches and exports.
+	/// </summary>
+	[Parameter]
+	public Func<TItem, string?>? Alt { get; set; }
+
+	/// <summary>The thumbnail's size, as a CSS length. Default "2rem".</summary>
+	[Parameter]
+	public string ThumbnailSize { get; set; } = "2rem";
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Alt is not null;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string? source = UrlValues.SafeImageSource(Thumbnail?.Invoke(item) ?? Src?.Invoke(item));
+		if (source is null || UrlValues.SafeImageSource(Src?.Invoke(item)) is null)
+		{
+			return static _ => { };
+		}
+
+		string name = NameOf(item);
+		return @<MokaTooltip Text="@name" Position="MokaTooltipPosition.Right">
+			<button type="button" class="moka-image-cell" style="@ThumbnailStyle" aria-label="@Words.OpenImage(name)"
+			        data-moka-act="@ActionAttribute(OpenAction)">
+				<MokaImage Src="@source" Alt="" Class="moka-image-cell__img"/>
+			</button>
+		</MokaTooltip>;
+	};
+
+	private const string OpenAction = "open";
+
+	// The table hears every row's button through one listener and calls this, so a row costs no click handler.
+	/// <inheritdoc />
+	protected internal override Task HandleCellActionAsync(TItem item, string action, MouseEventArgs click)
+	{
+		if (action == OpenAction)
+		{
+			Open(item);
+		}
+
+		return Task.CompletedTask;
+	}
+
+	// One viewer for the column, drawn by the table beside its rows, and only once someone opens an image.
+	/// <inheritdoc />
+	protected internal override RenderFragment? Overlay => _viewerUsed ? _viewer ??= Viewer : null;
+
+	/// <inheritdoc />
+	protected override object? KindSettings => ThumbnailSize;
+
+	private string? ThumbnailStyle => new StyleBuilder()
+		.AddStyle("--_image-size", ThumbnailSize)
+		.Build();
+
+	private RenderFragment Viewer => @<MokaLightbox Items="_images" Open="_open" OpenChanged="ViewerOpenChanged"
+	                                                Index="_index" IndexChanged="ViewerIndexChanged"/>;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Alt?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Alt?.Invoke(item) ?? string.Empty;
+
+	private string NameOf(TItem item) => Alt?.Invoke(item) is { Length: > 0 } alt ? alt : Words.Image;
+
+	// The viewer steps through every image the table shows now, starting at the one pressed.
+	private void Open(TItem item)
+	{
+		List<MokaMediaItem> images = [];
+		int index = 0;
+		foreach (TItem shown in ShownItems)
+		{
+			if (UrlValues.SafeImageSource(Src?.Invoke(shown)) is not { } source)
+			{
+				continue;
+			}
+
+			if (EqualityComparer<TItem>.Default.Equals(shown, item))
+			{
+				index = images.Count;
+			}
+
+			images.Add(new MokaMediaItem
+			{
+				Src = source,
+				ThumbnailSrc = UrlValues.SafeImageSource(Thumbnail?.Invoke(shown)),
+				Alt = NameOf(shown)
+			});
+		}
+
+		_images = images;
+		_index = index;
+		_open = true;
+		_viewerUsed = true;
+		Redraw();
+	}
+
+	private void ViewerOpenChanged(bool open)
+	{
+		_open = open;
+		Redraw();
+	}
+
+	private void ViewerIndexChanged(int index)
+	{
+		_index = index;
+		Redraw();
+	}
+}

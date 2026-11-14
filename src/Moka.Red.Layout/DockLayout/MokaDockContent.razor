@@ -1,6 +1,18 @@
 @namespace Moka.Red.Layout.DockLayout
-@inherits MokaComponentBase
+@inherits MokaDockPart
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@ChildContent
-</div>
+@if (Layout is null)
+{
+	<div class="@CssClass" style="@Style" id="@Id" @attributes="AdditionalAttributes">
+		@ChildContent
+	</div>
+}
+else
+{
+	<div id="@HostId" class="@CssClass" style="@HostStyle" hidden="@(!_placement.Visible)"
+	     role="@(_placement.Tabbed ? "tabpanel" : null)" aria-labelledby="@_placement.TabId" tabindex="-1"
+	     data-moka-dock-host="@MokaDockLayout.ContentPanelId" data-moka-dock-in="@_placement.Group"
+	     data-moka-dock-anchor="@AnchorAttribute" @attributes="AdditionalAttributes">
+		@MokaDockContentGate.For(_contentVersion, ChildContent)
+	</div>
+}

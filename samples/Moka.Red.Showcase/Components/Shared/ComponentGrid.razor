@@ -1,0 +1,19 @@
+@using Moka.Red.Showcase.Components.Library
+
+<div class="component-grid">
+	<MokaGrid MinColumn="15rem" Style="gap: var(--moka-grid-gap);">
+		@foreach (LibraryComponent component in Components)
+		{
+			<MokaCard @key="component.Slug" Href="@component.Href.TrimStart('/')" Title="@component.Title">
+				<MokaText Size="MokaSize.Sm" Lines="2" Class="component-grid__line">@component.Line</MokaText>
+				<MokaText Mono Size="MokaSize.Xs" Class="component-grid__type">@component.TypeName</MokaText>
+			</MokaCard>
+		}
+	</MokaGrid>
+</div>
+
+@code {
+	[Parameter]
+	[EditorRequired]
+	public IReadOnlyList<LibraryComponent> Components { get; set; } = [];
+}

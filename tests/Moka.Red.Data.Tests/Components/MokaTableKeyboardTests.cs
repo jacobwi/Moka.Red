@@ -73,9 +73,9 @@ public class MokaTableKeyboardTests : BunitContext
 
 		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(1, 1));
 		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 1, "Enter"));
-		await cut.Find(".moka-table-edit-input").KeyDownAsync(new KeyboardEventArgs { Key = key });
+		await cut.InvokeAsync(() => cut.Instance.OnEditorKey(key));
 
-		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
+		Assert.Empty(cut.FindAll("td[data-editing]"));
 		JSRuntimeInvocation focus = module.VerifyInvoke("focusCell");
 		Assert.Equal(1, focus.Arguments[1]);
 		Assert.Equal(1, focus.Arguments[2]);
@@ -142,7 +142,7 @@ public class MokaTableKeyboardTests : BunitContext
 
 		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 0, "Enter"));
 
-		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
+		Assert.Empty(cut.FindAll("td[data-editing]"));
 	}
 
 	// The rows can change between the key and its arrival in .NET.
@@ -156,20 +156,21 @@ public class MokaTableKeyboardTests : BunitContext
 
 		await cut.InvokeAsync(() => cut.Instance.OnCellKey(row, col, "Enter"));
 
-		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
+		Assert.Empty(cut.FindAll("td[data-editing]"));
 		Assert.False(Renderer.UnhandledException.IsCompleted);
 	}
 
+	// A key on another cell means focus left the open one, which saves it, and the new cell opens.
 	[Fact]
-	public async Task AKeyWhileEditing_IsIgnored()
+	public async Task EnterOnAnotherCellWhileEditing_OpensThatCell()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(onRowClick: null);
 		await cut.InvokeAsync(() => cut.Instance.OnCellKey(1, 1, "Enter"));
-		string editing = cut.Find(".moka-table-edit-input").GetAttribute("value")!;
 
 		await cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
 
-		Assert.Equal(editing, cut.Find(".moka-table-edit-input").GetAttribute("value"));
+		IElement editing = cut.Find("td[data-editing]");
+		Assert.Equal("0", editing.ParentElement!.GetAttribute("data-row-index"));
 	}
 
 	// A handler that failed on a key used to reach the boundary through the event pipeline, and a JS call has none.
@@ -201,7 +202,7 @@ public class MokaTableKeyboardTests : BunitContext
 		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(1, 0));
 		Assert.DoesNotContain(module.Invocations, i => i.Identifier == "setTabStop");
 
-		cut.Render(p => p.Add(t => t.Dense, false));
+		cut.Render(p => p.Add(t => t.Density, MokaTableDensity.Standard));
 
 		JSRuntimeInvocation setTabStop = module.VerifyInvoke("setTabStop");
 		Assert.Equal(1, setTabStop.Arguments[1]);

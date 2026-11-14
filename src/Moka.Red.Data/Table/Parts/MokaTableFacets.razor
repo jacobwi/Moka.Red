@@ -1,0 +1,75 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaComponentBase
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+
+<aside class="moka-table-facets" aria-label="@Table.Words.Facets">
+	@foreach (var col in Table.FacetColumns())
+	{
+		var values = Table.ChoicesFor(col);
+		var all = _showingAll.Contains(col.Title!);
+		<fieldset class="moka-table-facet" @key="col">
+			<legend class="moka-table-facet-title moka-micro-label">@col.Title</legend>
+			@if (values.Count == 0)
+			{
+				<span class="moka-table-facet-none">@Table.Words.NoValues</span>
+			}
+			@for (var i = 0; i < values.Count && (all || i < MostShown); i++)
+			{
+				var value = values[i];
+				<label class="moka-table-facet-value" @key="value.Value">
+					<input type="checkbox" @bind:get="Table.IsFacetPicked(col, value.Value)"
+					       @bind:set="on => Table.PickFacetAsync(col, value.Value, on)"/>
+					<span class="moka-table-facet-text">@value.Text</span>
+					@if (Table.FacetCountsKnown)
+					{
+						<span class="moka-table-facet-count">@(MokaTable<TItem>.CountText(value.Count))</span>
+					}
+				</label>
+			}
+			@if (values.Count > MostShown)
+			{
+				<button type="button" class="moka-table-facet-more" aria-expanded="@(all ? "true" : "false")"
+				        @onclick="() => ToggleAll(col.Title!)">@(all ? Table.Words.ShowFewerValues : Table.Words.ShowAllValues(values.Count))</button>
+			}
+		</fieldset>
+	}
+</aside>
+
+@code {
+	private const int MostShown = 8;
+
+	private readonly HashSet<string> _showingAll = new(StringComparer.Ordinal);
+	private int _drawnVersion = -1;
+	private bool _changedHere;
+
+	/// <summary>The table whose values the panel lists.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaTable<TItem> Table { get; set; } = default!;
+
+	/// <inheritdoc />
+	protected override string RootClass => "moka-table-facets";
+
+	// The table draws on many things that leave the values alone, such as focus and selection; the panel draws again
+	// only once the rows were loaded or the filters changed, or for its own Show all.
+	/// <inheritdoc />
+	protected override bool ShouldRender()
+	{
+		bool draw = _changedHere || _drawnVersion != Table.FacetsVersion;
+		_changedHere = false;
+		_drawnVersion = Table.FacetsVersion;
+		return draw;
+	}
+
+	private void ToggleAll(string title)
+	{
+		if (!_showingAll.Remove(title))
+		{
+			_showingAll.Add(title);
+		}
+
+		_changedHere = true;
+	}
+}

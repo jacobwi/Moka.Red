@@ -1,37 +1,31 @@
-using System.Globalization;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.ThemeGen;
 
 /// <summary>
-///     Color parsing and mixing for the palette editor and the presets. Reads the four hex forms and the
-///     comma-separated <c>rgb()</c>/<c>rgba()</c> form that <see cref="MokaTheme.WithAccent(string)" /> writes.
+///     Color mixing for the presets, on Core's color library. Reads the four hex forms and the comma-separated
+///     <c>rgb()</c>/<c>rgba()</c> form that <see cref="MokaTheme.WithAccent(string)" /> writes.
 /// </summary>
 internal static class CssColor
 {
-	/// <summary>Whether <paramref name="value" /> is #rgb, #rgba, #rrggbb or #rrggbbaa.</summary>
-	internal static bool IsHex(string? value) => TryParseHex(value, out _, out _, out _);
-
-	/// <summary>
-	///     The #rrggbb value a native color input can show. Alpha is dropped because the input has none,
-	///     and a color it cannot read comes back as #000000, which is what the browser would show anyway.
-	/// </summary>
-	internal static string ToPickerHex(string? value) =>
-		TryParse(value, out byte r, out byte g, out byte b) ? Hex(r, g, b) : "#000000";
-
 	/// <summary>
 	///     Moves <paramref name="from" /> toward <paramref name="to" /> by <paramref name="amount" /> (0 to 1)
 	///     and returns #rrggbb. Returns <paramref name="from" /> unchanged when either color is unreadable.
 	/// </summary>
 	internal static string Mix(string from, string to, double amount)
 	{
-		if (!TryParse(from, out byte r1, out byte g1, out byte b1) ||
-		    !TryParse(to, out byte r2, out byte g2, out byte b2))
+		if (!TryParse(from, out MokaSrgb start) || !TryParse(to, out MokaSrgb end))
 		{
 			return from;
 		}
 
-		return Hex(MixChannel(r1, r2, amount), MixChannel(g1, g2, amount), MixChannel(b1, b2, amount));
+		// Worked in 8-bit steps with halves rounded to even, as the presets were first worked out. A mix in fractions
+		// (MokaColorMix) lands a step away on many exact halves, such as 15 toward 0 by 0.3.
+		(int r1, int g1, int b1) = start.ToBytes();
+		(int r2, int g2, int b2) = end.ToBytes();
+		int Channel(int a, int z) => (int)Math.Clamp(Math.Round(a + ((z - a) * amount), MidpointRounding.ToEven), 0, 255);
+		return MokaSrgb.FromBytes(Channel(r1, r2), Channel(g1, g2), Channel(b1, b2)).ToHex();
 	}
 
 	/// <summary>
@@ -39,78 +33,23 @@ internal static class CssColor
 	///     their dim fills. Returns <paramref name="color" /> unchanged when it is unreadable.
 	/// </summary>
 	internal static string WithAlpha(string color, double alpha) =>
-		TryParse(color, out byte r, out byte g, out byte b)
-			? string.Create(CultureInfo.InvariantCulture, $"rgba({r}, {g}, {b}, {alpha:0.00})")
+		TryParse(color, out MokaSrgb parsed)
+			? MokaCssColor.Format(parsed with { Alpha = alpha }, MokaCssFormat.LegacyRgba)
 			: color;
 
-	/// <summary>Reads the red, green and blue channels of a hex or <c>rgb()</c>/<c>rgba()</c> color.</summary>
-	internal static bool TryParse(string? value, out byte r, out byte g, out byte b) =>
-		TryParseHex(value, out r, out g, out b) || TryParseRgb(value, out r, out g, out b);
-
-	private static bool TryParseHex(string? value, out byte r, out byte g, out byte b)
+	// The hex forms and the comma rgb()/rgba() form with whole channels, which is what a palette holds.
+	private static bool TryParse(string? value, out MokaSrgb color)
 	{
-		r = g = b = 0;
+		color = default;
 		string text = value?.Trim() ?? "";
-		if (text.Length < 2 || text[0] != '#')
+		if (text.StartsWith('#'))
 		{
-			return false;
+			return MokaCssColor.TryParseHex(text, out color);
 		}
 
-		ReadOnlySpan<char> hex = text.AsSpan(1);
-		foreach (char c in hex)
-		{
-			if (!char.IsAsciiHexDigit(c))
-			{
-				return false;
-			}
-		}
-
-		switch (hex.Length)
-		{
-			case 3 or 4:
-				r = (byte)(HexDigit(hex[0]) * 17);
-				g = (byte)(HexDigit(hex[1]) * 17);
-				b = (byte)(HexDigit(hex[2]) * 17);
-				return true;
-			case 6 or 8:
-				r = (byte)((HexDigit(hex[0]) * 16) + HexDigit(hex[1]));
-				g = (byte)((HexDigit(hex[2]) * 16) + HexDigit(hex[3]));
-				b = (byte)((HexDigit(hex[4]) * 16) + HexDigit(hex[5]));
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	private static bool TryParseRgb(string? value, out byte r, out byte g, out byte b)
-	{
-		r = g = b = 0;
-		string text = value?.Trim() ?? "";
 		int open = text.IndexOf('(', StringComparison.Ordinal);
-		if (open < 0 || !text.EndsWith(')'))
-		{
-			return false;
-		}
-
-		string function = text[..open].Trim();
-		if (!function.Equals("rgb", StringComparison.OrdinalIgnoreCase) &&
-		    !function.Equals("rgba", StringComparison.OrdinalIgnoreCase))
-		{
-			return false;
-		}
-
-		string[] parts = text[(open + 1)..^1].Split(',', StringSplitOptions.TrimEntries);
-		return parts.Length is 3 or 4 &&
-		       byte.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out r) &&
-		       byte.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out g) &&
-		       byte.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out b);
+		string function = open < 0 ? "" : text[..open].Trim();
+		bool rgb = function.Equals("rgb", StringComparison.OrdinalIgnoreCase) || function.Equals("rgba", StringComparison.OrdinalIgnoreCase);
+		return rgb && text.Contains(',', StringComparison.Ordinal) && MokaCssColor.TryParse(text, out color);
 	}
-
-	private static int HexDigit(char c) => char.IsAsciiDigit(c) ? c - '0' : char.ToLowerInvariant(c) - 'a' + 10;
-
-	private static byte MixChannel(byte from, byte to, double amount) =>
-		(byte)Math.Clamp(Math.Round(from + ((to - from) * amount)), 0, 255);
-
-	private static string Hex(byte r, byte g, byte b) =>
-		string.Create(CultureInfo.InvariantCulture, $"#{r:x2}{g:x2}{b:x2}");
 }

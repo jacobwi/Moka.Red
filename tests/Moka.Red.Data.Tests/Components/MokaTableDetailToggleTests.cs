@@ -150,7 +150,7 @@ public class MokaTableDetailToggleTests : BunitContext
 	[Fact]
 	public void EveryRow_KeepsACellForTheEndColumn()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.ShowFilters, true),
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
 			[Name with { Filterable = true }, Age with { Aggregate = MokaAggregateType.Sum }]);
 
 		Assert.Contains("moka-table-cell--more", cut.Find(".moka-table-filter-row").Children[^1].ClassList);
@@ -201,7 +201,7 @@ public class MokaTableDetailToggleTests : BunitContext
 		IElement row = DataRows(cut)[0];
 		Assert.Contains("moka-table-cell--phone-trailing", row.Children[^2].ClassList);
 		Assert.Contains("moka-table-cell--more", row.Children[^1].ClassList);
-		Assert.Equal("cell", row.Children[^1].GetAttribute("role"));
+		Assert.Equal("gridcell", row.Children[^1].GetAttribute("role"));
 	}
 
 	private static IElement Toggle(IRenderedComponent<MokaTable<Person>> cut, int row) =>

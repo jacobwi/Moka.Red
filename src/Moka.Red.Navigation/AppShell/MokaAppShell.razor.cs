@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Hotkeys;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Navigation.Menu;
 
 namespace Moka.Red.Navigation.AppShell;
 
@@ -53,11 +54,34 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	public RenderFragment? ChildContent { get; set; }
 
 	/// <summary>
-	///     The screens, in order. Groups show in the order they first appear. The entry the address belongs to is marked
-	///     as the current page, and names the top bar on a phone.
+	///     The screens, in order. Groups show in the order they first appear. The entry the address belongs to, children
+	///     included, is marked as the current page, and names the top bar on a phone. An entry with
+	///     <see cref="MokaNavEntry.Children" /> is a link with an arrow beside it that opens and closes them, and it opens by
+	///     itself while its page or one of its children's is the current one.
 	/// </summary>
 	[Parameter]
 	public IReadOnlyList<MokaNavEntry> Entries { get; set; } = [];
+
+	/// <summary>
+	///     What a click on the name of an entry with children does when the person is already there: on, the default, the
+	///     click opens or closes the list on the entry's own page, and closes an open list on one of its children's pages,
+	///     without going anywhere. Off, the click always goes to the entry's page and opens the list. See
+	///     <see cref="MokaMenu.CollapseOnRepeatClick" />.
+	/// </summary>
+	[Parameter]
+	public bool CollapseOnRepeatClick { get; set; } = true;
+
+	/// <summary>
+	///     The name of the arrow that opens an entry's children, given the entry's label. Null says "Show" and the label.
+	/// </summary>
+	[Parameter]
+	public Func<string, string>? ShowGroupLabel { get; set; }
+
+	/// <summary>
+	///     The name of the arrow that closes an entry's children, given the entry's label. Null says "Hide" and the label.
+	/// </summary>
+	[Parameter]
+	public Func<string, string>? HideGroupLabel { get; set; }
 
 	/// <summary>
 	///     The logo and name over the menu. Give the text the class <c>moka-app-shell__brand-text</c> and it hides on the

@@ -3,16 +3,17 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Code;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.CodeEditor;
 
 /// <summary>
-///     A text area for code or configuration: monospace, line numbers, coloring from a highlighter the app passes,
-///     and problems from a checker the app passes, underlined in place and listed below with a jump to each. Neither
-///     is built in, so it suits any language. Meant for text of a few thousand lines at most: every edit colors the
-///     whole text again.
+///     A text area for code or configuration: monospace, line numbers, coloring from a highlighter, and problems from a
+///     checker the app passes, underlined in place and listed below with a jump to each. <see cref="MokaCodeHighlighters" />
+///     has highlighters for common languages; an app can pass its own for any other. Meant for text of a few thousand
+///     lines at most: every edit colors the whole text again.
 /// </summary>
 public partial class MokaCodeEditor
 {
@@ -27,7 +28,10 @@ public partial class MokaCodeEditor
 	private MokaCodeSpan[] _spans = [];
 	private List<MokaCodeDiagnostic> _diagnostics = [];
 	private IReadOnlyList<MokaCodeDiagnostic> _checked = [];
-	private string? _lastValue;
+
+	// The value the text was last set from. The text runs ahead of it while a debounced edit waits, so only a value
+	// that changes from outside replaces the text.
+	private string? _syncedValue;
 	private Func<string, IEnumerable<MokaCodeSpan>>? _lastHighlighter;
 	private Func<string, IReadOnlyList<MokaCodeDiagnostic>>? _lastDiagnose;
 	private IReadOnlyList<MokaCodeDiagnostic>? _lastDiagnostics;
@@ -61,8 +65,9 @@ public partial class MokaCodeEditor
 	public bool Optional { get; set; }
 
 	/// <summary>
-	///     Colors the text: given the whole text, it returns the stretches to color, with indexes into it. Stretches
-	///     can come in any order; overlaps and anything past the end are ignored. Null draws plain text.
+	///     Colors the text: given the whole text, it returns the stretches to color, with indexes into it, such as
+	///     <see cref="MokaCodeHighlighters.Json" />. Stretches can come in any order; overlaps and anything past the end
+	///     are ignored. Null draws plain text.
 	/// </summary>
 	[Parameter]
 	public Func<string, IEnumerable<MokaCodeSpan>>? Highlighter { get; set; }
@@ -176,17 +181,7 @@ public partial class MokaCodeEditor
 	{
 		base.OnParametersSet();
 
-		string incoming = Value ?? string.Empty;
-		bool textChanged = false;
-		if (!string.Equals(incoming, _lastValue, StringComparison.Ordinal))
-		{
-			_lastValue = incoming;
-			if (!string.Equals(incoming, _text, StringComparison.Ordinal))
-			{
-				SetText(incoming);
-				textChanged = true;
-			}
-		}
+		bool textChanged = SyncText();
 
 		if (textChanged || !ReferenceEquals(Highlighter, _lastHighlighter))
 		{
@@ -210,6 +205,22 @@ public partial class MokaCodeEditor
 		else if (diagnosticsChanged)
 		{
 			Merge();
+		}
+	}
+
+	/// <inheritdoc />
+	/// <remarks>
+	///     An edit the parent didn't take goes, and the text, its colors and its problems follow the parent's value.
+	/// </remarks>
+	protected override void OnCurrentValueRestored()
+	{
+		base.OnCurrentValueRestored();
+		_syncedValue = CurrentValue ?? string.Empty;
+		if (!string.Equals(_syncedValue, _text, StringComparison.Ordinal))
+		{
+			SetText(_syncedValue);
+			Tokenize();
+			RunDiagnose();
 		}
 	}
 
@@ -250,11 +261,29 @@ public partial class MokaCodeEditor
 		await base.DisposeAsyncCore();
 	}
 
+	// True when the value changed from outside and the text now shows it.
+	private bool SyncText()
+	{
+		string value = CurrentValue ?? string.Empty;
+		if (string.Equals(value, _syncedValue, StringComparison.Ordinal))
+		{
+			return false;
+		}
+
+		_syncedValue = value;
+		if (string.Equals(value, _text, StringComparison.Ordinal))
+		{
+			return false;
+		}
+
+		SetText(value);
+		return true;
+	}
+
 	private void HandleInput(string? typed)
 	{
 		string text = typed ?? string.Empty;
 		SetText(text);
-		_lastValue = text;
 		_diagnosticsStale = true;
 		Tokenize();
 		Merge();
@@ -275,32 +304,8 @@ public partial class MokaCodeEditor
 		}
 	}
 
-	// Sorted, clipped to the text and with overlaps cut, so drawing them is one pass.
-	private void Tokenize()
-	{
-		if (Highlighter is null || _text.Length == 0)
-		{
-			_spans = [];
-			return;
-		}
-
-		List<MokaCodeSpan> spans = [];
-		int position = 0;
-		foreach (MokaCodeSpan span in Highlighter(_text).Where(s => s.Length > 0).OrderBy(s => s.Start))
-		{
-			int start = Math.Max(span.Start, position);
-			int end = Math.Min(span.Start + span.Length, _text.Length);
-			if (end <= start)
-			{
-				continue;
-			}
-
-			spans.Add(span with { Start = start, Length = end - start });
-			position = end;
-		}
-
-		_spans = [.. spans];
-	}
+	private void Tokenize() =>
+		_spans = Highlighter is null || _text.Length == 0 ? [] : MokaCodeHighlighters.Normalize(_text, Highlighter(_text));
 
 	private void ScheduleDiagnose()
 	{
@@ -469,6 +474,11 @@ public partial class MokaCodeEditor
 		MokaCodeTokenKind.Constant => "moka-code-editor__token--constant",
 		MokaCodeTokenKind.Comment => "moka-code-editor__token--comment",
 		MokaCodeTokenKind.Punctuation => "moka-code-editor__token--punctuation",
+		MokaCodeTokenKind.Tag => "moka-code-editor__token--tag",
+		MokaCodeTokenKind.Attribute => "moka-code-editor__token--attribute",
+		MokaCodeTokenKind.String => "moka-code-editor__token--string",
+		MokaCodeTokenKind.Type => "moka-code-editor__token--type",
+		MokaCodeTokenKind.Directive => "moka-code-editor__token--directive",
 		_ => "moka-code-editor__token"
 	};
 

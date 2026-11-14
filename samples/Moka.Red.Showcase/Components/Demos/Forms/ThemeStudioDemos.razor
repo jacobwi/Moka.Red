@@ -1,0 +1,19 @@
+@using Moka.Red.ThemeGen
+@using Moka.Red.ThemeGen.ImportExport
+@using Moka.Red.ThemeGen.Preview
+
+<DemoSection Id="the-studio" Title="The studio" Description="Seeds and style on the left, a sample app in both schemes in the middle, contrast, tokens and export on the right. The theme generator page holds it at full width.">
+	<MokaThemeStudio @bind-Themes="_themes"/>
+</DemoSection>
+
+<DemoSection Id="a-preview-alone" Title="A preview alone" Description="The sample app the studio draws, in any theme.">
+	<MokaThemePreview PreviewTheme="MokaTheme.Gate"/>
+</DemoSection>
+
+<DemoSection Id="export-alone" Title="Export alone" Description="C#, JSON and CSS for a theme, with import turned off.">
+	<MokaThemeImportExport Theme="MokaTheme.Crisp" ShowImport="false" MaxHeight="20rem"/>
+</DemoSection>
+
+@code {
+	private MokaThemePair _themes = MokaThemePair.From(MokaTheme.Default);
+}

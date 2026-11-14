@@ -1,0 +1,13 @@
+<DemoSection Id="basics" Title="Basics" Description="A start and an end in a range.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div style="width: 300px;">
+			<MokaRangeSlider @bind-ValueStart="_rangeStart" @bind-ValueEnd="_rangeEnd" Label="Price Range"/>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private double _rangeStart = 25;
+
+	private double _rangeEnd = 75;
+}

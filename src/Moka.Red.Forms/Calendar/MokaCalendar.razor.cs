@@ -13,7 +13,17 @@ namespace Moka.Red.Forms.Calendar;
 /// </summary>
 public partial class MokaCalendar : MokaVisualComponentBase
 {
-	private DateOnly _resolvedMonth;
+	// The date and the month the calendar shows, apart from Value and DisplayMonth: a pick or a step to another month
+	// shows before the parent answers, and a parent that doesn't own them can't undo either by rendering again.
+	private readonly MokaInputValue<DateOnly> _month;
+	private readonly MokaInputValue<DateOnly?> _selected;
+
+	/// <summary>Creates the calendar. It shows its own date and month until the parent passes them.</summary>
+	public MokaCalendar()
+	{
+		_selected = new MokaInputValue<DateOnly?>(StateHasChanged, DispatchExceptionAsync);
+		_month = new MokaInputValue<DateOnly>(StateHasChanged, DispatchExceptionAsync, DisplayMonth);
+	}
 
 	/// <summary>The currently selected date. Supports two-way binding.</summary>
 	[Parameter]
@@ -101,7 +111,7 @@ public partial class MokaCalendar : MokaVisualComponentBase
 	{
 		get
 		{
-			var firstOfMonth = new DateOnly(_resolvedMonth.Year, _resolvedMonth.Month, 1);
+			DateOnly firstOfMonth = ShownMonth;
 			int dayOfWeek = (int)firstOfMonth.DayOfWeek;
 			int offset = (dayOfWeek - (int)FirstDayOfWeek + 7) % 7;
 			DateOnly startDate = firstOfMonth.AddDays(-offset);
@@ -116,26 +126,46 @@ public partial class MokaCalendar : MokaVisualComponentBase
 		}
 	}
 
+	private DateOnly ShownMonth => new(_month.Shown.Year, _month.Shown.Month, 1);
+
 	/// <summary>Gets the display string for the current month header.</summary>
 	private string MonthYearLabel =>
-		_resolvedMonth.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
+		ShownMonth.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
 
-	/// <inheritdoc />
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet() =>
-		_resolvedMonth = new DateOnly(DisplayMonth.Year, DisplayMonth.Month, 1);
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_selected.Take(parameters, nameof(Value));
+		_month.Take(parameters, nameof(DisplayMonth));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_selected.AfterRender();
+		_month.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_selected.Stop();
+		_month.Stop();
+		return base.DisposeAsyncCore();
+	}
 
 	private bool IsCurrentMonth(DateOnly date) =>
-		date.Year == _resolvedMonth.Year && date.Month == _resolvedMonth.Month;
+		date.Year == ShownMonth.Year && date.Month == ShownMonth.Month;
 
 	private static bool IsToday(DateOnly date) =>
 		date == DateOnly.FromDateTime(DateTime.Today);
 
-	private bool IsSelected(DateOnly date) =>
-		Value.HasValue && Value.Value == date;
+	private bool IsSelected(DateOnly date) => _selected.Shown == date;
 
 	private bool IsDateDisabled(DateOnly date)
 	{
@@ -166,13 +196,13 @@ public partial class MokaCalendar : MokaVisualComponentBase
 			return;
 		}
 
-		await ValueChanged.InvokeAsync(date);
+		if (_selected.Shown != date)
+		{
+			_selected.Pick(date, ValueChanged);
+		}
+
 		await OnDateClick.InvokeAsync(date);
 	}
 
-	private async Task NavigateMonth(int offset)
-	{
-		_resolvedMonth = _resolvedMonth.AddMonths(offset);
-		await DisplayMonthChanged.InvokeAsync(_resolvedMonth);
-	}
+	private void NavigateMonth(int offset) => _month.Pick(ShownMonth.AddMonths(offset), DisplayMonthChanged);
 }

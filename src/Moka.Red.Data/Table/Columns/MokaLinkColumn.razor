@@ -1,0 +1,44 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Primitives.Typography
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The link's text: what the column sorts, filters, searches and exports.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Text { get; set; }
+
+	/// <summary>Where the link goes. A row without an address, or with a script address, shows plain text.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Href { get; set; }
+
+	/// <summary>Opens the link in a new tab, with an icon saying so. Default false.</summary>
+	[Parameter]
+	public bool External { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Text is not null;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		string? text = Text?.Invoke(item);
+		string? href = UrlValues.SafeHref(Href?.Invoke(item));
+		return string.IsNullOrEmpty(href)
+			? @<span>@text</span>
+			: @<MokaLink Href="@href" External="External">@text</MokaLink>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => External;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Text?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Text?.Invoke(item) ?? string.Empty;
+}

@@ -7,60 +7,51 @@ using static Moka.Red.Data.Tests.Components.TableKit;
 
 namespace Moka.Red.Data.Tests.Components;
 
-// Saving an edited cell. With Format the editor opens on the formatted text, "36.00" for 36.
+// Saving an edited cell: the value in the column's own type, a save only when it changed, and the app's objects untouched.
 public class MokaTableEditTests : BunitContext
 {
-	private readonly List<(Person Item, object? NewValue)> _columnEdits = [];
-	private readonly List<MokaTableCellEditResult<Person>> _tableEdits = [];
+	private readonly List<MokaTableRowSave<Person>> _saves = [];
 
 	public MokaTableEditTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
-	// A save compared the entered text with the raw value's ToString(), "36", so saving the
-	// untouched "36.00" raised both edit callbacks.
 	[Fact]
-	public async Task SavingAFormattedCellUnchanged_ReportsNoEdit()
+	public async Task SavingACellUnchanged_RaisesNoSave()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
 
-		await OpenEditorAsync(cut);
-		await Editor(cut).KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
+		await cut.InvokeAsync(() => cut.Instance.OnEditorKey("Enter"));
 
-		Assert.Empty(cut.FindAll(".moka-table-edit-input"));
-		Assert.Empty(_columnEdits);
-		Assert.Empty(_tableEdits);
+		Assert.Empty(cut.FindAll("td[data-editing]"));
+		Assert.Empty(_saves);
 	}
 
+	// The number reaches the save as the column's own type, written into a new record by the setter.
 	[Fact]
-	public async Task SavingAChangedFormattedCell_ReportsTheEdit()
+	public async Task SavingAChangedNumber_HandsTheTypedValueAndTheUpdatedRow()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
 
-		await OpenEditorAsync(cut);
-		await Editor(cut).InputAsync(new ChangeEventArgs { Value = "40" });
-		await Editor(cut).KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+		await cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
+		await cut.Find("td[data-editing] input").InputAsync(new ChangeEventArgs { Value = "40" });
+		await cut.InvokeAsync(() => cut.Instance.OnEditorKey("Enter"));
 
-		Assert.Equal("40", Assert.Single(_columnEdits).NewValue);
-		MokaTableCellEditResult<Person> edit = Assert.Single(_tableEdits);
-		Assert.Equal(36, edit.OldValue);
-		Assert.Equal("40", edit.NewValue);
+		MokaTableRowSave<Person> save = Assert.Single(_saves);
+		MokaTableCellChange change = Assert.Single(save.Changes);
+		Assert.Equal("Age", change.Column);
+		Assert.Equal(36, change.OldValue);
+		Assert.Equal(40, change.NewValue);
+		Assert.Equal(40, save.Updated.Age);
+		Assert.Same(People[0], save.Item);
+		Assert.Equal(36, People[0].Age);
+		Assert.Equal(MokaTableSaveKind.Edit, save.Kind);
 	}
 
 	private IRenderedComponent<MokaTable<Person>> RenderTable() =>
 		Render<MokaTable<Person>>(p => p
 			.Add(t => t.Items, People)
-			.Add(t => t.OnCellEdit, e => _tableEdits.Add(e))
+			.Add(t => t.OnRowSave, save => _saves.Add(save))
 			.Add(t => t.ChildContent, Columns(
 				Name,
-				Age with
-				{
-					Editable = true,
-					Format = "N2",
-					OnCellEdited = EventCallback.Factory.Create<(Person Item, object? NewValue)>(
-						this, e => _columnEdits.Add(e))
-				})));
-
-	private static Task OpenEditorAsync(IRenderedComponent<MokaTable<Person>> cut) =>
-		cut.InvokeAsync(() => cut.Instance.OnCellKey(0, 1, "Enter"));
-
-	private static IElement Editor(IRenderedComponent<MokaTable<Person>> cut) => cut.Find(".moka-table-edit-input");
+				Age with { Editable = true, Format = "N2", SetField = static (p, v) => p with { Age = (int)v! } })));
 }

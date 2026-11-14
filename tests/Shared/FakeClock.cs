@@ -12,6 +12,12 @@ internal sealed class FakeClock : TimeProvider
 
 	public override DateTimeOffset GetUtcNow() => _now;
 
+	// Elapsed time is measured on the same fake clock, so a component that gaps its work by GetElapsedTime sees time
+	// move only when the test moves it.
+	public override long GetTimestamp() => _now.UtcTicks;
+
+	public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
 	public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
 	{
 		FakeTimer timer = new(this, callback, state);

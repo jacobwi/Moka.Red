@@ -22,7 +22,7 @@ public sealed class ChartPartLayoutTests : BunitContext
 	};
 
 	private static readonly Lazy<JsonElement?> Steps = new(() =>
-		ChartScriptRunner.Run("part-steps.mjs", Convert.ToBase64String(ChartHoverEncoding.EncodeParts(Listed, 7))));
+		ScriptRunner.Run("part-steps.mjs", Convert.ToBase64String(ChartHoverEncoding.EncodeParts(Listed, 7))));
 
 	[Fact]
 	public void PlaceOf_ReadsRowsColumnsAndListedRows()

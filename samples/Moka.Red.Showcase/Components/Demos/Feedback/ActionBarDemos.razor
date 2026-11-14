@@ -1,0 +1,33 @@
+@using Moka.Red.Feedback.ActionBar
+
+<DemoSection Id="a-change-that-undoes-itself" Title="A change that undoes itself" Description="The bar floats at the bottom of the window. Countdown runs a ring in the icon's place and raises OnCountdownEnd when nobody answered.">
+	<div class="button-row">
+		<MokaButton OnClick="Publish" Disabled="_waiting">Publish the report</MokaButton>
+		<MokaCaption>@(_said ?? "Publish, then keep it or let it undo itself.")</MokaCaption>
+	</div>
+	<MokaActionBar Visible="_waiting" Countdown="TimeSpan.FromSeconds(30)" OnCountdownEnd="@(() => Answer("Nobody kept it, so it was taken down."))">
+		<Title>The report is published</Title>
+		<Detail>Keep it, or it is taken down again.</Detail>
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="@(() => Answer("Taken down."))">Undo</MokaButton>
+			<MokaButton OnClick="@(() => Answer("Kept."))">Keep</MokaButton>
+		</Actions>
+	</MokaActionBar>
+</DemoSection>
+
+@code {
+	private bool _waiting;
+	private string? _said;
+
+	private void Publish()
+	{
+		_said = null;
+		_waiting = true;
+	}
+
+	private void Answer(string said)
+	{
+		_said = said;
+		_waiting = false;
+	}
+}

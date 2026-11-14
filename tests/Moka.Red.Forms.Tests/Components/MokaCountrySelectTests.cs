@@ -164,11 +164,16 @@ public sealed class MokaCountrySelectTests : BunitContext
 	public async Task Grid_InAMultipleSelect_PicksToggle()
 	{
 		IList<string>? picked = null;
-		IRenderedComponent<MokaCountrySelect> cut = Select(p => p
+		IRenderedComponent<MokaCountrySelect>? cut = null;
+		cut = Select(p => p
 			.Add(x => x.Shape, MokaCountrySelectShape.Grid)
 			.Add(x => x.Multiple, true)
 			.Add(x => x.SelectedValues, new List<string> { "SE" })
-			.Add(x => x.SelectedValuesChanged, v => picked = v));
+			.Add(x => x.SelectedValuesChanged, EventCallback.Factory.Create<IList<string>>(this, v =>
+			{
+				picked = v;
+				cut!.Render(q => q.Add(x => x.SelectedValues, v));
+			})));
 
 		Assert.Equal("true", cut.Find("[role=grid]").GetAttribute("aria-multiselectable"));
 		await cut.InvokeAsync(() => cut.Instance.PickFromGrid("NO"));

@@ -170,16 +170,17 @@ public class LabelColorTests
 	public void MokaCss_HoldsTheOriginalDesignsValues()
 	{
 		IReadOnlyDictionary<string, string> root = ScopedCss.Declarations("moka.css", ":root");
-		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark");
+		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark:not(.moka-root)");
 
 		foreach ((string name, string value) in Tokens(MokaTheme.Light.ToCssVariables()).Where(t => t.Key.StartsWith("--moka-label-", StringComparison.Ordinal)))
 		{
 			Assert.Equal(value, root[name]);
 		}
 
+		// A label color the same in both schemes is declared on :root only, which a dark root inherits.
 		foreach ((string name, string value) in Tokens(MokaTheme.Dark.ToCssVariables()).Where(t => t.Key.StartsWith("--moka-label-", StringComparison.Ordinal)))
 		{
-			Assert.Equal(value, dark[name]);
+			Assert.Equal(value, dark.TryGetValue(name, out string? declared) ? declared : root[name]);
 		}
 	}
 

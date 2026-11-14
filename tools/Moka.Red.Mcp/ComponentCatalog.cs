@@ -57,7 +57,9 @@ internal sealed class ComponentCatalog
 			}
 		}
 
-		List<Type> exported = [.. packages.SelectMany(package => package.GetExportedTypes())];
+		// Parts the library draws for itself carry [EditorBrowsable(Never)]: an app never writes them, so an assistant
+		// shouldn't be offered them.
+		List<Type> exported = [.. packages.SelectMany(package => package.GetExportedTypes()).Where(type => !IsHidden(type))];
 
 		Components = exported
 			.Where(IsComponent)
@@ -122,6 +124,9 @@ internal sealed class ComponentCatalog
 			.OrderBy(assembly => assembly.GetName().Name, StringComparer.Ordinal)
 			.ToList();
 
+	private static bool IsHidden(Type type) =>
+		type.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>(inherit: false)?.State == System.ComponentModel.EditorBrowsableState.Never;
+
 	private static bool IsComponent(Type type) =>
 		type is { IsClass: true, IsAbstract: false }
 		&& typeof(IComponent).IsAssignableFrom(type)
@@ -178,12 +183,17 @@ internal sealed class ComponentCatalog
 			kind,
 			kind == ParameterKind.Value ? ReadDefault(sample, property.Name) : null,
 			docs.PropertySummary(property.DeclaringType, property.Name),
-			property.IsDefined(typeof(EditorRequiredAttribute), true),
+			IsEditorRequired(property),
 			parameter?.CaptureUnmatchedValues ?? false,
 			declaredBy,
 			propertyType,
 			enumType.IsEnum ? enumType : null);
 	}
+
+	// The Razor compiler reads [EditorRequired] off the declaration a component's markup binds to, the most derived one,
+	// so an override that leaves it off makes the parameter optional.
+	private static bool IsEditorRequired(PropertyInfo property) =>
+		Attribute.IsDefined(property, typeof(EditorRequiredAttribute), inherit: false);
 
 	private static bool IsGeneric(Type type, Type plain, Type open) =>
 		type == plain || (type.IsGenericType && type.GetGenericTypeDefinition() == open);

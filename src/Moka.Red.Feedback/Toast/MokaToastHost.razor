@@ -1,42 +1,93 @@
 @namespace Moka.Red.Feedback.Toast
+@inherits MokaComponentBase
+@using Moka.Red.Core.Announcer
 
-<div class="@HostCss" style="@HostStyle">
-	@foreach (var toast in RenderedToasts)
+<div @ref="_root" class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+	@WriteToasts
+</div>
+<MokaAnnouncerHost/>
+
+@code {
+	private RenderFragment ToastMarkup(MokaToastMessage toast) => __builder =>
 	{
-		<div class="moka-toast moka-toast--@MokaEnumHelpers.ToCssClass(toast.Severity)"
-		     @key="toast.Id"
-		     @onclick="() => HandleClick(toast)">
-
-			@if (toast.Options.ShowIcon && !ShowsTag)
+		MokaToastProgressLook? progressLook = ProgressLookFor(toast);
+		string severity = MokaEnumHelpers.ToCssClass(toast.Severity);
+		<div class="@ToastCss(toast, progressLook)" data-moka-toast="@toast.Id" @onclick="ClickCallback(toast)">
+			@if (progressLook == MokaToastProgressLook.Spinner)
+			{
+				<MokaIcon Icon="MokaIcons.Status.Spinner"
+				          Size="MokaSize.Sm"
+				          Class="@($"moka-toast-icon moka-toast-icon--{severity} moka-spin")"/>
+			}
+			else if (progressLook == MokaToastProgressLook.Ring)
+			{
+				<span class="@RingCss(toast)" style="@ProgressStyle(toast)" role="progressbar"
+				      aria-labelledby="@MessageId(toast)" aria-valuemin="0" aria-valuemax="100"
+				      aria-valuenow="@PercentNow(toast)" aria-valuetext="@ProgressWords(toast)">
+					<span class="@RingTrackCss(toast)"></span>
+					@if (toast.Progress?.Value is { } share)
+					{
+						<span class="moka-toast-ring__value" aria-hidden="true">@Text.Percent(share)</span>
+					}
+				</span>
+			}
+			else if (toast.ShowIcon && !ShowsTag)
 			{
 				<MokaIcon Icon="GetSeverityIcon(toast)"
 				          Size="MokaSize.Sm"
-				          Class="@($"moka-toast-icon moka-toast-icon--{MokaEnumHelpers.ToCssClass(toast.Severity)}")"/>
+				          Class="@($"moka-toast-icon moka-toast-icon--{severity}")"/>
 			}
 
 			<div class="moka-toast-content">
-				@if (!string.IsNullOrEmpty(toast.Options.Title))
+				@if (!string.IsNullOrEmpty(toast.Title))
 				{
-					<div class="moka-toast-title">@if (ShowsTag){<span class="moka-toast-tag" aria-hidden="true">@TerminalTag(toast.Severity)</span>}@toast.Options.Title</div>
+					<div class="moka-toast-title">@if (ShowsTag){<span class="moka-toast-tag" aria-hidden="true">@Text.TerminalTag(toast.Severity)</span>}@toast.Title@CountBadge(toast)</div>
 				}
-				<div class="@MessageCss(toast)">@if (ShowsTag && string.IsNullOrEmpty(toast.Options.Title)){<span class="moka-toast-tag" aria-hidden="true">@TerminalTag(toast.Severity)</span>}@toast.Message</div>
+				<div class="@MessageCss(toast)" id="@MessageId(toast)">@if (ShowsTag && string.IsNullOrEmpty(toast.Title)){<span class="moka-toast-tag" aria-hidden="true">@Text.TerminalTag(toast.Severity)</span>}@toast.Message@if (string.IsNullOrEmpty(toast.Title)){@CountBadge(toast)}</div>
 
-				@if (!string.IsNullOrEmpty(toast.Options.ActionText))
+				@toast.Content
+
+				@if (progressLook == MokaToastProgressLook.Detailed)
 				{
-					<button class="moka-toast-action"
-					        @onclick="() => HandleAction(toast)"
+					<div class="moka-toast-detail">
+						<span class="moka-toast-track" role="progressbar" aria-labelledby="@MessageId(toast)"
+						      aria-valuemin="0" aria-valuemax="100" aria-valuenow="@PercentNow(toast)"
+						      aria-valuetext="@ProgressWords(toast)">
+							<span class="@FillCss(toast, "moka-toast-track__fill")" style="@ProgressStyle(toast)"></span>
+						</span>
+						<span class="moka-toast-detail__facts" aria-hidden="true">
+							<span>@(toast.Progress?.Value is { } share ? Text.Percent(share) : Text.Working)</span>
+							@if (toast.Remaining is { } left)
+							{
+								<span>@Text.TimeLeft(left)</span>
+							}
+						</span>
+					</div>
+				}
+				else if (progressLook == MokaToastProgressLook.Pill)
+				{
+					<span class="moka-toast-pill" style="@ProgressStyle(toast)" role="progressbar"
+					      aria-labelledby="@MessageId(toast)" aria-valuemin="0" aria-valuemax="100"
+					      aria-valuenow="@PercentNow(toast)" aria-valuetext="@ProgressWords(toast)">@(toast.Progress?.Value is { } share ? Text.Percent(share) : Text.Working)</span>
+				}
+
+				@if (!string.IsNullOrEmpty(toast.ActionText))
+				{
+					<button type="button"
+					        class="moka-toast-action"
+					        @onclick="() => HandleActionAsync(toast)"
 					        @onclick:stopPropagation="true">
-						@toast.Options.ActionText
+						@toast.ActionText
 					</button>
 				}
 			</div>
 
-			@if (toast.Options.ShowCloseButton)
+			@if (toast.ShowCloseButton)
 			{
-				<MokaTooltip Text="Close" Position="CloseTooltipPosition">
+				<MokaTooltip Text="@Text.Close" Position="CloseTooltipPosition">
 					<button class="moka-toast-close"
 					        type="button"
-					        aria-label="Close"
+					        aria-label="@Text.Close"
 					        @onclick="() => HandleClose(toast.Id)"
 					        @onclick:stopPropagation="true">
 						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="14px"/>
@@ -44,12 +95,27 @@
 				</MokaTooltip>
 			}
 
-			@if (toast.Options.DurationMs > 0)
+			@if (progressLook is MokaToastProgressLook.Spinner or MokaToastProgressLook.BarOnly)
 			{
-				<div class="moka-toast-progress moka-toast-progress--@MokaEnumHelpers.ToCssClass(toast.Severity)"
-				     style="animation-duration: @(toast.Options.DurationMs)ms">
-				</div>
+				<span class="@($"moka-toast-edge moka-toast-edge--{severity}")" role="progressbar"
+				      aria-labelledby="@MessageId(toast)" aria-valuemin="0" aria-valuemax="100"
+				      aria-valuenow="@PercentNow(toast)" aria-valuetext="@ProgressWords(toast)">
+					<span class="@FillCss(toast, "moka-toast-edge__fill")" style="@ProgressStyle(toast)"></span>
+				</span>
+			}
+			else if (toast.CountsDown)
+			{
+				<span class="@($"moka-toast-timer moka-toast-timer--{severity}")"
+				      @key="toast.Run"
+				      data-moka-toast="@toast.Id"
+				      data-moka-run="@toast.Run"
+				      style="@TimerStyle(toast)"
+				      aria-hidden="true"></span>
 			}
 		</div>
-	}
-</div>
+	};
+
+	private RenderFragment? CountBadge(MokaToastMessage toast) => toast.Count < 2
+		? null
+		: @<span class="moka-toast-count"><span aria-hidden="true">@Text.CountBadge(toast.Count)</span><span class="moka-visually-hidden">@Text.Repeated(toast.Count)</span></span>;
+}

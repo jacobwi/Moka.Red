@@ -13,8 +13,10 @@ namespace Moka.Red.Forms.Slider;
 public partial class MokaSlider : MokaVisualComponentBase
 {
 	private readonly string _generatedId = $"moka-slider-{Guid.NewGuid():N}";
-	private double? _lastValue;
-	private double _value;
+	private readonly MokaInputValue<double> _value;
+
+	/// <summary>Creates the slider. It shows its own value until the parent passes one.</summary>
+	public MokaSlider() => _value = new MokaInputValue<double>(StateHasChanged, DispatchExceptionAsync);
 
 	// The consumer's Id names the range input, and the label's for follows it, so the label names
 	// the slider.
@@ -96,9 +98,11 @@ public partial class MokaSlider : MokaVisualComponentBase
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
 
+	private double Shown => _value.Shown;
+
 	private string FormattedValue => ValueFormat is not null
-		? _value.ToString(ValueFormat, CultureInfo.CurrentCulture)
-		: _value.ToString("G", CultureInfo.CurrentCulture);
+		? Shown.ToString(ValueFormat, CultureInfo.CurrentCulture)
+		: Shown.ToString("G", CultureInfo.CurrentCulture);
 
 	private string FormattedMin => ValueFormat is not null
 		? Min.ToString(ValueFormat, CultureInfo.CurrentCulture)
@@ -110,7 +114,7 @@ public partial class MokaSlider : MokaVisualComponentBase
 
 	/// <summary>Percentage of the filled track (0-100).</summary>
 	private double FillPercent => Max > Min
-		? (_value - Min) / (Max - Min) * 100
+		? (Shown - Min) / (Max - Min) * 100
 		: 0;
 
 	private string TrackStyle => $"--moka-slider-fill: {FillPercent.ToString("F2", CultureInfo.InvariantCulture)}%";
@@ -119,26 +123,32 @@ public partial class MokaSlider : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
-
-		// Value only moves the thumb when the parent passes a new value. Copying it on every parent
-		// render sent an unbound slider back to where it started.
-		if (!EqualityComparer<double?>.Default.Equals(_lastValue, Value))
-		{
-			_lastValue = Value;
-			_value = Value;
-		}
+		_value.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
 	}
 
-	private async Task HandleInput(string? typed)
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_value.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_value.Stop();
+		return base.DisposeAsyncCore();
+	}
+
+	private void HandleInput(string? typed)
 	{
 		if (double.TryParse(typed, NumberStyles.Any,
 			    CultureInfo.InvariantCulture, out double value))
 		{
-			_value = value;
-			await ValueChanged.InvokeAsync(value);
+			_value.Pick(value, ValueChanged);
 		}
 	}
 	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,

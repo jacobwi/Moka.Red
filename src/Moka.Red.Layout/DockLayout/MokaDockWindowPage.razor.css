@@ -1,0 +1,61 @@
+.moka-dock-window {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	min-height: 100dvh;
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-dock-window__bar {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-dock-window__title {
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-dock-window__back {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+	cursor: pointer;
+}
+
+.moka-dock-window__back:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-dock-window__back:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-dock-window__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
+
+.moka-dock-window__notice {
+	margin: auto;
+	padding: var(--moka-spacing-xl);
+	color: var(--moka-color-on-surface-variant);
+}

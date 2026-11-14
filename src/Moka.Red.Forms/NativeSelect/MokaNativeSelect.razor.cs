@@ -172,7 +172,7 @@ public partial class MokaNativeSelect<TValue>
 		return -1;
 	}
 
-	private void HandleChange(ChangeEventArgs e) => CurrentValueAsString = e.Value?.ToString();
+	private void HandleChange(string? text) => CurrentValueAsString = text;
 	private string? DescribedBy => MokaAttributes.DescribedBy(AdditionalAttributes,
 		MokaFieldWrapper.HelperIdIfShown(InputId, HelperText, ResolvedErrorText));
 

@@ -1,0 +1,39 @@
+@inject IMokaTabSessionState<string> TabState
+
+<DemoSection Id="tabs-from-the-session" Title="Tabs from the session" Description="The container draws the tabs the session state holds, with close, reorder by drag and a context menu. StorageKey saves them to sessionStorage: close or reorder one, then reload the page.">
+	<MokaTabContainer TValue="string" ShowPinButton="false" StorageKey="showcase-tabs">
+		<DefaultTabContent>
+			<div style="padding: var(--moka-spacing-md);">
+				<MokaText Mono>@context.Title</MokaText>
+				<MokaTextField Label="Kept while the tab is open" Placeholder="Type, switch tabs, come back"/>
+			</div>
+		</DefaultTabContent>
+	</MokaTabContainer>
+</DemoSection>
+
+<DemoSection Id="tabs-opened-from-code" Title="Tabs opened from code" Description="AddTabAsync opens a tab through IMokaTabSessionState, registered by AddMokaTabs; ActivateTabAsync shows it.">
+	<MokaButton Variant="MokaVariant.Outlined" OnClick="OpenAsync">Open a report</MokaButton>
+</DemoSection>
+
+@code {
+	private int _opened;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (TabState.Tabs.Count == 0)
+		{
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-one", Title = "Overview" });
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-two", Title = "Details", KeepAlive = true });
+			await TabState.AddTabAsync(new TabInfo<string> { Id = "c-three", Title = "Logs" });
+			await TabState.ActivateTabAsync("c-one");
+		}
+	}
+
+	private async Task OpenAsync()
+	{
+		_opened++;
+		string id = $"report-{_opened}";
+		await TabState.AddTabAsync(new TabInfo<string> { Id = id, Title = $"Report {_opened}" });
+		await TabState.ActivateTabAsync(id);
+	}
+}

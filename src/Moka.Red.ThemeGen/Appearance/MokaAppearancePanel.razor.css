@@ -356,6 +356,291 @@
 	width: 50%;
 }
 
+/* Dock layouts: a side group, the main group with two tabs and a group along the bottom. Only the IDE look draws the
+   activity bar beside them. */
+.moka-appearance-panel__docks {
+	display: grid;
+	grid-template-columns: auto 34% 1fr;
+	grid-template-rows: 1fr 36%;
+	padding: 0;
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__dock-activity {
+	display: none;
+	grid-row: 1 / -1;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	border-inline-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__dock-activity > span {
+	width: var(--moka-spacing-xs);
+	height: var(--moka-spacing-xs);
+	border-radius: calc(var(--moka-radius-sm) / 3);
+	background: var(--moka-color-icon);
+}
+
+.moka-appearance-panel__dock-activity > span:first-child {
+	background: var(--moka-color-primary);
+}
+
+.moka-appearance-panel__dock-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+	overflow: hidden;
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__dock-group > .moka-appearance-panel__bar {
+	margin-inline: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__dock-group--side {
+	grid-column: 2;
+	grid-row: 1 / -1;
+	border-inline-end: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-appearance-panel__dock-group--main {
+	grid-column: 3;
+	grid-row: 1;
+}
+
+.moka-appearance-panel__dock-group--bottom {
+	grid-column: 3;
+	grid-row: 2;
+	border-top: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-appearance-panel__dock-head {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	height: var(--moka-spacing-sm);
+	padding-inline: var(--moka-spacing-xxs);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	background: var(--moka-color-surface-3);
+}
+
+.moka-appearance-panel__dock-tab {
+	flex: none;
+	width: var(--moka-spacing-md);
+	height: calc(var(--moka-spacing-xs) * 0.75);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__dock-tab--on {
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__docks--classic .moka-appearance-panel__dock-tab:not(.moka-appearance-panel__dock-tab--on) {
+	display: none;
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-activity {
+	display: flex;
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-head {
+	align-items: stretch;
+	gap: 0;
+	padding-inline: 0;
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-tab {
+	height: auto;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: inset calc(-1 * var(--moka-border-width)) 0 0 var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-tab--on {
+	background: var(--moka-color-surface-3);
+	box-shadow: inset 0 calc(-2 * var(--moka-border-width)) 0 var(--moka-color-primary);
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-group--side,
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-group--side {
+	border-inline-end-color: var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__docks--ide .moka-appearance-panel__dock-group--bottom,
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-group--bottom {
+	border-top-color: var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__docks--cards {
+	gap: var(--moka-spacing-xxs);
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-background);
+}
+
+.moka-appearance-panel__docks--cards .moka-appearance-panel__dock-group {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: calc(var(--moka-radius-card) / 3);
+	box-shadow: var(--moka-shadow-1);
+}
+
+.moka-appearance-panel__docks--cards .moka-appearance-panel__dock-head {
+	border-bottom-color: transparent;
+	background: transparent;
+}
+
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-head {
+	display: none;
+}
+
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-group {
+	padding-top: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-group--side,
+.moka-appearance-panel__docks--minimal .moka-appearance-panel__dock-group--bottom {
+	background: color-mix(in srgb, var(--moka-color-surface-variant) 70%, var(--moka-color-surface));
+}
+
+.moka-appearance-panel__docks--terminal {
+	border-radius: 0;
+	background: var(--moka-color-background);
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__dock-group {
+	background: var(--moka-color-background);
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__dock-group--active {
+	box-shadow: inset calc(2 * var(--moka-border-width)) 0 0 var(--moka-color-primary);
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__dock-head {
+	background: transparent;
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__dock-tab {
+	border-radius: 0;
+	background: transparent;
+	box-shadow: inset var(--moka-border-width) 0 0 var(--moka-color-on-surface-quaternary),
+		inset calc(-1 * var(--moka-border-width)) 0 0 var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__dock-tab--on {
+	box-shadow: inset var(--moka-border-width) 0 0 var(--moka-color-primary),
+		inset calc(-1 * var(--moka-border-width)) 0 0 var(--moka-color-primary);
+}
+
+.moka-appearance-panel__docks--terminal .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+/* Tables: a heading row and three rows. Only the sheet draws row numbers, and the list has no heading row. */
+.moka-appearance-panel__tables {
+	flex-direction: column;
+	padding: var(--moka-spacing-xxs);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__table-row {
+	display: grid;
+	flex: 1;
+	grid-template-columns: auto 1.4fr 1fr 0.7fr;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	min-height: 0;
+	padding-inline: var(--moka-spacing-xxs);
+}
+
+.moka-appearance-panel__table-row > .moka-appearance-panel__bar {
+	width: 80%;
+}
+
+.moka-appearance-panel__table-row--head > .moka-appearance-panel__bar {
+	background: var(--moka-color-on-surface-variant);
+}
+
+.moka-appearance-panel__table-num {
+	display: none;
+	width: var(--moka-spacing-xs);
+	height: calc(var(--moka-spacing-xs) * 0.75);
+	background: var(--moka-color-on-surface-quaternary);
+}
+
+.moka-appearance-panel__tables--lined .moka-appearance-panel__table-row,
+.moka-appearance-panel__tables--sheet .moka-appearance-panel__table-row,
+.moka-appearance-panel__tables--framed .moka-appearance-panel__table-row,
+.moka-appearance-panel__tables--list .moka-appearance-panel__table-row {
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-appearance-panel__tables--soft-stripes .moka-appearance-panel__table-row:nth-child(odd):not(.moka-appearance-panel__table-row--head) {
+	border-radius: calc(var(--moka-radius-sm) / 2);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__tables--cards {
+	gap: var(--moka-spacing-xxs);
+	background: var(--moka-color-background);
+}
+
+.moka-appearance-panel__tables--cards .moka-appearance-panel__table-row:not(.moka-appearance-panel__table-row--head) {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: calc(var(--moka-radius-card) / 3);
+	background: var(--moka-color-surface);
+}
+
+.moka-appearance-panel__tables--sheet .moka-appearance-panel__table-num {
+	display: block;
+}
+
+.moka-appearance-panel__tables--sheet .moka-appearance-panel__table-row--head {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__tables--sheet .moka-appearance-panel__bar {
+	border-radius: 0;
+}
+
+.moka-appearance-panel__tables--airy {
+	gap: var(--moka-spacing-xs);
+	padding-block: var(--moka-spacing-xs);
+}
+
+.moka-appearance-panel__tables--airy .moka-appearance-panel__table-row:last-child {
+	display: none;
+}
+
+.moka-appearance-panel__tables--framed {
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-strong);
+}
+
+.moka-appearance-panel__tables--framed .moka-appearance-panel__table-row--head {
+	border-bottom-color: var(--moka-color-outline);
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-appearance-panel__tables--list .moka-appearance-panel__table-row--head,
+.moka-appearance-panel__tables--list .moka-appearance-panel__table-row > :last-child {
+	display: none;
+}
+
+.moka-appearance-panel__tables--list .moka-appearance-panel__table-row {
+	grid-template-columns: 1fr;
+	align-content: center;
+	gap: var(--moka-border-width);
+}
+
+.moka-appearance-panel__tables--list .moka-appearance-panel__table-row > .moka-appearance-panel__bar:nth-child(2) {
+	width: 60%;
+	background: var(--moka-color-on-surface-variant);
+}
+
 /* Toasts */
 .moka-appearance-panel__toasts {
 	display: flex;

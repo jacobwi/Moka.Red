@@ -1,0 +1,6 @@
+.table-demo-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}

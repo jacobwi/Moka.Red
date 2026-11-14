@@ -20,9 +20,7 @@ public class MokaTableSortTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
 
-		cut.Render(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Descending));
+		cut.Render(p => p.Add(t => t.State, SortedBy("Age", MokaSortDirection.Descending)));
 
 		Assert.Equal(["Grace", "Alan", "Ada", "Barbara"], ColumnTexts(cut, 0));
 		Assert.NotNull(HeaderCell(cut, "Age").QuerySelector(".moka-table-sort-icon--active"));
@@ -34,8 +32,7 @@ public class MokaTableSortTests : BunitContext
 	public void SortFromTheParent_OnTheFirstRender_SortsTheRows()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Descending));
+			.Add(t => t.State, SortedBy("Age", MokaSortDirection.Descending)));
 
 		Assert.Equal(["Grace", "Alan", "Ada", "Barbara"], ColumnTexts(cut, 0));
 		Assert.NotNull(HeaderCell(cut, "Age").QuerySelector(".moka-table-sort-icon--active"));
@@ -47,38 +44,32 @@ public class MokaTableSortTests : BunitContext
 	public async Task NewSortFromTheParent_WinsAfterAHeaderClick()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Ascending));
+			.Add(t => t.State, SortedBy("Age", MokaSortDirection.Ascending)));
 		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs());
 		Assert.Equal(["Ada", "Alan", "Barbara", "Grace"], ColumnTexts(cut, 0));
 
-		cut.Render(p => p
-			.Add(t => t.SortColumn, "City")
-			.Add(t => t.SortDirection, MokaSortDirection.Descending));
+		cut.Render(p => p.Add(t => t.State, SortedBy("City", MokaSortDirection.Descending)));
 
 		Assert.Equal(["Paris", "Madrid", "London", "Berlin"], ColumnTexts(cut, 3));
 		Assert.NotNull(HeaderCell(cut, "City").QuerySelector(".moka-table-sort-icon--active"));
 		Assert.Null(HeaderCell(cut, "Name").QuerySelector(".moka-table-sort-icon--active"));
 	}
 
-	// The parent passing the same values back is not a new sort, so an unbound parent re-render
+	// The parent passing an equal state again is not a new sort, so an unbound parent re-render
 	// keeps the user's header click.
 	[Fact]
 	public async Task SameSortFromTheParent_KeepsTheHeaderClick()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Ascending));
+			.Add(t => t.State, SortedBy("Age", MokaSortDirection.Ascending)));
 		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs());
 
-		cut.Render(p => p
-			.Add(t => t.SortColumn, "Age")
-			.Add(t => t.SortDirection, MokaSortDirection.Ascending));
+		cut.Render(p => p.Add(t => t.State, SortedBy("Age", MokaSortDirection.Ascending)));
 
 		Assert.Equal(["Ada", "Alan", "Barbara", "Grace"], ColumnTexts(cut, 0));
 	}
 
-	// @bind-SortColumn hands back what the table just reported. Treating that as a new value made
+	// @bind-State hands back what the table just reported. Treating that as a new value made
 	// every header click load the rows a second time.
 	[Fact]
 	public async Task BoundSort_LoadsOncePerHeaderClick()
@@ -91,17 +82,16 @@ public class MokaTableSortTests : BunitContext
 				return Task.FromResult(new MokaTableResult<Person> { Items = People, TotalItems = People.Length });
 			}));
 		IRenderedComponent<MokaTable<Person>> cut = host.FindComponent<MokaTable<Person>>();
+		cut.WaitForAssertion(() => Assert.NotEmpty(DataRows(cut)));
 		loads = 0;
 
 		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs());
 
 		Assert.Equal(1, loads);
-		Assert.Equal("Name", host.Instance.SortColumn);
-		Assert.Equal(MokaSortDirection.Ascending, host.Instance.SortDirection);
+		Assert.Equal(new MokaTableSort("Name", MokaSortDirection.Ascending), Assert.Single(host.Instance.State!.Sorts!));
 	}
 
-	// The bound values name only the first sorted column. Handing them back must not collapse a
-	// multi-column sort to that one column.
+	// Handing the bound state back must not collapse a multi-column sort to its first column.
 	[Fact]
 	public async Task BoundSort_KeepsAMultiColumnSort()
 	{
@@ -151,13 +141,13 @@ public class MokaTableSortTests : BunitContext
 	}
 
 	// Sortable defaults to true, and a column with no Field and no comparer offered a sort that
-	// did nothing but light up its icon and raise SortColumnChanged.
+	// did nothing but light up its icon and raise a sort change.
 	[Fact]
 	public async Task ColumnWithNothingToSortBy_IsNotSortable()
 	{
-		var reported = new List<string?>();
+		var reported = new List<MokaTableState>();
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.SortColumnChanged, c => reported.Add(c)),
+			p => p.Add(t => t.StateChanged, s => reported.Add(s)),
 			[Name, new Col("Actions", null) { CellTemplate = _ => b => b.AddContent(0, "edit") }]);
 		IElement actions = HeaderCell(cut, "Actions");
 		Assert.DoesNotContain("moka-table-header--sortable", actions.ClassList);
@@ -173,28 +163,28 @@ public class MokaTableSortTests : BunitContext
 	[Fact]
 	public async Task ServerData_ColumnWithoutAField_IsSortable()
 	{
-		var requests = new List<MokaTableState>();
+		var requests = new List<MokaTableRequest>();
 		IRenderedComponent<MokaTable<Person>> cut = RenderServerTable(requests, [Name, new Col("Custom", null)]);
 
 		await HeaderCell(cut, "Custom").ClickAsync(new MouseEventArgs());
 
-		Assert.Equal("Custom", requests[^1].SortColumn);
+		Assert.Equal("Custom", Assert.Single(requests[^1].Sorts).Column);
 	}
 
-	// The state handed to ServerData shared its descriptors with the table, which changes them in
-	// place on the next click, so a state the source kept was rewritten behind its back.
+	// The request handed to ServerData shared its sorts with the table, which changes them in
+	// place on the next click, so a request the source kept was rewritten behind its back.
 	[Fact]
 	public async Task ServerData_KeepsTheSortItWasGiven()
 	{
-		var requests = new List<MokaTableState>();
+		var requests = new List<MokaTableRequest>();
 		IRenderedComponent<MokaTable<Person>> cut = RenderServerTable(requests, [Name, Team], multiSort: true);
 
 		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs { ShiftKey = true });
-		MokaTableState ascending = requests[^1];
+		MokaTableRequest ascending = requests[^1];
 		await HeaderCell(cut, "Name").ClickAsync(new MouseEventArgs { ShiftKey = true });
 
-		Assert.Equal(MokaSortDirection.Ascending, Assert.Single(ascending.SortDescriptors).Direction);
-		Assert.Equal(MokaSortDirection.Descending, Assert.Single(requests[^1].SortDescriptors).Direction);
+		Assert.Equal(MokaSortDirection.Ascending, Assert.Single(ascending.Sorts).Direction);
+		Assert.Equal(MokaSortDirection.Descending, Assert.Single(requests[^1].Sorts).Direction);
 	}
 
 	[Fact]
@@ -317,7 +307,7 @@ public class MokaTableSortTests : BunitContext
 		});
 
 	private IRenderedComponent<MokaTable<Person>> RenderServerTable(
-		List<MokaTableState> requests, Col[] columns, bool multiSort = false) =>
+		List<MokaTableRequest> requests, Col[] columns, bool multiSort = false) =>
 		Render<MokaTable<Person>>(p => p
 			.Add(t => t.ServerData, state =>
 			{
@@ -327,22 +317,19 @@ public class MokaTableSortTests : BunitContext
 			.Add(t => t.MultiSort, multiSort)
 			.Add(t => t.ChildContent, Columns(columns)));
 
-	/// <summary>A parent that binds SortColumn and SortDirection both ways.</summary>
+	/// <summary>A parent that binds the state both ways.</summary>
 	private sealed class BoundSortHost : ComponentBase
 	{
 		/// <summary>Rows from a server-side source; the kit's people when not set.</summary>
 		[Parameter]
-		public Func<MokaTableState, Task<MokaTableResult<Person>>>? ServerData { get; set; }
+		public Func<MokaTableRequest, Task<MokaTableResult<Person>>>? ServerData { get; set; }
 
 		/// <summary>Passed on to the table.</summary>
 		[Parameter]
 		public bool MultiSort { get; set; }
 
-		/// <summary>The bound sort column.</summary>
-		public string? SortColumn { get; private set; }
-
-		/// <summary>The bound sort direction.</summary>
-		public MokaSortDirection SortDirection { get; private set; }
+		/// <summary>The bound state.</summary>
+		public MokaTableState? State { get; private set; }
 
 		/// <inheritdoc />
 		protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -359,13 +346,10 @@ public class MokaTableSortTests : BunitContext
 			}
 
 			builder.AddComponentParameter(3, nameof(MokaTable<Person>.MultiSort), MultiSort);
-			builder.AddComponentParameter(4, nameof(MokaTable<Person>.SortColumn), SortColumn);
-			builder.AddComponentParameter(5, nameof(MokaTable<Person>.SortColumnChanged),
-				EventCallback.Factory.Create<string?>(this, value => SortColumn = value));
-			builder.AddComponentParameter(6, nameof(MokaTable<Person>.SortDirection), SortDirection);
-			builder.AddComponentParameter(7, nameof(MokaTable<Person>.SortDirectionChanged),
-				EventCallback.Factory.Create<MokaSortDirection>(this, value => SortDirection = value));
-			builder.AddComponentParameter(8, nameof(MokaTable<Person>.ChildContent), DefaultColumns);
+			builder.AddComponentParameter(4, nameof(MokaTable<Person>.State), State);
+			builder.AddComponentParameter(5, nameof(MokaTable<Person>.StateChanged),
+				EventCallback.Factory.Create<MokaTableState>(this, value => State = value));
+			builder.AddComponentParameter(6, nameof(MokaTable<Person>.ChildContent), DefaultColumns);
 			builder.CloseComponent();
 		}
 	}

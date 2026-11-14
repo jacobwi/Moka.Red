@@ -1,0 +1,21 @@
+<DemoSection Id="basics" Title="Basics" Description="Drag the divider, or focus it and use the arrow keys. Shift steps by ten.">
+	<div style="max-width: 640px;">
+		<MokaImageCompare @bind-Position="_comparePosition"
+		                  BeforeSrc="samples/compare-before.svg"
+		                  AfterSrc="samples/compare-after.svg"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Divider: @_comparePosition.ToString("0")%</MokaText>
+	</div>
+</DemoSection>
+
+<DemoSection Id="top-and-bottom" Title="Top and bottom">
+	<div style="max-width: 480px;">
+		<MokaImageCompare Orientation="MokaImageCompareOrientation.Vertical"
+		                  BeforeSrc="samples/compare-before.svg"
+		                  AfterSrc="samples/compare-after.svg"
+		                  BeforeLabel="Draft" AfterLabel="Final"/>
+	</div>
+</DemoSection>
+
+@code {
+	private double _comparePosition = 50;
+}

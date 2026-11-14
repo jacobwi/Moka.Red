@@ -1,0 +1,76 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The buttons, in the order they are drawn.</summary>
+	[Parameter]
+	[EditorRequired]
+	public virtual IReadOnlyList<MokaTableAction<TItem>>? Actions { get; set; }
+
+	/// <summary>The buttons each row draws: <see cref="Actions" />, or for a kind that makes its own, those.</summary>
+	protected virtual IReadOnlyList<MokaTableAction<TItem>>? DrawnActions => Actions;
+
+	/// <summary>When the buttons show. Default always.</summary>
+	[Parameter]
+	public MokaActionsReveal Reveal { get; set; }
+
+	/// <inheritdoc />
+	/// <remarks>The buttons sit at the row's end.</remarks>
+	public override MokaTextAlign Align { get; set; } = MokaTextAlign.Right;
+
+	/// <inheritdoc />
+	/// <remarks>Nothing to sort, filter, search or export.</remarks>
+	protected internal override bool HasValue => false;
+
+	/// <inheritdoc />
+	protected internal override string? KindName => Words.Actions;
+
+	// Plain buttons with no click handler of their own: the table hears every row's through one listener and calls
+	// HandleCellActionAsync with the button's position in Actions, so a row costs no handler and no button component.
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+		@<span class="@ButtonsClass">
+			@for (var i = 0; i < (DrawnActions?.Count ?? 0); i++)
+			{
+				MokaTableAction<TItem> action = DrawnActions![i];
+				string act = ActionAttribute(i.ToString(CultureInfo.InvariantCulture));
+				if (action.Hidden?.Invoke(item) == true)
+				{
+					continue;
+				}
+
+				<MokaTooltip Text="@action.Label" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="@ButtonClass(action)" aria-label="@action.Label"
+					        disabled="@(action.Disabled?.Invoke(item) == true)"
+					        data-moka-act="@act">
+						<MokaIcon Icon="action.Icon" SizeValue="16px"/>
+					</button>
+				</MokaTooltip>
+			}
+		</span>;
+
+	/// <inheritdoc />
+	protected internal override Task HandleCellActionAsync(TItem item, string action, MouseEventArgs click) =>
+		int.TryParse(action, NumberStyles.None, CultureInfo.InvariantCulture, out int index)
+		&& DrawnActions is { } actions && index < actions.Count
+		&& actions[index].Hidden?.Invoke(item) != true && actions[index].Disabled?.Invoke(item) != true
+			? actions[index].OnClick(item)
+			: Task.CompletedTask;
+
+	private static string ButtonClass(MokaTableAction<TItem> action) => new CssBuilder("moka-actions-btn")
+		.AddClass("moka-actions-btn--error", action.Color == MokaColor.Error)
+		.Build();
+
+	// The buttons by their names, so a list rebuilt on every render with the same buttons doesn't draw the table twice,
+	// and a new set of buttons draws in the same render.
+	/// <inheritdoc />
+	protected override object? KindSettings =>
+		(Reveal, DrawnActions is not { } actions ? null : string.Join('\n', actions.Select(static action => action.Label)));
+
+	private string ButtonsClass => new CssBuilder("moka-actions-cell")
+		.AddClass("moka-actions-cell--on-hover", Reveal == MokaActionsReveal.OnHover)
+		.Build();
+}

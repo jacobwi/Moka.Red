@@ -1,0 +1,68 @@
+<DemoSection Id="simple-3-column-grid" Title="Simple 3-column grid" Description="A CSS grid with a column count per breakpoint.">
+	<MokaGrid Columns="3" Gap="MokaSpacingScale.Sm">
+		@for (var i = 1; i <= 6; i++)
+		{
+			<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-sm);">Item @i</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="responsive-grid-1-col-base-2-col-md-4" Title="Responsive grid (1 col base, 2 col md, 4 col lg)">
+	<MokaGrid Columns="1" ColumnsMd="2" ColumnsLg="4" Gap="MokaSpacingScale.Sm">
+		@for (var i = 1; i <= 8; i++)
+		{
+			<div style="padding: var(--moka-spacing-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-sm);">Card @i</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="custom-template-grid" Title="Custom template grid">
+	<MokaGrid ColumnsValue="200px 1fr 1fr" Gap="MokaSpacingScale.Md">
+		<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-secondary); color: var(--moka-color-on-secondary); border-radius: var(--moka-radius-md);">Sidebar (200px)</div>
+		<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">Main (1fr)</div>
+		<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md);">Aside (1fr)</div>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="grid-with-different-gaps" Title="Grid with different gaps">
+	<MokaGrid Columns="3" Gap="MokaSpacingScale.Xs" RowGap="MokaSpacingScale.Lg">
+		@for (var i = 1; i <= 9; i++)
+		{
+			<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-xs);">@i</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="custom-breakpoints" Title="Custom breakpoints" Description="One column, then two, three and five as the window widens. Breakpoints takes any widths, not only presets.">
+	<MokaGrid Columns="1" Gap="MokaSpacingScale.Sm" Breakpoints="@_gridBreakpoints">
+		@for (var i = 1; i <= 10; i++)
+		{
+			<div style="padding: var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-sm);">@i</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="gaps-that-change-at-breakpoints" Title="Gaps that change at breakpoints">
+	<MokaGrid Columns="2" Gap="MokaSpacingScale.Xs" Breakpoints="@_gapBreakpoints">
+		@for (var i = 1; i <= 6; i++)
+		{
+			<div style="padding: var(--moka-spacing-md); background: var(--moka-color-primary); color: var(--moka-color-on-primary); border-radius: var(--moka-radius-md); text-align: center;">Card @i</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+@code {
+	private static readonly MokaBreakpoint[] _gridBreakpoints =
+	[
+		new() { MinWidth = "600px", Columns = 2 },
+		new() { MinWidth = "900px", Columns = 3, Gap = MokaSpacingScale.Md },
+		new() { MinWidth = "1200px", Columns = 5, Gap = MokaSpacingScale.Lg }
+	];
+
+
+	private static readonly MokaBreakpoint[] _gapBreakpoints =
+	[
+		new() { MinWidth = "768px", Columns = 3, Gap = MokaSpacingScale.Md },
+		new() { MinWidth = "1024px", Columns = 3, Gap = MokaSpacingScale.Xl }
+	];
+}

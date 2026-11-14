@@ -1,0 +1,48 @@
+<DemoSection Id="basic-fab-inline-demo" Title="Basic FAB (inline demo)" Description="The page's main action, fixed to a corner. Extended shows its label.">
+	<MokaText Size="MokaSize.Sm" Style="opacity:0.6; margin-bottom:8px;">Shown inline for demo purposes. In production, the FAB is fixed to a viewport corner.</MokaText>
+	<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Add" OnClick="() => { }" Style="position:absolute;"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="extended-fab" Title="Extended FAB">
+	<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended="true" Label="New Item" OnClick="() => { }" Style="position:absolute;"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="busy" Title="Busy">
+	<p class="page-desc">Each one runs a two-second save, with a spinner in the icon's place. Presses that ran: @_fabRuns</p>
+	<div style="position:relative; height:100px; border:1px dashed var(--moka-color-outline-variant); border-radius:var(--moka-radius-md); overflow:hidden;">
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Add" Extended="true" Label="New Item" Loading="_fabBusy" LoadingText="Adding"
+		                          OnClick="RunFabAsync" Style="position:absolute;"/>
+		<MokaFloatingActionButton Icon="MokaIcons.Action.Save" Label="Save" Position="MokaFabPosition.BottomLeft" Loading="_fabSaving"
+		                          LoadingText="Saving" OnClick="RunFabSaveAsync" Style="position:absolute;"/>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
+
+	private bool _fabBusy;
+
+	private bool _fabSaving;
+
+	private int _fabRuns;
+
+	private async Task RunFabAsync()
+	{
+		_fabBusy = true;
+		_fabRuns++;
+		await Task.Delay(SaveTime);
+		_fabBusy = false;
+	}
+
+	private async Task RunFabSaveAsync()
+	{
+		_fabSaving = true;
+		_fabRuns++;
+		await Task.Delay(SaveTime);
+		_fabSaving = false;
+	}
+}

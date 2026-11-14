@@ -1,0 +1,210 @@
+@inject IMokaToastService ToastService
+
+<DemoSection Id="basics" Title="Basics" Description="A short message that comes and goes, sent through IMokaToastService." Tip="AddMokaRed registers the service. The layout still needs one MokaToastHost to draw the toasts.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton OnClick="@(() => ToastService.ShowInfo("This is an informational message."))" Color="MokaColor.Info" Variant="MokaVariant.Soft">Info Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowSuccess("Operation completed successfully!"))" Color="MokaColor.Success" Variant="MokaVariant.Soft">Success Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowWarning("Please check your input."))" Color="MokaColor.Warning" Variant="MokaVariant.Soft">Warning Toast</MokaButton>
+			<MokaButton OnClick="@(() => ToastService.ShowError("Something went wrong!"))" Color="MokaColor.Error" Variant="MokaVariant.Soft">Error Toast</MokaButton>
+		</div>
+		<div class="button-row" style="margin-top: var(--moka-spacing-sm);">
+			<MokaButton OnClick="ShowTitledToast" Variant="MokaVariant.Outlined">Toast with Title</MokaButton>
+			<MokaButton OnClick="ShowActionToast" Variant="MokaVariant.Outlined">Toast with Action</MokaButton>
+			<MokaButton OnClick="ShowPersistentToast" Variant="MokaVariant.Outlined">Persistent Toast</MokaButton>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="ShowInfo, ShowSuccess">And ShowWarning and ShowError: the quick calls, each returning a handle</DemoParam>
+		<DemoParam Name="Title">Set in the options callback</DemoParam>
+		<DemoParam Name="ActionText, OnAction">A button in the toast, like Undo</DemoParam>
+		<DemoParam Name="Duration">How long it shows while it can be read; null keeps it until it is closed</DemoParam>
+		<DemoParam Name="MokaToastHost">One in the layout, with Position and offsets</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="updating-a-toast" Title="Updating a toast" Description="Show returns a MokaToastHandle. Update changes the toast in place, so one toast can say it is working and then say how it went.">
+	<MokaButton Variant="MokaVariant.Outlined" OnClick="SaveDraftAsync">Save the draft</MokaButton>
+</DemoSection>
+
+<DemoSection Id="one-toast-per-key" Title="One toast per key" Description="A Key names what a toast is about. A later toast with the same key takes its place rather than stacking under it.">
+	<div class="button-row">
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => ShowSyncState("Syncing 12 files", MokaToastSeverity.Info))">Start syncing</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => ShowSyncState("Sync paused: the connection dropped", MokaToastSeverity.Warning))">Lose the connection</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => ShowSyncState("All files are up to date", MokaToastSeverity.Success))">Finish</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tracking-a-task" Title="Tracking a task" Description="Track shows one toast while a task runs and turns it into the result. The task it returns ends as yours does, so a failure still reaches your code.">
+	<div class="button-row">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Success" OnClick="ExportReportAsync">Export a report</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error" OnClick="ImportFileAsync">Import a broken file</MokaButton>
+	</div>
+	<MokaCaption>@_trackNote</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="progress" Title="Progress" Description="A toast with Progress stays while the work runs and shows how far it got. Each button uploads with one of the five progress looks. The looks draw on the new design; MokaTheme.Dark and Light draw Spinner.">
+	<div class="button-row">
+		@foreach (MokaToastProgressLook look in ProgressLooks)
+		{
+			<MokaButton @key="look" Variant="MokaVariant.Outlined" OnClick="() => UploadAsync(look)">@look</MokaButton>
+		}
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="ShowWorking">Indeterminate</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="repeats" Title="Repeats" Description="Press a button a few times. A repeat is a toast with the same key, or with the same severity, title and message. Stack shows each one, Count keeps one toast with a count, and Replace keeps the newest words.">
+	<div class="button-row">
+		@foreach (MokaToastRepeats repeats in RepeatModes)
+		{
+			<MokaButton @key="repeats" Variant="MokaVariant.Outlined" OnClick="() => ShowRepeat(repeats)">@repeats</MokaButton>
+		}
+	</div>
+</DemoSection>
+
+<DemoSection Id="also-in-the-center" Title="Also in the notification center" Description="AlsoInCenter puts the toast in the notification center as well, where it stays after the toast has gone. Its action comes along as a button there.">
+	<div class="button-row" style="align-items: center;">
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="ShowBackupDone">Finish a backup</MokaButton>
+		<MokaNotificationCenter/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="in-markup" Title="A toast in markup" Description="MokaToast ties a toast to page state and renders nothing where it stands; the host draws it with every other toast. When it goes on its own, OpenChanged says so.">
+	<div class="button-row" style="align-items: center;">
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="() => _savedShown = true">Save</MokaButton>
+		<MokaText Size="MokaSize.Sm">Showing: @(_savedShown ? "yes" : "no"). Undone @_undoCount times.</MokaText>
+	</div>
+	<MokaToast @bind-Open="_savedShown" Message="Saved" Severity="MokaToastSeverity.Success"
+	           ActionText="Undo" OnAction="() => _undoCount++"/>
+</DemoSection>
+
+@code {
+	private static readonly MokaToastProgressLook[] ProgressLooks = Enum.GetValues<MokaToastProgressLook>();
+
+	private static readonly MokaToastRepeats[] RepeatModes = Enum.GetValues<MokaToastRepeats>();
+
+	private void ShowTitledToast()
+	{
+		ToastService.ShowSuccess("Your file has been saved.", o => { o.Title = "File Saved"; });
+	}
+
+	private void ShowActionToast()
+	{
+		ToastService.Show("Email moved to trash.", MokaToastSeverity.Info, o =>
+		{
+			o.ActionText = "Undo";
+			o.OnAction = () => ToastService.ShowInfo("Undo clicked!");
+		});
+	}
+
+	private void ShowPersistentToast()
+	{
+		ToastService.ShowWarning("This toast will not auto-dismiss.", o =>
+		{
+			o.Title = "Persistent";
+			o.Duration = null;
+		});
+	}
+
+	private async Task SaveDraftAsync()
+	{
+		MokaToastHandle toast = ToastService.ShowInfo("Saving the draft", o => o.Progress = MokaToastProgress.Indeterminate);
+		await Task.Delay(1500);
+		toast.Update(o =>
+		{
+			o.Message = "Draft saved";
+			o.Severity = MokaToastSeverity.Success;
+			o.Progress = null;
+		});
+	}
+
+	private void ShowSyncState(string message, MokaToastSeverity severity) =>
+		ToastService.Show(message, severity, o => o.Key = "sync");
+
+	private string _trackNote = "Nothing tracked yet.";
+
+	private async Task ExportReportAsync()
+	{
+		int rows = await ToastService.Track(
+			CountRowsAsync(),
+			loading: "Exporting the report",
+			success: count => $"Exported {count:N0} rows",
+			failure: ex => $"Export failed: {ex.Message}");
+		_trackNote = $"The export returned {rows:N0} rows.";
+	}
+
+	private async Task ImportFileAsync()
+	{
+		try
+		{
+			await ToastService.Track(
+				ReadBrokenFileAsync(),
+				loading: "Importing contacts.csv",
+				success: "Imported contacts.csv",
+				failure: ex => $"Import failed: {ex.Message}");
+		}
+		catch (InvalidDataException ex)
+		{
+			_trackNote = $"The page caught the failure too: {ex.Message}";
+		}
+	}
+
+	private static async Task<int> CountRowsAsync()
+	{
+		await Task.Delay(1500);
+		return 1284;
+	}
+
+	private static async Task ReadBrokenFileAsync()
+	{
+		await Task.Delay(1500);
+		throw new InvalidDataException("line 12 has 3 columns, 4 expected");
+	}
+
+	private async Task UploadAsync(MokaToastProgressLook look)
+	{
+		MokaToastHandle toast = ToastService.ShowInfo("Uploading report.pdf", o =>
+		{
+			o.Progress = 0;
+			o.ProgressLook = look;
+		});
+
+		for (int step = 1; step <= 20; step++)
+		{
+			await Task.Delay(150);
+			double share = step / 20d;
+			toast.Update(o => o.Progress = share);
+		}
+
+		toast.Update(o =>
+		{
+			o.Message = "Uploaded report.pdf";
+			o.Severity = MokaToastSeverity.Success;
+			o.Progress = null;
+		});
+	}
+
+	private void ShowWorking() =>
+		ToastService.ShowInfo("Checking for updates", o =>
+		{
+			o.Progress = MokaToastProgress.Indeterminate;
+			o.ActionText = "Stop";
+			o.OnAction = () => ToastService.ShowInfo("Stopped checking");
+		});
+
+	private void ShowRepeat(MokaToastRepeats repeats) =>
+		ToastService.ShowError($"Connection lost ({repeats})", o => o.Repeats = repeats);
+
+	private void ShowBackupDone() =>
+		ToastService.ShowSuccess("Copied 1.2 GB to the backup drive.", o =>
+		{
+			o.Title = "Backup finished";
+			o.AlsoInCenter = true;
+			o.ActionText = "Open";
+			o.OnAction = () => ToastService.ShowInfo("Opening the backup drive");
+		});
+
+	private bool _savedShown;
+
+	private int _undoCount;
+}

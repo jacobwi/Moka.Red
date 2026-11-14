@@ -13,15 +13,33 @@ public partial class MokaPagination : MokaComponentBase
 {
 	private int _cachedCurrentPage;
 	private int _cachedTotalPages;
-	private int _currentPage = 1;
-	private int? _lastCurrentPage;
-	private int? _lastPageSize;
-	private int _pageSize = 10;
+	private readonly MokaInputValue<int> _pageSize;
+	private readonly MokaInputValue<int> _page;
 	private List<int> _visiblePages = [];
+	private bool _cachedOpen;
 
-	/// <summary>Total number of items across all pages.</summary>
+	/// <summary>Creates the pager.</summary>
+	public MokaPagination()
+	{
+		_pageSize = new MokaInputValue<int>(ShowParentValue, DispatchExceptionAsync, 10);
+		_page = new MokaInputValue<int>(ShowParentValue, DispatchExceptionAsync, 1);
+	}
+
+	// The page and the page size are the parent's when it passes them and listens: a page it refuses, such as one past
+	// the end of a source that doesn't count, goes back on screen once its handler has run.
+	private int CurrentPageShown => _page.Shown;
+
+	/// <summary>Total number of items across all pages, or the items known so far while <see cref="HasMore" /> is set.</summary>
 	[Parameter]
 	public int TotalItems { get; set; }
+
+	/// <summary>
+	///     For a source that doesn't count its items: whether there is a page after the last one counted. Null, the
+	///     default, means <see cref="TotalItems" /> is the whole count. Set, the pager offers the next page while it is
+	///     true, draws no last page and says "21-30 of more" instead of a total.
+	/// </summary>
+	[Parameter]
+	public bool? HasMore { get; set; }
 
 	/// <summary>Items per page. Default 10. Two-way bindable.</summary>
 	[Parameter]
@@ -75,8 +93,14 @@ public partial class MokaPagination : MokaComponentBase
 	[Parameter]
 	public MokaPaginationStickyPosition StickyPosition { get; set; } = MokaPaginationStickyPosition.Bottom;
 
+	/// <summary>Every word the pager writes. Null, the default, is <see cref="MokaPaginationText.Default" />, in English.</summary>
+	[Parameter]
+	public MokaPaginationText? Text { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-pagination";
+
+	private MokaPaginationText Words => Text ?? MokaPaginationText.Default;
 
 	// The bar sits under the list it pages, so the arrows' names open above it, over the list, unless it is
 	// pinned to the top. Where there is no room the tooltip moves to the side that has some.
@@ -92,12 +116,28 @@ public partial class MokaPagination : MokaComponentBase
 		.AddClass(Class)
 		.Build();
 
-	private int TotalPages => _pageSize > 0 ? (int)Math.Ceiling((double)TotalItems / _pageSize) : 0;
-	private int StartItem => TotalItems == 0 ? 0 : (_currentPage - 1) * _pageSize + 1;
-	private int EndItem => Math.Min(_currentPage * _pageSize, TotalItems);
+	private int PageSizeShown => _pageSize.Shown;
 
-	private bool IsFirstPage => _currentPage <= 1;
-	private bool IsLastPage => _currentPage >= TotalPages;
+	private int CountedPages => PageSizeShown > 0 ? (int)Math.Ceiling((double)TotalItems / PageSizeShown) : 0;
+
+	// With an open count the pages run to the one shown, and one more while the source says there is more.
+	private int TotalPages => HasMore is { } more ? Math.Max(CountedPages, CurrentPageShown + (more ? 1 : 0)) : CountedPages;
+
+	private bool OpenCount => HasMore is not null;
+
+	private bool ShowLastPage => !OpenCount;
+
+	private int StartItem => TotalItems == 0 ? 0 : (CurrentPageShown - 1) * PageSizeShown + 1;
+	private int EndItem => Math.Min(CurrentPageShown * PageSizeShown, TotalItems);
+
+	private string RangeText => HasMore == true
+		? Words.RangeOpen(StartItem, EndItem)
+		: Words.Range(StartItem, EndItem, TotalItems);
+
+	private string CompactText => OpenCount ? Words.PageOpen(CurrentPageShown) : Words.PageOfPages(CurrentPageShown, TotalPages);
+
+	private bool IsFirstPage => CurrentPageShown <= 1;
+	private bool IsLastPage => CurrentPageShown >= TotalPages;
 
 	private bool ShowStartEllipsis { get; set; }
 
@@ -108,7 +148,7 @@ public partial class MokaPagination : MokaComponentBase
 
 	private string PageCssClass(int page) => new CssBuilder("moka-pagination-btn")
 		.AddClass("moka-pagination-page")
-		.AddClass("moka-pagination-page--active", page == _currentPage)
+		.AddClass("moka-pagination-page--active", page == CurrentPageShown)
 		.Build();
 
 	// The first and last page buttons and the ellipses stay in the layout while hidden, so the bar
@@ -128,13 +168,14 @@ public partial class MokaPagination : MokaComponentBase
 	private void UpdateVisiblePages()
 	{
 		int totalPages = TotalPages;
-		if (_cachedCurrentPage == _currentPage && _cachedTotalPages == totalPages)
+		if (_cachedCurrentPage == CurrentPageShown && _cachedTotalPages == totalPages && _cachedOpen == OpenCount)
 		{
 			return;
 		}
 
-		_cachedCurrentPage = _currentPage;
+		_cachedCurrentPage = CurrentPageShown;
 		_cachedTotalPages = totalPages;
+		_cachedOpen = OpenCount;
 
 		var pages = new List<int>();
 		if (totalPages <= MaxVisiblePages)
@@ -147,7 +188,7 @@ public partial class MokaPagination : MokaComponentBase
 		else
 		{
 			int half = MaxVisiblePages / 2;
-			int start = Math.Max(1, _currentPage - half);
+			int start = Math.Max(1, CurrentPageShown - half);
 			int end = Math.Min(totalPages, start + MaxVisiblePages - 1);
 
 			if (end - start + 1 < MaxVisiblePages)
@@ -163,62 +204,68 @@ public partial class MokaPagination : MokaComponentBase
 
 		_visiblePages = pages;
 		ShowStartEllipsis = TotalPages > MaxVisiblePages && _visiblePages.Count > 0 && _visiblePages[0] > 1;
-		ShowEndEllipsis = TotalPages > MaxVisiblePages && _visiblePages.Count > 0 && _visiblePages[^1] < TotalPages;
+		ShowEndEllipsis = ShowLastPage && TotalPages > MaxVisiblePages && _visiblePages.Count > 0 && _visiblePages[^1] < TotalPages;
 	}
 
-	private async Task GoToPage(int page)
+	private void GoToPage(int page)
 	{
-		if (page < 1 || page > TotalPages || page == _currentPage)
+		if (page < 1 || page > TotalPages || page == CurrentPageShown)
 		{
 			return;
 		}
 
-		_currentPage = page;
+		_page.Pick(page, CurrentPageChanged);
 		UpdateVisiblePages();
-		if (CurrentPageChanged.HasDelegate)
-		{
-			await CurrentPageChanged.InvokeAsync(page);
-		}
 	}
 
-	private async Task HandlePageSizeChange(ChangeEventArgs e)
+	// The parent owns the size when it passes one and listens: a size it refuses goes back on screen once its handler
+	// has run, through @bind on the select.
+	private void PickPageSize(int size)
 	{
-		if (int.TryParse(e.Value?.ToString(), out int size) && size > 0)
+		if (size <= 0)
 		{
-			_pageSize = size;
-			_currentPage = 1;
-			UpdateVisiblePages();
-			if (PageSizeChanged.HasDelegate)
-			{
-				await PageSizeChanged.InvokeAsync(size);
-			}
-
-			if (CurrentPageChanged.HasDelegate)
-			{
-				await CurrentPageChanged.InvokeAsync(1);
-			}
+			return;
 		}
+
+		_pageSize.Pick(size, PageSizeChanged);
+		_page.Pick(1, CurrentPageChanged);
+		UpdateVisiblePages();
+	}
+
+	private void ShowParentValue()
+	{
+		UpdateVisiblePages();
+		StateHasChanged();
+	}
+
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_pageSize.Take(parameters, nameof(PageSize));
+		_page.Take(parameters, nameof(CurrentPage));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_pageSize.AfterRender();
+		_page.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_pageSize.Stop();
+		_page.Stop();
+		return base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-
-		// CurrentPage and PageSize only seed the pager when the parent passes a new value. Copying
-		// them on every parent render sent an unbound pager back to the page it started on.
-		if (_lastCurrentPage != CurrentPage)
-		{
-			_lastCurrentPage = CurrentPage;
-			_currentPage = CurrentPage;
-		}
-
-		if (_lastPageSize != PageSize)
-		{
-			_lastPageSize = PageSize;
-			_pageSize = PageSize;
-		}
-
 		UpdateVisiblePages();
 	}
 }

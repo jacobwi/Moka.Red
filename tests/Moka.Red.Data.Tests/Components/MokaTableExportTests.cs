@@ -1,6 +1,7 @@
 using System.Text;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Moka.Red.Data.Table;
 using static Moka.Red.Data.Tests.Components.TableKit;
 
@@ -30,8 +31,10 @@ public class MokaTableExportTests : BunitContext
 
 		await cut.Find("button[aria-label='Export']").ClickAsync(new MouseEventArgs());
 
-		string csv = Encoding.UTF8.GetString(
-			Convert.FromBase64String((string)module.VerifyInvoke("downloadCsv").Arguments[0]!));
+		JSRuntimeInvocation download = module.VerifyInvoke("downloadFile");
+		byte[] bytes = ((MemoryStream)((DotNetStreamReference)download.Arguments[1]!).Stream).ToArray();
+		Assert.Equal(Encoding.UTF8.GetPreamble(), bytes[..3]);
+		string csv = Encoding.UTF8.GetString(bytes[3..]);
 		string[] lines = csv.Split(Environment.NewLine);
 		Assert.Equal("Name,Team,Age,City", lines[0]);
 		Assert.Equal("\"'=HYPERLINK(\"\"https://example.com\"\")\",+1,-5,'@SUM(A1)", lines[1]);

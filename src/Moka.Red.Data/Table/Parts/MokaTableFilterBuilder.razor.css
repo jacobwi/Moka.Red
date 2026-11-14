@@ -1,0 +1,101 @@
+.moka-table-builder {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table-builder-join {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-table-builder-join-choice {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	cursor: pointer;
+}
+
+.moka-table-builder-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-table-builder-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-table-builder-control {
+	min-width: 0;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-table-builder-control:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-builder-values {
+	min-width: calc(var(--moka-control-height) * 4);
+}
+
+.moka-table-builder-and,
+.moka-table-builder-none,
+.moka-table-builder-join-label {
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-table-builder-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	cursor: pointer;
+}
+
+.moka-table-builder-remove:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-builder-remove:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-builder-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-table-builder-spacer {
+	flex: 1 1 auto;
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+.moka-gate .moka-table-builder .moka-table-builder-control { border-color: var(--moka-color-outline); border-radius: var(--moka-radius-md); }

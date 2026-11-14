@@ -99,10 +99,10 @@
 	// Templates, not local functions: they render inside MokaSelect and MokaTooltip, which have builders of their own.
 	private RenderFragment SelectField => @<MokaSelect TValue="string"
 	                                                    Items="_codes"
-	                                                    Value="@(_chosen!)"
+	                                                    Value="@(CurrentValue!)"
 	                                                    ValueChanged="OnSelectValueChanged"
 	                                                    Multiple="@ListMultiple"
-	                                                    SelectedValues="_chosenList"
+	                                                    SelectedValues="ChosenCodes"
 	                                                    SelectedValuesChanged="OnSelectValuesChanged"
 	                                                    Searchable="true"
 	                                                    SearchItems="@(ExtendedSearch ? SearchCountries : null)"

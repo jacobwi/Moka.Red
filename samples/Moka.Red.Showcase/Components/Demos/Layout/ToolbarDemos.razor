@@ -1,0 +1,101 @@
+<DemoSection Id="basics" Title="Basics" Description="A row of grouped controls.">
+	<div style="max-width: 600px;">
+		<MokaToolbar>
+			<MokaToolbarGroup>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">B</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">I</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">U</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaToolbarGroup Label="Align">
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">L</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">C</MokaButton>
+				<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm">R</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Link">Link</MokaButton>
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Image">Image</MokaButton>
+		</MokaToolbar>
+	</div>
+</DemoSection>
+
+<DemoSection Id="groups-ranked" Title="Groups, ranked" Description="Expandable keeps one row: controls drop whole by Priority, and a More button opens the bar onto more rows. Drag the corner to narrow the box.">
+	<div class="showcase-resize">
+		<MokaToolbar Expandable>
+			<MokaToolbarGroup Label="File" Priority="10">
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Save</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Export</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaToolbarGroup Label="Text" Priority="5">
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Bold</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Italic</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Link</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaToolbarGroup Label="Insert">
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Image</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Table</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Quote</MokaButton>
+			</MokaToolbarGroup>
+			<MokaToolbarDivider/>
+			<MokaToolbarGroup Label="Review" Priority="-1">
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Comment</MokaButton>
+				<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text">Suggest</MokaButton>
+			</MokaToolbarGroup>
+		</MokaToolbar>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-spacer-pushes-the-last-controls-to-the" Title="A spacer pushes the last controls to the end">
+	<div class="showcase-resize">
+		<MokaToolbar Expandable Dense="false">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">New</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">Open</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft">Share</MokaButton>
+			<MokaSpacer/>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" data-moka-priority="5">Settings</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Help</MokaButton>
+		</MokaToolbar>
+	</div>
+</DemoSection>
+
+<DemoSection Id="anything-can-drop-a-search-box-and-a" Title="Anything can drop: a search box and a select">
+	<div class="showcase-resize">
+		<MokaToolbar Expandable Dense="false">
+			<div style="flex: 1 1 12rem; min-width: 8rem;" data-moka-priority="10">
+				<MokaSearchInput @bind-Value="_search" Placeholder="Search" Size="MokaSize.Sm"/>
+			</div>
+			<div style="width: 9rem;" data-moka-priority="5">
+				<MokaSelect TValue="string" Items="@_sorts" @bind-Value="_sort" Size="MokaSize.Sm"/>
+			</div>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Download">Download</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Delete">Delete</MokaButton>
+		</MokaToolbar>
+	</div>
+</DemoSection>
+
+<DemoSection Id="library-controls-straight-in-the-bar" Title="Library controls straight in the bar">
+	<div class="showcase-resize">
+		<MokaToolbar Expandable Dense="false">
+			<MokaSearchInput @bind-Value="_search" Placeholder="Search" Size="MokaSize.Sm"/>
+			<MokaSelect TValue="string" Items="@_sorts" @bind-Value="_sort" Size="MokaSize.Sm"/>
+			<MokaSwitch @bind-Value="_live" Label="Live"/>
+			<MokaToolbarDivider/>
+			<MokaTooltip Text="Download everything">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Download</MokaButton>
+			</MokaTooltip>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text">Print</MokaButton>
+		</MokaToolbar>
+	</div>
+</DemoSection>
+
+@code {
+	private readonly IReadOnlyList<string> _sorts = ["Newest first", "Oldest first", "By name"];
+
+	private string? _search;
+
+	private string? _sort = "Newest first";
+
+	private bool _live;
+}

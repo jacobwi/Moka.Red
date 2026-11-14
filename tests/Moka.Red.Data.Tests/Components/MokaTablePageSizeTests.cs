@@ -19,7 +19,7 @@ public class MokaTablePageSizeTests : BunitContext
 
 	public MokaTablePageSizeTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
-	// The pager stayed while _pageSize differed from PageSize. Under @bind-PageSize the parameter
+	// The pager stayed while _pageSize differed from PageSize. Under a bound state the page size
 	// follows the user's pick, so a size that fit every row took the size menu away, and with it
 	// the only way back to a smaller size.
 	[Fact]
@@ -63,7 +63,7 @@ public class MokaTablePageSizeTests : BunitContext
 		Assert.Empty(cut.FindAll(".moka-pagination"));
 	}
 
-	// @bind-PageSize hands back the size the user picked. Treating that as a new size from the
+	// A bound state hands back the size the user picked. Treating that as a new size from the
 	// parent loaded the rows a second time.
 	[Fact]
 	public async Task BoundPageSize_LoadsOncePerPick()
@@ -80,6 +80,7 @@ public class MokaTablePageSizeTests : BunitContext
 				});
 			}));
 		IRenderedComponent<MokaTable<Person>> cut = host.FindComponent<MokaTable<Person>>();
+		cut.WaitForAssertion(() => Assert.NotEmpty(DataRows(cut)));
 		loads = 0;
 
 		await SizeMenu(cut).ChangeAsync(new ChangeEventArgs { Value = "25" });
@@ -91,10 +92,12 @@ public class MokaTablePageSizeTests : BunitContext
 	private static IElement SizeMenu(IRenderedComponent<MokaTable<Person>> cut) =>
 		cut.Find(".moka-pagination-size-select");
 
-	/// <summary>A parent that binds PageSize both ways.</summary>
+	/// <summary>A parent that binds the state both ways, and reads the page size from it.</summary>
 	private sealed class BoundPageSizeHost : ComponentBase
 	{
 		private static readonly int[] SizeOptions = [10, 25, 50];
+
+		private MokaTableState? _state;
 
 		/// <summary>Client-side rows, used when <see cref="ServerData" /> is not set.</summary>
 		[Parameter]
@@ -102,10 +105,10 @@ public class MokaTablePageSizeTests : BunitContext
 
 		/// <summary>A server-side source.</summary>
 		[Parameter]
-		public Func<MokaTableState, Task<MokaTableResult<Person>>>? ServerData { get; set; }
+		public Func<MokaTableRequest, Task<MokaTableResult<Person>>>? ServerData { get; set; }
 
-		/// <summary>The bound page size.</summary>
-		public int PageSize { get; private set; } = 10;
+		/// <summary>The page size in the bound state.</summary>
+		public int PageSize => _state?.PageSize ?? 10;
 
 		/// <inheritdoc />
 		protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -121,11 +124,12 @@ public class MokaTablePageSizeTests : BunitContext
 				builder.AddComponentParameter(2, nameof(MokaTable<Person>.ServerData), ServerData);
 			}
 
-			builder.AddComponentParameter(3, nameof(MokaTable<Person>.PageSize), PageSize);
-			builder.AddComponentParameter(4, nameof(MokaTable<Person>.PageSizeChanged),
-				EventCallback.Factory.Create<int>(this, value => PageSize = value));
-			builder.AddComponentParameter(5, nameof(MokaTable<Person>.PageSizeOptions), SizeOptions);
-			builder.AddComponentParameter(6, nameof(MokaTable<Person>.ChildContent), DefaultColumns);
+			builder.AddComponentParameter(3, nameof(MokaTable<Person>.PageSize), 10);
+			builder.AddComponentParameter(4, nameof(MokaTable<Person>.State), _state);
+			builder.AddComponentParameter(5, nameof(MokaTable<Person>.StateChanged),
+				EventCallback.Factory.Create<MokaTableState>(this, value => _state = value));
+			builder.AddComponentParameter(6, nameof(MokaTable<Person>.ChildContent),
+				DefaultColumnsWithPager(new Pager { PageSizeOptions = SizeOptions }));
 			builder.CloseComponent();
 		}
 	}

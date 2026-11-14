@@ -138,7 +138,7 @@
 	box-shadow: var(--moka-shadow-popup);
 	max-height: 18rem;
 	overflow-y: auto;
-	animation: moka-tree-select-open var(--moka-transition-fast) ease-out;
+	animation: moka-tree-select-open var(--moka-transition-fast);
 }
 
 @keyframes moka-tree-select-open {

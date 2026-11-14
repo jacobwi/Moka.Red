@@ -186,12 +186,21 @@ public sealed class MokaSelectSearchAndJumpTests : BunitContext
 		Assert.Null(reported);
 	}
 
-	private IRenderedComponent<MokaSelect<string>> Jumping(string? value, Action<string?> report, bool typeToJump = true) =>
-		Render<MokaSelect<string>>(p => p
+	// A parent bound to the value: it takes every pick and passes it back.
+	private IRenderedComponent<MokaSelect<string>> Jumping(string? value, Action<string?> report, bool typeToJump = true)
+	{
+		IRenderedComponent<MokaSelect<string>>? cut = null;
+		cut = Render<MokaSelect<string>>(p => p
 			.Add(x => x.Items, Places)
 			.Add(x => x.Value, value!)
-			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v => report(v)))
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string>(this, v =>
+			{
+				report(v);
+				cut!.Render(q => q.Add(x => x.Value, v));
+			}))
 			.Add(x => x.TypeToJump, typeToJump));
+		return cut;
+	}
 
 	private static Task Key(IRenderedComponent<MokaSelect<string>> cut, string key, bool alt = false) =>
 		cut.Find("[role=combobox]").KeyDownAsync(new KeyboardEventArgs { Key = key, AltKey = alt });

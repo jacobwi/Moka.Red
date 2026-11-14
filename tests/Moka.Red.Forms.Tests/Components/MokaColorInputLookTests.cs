@@ -521,12 +521,21 @@ public class MokaColorInputLookTests : BunitContext
 		Assert.Contains("moka-color-input--disabled", cut.Find(".moka-color-input").ClassList);
 	}
 
-	private IRenderedComponent<MokaColorInput> Input(Action<ComponentParameterCollectionBuilder<MokaColorInput>>? configure = null) =>
-		Render<MokaColorInput>(p =>
+	// A parent that takes every change and passes it back, as @bind-Value does.
+	private IRenderedComponent<MokaColorInput> Input(Action<ComponentParameterCollectionBuilder<MokaColorInput>>? configure = null)
+	{
+		IRenderedComponent<MokaColorInput>? cut = null;
+		cut = Render<MokaColorInput>(p =>
 		{
-			p.Add(x => x.ValueChanged, value => _values.Add(value));
+			p.Add(x => x.ValueChanged, value =>
+			{
+				_values.Add(value);
+				cut!.Render(q => q.Add(x => x.Value, value));
+			});
 			configure?.Invoke(p);
 		});
+		return cut;
+	}
 
 	private sealed class Model
 	{

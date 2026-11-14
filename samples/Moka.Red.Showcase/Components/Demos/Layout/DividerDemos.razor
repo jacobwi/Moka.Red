@@ -1,0 +1,25 @@
+<DemoSection Id="simple-horizontal-divider" Title="Simple horizontal divider" Description="A line between content, with a label if you want one.">
+	<p style="font-size: var(--moka-font-size-sm);">Content above the divider</p>
+	<MokaDivider/>
+	<p style="font-size: var(--moka-font-size-sm);">Content below the divider</p>
+</DemoSection>
+
+<DemoSection Id="divider-with-label" Title="Divider with label">
+	<MokaDivider Label="OR"/>
+</DemoSection>
+
+<DemoSection Id="divider-with-custom-content" Title="Divider with custom content">
+	<MokaDivider>
+		<MokaIcon Icon="MokaIcons.Toggle.Star" Size="MokaSize.Sm" Color="MokaColor.Warning"/>
+	</MokaDivider>
+</DemoSection>
+
+<DemoSection Id="vertical-divider-in-a-row" Title="Vertical divider in a row">
+	<MokaFlexbox Direction="MokaDirection.Row" Align="MokaAlign.Center" Gap="MokaSpacingScale.Sm" Style="height: 40px;">
+		<span style="font-size: var(--moka-font-size-sm);">Left</span>
+		<MokaDivider Vertical="true"/>
+		<span style="font-size: var(--moka-font-size-sm);">Center</span>
+		<MokaDivider Vertical="true"/>
+		<span style="font-size: var(--moka-font-size-sm);">Right</span>
+	</MokaFlexbox>
+</DemoSection>

@@ -1,0 +1,34 @@
+<div class="dock-build-log">
+	<div class="dock-build-log__head">
+		<MokaIcon Icon="MokaIcons.File.Logs" Size="MokaSize.Sm"/>
+		<span>@Lines.Count lines</span>
+	</div>
+	<ol class="dock-build-log__lines moka-thin-scrollbar">
+		@foreach (string line in Lines)
+		{
+			<li class="@LineClass(line)">@line</li>
+		}
+	</ol>
+</div>
+
+@code {
+
+	[Parameter]
+	public IReadOnlyList<string> Lines { get; set; } = [];
+
+	private static string LineClass(string line) => new CssBuilder("dock-build-log__line")
+		.AddClass("dock-build-log__line--done", line.StartsWith("[done]", StringComparison.Ordinal))
+		.AddClass("dock-build-log__line--warn", line.StartsWith("[warn]", StringComparison.Ordinal))
+		.Build();
+
+	public static IReadOnlyList<string> Run(int number) =>
+	[
+		$"$ build --run {number}",
+		"[info] Restoring packages",
+		"[info] Compiling 42 files",
+		"[warn] report.md: line 3 is longer than 120 characters",
+		"[info] Packing build output",
+		$"[done] Build {number} finished, 0 errors, 1 warning"
+	];
+
+}

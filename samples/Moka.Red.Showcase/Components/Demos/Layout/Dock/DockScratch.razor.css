@@ -1,0 +1,18 @@
+.dock-scratch {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md);
+}
+
+.dock-scratch__row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.dock-scratch__count {
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-variant-numeric: tabular-nums;
+}

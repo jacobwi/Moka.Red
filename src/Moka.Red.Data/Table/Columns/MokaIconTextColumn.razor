@@ -1,0 +1,39 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's text: what the column sorts, filters, searches and exports.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, string?>? Text { get; set; }
+
+	/// <summary>The icon before the text, or null for none in that row.</summary>
+	[Parameter]
+	public Func<TItem, MokaIconDefinition?>? Icon { get; set; }
+
+	/// <summary>The icon's color, or null for the text's.</summary>
+	[Parameter]
+	public Func<TItem, MokaColor?>? IconColor { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Text is not null;
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+		@<span class="moka-icon-text-cell">
+			@if (Icon?.Invoke(item) is { } icon)
+			{
+				<MokaIcon Icon="icon" Color="@IconColor?.Invoke(item)" SizeValue="16px" Class="moka-icon-text-cell__icon"/>
+			}
+			<span class="moka-icon-text-cell__text">@Text?.Invoke(item)</span>
+		</span>;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Text?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) => Text?.Invoke(item) ?? string.Empty;
+}

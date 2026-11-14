@@ -1,0 +1,23 @@
+<DemoSection Id="the-browsers-own-select" Title="The browser's own select" Description="A real select element: the operating system draws its list, which suits phones and long lists. Any item type works, and a null item is a real option.">
+	<div style="max-width: 320px;">
+		<MokaNativeSelect TValue="string" Label="Format" Items="_formats" TextSelector="format => format" @bind-Value="_format"
+		                  HelperText="@($"Exports as {_format}")"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-placeholder-and-an-enum" Title="A placeholder and an enum" Description="Placeholder shows until something is picked; bound to an enum, the select posts on a static page too.">
+	<div style="max-width: 320px;">
+		<MokaNativeSelect TValue="DayOfWeek?" Label="Backup day" Items="_days" TextSelector="day => day?.ToString() ?? string.Empty"
+		                  Placeholder="Pick a day" @bind-Value="_day" Optional/>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<string> _formats = ["PDF", "CSV", "Markdown"];
+
+	private static readonly IReadOnlyList<DayOfWeek?> _days = [.. Enum.GetValues<DayOfWeek>().Select(day => (DayOfWeek?)day)];
+
+	private string _format = "PDF";
+
+	private DayOfWeek? _day;
+}

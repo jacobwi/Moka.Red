@@ -1,0 +1,281 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaComponentBase
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+
+<div class="moka-table-builder" id="@Id" role="group" aria-label="@Words.FilterBuilder">
+	<div class="moka-table-builder-join" role="radiogroup" aria-label="@Words.RowsMatch">
+		<span class="moka-table-builder-join-label">@Words.RowsMatch</span>
+		<label class="moka-table-builder-join-choice">
+			<input type="radio" name="@_joinName" checked="@(_join == MokaFilterJoin.All)" @onchange="() => SetJoinAsync(MokaFilterJoin.All)"/>
+			<span>@Words.MatchAll</span>
+		</label>
+		<label class="moka-table-builder-join-choice">
+			<input type="radio" name="@_joinName" checked="@(_join == MokaFilterJoin.Any)" @onchange="() => SetJoinAsync(MokaFilterJoin.Any)"/>
+			<span>@Words.MatchAny</span>
+		</label>
+	</div>
+	@if (_conditions.Count == 0)
+	{
+		<span class="moka-table-builder-none">@Words.NoConditions</span>
+	}
+	<ol class="moka-table-builder-list">
+		@for (var i = 0; i < _conditions.Count; i++)
+		{
+			var condition = _conditions[i];
+			var number = i + 1;
+			var kind = KindOf(condition);
+			<li class="moka-table-builder-row" @key="condition.Id">
+				<select class="moka-table-builder-control" aria-label="@Words.ConditionColumn(number)"
+				        @bind:get="condition.Column" @bind:set="title => SetColumnAsync(condition, title)">
+					@foreach (var col in Table.FilterableColumns())
+					{
+						<option value="@col.Title">@col.Title</option>
+					}
+				</select>
+				<select class="moka-table-builder-control" aria-label="@Words.ConditionOperator(number)"
+				        @bind:get="condition.Operator" @bind:set="op => SetOperatorAsync(condition, op)">
+					@foreach (var op in MokaTable<TItem>.OperatorsFor(kind))
+					{
+						<option value="@op">@Words.OperatorName(op, kind == TableFilterKind.Date)</option>
+					}
+				</select>
+				@if (MokaTable<TItem>.ValueCountOf(condition.Operator) < 0)
+				{
+					<select class="moka-table-builder-control moka-table-builder-values" multiple
+					        aria-label="@Words.ConditionValue(number)"
+					        @bind:get="condition.Values" @bind:set="values => SetValuesAsync(condition, values)">
+						@foreach (var choice in ChoicesOf(condition))
+						{
+							<option value="@choice.Value">@choice.Text</option>
+						}
+					</select>
+				}
+				else if (kind == TableFilterKind.YesNo)
+				{
+					<select class="moka-table-builder-control" aria-label="@Words.ConditionValue(number)"
+					        @bind:get="First(condition)" @bind:set="value => SetFirstAsync(condition, value)">
+						<option value="true">@Words.Yes</option>
+						<option value="false">@Words.No</option>
+					</select>
+				}
+				else if (MokaTable<TItem>.ValueCountOf(condition.Operator) >= 1)
+				{
+					<input type="@InputType(kind)" class="moka-table-builder-control" step="@Step(kind)"
+					       aria-label="@Words.ConditionValue(number)"
+					       @bind:get="First(condition)" @bind:set="value => SetFirstAsync(condition, value)"/>
+					@if (MokaTable<TItem>.ValueCountOf(condition.Operator) == 2)
+					{
+						<span class="moka-table-builder-and">@Words.And</span>
+						<input type="@InputType(kind)" class="moka-table-builder-control" step="@Step(kind)"
+						       aria-label="@Words.ConditionSecondValue(number)"
+						       @bind:get="Second(condition)" @bind:set="value => SetSecondAsync(condition, value)"/>
+					}
+				}
+				<MokaTooltip Text="@Words.RemoveCondition(number)" Position="MokaTooltipPosition.Bottom">
+					<button type="button" class="moka-table-builder-remove" aria-label="@Words.RemoveCondition(number)"
+					        @onclick="() => RemoveAsync(condition)">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+					</button>
+				</MokaTooltip>
+			</li>
+		}
+	</ol>
+	<div class="moka-table-builder-foot">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+		            StartIcon="MokaIcons.Action.Add" Disabled="@(Table.FilterableColumns().Count == 0)"
+		            OnClick="Add">@Words.AddCondition</MokaButton>
+		<span class="moka-table-builder-spacer"></span>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+		            Disabled="@(_conditions.Count == 0)" OnClick="ClearAsync">@Words.ClearAll</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Secondary"
+		            OnClick="Table.CloseBuilder">@Words.Done</MokaButton>
+	</div>
+</div>
+
+@code {
+	private readonly string _joinName = $"moka-table-join-{Guid.NewGuid():N}";
+	private readonly List<Condition> _conditions = [];
+	private IReadOnlyList<MokaTableFilter> _applied = [];
+	private MokaFilterJoin _join;
+	private int _nextId;
+
+	/// <summary>The table whose filters the builder sets.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaTable<TItem> Table { get; set; } = default!;
+
+	/// <inheritdoc />
+	protected override string RootClass => "moka-table-builder";
+
+	private MokaTableText Words => Table.Words;
+
+	/// <inheritdoc />
+	protected override bool ShouldRender() => true;
+
+	// Each filter in force is a condition; a condition still being written stays here until it is whole. Filters changed
+	// elsewhere (a chip, a heading's menu, the row) come in, and the conditions being written stay.
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		_join = Table.FilterJoin;
+		if (Table.Filters.SequenceEqual(_applied))
+		{
+			return;
+		}
+
+		_applied = Table.Filters.ToList();
+		List<Condition> drafts = _conditions.Where(static condition => condition.ToFilter() is null).ToList();
+		_conditions.Clear();
+		foreach (MokaTableFilter filter in _applied)
+		{
+			_conditions.Add(new Condition(++_nextId, filter.Column, filter.Operator, filter.Values.ToArray()));
+		}
+
+		_conditions.AddRange(drafts);
+	}
+
+	private TableFilterKind KindOf(Condition condition) =>
+		ColumnOf(condition) is { } col ? Table.FilterKindOf(col) : TableFilterKind.Text;
+
+	private MokaColumn<TItem>? ColumnOf(Condition condition) =>
+		Table.FilterableColumns().Find(col => col.Title == condition.Column);
+
+	private IReadOnlyList<MokaFacetValue> ChoicesOf(Condition condition) =>
+		ColumnOf(condition) is { } col ? Table.ChoicesFor(col) : [];
+
+	private static string InputType(TableFilterKind kind) => kind switch
+	{
+		TableFilterKind.Number => "number",
+		TableFilterKind.Date => "date",
+		_ => "text"
+	};
+
+	private static string? Step(TableFilterKind kind) => kind == TableFilterKind.Number ? "any" : null;
+
+	private static string First(Condition condition) => condition.Values.Length > 0 ? condition.Values[0] : string.Empty;
+
+	private static string Second(Condition condition) => condition.Values.Length > 1 ? condition.Values[1] : string.Empty;
+
+	private void Add()
+	{
+		MokaColumn<TItem> col = Table.FilterableColumns()[0];
+		TableFilterKind kind = Table.FilterKindOf(col);
+		MokaFilterOperator op = MokaTable<TItem>.OperatorsFor(kind)[0];
+		_conditions.Add(new Condition(++_nextId, col.Title!, op, kind == TableFilterKind.YesNo ? ["true"] : []));
+		if (kind == TableFilterKind.YesNo)
+		{
+			RunDetached(ApplyAsync);
+		}
+	}
+
+	private Task SetColumnAsync(Condition condition, string? title)
+	{
+		if (title is null || title == condition.Column)
+		{
+			return Task.CompletedTask;
+		}
+
+		condition.Column = title;
+		TableFilterKind kind = KindOf(condition);
+		condition.Operator = MokaTable<TItem>.OperatorsFor(kind)[0];
+		condition.Values = kind == TableFilterKind.YesNo ? ["true"] : [];
+		return ApplyAsync();
+	}
+
+	private Task SetOperatorAsync(Condition condition, MokaFilterOperator op)
+	{
+		int before = MokaTable<TItem>.ValueCountOf(condition.Operator);
+		condition.Operator = op;
+		int after = MokaTable<TItem>.ValueCountOf(op);
+		if (after == 0 || (before < 0) != (after < 0))
+		{
+			condition.Values = [];
+		}
+		else if (after == 1 && condition.Values.Length > 1)
+		{
+			condition.Values = [condition.Values[0]];
+		}
+
+		return ApplyAsync();
+	}
+
+	private Task SetValuesAsync(Condition condition, string[]? values)
+	{
+		condition.Values = values ?? [];
+		return ApplyAsync();
+	}
+
+	private Task SetFirstAsync(Condition condition, string? value)
+	{
+		condition.Values = MokaTable<TItem>.ValueCountOf(condition.Operator) == 2 ? [value ?? string.Empty, Second(condition)] : [value ?? string.Empty];
+		return ApplyAsync();
+	}
+
+	private Task SetSecondAsync(Condition condition, string? value)
+	{
+		condition.Values = [First(condition), value ?? string.Empty];
+		return ApplyAsync();
+	}
+
+	private Task RemoveAsync(Condition condition)
+	{
+		_conditions.Remove(condition);
+		return ApplyAsync();
+	}
+
+	private Task ClearAsync()
+	{
+		_conditions.Clear();
+		return ApplyAsync();
+	}
+
+	private Task SetJoinAsync(MokaFilterJoin join)
+	{
+		_join = join;
+		return ApplyAsync();
+	}
+
+	// The whole conditions are the filters; the table loads once for them.
+	private async Task ApplyAsync()
+	{
+		List<MokaTableFilter> filters = [];
+		foreach (Condition condition in _conditions)
+		{
+			if (condition.ToFilter() is { } filter)
+			{
+				filters.Add(filter);
+			}
+		}
+
+		_applied = filters;
+		await Table.SetFiltersAsync(filters, _join);
+	}
+
+	/// <summary>One condition as it is being written.</summary>
+	private sealed class Condition(int id, string column, MokaFilterOperator op, string[] values)
+	{
+		public int Id { get; } = id;
+
+		public string Column { get; set; } = column;
+
+		public MokaFilterOperator Operator { get; set; } = op;
+
+		public string[] Values { get; set; } = values;
+
+		public MokaTableFilter? ToFilter()
+		{
+			string[] given = Values.Where(static value => !string.IsNullOrWhiteSpace(value)).Select(static value => value.Trim()).ToArray();
+			int wanted = MokaTable<TItem>.ValueCountOf(Operator);
+			bool whole = wanted switch
+			{
+				0 => true,
+				< 0 => given.Length > 0,
+				_ => given.Length == wanted
+			};
+			return whole ? new MokaTableFilter(Column, Operator, wanted == 0 ? [] : given) : null;
+		}
+	}
+}

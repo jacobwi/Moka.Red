@@ -1,0 +1,11 @@
+<div class="moka-color-wheel moka-color-wheel--md" id="probe"><div class="moka-color-wheel-ring" style="width: 12rem; height: 12rem; background: conic-gradient(from 0deg, hsl(0,100%,50%), hsl(60,100%,50%), hsl(120,100%,50%), hsl(180,100%,50%), hsl(240,100%,50%), hsl(300,100%,50%), hsl(360,100%,50%))"><div class="moka-color-wheel-ring-inner"><div class="moka-color-wheel-sl-area" style="background: linear-gradient(to right, hsl(210, 0%, 50%), hsl(210, 100%, 50%))" blazor:onclick="1"><div class="moka-color-wheel-sl-overlay" style="background: linear-gradient(to bottom, hsl(0, 0%, 100%), transparent, hsl(0, 0%, 0%))"></div>
+				<div class="moka-color-wheel-sl-thumb" style="left: 50%; top: 60%"></div></div></div></div>
+
+	<div class="moka-color-wheel-sliders"><div class="moka-color-wheel-slider-row"><label class="moka-color-wheel-slider-label">H</label>
+			<input type="range" class="moka-color-wheel-slider moka-color-wheel-slider--hue" min="0" max="360" step="1" value="210" blazor:oninput="2" /></div>
+		<div class="moka-color-wheel-slider-row"><label class="moka-color-wheel-slider-label">S</label>
+			<input type="range" class="moka-color-wheel-slider" min="0" max="100" step="1" value="50" blazor:oninput="3" /></div>
+		<div class="moka-color-wheel-slider-row"><label class="moka-color-wheel-slider-label">L</label>
+			<input type="range" class="moka-color-wheel-slider" min="0" max="100" step="1" value="40" blazor:oninput="4" /></div></div>
+
+	<div class="moka-color-wheel-footer"><div class="moka-color-wheel-preview" style="background-color: #336699"></div><input type="text" class="moka-color-wheel-hex-input" maxlength="7" value="#336699" blazor:onchange="5" /></div></div>

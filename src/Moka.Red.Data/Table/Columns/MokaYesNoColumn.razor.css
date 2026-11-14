@@ -1,0 +1,38 @@
+.moka-yes-no-cell {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+}
+
+.moka-yes-no-cell ::deep .moka-yes-no-cell__yes {
+	color: var(--moka-color-success);
+}
+
+.moka-yes-no-cell ::deep .moka-yes-no-cell__no {
+	color: var(--moka-color-on-surface-quaternary);
+}
+
+/* A picture of a switch: a track with a knob at the end that says yes or no. */
+.moka-yes-no-cell__switch {
+	display: inline-flex;
+	align-items: center;
+	box-sizing: content-box;
+	width: calc(var(--moka-spacing-lg) * 2);
+	height: var(--moka-spacing-lg);
+	padding: var(--moka-spacing-xxs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline-variant);
+}
+
+.moka-yes-no-cell__switch--on {
+	justify-content: flex-end;
+	background: var(--moka-color-primary);
+}
+
+.moka-yes-no-cell__knob {
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-knob);
+}

@@ -204,13 +204,25 @@ public partial class MokaColorPicker
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		TakeValue();
+		TakeNewParameters();
+	}
+
+	/// <inheritdoc />
+	protected override void OnCurrentValueRestored()
+	{
+		TakeValue();
+		SyncPanelFromValue(CurrentValue, force: false);
+	}
+
+	private void TakeValue()
+	{
+		_hexInvalid = false;
 		if (!string.IsNullOrEmpty(CurrentValue))
 		{
 			HexToHsl(StateSource(CurrentValue), out _hue, out _saturation, out _lightness, out _alpha);
 			UpdateRgbFromHsl();
 		}
-
-		TakeNewParameters();
 	}
 
 	/// <inheritdoc />
@@ -388,9 +400,9 @@ public partial class MokaColorPicker
 			: HslToHex(_hue, _saturation, _lightness);
 	}
 
-	private void HandleHexInput(ChangeEventArgs e)
+	private void HandleHexInput(string? text)
 	{
-		string hex = e.Value?.ToString()?.Trim() ?? "";
+		string hex = text?.Trim() ?? "";
 		if (!hex.StartsWith('#'))
 		{
 			hex = "#" + hex;
@@ -404,14 +416,9 @@ public partial class MokaColorPicker
 		}
 	}
 
-	private void HandleRgbInput(ChangeEventArgs e, char channel)
+	private void SetChannel(char channel, int value)
 	{
-		if (!int.TryParse(e.Value?.ToString(), out int val))
-		{
-			return;
-		}
-
-		val = Math.Clamp(val, 0, 255);
+		int val = Math.Clamp(value, 0, 255);
 
 		switch (channel)
 		{

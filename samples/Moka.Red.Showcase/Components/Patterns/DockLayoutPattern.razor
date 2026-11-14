@@ -1,0 +1,363 @@
+@page "/patterns/dock-layout"
+@implements IDisposable
+@using System.Text
+@using System.Text.Json
+@using Moka.Red.Layout.DockLayout
+@using Moka.Red.Showcase.Components.Demos.Layout.Dock
+@inject IMokaDialogService Dialogs
+@inject IMokaToastService Toast
+
+<PageTitle>Dock layout - Moka.Red</PageTitle>
+
+<div class="dock-pattern showcase-fill">
+	<div class="dock-pattern__bar">
+		<div class="dock-pattern__control">
+			<span class="moka-micro-label" aria-hidden="true">Look</span>
+			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" Size="MokaSize.Sm">
+				@foreach (MokaDockLook look in Looks)
+				{
+					<MokaSegment @key="look" Value="@look.ToString()" Text="@look.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div class="dock-pattern__control">
+			<span class="moka-micro-label" aria-hidden="true">Tabs</span>
+			<MokaSegmentedControl Value="@_tabStyle.ToString()" ValueChanged="SetTabStyle" AriaLabel="Tab style" Size="MokaSize.Sm">
+				@foreach (MokaDockTabStyle style in TabStyles)
+				{
+					<MokaSegment @key="style" Value="@style.ToString()" Text="@style.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div class="dock-pattern__control">
+			<span class="moka-micro-label" aria-hidden="true">Drop</span>
+			<MokaSegmentedControl Value="@_drop.ToString()" ValueChanged="SetDrop" AriaLabel="Drop indicator" Size="MokaSize.Sm">
+				@foreach (MokaDockDropIndicator drop in Drops)
+				{
+					<MokaSegment @key="drop" Value="@drop.ToString()" Text="@drop.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div class="dock-pattern__control">
+			<span class="moka-micro-label" aria-hidden="true">Width</span>
+			<MokaSegmentedControl Value="@(_narrow ? "narrow" : "full")" ValueChanged="SetWidth" AriaLabel="Layout width" Size="MokaSize.Sm">
+				<MokaSegment Value="full" Text="Full"/>
+				<MokaSegment Value="narrow" Text="Narrow"/>
+			</MokaSegmentedControl>
+			<MokaSegmentedControl Value="@_narrowMode.ToString()" ValueChanged="SetNarrowMode" AriaLabel="Narrow mode" Size="MokaSize.Sm" Disabled="@(!_narrow)">
+				@foreach (MokaDockNarrowMode mode in NarrowModes)
+				{
+					<MokaSegment @key="mode" Value="@mode.ToString()" Text="@mode.ToString()"/>
+				}
+			</MokaSegmentedControl>
+		</div>
+		<div class="dock-pattern__control">
+			<span class="moka-micro-label" aria-hidden="true">Layouts</span>
+			@foreach (string preset in PresetNames)
+			{
+				<MokaButton @key="preset" Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Disabled="@(_presets.Count == 0)"
+				            OnClick="() => ApplyPresetAsync(preset)">@preset</MokaButton>
+			}
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" StartIcon="MokaIcons.Action.Restore" OnClick="ResetAsync">Reset</MokaButton>
+		</div>
+		<div class="dock-pattern__control">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Add" OnClick="NewFileAsync">New file</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Action.Play" OnClick="RunBuild">Run build</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Soft" StartIcon="MokaIcons.Navigation.Undock" OnClick="PopOutBuildLogAsync">Build log in a window</MokaButton>
+			<MokaSwitch @bind-Value="_showAside" Label="State and keys"/>
+		</div>
+	</div>
+
+	<div class="dock-pattern__body">
+		<div class="@StageClass">
+			<MokaDockLayout @ref="_dock" Class="dock-pattern__dock" StorageKey="showcase-dock-pattern" @bind-State="_state"
+			                Look="_look" TabStyle="_tabStyle" DropIndicator="_drop" NarrowMode="_narrowMode"
+			                Controls="MokaDockControls.All" Presets="_presets" PanelClosed="OnPanelClosed">
+				<MokaDockRow>
+					<MokaDockGroup Id="side" Size="240px" MinSize="160px" Title="Files">
+						<MokaDockPanel Id="explorer" Title="Explorer" Icon="MokaIcons.File.Folder">
+							<MokaList Dense Hoverable>
+								@foreach (DockFile file in _files)
+								{
+									<MokaListItem @key="file.Name" Text="@file.Name" Icon="MokaIcons.File.FileText" Active="@(file == _selected)"
+									              OnClick="() => OpenFileAsync(file)"/>
+								}
+							</MokaList>
+						</MokaDockPanel>
+						<MokaDockPanel Id="search" Title="Search" Icon="MokaIcons.Action.Search">
+							<div class="dock-pattern__pane">
+								<MokaSearchInput Value="@_search" ValueChanged="SetSearch" Label="Search files" HideLabel Placeholder="Find a file"/>
+								<MokaList Dense Hoverable>
+									@foreach (DockFile file in Found)
+									{
+										<MokaListItem @key="file.Name" Text="@file.Name" Icon="MokaIcons.File.FileSearch" OnClick="() => OpenFileAsync(file)"/>
+									}
+								</MokaList>
+							</div>
+						</MokaDockPanel>
+					</MokaDockGroup>
+					<MokaDockColumn>
+						<MokaDockContent Title="Documents">
+							<MokaEmptyState Icon="MokaIcons.File.Files" Title="No document open"
+							                Description="Open a file from Explorer or Search, or make a new one. Each opens as a tab here."/>
+						</MokaDockContent>
+						<MokaDockGroup Id="output" Size="200px" MinSize="96px" Title="Output">
+							<MokaDockPanel Id="terminal" Title="Terminal" Icon="MokaIcons.File.Terminal" Scrollable="false">
+								<MokaTerminal Class="dock-pattern__terminal" Lines="_terminal" ShowHeader="false" ShowCopyButton="false" MaxHeight="100%"/>
+							</MokaDockPanel>
+							<MokaDockPanel Id="problems" Title="Problems" Icon="MokaIcons.Status.Warning" Badge="Problems.Length" BadgeTone="MokaBadgeTone.NeedsYou">
+								<MokaList Dense>
+									@foreach (string problem in Problems)
+									{
+										<MokaListItem @key="problem" Text="@problem" Icon="MokaIcons.Status.Warning" IconColor="MokaColor.Warning"/>
+									}
+								</MokaList>
+							</MokaDockPanel>
+							<MokaDockPanel Id="build" Title="Build log" Icon="MokaIcons.File.Logs" Component="_buildLog" Scrollable="false"/>
+						</MokaDockGroup>
+					</MokaDockColumn>
+					<MokaDockGroup Id="inspect" Size="260px" MinSize="180px" Title="Inspector">
+						<MokaDockPanel Id="properties" Title="Properties" Icon="MokaIcons.Action.Settings">
+							<div class="dock-pattern__pane">
+								@if (_selected is { } file)
+								{
+									<MokaKeyValue Label="Name" Value="@file.Name"/>
+									<MokaKeyValue Label="Lines" Value="@LineCount(file)"/>
+									<MokaKeyValue Label="Changes" Value="@(file.Dirty ? "Not saved" : "Saved")"/>
+								}
+								else
+								{
+									<MokaText Size="MokaSize.Sm">Open a file to see its properties.</MokaText>
+								}
+							</div>
+						</MokaDockPanel>
+						<MokaDockPanel Id="notes" Title="Scratch" Icon="MokaIcons.Content.StickyNote">
+							<DockScratch/>
+						</MokaDockPanel>
+					</MokaDockGroup>
+				</MokaDockRow>
+			</MokaDockLayout>
+		</div>
+
+		@if (_showAside)
+		{
+			<aside class="dock-pattern__aside moka-thin-scrollbar" aria-label="Keyboard and state">
+				<MokaHeading Level="2" Micro>Keyboard</MokaHeading>
+				<dl class="dock-pattern__keys">
+					<dt><MokaKbd>F6</MokaKbd></dt>
+					<dd>Moves to the next group, Shift+F6 to the one before, landing on its tab or its content.</dd>
+					<dt><MokaKbd>Arrows</MokaKbd></dt>
+					<dd>On a tab strip, pick a tab. Delete closes one that can close.</dd>
+					<dt><MokaKbd>Tab</MokaKbd></dt>
+					<dd>Reaches the splitter between two groups. Arrows resize it, Shift for bigger steps, Home and End go to the limits and Enter puts the pair back.</dd>
+					<dt><MokaKbd>Menu</MokaKbd></dt>
+					<dd>The Panel options button in a header lists Move to each other group, Dock left, right, top and bottom, Undock, Auto-hide and Open in new window.</dd>
+					<dt><MokaKbd>Esc</MokaKbd></dt>
+					<dd>Restores a maximized group, closes a side bar's flyout or cancels a drag.</dd>
+				</dl>
+
+				<MokaHeading Level="2" Micro>Narrow</MokaHeading>
+				<MokaText Size="MokaSize.Sm">In Sheets a panel's content is made when its sheet opens and removed when it closes, so the Scratch notes and count start over there. Tabs and Stack keep every panel's state.</MokaText>
+
+				<MokaHeading Level="2" Micro>State</MokaHeading>
+				<MokaText Size="MokaSize.Sm">The bound MokaDockState as JSON, after every change. The same JSON is saved under the storage key.</MokaText>
+				<MokaCodeBlock Code="@StateJson" Language="json" Highlighter="MokaCodeHighlighters.Json" ShowLineNumbers="false" Wrap/>
+			</aside>
+		}
+	</div>
+</div>
+
+@code {
+
+	private static readonly MokaDockLook[] Looks = Enum.GetValues<MokaDockLook>();
+	private static readonly MokaDockTabStyle[] TabStyles = Enum.GetValues<MokaDockTabStyle>();
+	private static readonly MokaDockDropIndicator[] Drops = Enum.GetValues<MokaDockDropIndicator>();
+	private static readonly MokaDockNarrowMode[] NarrowModes = Enum.GetValues<MokaDockNarrowMode>();
+	private static readonly string[] PresetNames = ["Write", "Focus", "Debug"];
+	private static readonly string[] Problems = ["report.md: line 3 is longer than 120 characters", "budget.csv: the travel row has no date"];
+	private static readonly JsonWriterOptions IndentedJson = new() { Indented = true };
+
+	private readonly List<DockFile> _files = [.. DockFile.Samples()];
+	private readonly List<MokaTerminalLine> _terminal =
+	[
+		new("ready", "var(--moka-color-success)", "$"),
+		new("Open a file to start.", null, "$")
+	];
+
+	private MokaDockComponent _buildLog = MokaDockComponent.Create<DockBuildLog>(new Dictionary<string, object?> { ["Lines"] = DockBuildLog.Run(1) });
+	private int _buildNumber = 1;
+	private MokaDockLayout? _dock;
+	private MokaDockDropIndicator _drop = MokaDockDropIndicator.Zones;
+	private MokaDockLook _look = MokaDockLook.Ide;
+	private bool _narrow;
+	private MokaDockNarrowMode _narrowMode = MokaDockNarrowMode.Sheets;
+	private int _newFiles;
+	private IReadOnlyList<MokaDockPreset> _presets = [];
+	private string _search = "";
+	private DockFile? _selected;
+	private bool _showAside;
+	private MokaDockState? _state;
+	private MokaDockState? _jsonFor;
+	private string _stateJson = "";
+	private MokaDockTabStyle _tabStyle = MokaDockTabStyle.Editor;
+
+	private string StageClass => new CssBuilder("dock-pattern__stage")
+		.AddClass("dock-pattern__stage--narrow", _narrow)
+		.Build();
+
+	private IEnumerable<DockFile> Found => string.IsNullOrWhiteSpace(_search)
+		? _files
+		: _files.Where(file => file.Name.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+	// The JSON is worked out once per state, not on every render of the page.
+	private string StateJson
+	{
+		get
+		{
+			if (!ReferenceEquals(_jsonFor, _state))
+			{
+				_jsonFor = _state;
+				_stateJson = _state is null ? "" : Indent(_state.ToJson());
+			}
+
+			return _stateJson;
+		}
+	}
+
+	protected override void OnInitialized()
+	{
+		foreach (DockFile file in _files)
+		{
+			file.DirtyChanged += OnDirtyChanged;
+		}
+	}
+
+	// The presets are built on the markup's own layout, which the dock layout knows once it has rendered.
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender && _dock is { DefaultState: { Root: not null } defaults })
+		{
+			_presets =
+			[
+				new MokaDockPreset("Write", defaults),
+				new MokaDockPreset("Focus", defaults
+					.AutoHide("side", MokaDockPosition.Left)
+					.AutoHide("inspect", MokaDockPosition.Right)
+					.AutoHide("output", MokaDockPosition.Bottom)),
+				new MokaDockPreset("Debug", defaults
+					.MoveGroup("output", new MokaDockTarget(null, MokaDockZone.Right))
+					.Activate("problems"))
+			];
+			StateHasChanged();
+		}
+	}
+
+	public void Dispose()
+	{
+		foreach (DockFile file in _files)
+		{
+			file.DirtyChanged -= OnDirtyChanged;
+		}
+	}
+
+	private void SetLook(string value) => _look = Enum.Parse<MokaDockLook>(value);
+
+	private void SetTabStyle(string value) => _tabStyle = Enum.Parse<MokaDockTabStyle>(value);
+
+	private void SetDrop(string value) => _drop = Enum.Parse<MokaDockDropIndicator>(value);
+
+	private void SetNarrowMode(string value) => _narrowMode = Enum.Parse<MokaDockNarrowMode>(value);
+
+	private void SetWidth(string value) => _narrow = value == "narrow";
+
+	private void SetSearch(string value) => _search = value;
+
+	private Task OpenFileAsync(DockFile file)
+	{
+		_selected = file;
+		_terminal.Add(new MokaTerminalLine($"open {file.Name}", null, "$"));
+		return _dock?.OpenPanelAsync(OptionsFor(file)) ?? Task.CompletedTask;
+	}
+
+	private Task NewFileAsync()
+	{
+		_newFiles++;
+		DockFile file = new($"untitled-{_newFiles}.txt", "");
+		file.DirtyChanged += OnDirtyChanged;
+		_files.Add(file);
+		return OpenFileAsync(file);
+	}
+
+	private MokaDockPanelOptions OptionsFor(DockFile file) => new()
+	{
+		Id = file.PanelId,
+		Title = file.Dirty ? $"{file.Name} *" : file.Name,
+		Icon = MokaIcons.File.FileText,
+		Component = MokaDockComponent.Create<DockDocument>(new Dictionary<string, object?> { ["File"] = file }),
+		CanClose = () => ConfirmCloseAsync(file)
+	};
+
+	private Task<bool> ConfirmCloseAsync(DockFile file) => file.Dirty
+		? Dialogs.ConfirmAsync($"{file.Name} has changes that aren't saved. Close it and lose them?", "Unsaved changes", options =>
+		{
+			options.ConfirmText = "Close without saving";
+			options.CancelText = "Keep editing";
+			options.ConfirmColor = MokaColor.Error;
+		})
+		: Task.FromResult(true);
+
+	// The Properties panel says whether the file is saved, and opening an open document again marks its tab. A document
+	// can be edited in another window, whose circuit raises this on its own thread.
+	private void OnDirtyChanged(object? sender, EventArgs e) => _ = InvokeAsync(async () =>
+	{
+		if (sender is DockFile file && _dock?.CurrentState.Locate(file.PanelId).Place is not (null or MokaDockPlace.None))
+		{
+			await _dock.OpenPanelAsync(OptionsFor(file));
+		}
+
+		StateHasChanged();
+	});
+
+	private void OnPanelClosed(MokaDockPanelChange change)
+	{
+		if (_files.Find(file => file.PanelId == change.Panel) is { } file)
+		{
+			file.Revert();
+			_terminal.Add(new MokaTerminalLine($"close {file.Name}", null, "$"));
+		}
+	}
+
+	private void RunBuild()
+	{
+		_buildNumber++;
+		_buildLog = MokaDockComponent.Create<DockBuildLog>(new Dictionary<string, object?> { ["Lines"] = DockBuildLog.Run(_buildNumber) });
+		_terminal.Add(new MokaTerminalLine($"build --run {_buildNumber}", null, "$"));
+	}
+
+	private async Task PopOutBuildLogAsync()
+	{
+		if (_dock is not null && !await _dock.PopOutPanelAsync("build"))
+		{
+			Toast.ShowWarning("The build log couldn't open in a window here. The browser may have blocked the pop-up.");
+		}
+	}
+
+	private Task ApplyPresetAsync(string name) => _dock?.ApplyPresetAsync(name) ?? Task.CompletedTask;
+
+	private Task ResetAsync() => _dock?.ResetAsync() ?? Task.CompletedTask;
+
+	private static string LineCount(DockFile file) => (file.Text.Count(c => c == '\n') + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+	private static string Indent(string json)
+	{
+		using JsonDocument document = JsonDocument.Parse(json);
+		using MemoryStream stream = new();
+		using (Utf8JsonWriter writer = new(stream, IndentedJson))
+		{
+			document.WriteTo(writer);
+		}
+
+		return Encoding.UTF8.GetString(stream.ToArray());
+	}
+
+}

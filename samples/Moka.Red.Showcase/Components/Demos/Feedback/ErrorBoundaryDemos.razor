@@ -1,0 +1,48 @@
+@using Moka.Red.Feedback.ErrorBoundary
+
+<DemoSection Id="a-part-that-fails" Title="A part that fails" Description="Compact suits a part of a page. The rest of the page carries on, and Try again brings the part back.">
+	<div class="button-row">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="() => _fail = true">Make the chart fail</MokaButton>
+	</div>
+	<MokaCard Title="Downloads">
+		<MokaErrorBoundary Compact What="This chart">
+			@Chart
+		</MokaErrorBoundary>
+	</MokaCard>
+</DemoSection>
+
+@code {
+	private bool _fail;
+
+	// Markup can't name a nested component class, so a fragment opens it.
+	private RenderFragment Chart => builder =>
+	{
+		builder.OpenComponent<FailingPart>(0);
+		builder.AddComponentParameter(1, nameof(FailingPart.Fail), (Func<bool>)TakeFailure);
+		builder.CloseComponent();
+	};
+
+	private bool TakeFailure()
+	{
+		bool fail = _fail;
+		_fail = false;
+		return fail;
+	}
+
+	private sealed class FailingPart : ComponentBase
+	{
+		[Parameter]
+		public Func<bool> Fail { get; set; } = () => false;
+
+		protected override void OnParametersSet()
+		{
+			if (Fail())
+			{
+				throw new InvalidOperationException("The chart's data came back empty.");
+			}
+		}
+
+		protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) =>
+			builder.AddContent(0, "1,204 downloads this week.");
+	}
+}

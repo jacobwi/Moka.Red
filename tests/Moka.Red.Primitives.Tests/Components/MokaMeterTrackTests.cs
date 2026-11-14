@@ -1,4 +1,5 @@
 using System.Globalization;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 using Moka.Red.Tests.Shared;
 
@@ -52,23 +53,10 @@ public class MokaMeterTrackTests
 		_ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
 	};
 
-	// WCAG relative luminance, written here rather than borrowed from the library.
 	private static double Contrast(string a, string b)
 	{
-		double la = Luminance(a), lb = Luminance(b);
-		return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
-	}
-
-	private static double Luminance(string hex)
-	{
-		Assert.Matches("^#[0-9A-Fa-f]{6}$", hex);
-		double r = Channel(hex[1..3]), g = Channel(hex[3..5]), b = Channel(hex[5..7]);
-		return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-	}
-
-	private static double Channel(string hex)
-	{
-		double v = int.Parse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture) / 255.0;
-		return v <= 0.04045 ? v / 12.92 : Math.Pow((v + 0.055) / 1.055, 2.4);
+		Assert.Matches("^#[0-9A-Fa-f]{6}$", a);
+		Assert.Matches("^#[0-9A-Fa-f]{6}$", b);
+		return MokaContrast.Ratio(MokaCssColor.Parse(a), MokaCssColor.Parse(b));
 	}
 }

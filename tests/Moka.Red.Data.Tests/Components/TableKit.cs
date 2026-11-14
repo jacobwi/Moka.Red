@@ -41,6 +41,27 @@ internal static class TableKit
 		}
 	};
 
+	/// <summary>The columns, then a pager part with the given settings.</summary>
+	internal static RenderFragment ColumnsWithPager(Pager pager, params Col[] columns) => builder =>
+	{
+		foreach (Col col in columns)
+		{
+			col.Write(builder);
+		}
+
+		pager.Write(builder);
+	};
+
+	/// <summary>The default columns with a pager part.</summary>
+	internal static RenderFragment DefaultColumnsWithPager(Pager pager) => ColumnsWithPager(pager, Name, Team, Age, City);
+
+	/// <summary>The load more pager: "Show N more" and "Show all" under the rows.</summary>
+	internal static Pager LoadMore => new() { Look = MokaPagerLook.LoadMore };
+
+	/// <summary>A state that sorts by one column.</summary>
+	internal static MokaTableState SortedBy(string column, MokaSortDirection direction) =>
+		new() { Sorts = [new MokaTableSort(column, direction)] };
+
 	internal static List<string> HeaderTitles(IRenderedComponent<MokaTable<Person>> cut) =>
 		cut.FindAll("thead tr:first-child th .moka-table-header-text")
 			.Select(e => e.TextContent.Trim())
@@ -71,12 +92,60 @@ internal static class TableKit
 
 	internal sealed record Person(string Name, string Team, int Age, string City);
 
+	/// <summary>
+	///     A table that counts its own renders. bUnit's RenderCount counts its parts' renders too, and the columns render
+	///     whenever the parent passes them again, whatever the table does.
+	/// </summary>
+	internal sealed class CountingTable : MokaTable<Person>
+	{
+		public int Renders { get; private set; }
+
+		protected override Task OnAfterRenderAsync(bool firstRender)
+		{
+			Renders++;
+			return base.OnAfterRenderAsync(firstRender);
+		}
+	}
+
+	/// <summary>The settings of a MokaTablePager in a test table.</summary>
+	internal sealed record Pager
+	{
+		public MokaPagerLook Look { get; init; }
+
+		public MokaTablePaginationPosition Position { get; init; } = MokaTablePaginationPosition.Bottom;
+
+		public bool Sticky { get; init; }
+
+		public IReadOnlyList<int>? PageSizeOptions { get; init; }
+
+		public bool ShowFirstLast { get; init; } = true;
+
+		public bool ShowPageInfo { get; init; } = true;
+
+		internal void Write(RenderTreeBuilder builder)
+		{
+			builder.OpenComponent<MokaTablePager>(100);
+			builder.AddComponentParameter(101, nameof(MokaTablePager.Look), Look);
+			builder.AddComponentParameter(102, nameof(MokaTablePager.Position), Position);
+			builder.AddComponentParameter(103, nameof(MokaTablePager.Sticky), Sticky);
+			if (PageSizeOptions is not null)
+			{
+				builder.AddComponentParameter(104, nameof(MokaTablePager.PageSizeOptions), PageSizeOptions);
+			}
+
+			builder.AddComponentParameter(105, nameof(MokaTablePager.ShowFirstLast), ShowFirstLast);
+			builder.AddComponentParameter(106, nameof(MokaTablePager.ShowPageInfo), ShowPageInfo);
+
+			builder.CloseComponent();
+		}
+	}
+
 	/// <summary>The settings of one MokaColumn in a test table.</summary>
 	internal sealed record Col(string? Title, Func<Person, object?>? Field)
 	{
 		public bool Visible { get; init; } = true;
 
-		public bool Sticky { get; init; }
+		public MokaColumnPin Pin { get; init; }
 
 		public bool HideOnMobile { get; init; }
 
@@ -94,7 +163,15 @@ internal static class TableKit
 
 		public RenderFragment<Person>? CellTemplate { get; init; }
 
-		public EventCallback<(Person Item, object? NewValue)> OnCellEdited { get; init; }
+		public Func<Person, object?, Person>? SetField { get; init; }
+
+		public Func<Person, object?, string?>? Validate { get; init; }
+
+		public MokaColumnEditor Editor { get; init; }
+
+		public IReadOnlyList<MokaFilterOption>? EditOptions { get; init; }
+
+		public string? Property { get; init; }
 
 		public bool Sortable { get; init; } = true;
 
@@ -114,13 +191,19 @@ internal static class TableKit
 
 		public bool NoWrap { get; init; }
 
+		public MokaSortDirection DefaultSort { get; init; }
+
+		public MokaColumnFilterType FilterType { get; init; }
+
+		public string? AggregateFormat { get; init; }
+
 		internal void Write(RenderTreeBuilder builder)
 		{
 			builder.OpenComponent<MokaColumn<Person>>(0);
 			builder.AddComponentParameter(1, nameof(MokaColumn<Person>.Title), Title);
 			builder.AddComponentParameter(2, nameof(MokaColumn<Person>.Field), Field);
 			builder.AddComponentParameter(3, nameof(MokaColumn<Person>.Visible), Visible);
-			builder.AddComponentParameter(4, nameof(MokaColumn<Person>.Sticky), Sticky);
+			builder.AddComponentParameter(4, nameof(MokaColumn<Person>.Pin), Pin);
 			builder.AddComponentParameter(5, nameof(MokaColumn<Person>.HideOnMobile), HideOnMobile);
 			builder.AddComponentParameter(6, nameof(MokaColumn<Person>.Filterable), Filterable);
 			builder.AddComponentParameter(7, nameof(MokaColumn<Person>.Editable), Editable);
@@ -129,7 +212,7 @@ internal static class TableKit
 			builder.AddComponentParameter(10, nameof(MokaColumn<Person>.SortComparer), SortComparer);
 			builder.AddComponentParameter(11, nameof(MokaColumn<Person>.HeaderTemplate), HeaderTemplate);
 			builder.AddComponentParameter(12, nameof(MokaColumn<Person>.CellTemplate), CellTemplate);
-			builder.AddComponentParameter(13, nameof(MokaColumn<Person>.OnCellEdited), OnCellEdited);
+			builder.AddComponentParameter(13, nameof(MokaColumn<Person>.SetField), SetField);
 			builder.AddComponentParameter(14, nameof(MokaColumn<Person>.Sortable), Sortable);
 			builder.AddComponentParameter(15, nameof(MokaColumn<Person>.Width), Width);
 			builder.AddComponentParameter(16, nameof(MokaColumn<Person>.Align), Align);
@@ -139,6 +222,13 @@ internal static class TableKit
 			builder.AddComponentParameter(20, nameof(MokaColumn<Person>.Class), Class);
 			builder.AddComponentParameter(21, nameof(MokaColumn<Person>.SortDescendingFirst), SortDescendingFirst);
 			builder.AddComponentParameter(22, nameof(MokaColumn<Person>.NoWrap), NoWrap);
+			builder.AddComponentParameter(23, nameof(MokaColumn<Person>.DefaultSort), DefaultSort);
+			builder.AddComponentParameter(24, nameof(MokaColumn<Person>.FilterType), FilterType);
+			builder.AddComponentParameter(25, nameof(MokaColumn<Person>.AggregateFormat), AggregateFormat);
+			builder.AddComponentParameter(26, nameof(MokaColumn<Person>.Validate), Validate);
+			builder.AddComponentParameter(27, nameof(MokaColumn<Person>.Editor), Editor);
+			builder.AddComponentParameter(28, nameof(MokaColumn<Person>.EditOptions), EditOptions);
+			builder.AddComponentParameter(29, nameof(MokaColumn<Person>.Property), Property);
 			builder.CloseComponent();
 		}
 	}

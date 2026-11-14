@@ -34,7 +34,14 @@
 <span class="moka-code-block__line-number">@(index + 1)</span>
 }
 
-<span class="moka-code-block__line">@line</span> @if (index < _lines.Length - 1)
+<span class="moka-code-block__line">@if (_lineTokens is null)
+{
+@line
+}
+else
+{
+@LineTokens(index)
+}</span> @if (index < _lines.Length - 1)
 {
 @("\n")
 }

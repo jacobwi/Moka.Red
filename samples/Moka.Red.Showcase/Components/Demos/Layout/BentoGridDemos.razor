@@ -1,0 +1,26 @@
+<DemoSection Id="asymmetric-layout" Title="Asymmetric layout" Description="Tiles of different sizes in one grid.">
+	<MokaBentoGrid Columns="4" GapValue="12px">
+		<MokaBentoItem ColSpan="2" RowSpan="2" Title="Featured">
+			<MokaFlexbox Direction="MokaDirection.Column" Justify="MokaJustify.Center" Align="MokaAlign.Center" Style="height: 100%;">
+				<MokaIcon Icon="MokaIcons.Toggle.Heart" SizeValue="48px" Style="color: var(--moka-color-primary);" />
+				<MokaHeading Level="3" Style="margin-top: var(--moka-spacing-md);">Hero Cell</MokaHeading>
+				<MokaText Size="MokaSize.Sm">Spans 2 columns and 2 rows</MokaText>
+			</MokaFlexbox>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Performance">
+			<MokaText Size="MokaSize.Sm">Zero JS where possible</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Theming">
+			<MokaText Size="MokaSize.Sm">CSS custom properties</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Accessible" Clickable>
+			<MokaText Size="MokaSize.Sm">Keyboard-first design</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Responsive">
+			<MokaText Size="MokaSize.Sm">Breakpoint-aware</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem ColSpan="4" Title="Full Width">
+			<MokaText Size="MokaSize.Sm">This item spans all 4 columns - perfect for banners or CTAs.</MokaText>
+		</MokaBentoItem>
+	</MokaBentoGrid>
+</DemoSection>

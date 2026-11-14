@@ -24,9 +24,10 @@ public class MokaRangeSliderTests : BunitContext
 		cut.OnMarkupUpdated += (_, _) => rendered.Add(Start(cut).GetAttribute("value"));
 		await Start(cut).InputAsync(new ChangeEventArgs { Value = "97" });
 
+		// The second drag leaves the start where it was, so it raises nothing.
 		Assert.Contains("97", rendered);
 		Assert.Equal("80", rendered[^1]);
-		Assert.Equal([80, 80], changes);
+		Assert.Equal([80], changes);
 		Assert.Equal("80", cut.Find(".moka-range-slider-value").TextContent);
 	}
 
@@ -120,11 +121,20 @@ public class MokaRangeSliderTests : BunitContext
 		Assert.Equal(startOnTop, Start(cut).ClassList.Contains("moka-range-slider-input--on-top"));
 	}
 
-	private IRenderedComponent<MokaRangeSlider> RenderSlider(double start, double end, List<double>? starts = null) =>
-		Render<MokaRangeSlider>(p => p
+	// A parent bound to the start, as @bind-ValueStart is: it takes each change and renders the slider again.
+	private IRenderedComponent<MokaRangeSlider> RenderSlider(double start, double end, List<double>? starts = null)
+	{
+		IRenderedComponent<MokaRangeSlider>? cut = null;
+		cut = Render<MokaRangeSlider>(p => p
 			.Add(x => x.ValueStart, start)
 			.Add(x => x.ValueEnd, end)
-			.Add(x => x.ValueStartChanged, value => starts?.Add(value)));
+			.Add(x => x.ValueStartChanged, EventCallback.Factory.Create<double>(this, value =>
+			{
+				starts?.Add(value);
+				cut!.Render(q => q.Add(x => x.ValueStart, value));
+			})));
+		return cut;
+	}
 
 	private static IElement Start(IRenderedComponent<MokaRangeSlider> cut) =>
 		cut.Find(".moka-range-slider-input--start");

@@ -17,7 +17,6 @@ public partial class MokaTable<TItem>
 	private TItem _anchorItem = default!;
 	private int _firstTabColumn;
 	private bool _hasAnchor;
-	private bool _previousShowMore;
 
 	// The clicked box after a shift-click: the browser already flipped it, and when the run leaves it as the markup
 	// had it, Blazor finds nothing to update.
@@ -27,12 +26,10 @@ public partial class MokaTable<TItem>
 	private bool _runPick;
 	private EventCallback<MouseEventArgs> _noteRunClick;
 
-	// How many rows ShowMore draws, once someone asked for more. int.MaxValue is every row.
-	private int? _shownRows;
-
 	// Per column while any column names a phone slot, so null is the table as it always was.
 	private Dictionary<MokaColumn<TItem>, MokaColumnPhone>? _phoneSlots;
 	private int _phoneSlotsVersion = -1;
+	private bool _phoneSlotsForList;
 
 	private bool _keepRowsWhileLoading;
 
@@ -63,14 +60,6 @@ public partial class MokaTable<TItem>
 	/// </summary>
 	[Parameter]
 	public Func<TItem, string>? ItemName { get; set; }
-
-	/// <summary>
-	///     Draws the first <see cref="PageSize" /> rows in sort order, then "Show N more" and "Show all" in the foot, in
-	///     place of numbered pages. It wins over <see cref="ShowPagination" />. Under <see cref="ServerData" /> the
-	///     table asks for page 1, one page size larger each time. Default false.
-	/// </summary>
-	[Parameter]
-	public bool ShowMore { get; set; }
 
 	/// <summary>
 	///     Draws skeleton rows in the real columns in place of the rows, while the app fetches them itself. Default
@@ -108,7 +97,7 @@ public partial class MokaTable<TItem>
 
 	/// <summary>
 	///     What the rows are, in the plural ("devices"), for the words the table writes about them: "50 of 312 devices",
-	///     "Show 50 more" and "Show all 312" under <see cref="ShowMore" />, "Select all devices shown" on the header's box,
+	///     "Show 50 more" and "Show all 312" under the load more pager, "Select all devices shown" on the header's box,
 	///     "Act on the selected devices" naming the <see cref="BulkActions" /> bar, and "Loading devices…" while
 	///     <see cref="Loading" />. Null keeps the words about rows.
 	/// </summary>
@@ -129,6 +118,33 @@ public partial class MokaTable<TItem>
 	[Parameter]
 	public bool SingleExpand { get; set; }
 
+	/// <summary>
+	///     Draws a button over the <see cref="Expandable" /> toggles that opens every row shown, or closes them all when
+	///     they are open. Ignored with <see cref="SingleExpand" />. Default false.
+	/// </summary>
+	[Parameter]
+	public bool ShowExpandAll { get; set; }
+
+	/// <summary>
+	///     Raised when a row is double-clicked. A cell being edited keeps its double click; the row still hears it.
+	/// </summary>
+	[Parameter]
+	public EventCallback<TItem> OnRowDoubleClick { get; set; }
+
+	/// <summary>
+	///     Rows held at the top of the table, above the others, whatever the sort, the filters and the page: a row to
+	///     compare with, say. They draw the columns' cells and nothing to select, open or drag. Null, the default, holds none.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<TItem>? PinnedTop { get; set; }
+
+	/// <summary>
+	///     Rows held at the bottom of the table, under the others, whatever the sort, the filters and the page: a totals
+	///     row, say. With a fixed header or a height they stay in view as the rows scroll. Null, the default, holds none.
+	/// </summary>
+	[Parameter]
+	public IReadOnlyList<TItem>? PinnedBottom { get; set; }
+
 	/// <summary>The table's name for screen readers ("Devices", "Latest knocks"), written on the <c>table</c> element.</summary>
 	[Parameter]
 	public string? Label { get; set; }
@@ -141,7 +157,7 @@ public partial class MokaTable<TItem>
 	public bool ToolbarInFrame { get; set; }
 
 	/// <summary>
-	///     A row under the rows and the <see cref="ShowMore" /> foot, inside the frame: any markup, laid out as a flex row
+	///     A row under the rows and the load more foot, inside the frame: any markup, laid out as a flex row
 	///     with the room between its children, in small muted text over a line ("All 42 devices" at the left, a hint at the
 	///     right). <see cref="FooterContent" /> is different: table rows in a <c>tfoot</c>.
 	/// </summary>
@@ -174,23 +190,29 @@ public partial class MokaTable<TItem>
 
 	private Dictionary<MokaColumn<TItem>, MokaColumnPhone>? PhoneSlots()
 	{
-		if (_phoneSlotsVersion == _layoutVersion)
+		bool list = IsListLook;
+		if (_phoneSlotsVersion == _layoutVersion && _phoneSlotsForList == list)
 		{
 			return _phoneSlots;
 		}
 
 		_phoneSlotsVersion = _layoutVersion;
-		if (!_columns.Exists(static col => col.Phone is not null))
+		_phoneSlotsForList = list;
+		bool named = _columns.Exists(static col => col.Phone is not null);
+		if (!named && !list)
 		{
 			return null;
 		}
 
+		// The list look draws every row as a list. With no slot named, the first column is the first line and the
+		// others share the second.
+		MokaColumnPhone unnamed = named ? MokaColumnPhone.Hidden : MokaColumnPhone.Secondary;
 		bool noPrimary = !_columns.Exists(static col => col.Phone == MokaColumnPhone.Primary);
 		Dictionary<MokaColumn<TItem>, MokaColumnPhone> slots = new(_columns.Count);
 		foreach (MokaColumn<TItem> col in _columns)
 		{
 			slots[col] = col.Phone
-			             ?? (noPrimary && ReferenceEquals(col, _columns[0]) ? MokaColumnPhone.Primary : MokaColumnPhone.Hidden);
+			             ?? (noPrimary && ReferenceEquals(col, _columns[0]) ? MokaColumnPhone.Primary : unnamed);
 		}
 
 		return slots;
@@ -206,15 +228,10 @@ public partial class MokaTable<TItem>
 			return visible;
 		}
 
-		List<(MokaColumn<TItem> Col, int ColIdx)> columns = new(_columns.Count);
-		int position = 0;
+		List<(MokaColumn<TItem> Col, int ColIdx)> columns = new(visible);
 		foreach (MokaColumn<TItem> col in _columns)
 		{
-			if (IsColumnVisible(col))
-			{
-				columns.Add((col, position++));
-			}
-			else if (slots.TryGetValue(col, out MokaColumnPhone slot) && slot != MokaColumnPhone.Hidden)
+			if (!IsColumnVisible(col) && slots.TryGetValue(col, out MokaColumnPhone slot) && slot != MokaColumnPhone.Hidden)
 			{
 				columns.Add((col, -1));
 			}
@@ -304,11 +321,14 @@ public partial class MokaTable<TItem>
 		return handlers;
 	}
 
+	// A row by the index it carries in the page: its position among the drawn rows, or under remote virtualization its
+	// position in the whole result set, of which the table holds the window last loaded.
 	private bool TryGetRow(int index, out TItem item)
 	{
-		if (index >= 0 && index < _displayRows.Count)
+		int position = index - _rowIndexBase;
+		if (position >= 0 && position < _displayRows.Count)
 		{
-			item = _displayRows[index].Item;
+			item = _displayRows[position].Item;
 			return true;
 		}
 
@@ -316,8 +336,16 @@ public partial class MokaTable<TItem>
 		return false;
 	}
 
+	private bool RowsHearClicks => OnRowClick.HasDelegate || (SelectOnRowClick && Selectable);
+
 	private EventCallback<MouseEventArgs> RowClickHandler(int index) =>
-		OnRowClick.HasDelegate ? HandlersFor(index).Click : default;
+		RowsHearClicks ? HandlersFor(index).Click : default;
+
+	private EventCallback<MouseEventArgs> RowDoubleClickHandler(int index) =>
+		OnRowDoubleClick.HasDelegate ? HandlersFor(index).DoubleClick : default;
+
+	private static string PinnedRowRef(bool top, int index) =>
+		string.Create(CultureInfo.InvariantCulture, $"{(top ? 't' : 'b')}{index}");
 
 	private EventCallback<MouseEventArgs> RowContextMenuHandler(int index) =>
 		OnRowContextMenu.HasDelegate ? HandlersFor(index).ContextMenu : default;
@@ -347,7 +375,7 @@ public partial class MokaTable<TItem>
 		}
 	}
 
-	private string? RowBoxLabel(TItem item) => ItemName is null ? null : $"Select {ItemName(item)}";
+	private string? RowBoxLabel(TItem item) => ItemName is null ? null : Words.SelectItem(ItemName(item));
 
 	// ── Detail toggle ──
 
@@ -357,17 +385,21 @@ public partial class MokaTable<TItem>
 
 	private string ExpandLabel(TItem item)
 	{
-		string verb = IsExpanded(item) ? "Hide more" : "Show more";
-		return ItemName is null ? verb : $"{verb} about {ItemName(item)}";
+		string? name = ItemName?.Invoke(item);
+		return IsExpanded(item) ? Words.HideMoreAbout(name) : Words.ShowMoreAbout(name);
 	}
 
 	// ── Words about the rows ──
 
-	private string RowsNoun => ItemsName ?? "rows";
+	private string RowsNoun => ItemsName ?? Words.Rows;
 
-	private string LoadingStatusText => ItemsName is null ? "Loading rows" : $"Loading {ItemsName}…";
+	private static string PinnedRowClass(bool top) => new CssBuilder("moka-table-row--pinned")
+		.AddClass(top ? "moka-table-row--pinned-top" : "moka-table-row--pinned-bottom")
+		.Build();
 
-	private string BulkBarLabel => ItemsName is null ? "Selected rows" : $"Act on the selected {ItemsName}";
+	private string LoadingStatusText => Words.LoadingRows(ItemsName);
+
+	private string BulkBarLabel => Words.BulkBar(ItemsName);
 
 	// ── Picking a run ──
 
@@ -397,7 +429,7 @@ public partial class MokaTable<TItem>
 			}
 		}
 
-		_resyncBoxRow = to;
+		_resyncBoxRow = to + _rowIndexBase;
 		return true;
 	}
 
@@ -443,7 +475,7 @@ public partial class MokaTable<TItem>
 
 	private bool ShowBulkBar => BulkActions is not null && Selectable && _selectedItems.Count > 0;
 
-	private string BulkCountText => $"{_selectedItems.Count.ToString("N0", CultureInfo.CurrentCulture)} selected";
+	private string BulkCountText => Words.SelectedCount(_selectedItems.Count);
 
 	private string? BulkStatusText => _selectedItems.Count > 0 && Selectable ? BulkCountText : null;
 
@@ -467,70 +499,7 @@ public partial class MokaTable<TItem>
 		}
 
 		string names = string.Join(", ", picked.Take(MaxBulkNames).Select(ItemName));
-		return picked.Count > MaxBulkNames
-			? $"{names} and {(picked.Count - MaxBulkNames).ToString("N0", CultureInfo.CurrentCulture)} more"
-			: names;
-	}
-
-	// ── Show more ──
-
-	private int ShownRowCount => _shownRows ?? Math.Max(_pageSize, 1);
-
-	private bool ShowMoreFoot => ShowMore && !Loading && !_isLoading && _displayRows.Count < _totalItems;
-
-	private string ShowMoreCountText => ItemsName is null
-		? string.Create(CultureInfo.CurrentCulture, $"Showing {_displayRows.Count:N0} of {_totalItems:N0}")
-		: string.Create(CultureInfo.CurrentCulture, $"{_displayRows.Count:N0} of {_totalItems:N0} {ItemsName}");
-
-	private string ShowMoreButtonText =>
-		string.Create(CultureInfo.CurrentCulture, $"Show {Math.Min(Math.Max(_pageSize, 1), _totalItems - _displayRows.Count):N0} more");
-
-	private string ShowAllButtonText => ItemsName is null
-		? "Show all"
-		: string.Create(CultureInfo.CurrentCulture, $"Show all {_totalItems:N0}");
-
-	/// <summary>
-	///     Loads the rows again keeping those on screen, like <see cref="RefreshAsync" />, and under <see cref="ShowMore" />
-	///     draws at least <paramref name="rows" /> of them. For a page that adds rows because someone asked for more, such
-	///     as older log entries added to the same list, so the person sees what they asked for. A list changed in place is
-	///     read again too, which the table can't notice by itself.
-	/// </summary>
-	/// <param name="rows">How many rows to draw at least.</param>
-	public async Task ShowAtLeastAsync(int rows)
-	{
-		if (ShowMore && rows > ShownRowCount)
-		{
-			_shownRows = rows;
-		}
-
-		await LoadDataAsync(keepRows: _displayRows.Count > 0);
-		StateHasChanged();
-	}
-
-	private async Task ShowMoreRowsAsync()
-	{
-		int firstNew = _displayRows.Count;
-		_shownRows = firstNew + Math.Max(_pageSize, 1);
-		await LoadDataAsync(keepRows: true);
-		FocusFirstNewRow(firstNew);
-	}
-
-	private async Task ShowAllRowsAsync()
-	{
-		int firstNew = _displayRows.Count;
-		_shownRows = int.MaxValue;
-		await LoadDataAsync(keepRows: true);
-		FocusFirstNewRow(firstNew);
-	}
-
-	// The buttons go away with the last rows, and focus would fall to the page.
-	private void FocusFirstNewRow(int firstNew)
-	{
-		if (_displayRows.Count >= _totalItems && firstNew < _displayRows.Count)
-		{
-			_focusedCell = (firstNew, _firstTabColumn);
-			_cellFocusPending = true;
-		}
+		return picked.Count > MaxBulkNames ? Words.BulkNamesAndMore(names, picked.Count - MaxBulkNames) : names;
 	}
 
 	// ── Frame and page ──
@@ -562,6 +531,7 @@ public partial class MokaTable<TItem>
 			_table = table;
 			_index = index;
 			Click = EventCallback.Factory.Create<MouseEventArgs>(table, RaiseClickAsync);
+			DoubleClick = EventCallback.Factory.Create<MouseEventArgs>(table, RaiseDoubleClickAsync);
 			ContextMenu = EventCallback.Factory.Create<MouseEventArgs>(table, RaiseContextMenuAsync);
 			Select = EventCallback.Factory.Create<ChangeEventArgs>(table, SelectAsync);
 			Expand = EventCallback.Factory.Create<MouseEventArgs>(table, ToggleExpand);
@@ -570,6 +540,8 @@ public partial class MokaTable<TItem>
 		}
 
 		public EventCallback<MouseEventArgs> Click { get; }
+
+		public EventCallback<MouseEventArgs> DoubleClick { get; }
 
 		public EventCallback<MouseEventArgs> ContextMenu { get; }
 
@@ -586,23 +558,43 @@ public partial class MokaTable<TItem>
 			_editCell ??= [];
 			if (!_editCell.TryGetValue(col, out EventCallback<MouseEventArgs> handler))
 			{
-				handler = EventCallback.Factory.Create<MouseEventArgs>(_table, () => StartEdit(col));
+				handler = EventCallback.Factory.Create<MouseEventArgs>(_table, () => StartEditAsync(col));
 				_editCell[col] = handler;
 			}
 
 			return handler;
 		}
 
-		private Task RaiseClickAsync() =>
-			_table.TryGetRow(_index, out TItem item) ? _table.OnRowClick.InvokeAsync(item) : Task.CompletedTask;
+		private Task RaiseClickAsync(MouseEventArgs e)
+		{
+			if (!_table.TryGetRow(_index, out TItem item))
+			{
+				return Task.CompletedTask;
+			}
+
+			if (_table.SelectOnRowClick && _table.Selectable)
+			{
+				_table.SelectFromRowClick(item, e);
+			}
+
+			return _table.OnRowClick.InvokeAsync(item);
+		}
+
+		private Task RaiseDoubleClickAsync() =>
+			_table.TryGetRow(_index, out TItem item) ? _table.OnRowDoubleClick.InvokeAsync(item) : Task.CompletedTask;
 
 		private Task RaiseContextMenuAsync(MouseEventArgs e) =>
 			_table.TryGetRow(_index, out TItem item)
 				? _table.OnRowContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e))
 				: Task.CompletedTask;
 
-		private Task SelectAsync() =>
-			_table.TryGetRow(_index, out TItem item) ? _table.HandleRowSelect(item) : Task.CompletedTask;
+		private void SelectAsync()
+		{
+			if (_table.TryGetRow(_index, out TItem item))
+			{
+				_table.HandleRowSelect(item);
+			}
+		}
 
 		private void ToggleExpand()
 		{
@@ -622,12 +614,7 @@ public partial class MokaTable<TItem>
 
 		private Task DropAsync() => _table.HandleRowDrop(_index);
 
-		private void StartEdit(MokaColumn<TItem> col)
-		{
-			if (_table.TryGetRow(_index, out TItem item))
-			{
-				_table.StartEdit(item, col);
-			}
-		}
+		private Task StartEditAsync(MokaColumn<TItem> col) =>
+			_table.TryGetRow(_index, out TItem item) ? _table.BeginEditAsync(item, col) : Task.CompletedTask;
 	}
 }

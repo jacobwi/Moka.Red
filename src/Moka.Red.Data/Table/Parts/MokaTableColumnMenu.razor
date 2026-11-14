@@ -1,0 +1,149 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaComponentBase
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+
+@* The WAI-ARIA menu button pattern: the heading's button opens a menu in the top layer with focus on its first item;
+   the arrows, Home and End move between items, Enter and Space pick one, and Escape or Tab closes it with focus back on
+   the button. The keys are handled in moka-table.js, so moving between items sends nothing to .NET. *@
+<div class="moka-table-popup moka-table-column-menu-panel" popover="manual" data-moka-popup role="menu"
+     aria-label="@Table.ColumnMenuLabel(Column)" @ref="_panel">
+	@if (Table.CanSortColumn(Column))
+	{
+		var direction = Table.SortDirectionOf(Column);
+		<button type="button" class="moka-table-menu-item" role="menuitemradio" tabindex="-1"
+		        aria-checked="@(direction == MokaSortDirection.Ascending ? "true" : "false")"
+		        @onclick="() => Table.SortFromMenuAsync(Column, MokaSortDirection.Ascending)">
+			<MokaIcon Icon="MokaIcons.Navigation.ArrowUp" SizeValue="14px"/>
+			<span>@Table.Words.SortAscending</span>
+		</button>
+		<button type="button" class="moka-table-menu-item" role="menuitemradio" tabindex="-1"
+		        aria-checked="@(direction == MokaSortDirection.Descending ? "true" : "false")"
+		        @onclick="() => Table.SortFromMenuAsync(Column, MokaSortDirection.Descending)">
+			<MokaIcon Icon="MokaIcons.Navigation.ArrowDown" SizeValue="14px"/>
+			<span>@Table.Words.SortDescending</span>
+		</button>
+		@if (direction != MokaSortDirection.None)
+		{
+			<button type="button" class="moka-table-menu-item" role="menuitem" tabindex="-1"
+			        @onclick="() => Table.SortFromMenuAsync(Column, MokaSortDirection.None)">
+				<MokaIcon Icon="MokaIcons.Content.SortNeutral" SizeValue="14px"/>
+				<span>@Table.Words.ClearSort</span>
+			</button>
+		}
+		<div class="moka-table-menu-separator" role="separator"></div>
+	}
+	@if (Table.CanFilterFromMenu(Column))
+	{
+		<button type="button" class="moka-table-menu-item" role="menuitem" tabindex="-1" aria-haspopup="dialog"
+		        @onclick="() => Table.FilterFromMenu(Column)">
+			<MokaIcon Icon="MokaIcons.Content.Filter" SizeValue="14px"/>
+			<span>@Table.Words.FilterColumn</span>
+		</button>
+	}
+	@if (MokaTable<TItem>.CanPin(Column))
+	{
+		var pin = Table.PinOf(Column);
+		<button type="button" class="moka-table-menu-item" role="menuitemradio" tabindex="-1"
+		        aria-checked="@(pin == MokaColumnPin.Start ? "true" : "false")"
+		        @onclick="() => Table.PinFromMenuAsync(Column, MokaColumnPin.Start)">
+			<MokaIcon Icon="MokaIcons.Toggle.Pin" SizeValue="14px"/>
+			<span>@Table.Words.PinToStart</span>
+		</button>
+		<button type="button" class="moka-table-menu-item" role="menuitemradio" tabindex="-1"
+		        aria-checked="@(pin == MokaColumnPin.End ? "true" : "false")"
+		        @onclick="() => Table.PinFromMenuAsync(Column, MokaColumnPin.End)">
+			<MokaIcon Icon="MokaIcons.Toggle.Pin" SizeValue="14px"/>
+			<span>@Table.Words.PinToEnd</span>
+		</button>
+		@if (pin != MokaColumnPin.None)
+		{
+			<button type="button" class="moka-table-menu-item" role="menuitem" tabindex="-1"
+			        @onclick="() => Table.PinFromMenuAsync(Column, MokaColumnPin.None)">
+				<MokaIcon Icon="MokaIcons.Toggle.PinOff" SizeValue="14px"/>
+				<span>@Table.Words.Unpin</span>
+			</button>
+		}
+	}
+	@if (MokaTable<TItem>.CanGroupBy(Column))
+	{
+		<button type="button" class="moka-table-menu-item" role="menuitemcheckbox" tabindex="-1"
+		        aria-checked="@(Table.IsGroupedBy(Column) ? "true" : "false")"
+		        @onclick="() => Table.GroupFromMenuAsync(Column)">
+			<MokaIcon Icon="MokaIcons.Content.Layers" SizeValue="14px"/>
+			<span>@Table.Words.GroupByColumn</span>
+		</button>
+	}
+	@if (MokaTable<TItem>.CanHide(Column))
+	{
+		<button type="button" class="moka-table-menu-item" role="menuitem" tabindex="-1"
+		        @onclick="() => Table.HideFromMenuAsync(Column)">
+			<MokaIcon Icon="MokaIcons.Toggle.EyeOff" SizeValue="14px"/>
+			<span>@Table.Words.HideColumn</span>
+		</button>
+	}
+	<button type="button" class="moka-table-menu-item" role="menuitem" tabindex="-1"
+	        @onclick="() => Table.FitFromMenuAsync(Column)">
+		<MokaIcon Icon="MokaIcons.Navigation.Resize" SizeValue="14px"/>
+		<span>@Table.Words.FitToContent</span>
+	</button>
+</div>
+<div class="moka-table-popup-backdrop" popover="manual" data-moka-popup @ref="_backdrop" @onclick="Dismiss"></div>
+
+@code {
+	private const string ModulePath = "./_content/Moka.Red.Data/moka-table.js";
+
+	private ElementReference _panel;
+	private ElementReference _backdrop;
+	private DotNetObjectReference<MokaTableColumnMenu<TItem>>? _self;
+	private bool _opened;
+
+	/// <summary>The table whose column the menu acts on.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaTable<TItem> Table { get; set; } = default!;
+
+	/// <summary>The column the menu acts on.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaColumn<TItem> Column { get; set; } = default!;
+
+	/// <inheritdoc />
+	protected override string RootClass => "moka-table-column-menu-panel";
+
+
+	/// <inheritdoc />
+	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+		if (firstRender)
+		{
+			_opened = true;
+			_self = DotNetObjectReference.Create(this);
+			await SafeModuleInvokeVoidAsync(ModulePath, "openPopup", Table.ColumnMenuPopupKey, _panel, _backdrop, Table.WrapperRef,
+				string.Create(CultureInfo.InvariantCulture, $"[data-moka-menu-for=\"{Column.ActionKey}\"]"), "bottom-end", _self, true);
+		}
+	}
+
+	/// <summary>Called from JS when Escape or Tab is pressed in the menu: it closes and focus goes back to its button.</summary>
+	[JSInvokable]
+	public void Dismiss() => Table.CloseColumnMenu(returnFocus: true);
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_opened)
+		{
+			_opened = false;
+			await SafeModuleInvokeVoidAsync(ModulePath, "closePopup", Table.ColumnMenuPopupKey, _panel);
+		}
+
+		_self?.Dispose();
+		_self = null;
+		await base.DisposeAsyncCore();
+	}
+}

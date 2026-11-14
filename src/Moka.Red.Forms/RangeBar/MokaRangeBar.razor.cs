@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
@@ -41,13 +42,13 @@ public partial class MokaRangeBar
 	private ElementReference _bar;
 	private bool _bound;
 	private DotNetObjectReference<MokaRangeBar>? _dotNetRef;
-	private double _end;
+	private readonly MokaInputValue<MokaRange?> _range;
 	private bool _endGiven;
-	private double? _lastEndIn;
-	private double? _lastStartIn;
-	private double _start;
 	private bool _startGiven;
 	private bool _valueGiven;
+
+	/// <summary>Creates the bar. Until the parent passes a range or a handle moves, it shows the whole scale.</summary>
+	public MokaRangeBar() => _range = CreateInputValue<MokaRange?>();
 
 	/// <summary>Where the range starts. Two-way bindable. Without it or <c>Value</c> the range starts at <see cref="Min" />.</summary>
 	[Parameter]
@@ -267,9 +268,9 @@ public partial class MokaRangeBar
 
 	// What the bar shows: inside the scale and in order, whatever the parent passed. Nothing is reported back
 	// until a key or a drag moves a handle.
-	private double ShownStart => Math.Min(Inside(_start, Low), Inside(_end, High));
+	private double ShownStart => _range.Shown is { } range ? Math.Min(Inside(range.Start, Low), Inside(range.End, High)) : Low;
 
-	private double ShownEnd => Math.Max(Inside(_start, Low), Inside(_end, High));
+	private double ShownEnd => _range.Shown is { } range ? Math.Max(Inside(range.Start, Low), Inside(range.End, High)) : High;
 
 	private string StartText => Text(ShownStart);
 
@@ -299,11 +300,11 @@ public partial class MokaRangeBar
 	/// <param name="start">Where the start handle is.</param>
 	/// <param name="end">Where the end handle is.</param>
 	[JSInvokable]
-	public void OnDragged(double start, double end) => RunDetached(async () =>
+	public void OnDragged(double start, double end) => RunDetached(() =>
 	{
 		double low = Snap(Math.Min(start, end));
 		double high = Snap(Math.Max(start, end));
-		await CommitAsync(low, high);
+		Commit(low, high);
 		StateHasChanged();
 	});
 
@@ -326,22 +327,18 @@ public partial class MokaRangeBar
 	{
 		base.OnParametersSet();
 
-		double startIn = _startGiven ? Start : _valueGiven ? Value.Start : Low;
-		double endIn = _endGiven ? End : _valueGiven ? Value.End : High;
-
-		// Each end moves only when the parent passes a new value for it, so a parent that doesn't bind can't send a
-		// handle back to where it started by rendering again.
-		if (!EqualityComparer<double?>.Default.Equals(_lastStartIn, startIn))
+		if (_startGiven || _endGiven || _valueGiven)
 		{
-			_lastStartIn = startIn;
-			_start = startIn;
+			_range.Take(new MokaRange(_startGiven ? Start : _valueGiven ? Value.Start : Low,
+				_endGiven ? End : _valueGiven ? Value.End : High));
 		}
+	}
 
-		if (!EqualityComparer<double?>.Default.Equals(_lastEndIn, endIn))
-		{
-			_lastEndIn = endIn;
-			_end = endIn;
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_range.AfterRender();
 	}
 
 	/// <inheritdoc />
@@ -495,7 +492,7 @@ public partial class MokaRangeBar
 	private IEnumerable<MokaRangeMark> NamedMarks() =>
 		ShownMarks(Pins).Concat(ShownMarks(Ticks)).Where(mark => !string.IsNullOrWhiteSpace(mark.Label));
 
-	private async Task HandleKeyAsync(KeyboardEventArgs e, bool startHandle)
+	private void HandleKey(KeyboardEventArgs e, bool startHandle)
 	{
 		if (Disabled || ReadOnly || e.AltKey || e.CtrlKey || e.MetaKey)
 		{
@@ -527,7 +524,14 @@ public partial class MokaRangeBar
 		}
 
 		value = Math.Clamp(value, lowest, highest);
-		await (startHandle ? CommitAsync(value, end) : CommitAsync(start, value));
+		if (startHandle)
+		{
+			Commit(value, end);
+		}
+		else
+		{
+			Commit(start, value);
+		}
 	}
 
 	private double Snap(double value)
@@ -542,7 +546,9 @@ public partial class MokaRangeBar
 		return clamped;
 	}
 
-	private async Task CommitAsync(double start, double end)
+	// A parent that passes the range through Start, End or Value and listens to any of their callbacks owns it, so
+	// a range it doesn't take goes back.
+	private void Commit(double start, double end)
 	{
 		bool startMoved = start != ShownStart;
 		bool endMoved = end != ShownEnd;
@@ -551,21 +557,26 @@ public partial class MokaRangeBar
 			return;
 		}
 
-		_start = start;
-		_end = end;
+		EventCallback<MokaRange?> changed = StartChanged.HasDelegate || EndChanged.HasDelegate || ValueChanged.HasDelegate
+			? new EventCallback<MokaRange?>(null, (Func<MokaRange?, Task>)(range => RaiseAsync(range!.Value, startMoved, endMoved)))
+			: default;
+		_range.Pick(new MokaRange(start, end), changed);
+		EditContext?.NotifyFieldChanged(FieldIdentifier);
+	}
 
+	private async Task RaiseAsync(MokaRange range, bool startMoved, bool endMoved)
+	{
 		if (startMoved)
 		{
-			await StartChanged.InvokeAsync(start);
+			await StartChanged.InvokeAsync(range.Start);
 		}
 
 		if (endMoved)
 		{
-			await EndChanged.InvokeAsync(end);
+			await EndChanged.InvokeAsync(range.End);
 		}
 
-		await ValueChanged.InvokeAsync(new MokaRange(start, end));
-		EditContext?.NotifyFieldChanged(FieldIdentifier);
+		await ValueChanged.InvokeAsync(range);
 	}
 
 	private sealed class KeyEntry(string label, MokaColor color)

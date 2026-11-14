@@ -60,11 +60,16 @@ public class MokaNativeSelectTests : BunitContext
 	{
 		Zone[] zones = [new(1, "Home"), new(2, "Guests")];
 		List<Zone?> changes = [];
-		IRenderedComponent<MokaNativeSelect<Zone>> cut = Render<MokaNativeSelect<Zone>>(p => p
+		IRenderedComponent<MokaNativeSelect<Zone>>? cut = null;
+		cut = Render<MokaNativeSelect<Zone>>(p => p
 			.Add(x => x.Items, zones)
 			.Add(x => x.TextSelector, zone => zone.Name)
 			.Add(x => x.Value, zones[0])
-			.Add(x => x.ValueChanged, EventCallback.Factory.Create<Zone>(this, changes.Add)));
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<Zone>(this, zone =>
+			{
+				changes.Add(zone);
+				cut!.Render(q => q.Add(x => x.Value, zone));
+			})));
 
 		await cut.Find("select").ChangeAsync(new ChangeEventArgs { Value = "1" });
 
@@ -92,11 +97,16 @@ public class MokaNativeSelectTests : BunitContext
 	{
 		string?[] items = [null, "Home"];
 		List<string?> changes = [];
-		IRenderedComponent<MokaNativeSelect<string?>> cut = Render<MokaNativeSelect<string?>>(p => p
+		IRenderedComponent<MokaNativeSelect<string?>>? cut = null;
+		cut = Render<MokaNativeSelect<string?>>(p => p
 			.Add(x => x.Items, items)
 			.Add(x => x.TextSelector, item => item ?? "Default")
 			.Add(x => x.Value, "Home")
-			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, changes.Add)));
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, item =>
+			{
+				changes.Add(item);
+				cut!.Render(q => q.Add(x => x.Value, item));
+			})));
 
 		Assert.Equal("Default", cut.FindAll("option")[0].TextContent);
 

@@ -1,0 +1,143 @@
+@using System.Diagnostics
+@using System.Globalization
+
+<DemoSection Id="build-output" Title="Build output" Description="Console output with colored lines, line numbers and copy.">
+	<MokaTerminal Title="Build Output" Lines="_buildLines"/>
+</DemoSection>
+
+<DemoSection Id="colored-log-with-line-numbers" Title="Colored log with line numbers">
+	<MokaTerminal Title="deploy.log" ShowLineNumbers="true" ShowCopyButton="true" Lines="_logLines"/>
+</DemoSection>
+
+<DemoSection Id="command-blocks-with-ansi-colors" Title="Command blocks with ANSI colors">
+	<MokaTerminal Title="Commands" Ansi Commands="@_commands" OnEdit="NoteEdit" OnRunAgain="RunAgain" MaxHeight="26rem"/>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="AddOutput">Add output</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="() => EndRunning(MokaTerminalCommandState.Succeeded)">It succeeds</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" Disabled="@(!IsRunning)" OnClick="() => EndRunning(MokaTerminalCommandState.Failed)">It fails</MokaButton>
+		<span>@_commandNote</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="long-output-in-chunks" Title="Long output in chunks">
+	<p style="margin: 0;">
+		Every 200 lines is a chunk that stops drawing once its lines are final, so a line added to a long log costs about what it does to a short one.
+		Colors carry across lines until a reset.
+	</p>
+	<MokaTerminal Title="build.log" Ansi ShowLineNumbers Lines="@_lines" MaxHeight="22rem"/>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => Append(1)">Add a line</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => Append(1000)">Add 1,000 lines</MokaButton>
+		<span>@_lines.Count.ToString("N0", CultureInfo.CurrentCulture) lines in @ChunkCount.ToString("N0", CultureInfo.CurrentCulture) chunks. @DrawNote</span>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly MokaTerminalLine[] _buildLines =
+	[
+		new("$ dotnet build", Prefix: "$"),
+		new("  Determining projects to restore..."),
+		new("  Restored 3 projects in 1.2s", "var(--moka-color-success)"),
+		new("  Moka.Red.Core -> bin/Debug/net9.0/Moka.Red.Core.dll"),
+		new("  Build succeeded.", "var(--moka-color-success)"),
+		new("    0 Warning(s)", "var(--moka-color-warning)"),
+		new("    0 Error(s)", "var(--moka-color-success)")
+	];
+
+	private static readonly MokaTerminalLine[] _logLines =
+	[
+		new("[INFO]  Starting deployment...", "var(--moka-color-info)"),
+		new("[INFO]  Building Docker image...", "var(--moka-color-info)"),
+		new("[WARN]  Cache miss for layer 3/7", "var(--moka-color-warning)"),
+		new("[ERROR] Connection timeout", "var(--moka-color-error)"),
+		new("[INFO]  Retrying (attempt 2/3)...", "var(--moka-color-info)"),
+		new("[OK]    Image pushed successfully", "var(--moka-color-success)")
+	];
+
+	private const string Esc = "\u001b";
+
+	private readonly Stopwatch _drawTime = new();
+
+	private IReadOnlyList<MokaTerminalCommand> _commands =
+	[
+		new("dotnet test", MokaTerminalCommandState.Succeeded,
+		[
+			new($"{Esc}[32mPassed!{Esc}[0m 3477 tests in 41 s"),
+			new($"{Esc}[33mwarn:{Esc}[0m 1 test took over 5 s")
+		]),
+		new("dotnet nuget push", MokaTerminalCommandState.Failed, [new($"{Esc}[31merror:{Esc}[0m nothing to publish yet")]),
+		new("dotnet pack -c Release", MokaTerminalCommandState.Running, [new("Packing 12 projects...")])
+	];
+
+	private string? _commandNote;
+
+	private long? _drawMicroseconds;
+
+	private bool IsRunning => _commands.Any(command => command.State == MokaTerminalCommandState.Running);
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (!_drawTime.IsRunning)
+		{
+			return;
+		}
+
+		_drawTime.Stop();
+		_drawMicroseconds = _drawTime.ElapsedTicks * 1_000_000 / Stopwatch.Frequency;
+		StateHasChanged();
+	}
+
+	private void NoteEdit(MokaTerminalCommand command) => _commandNote = $"Edit: an app would put \"{command.Command}\" back on its input line.";
+
+	private void RunAgain(MokaTerminalCommand command)
+	{
+		_commandNote = null;
+		_commands = [.. _commands, new MokaTerminalCommand(command.Command, MokaTerminalCommandState.Running)];
+	}
+
+	private void AddOutput() => ChangeRunning(command =>
+	{
+		int number = (command.Lines?.Count ?? 0) + 1;
+		string line = number % 3 == 0
+			? $"{Esc}[33mwarn:{Esc}[0m line {number.ToString(CultureInfo.CurrentCulture)} looks slow"
+			: $"{Esc}[36minfo:{Esc}[0m line {number.ToString(CultureInfo.CurrentCulture)}";
+		return command with { Lines = [.. command.Lines ?? [], new MokaTerminalLine(line)] };
+	});
+
+	private void EndRunning(MokaTerminalCommandState state) => ChangeRunning(command => command with { State = state });
+
+	private void ChangeRunning(Func<MokaTerminalCommand, MokaTerminalCommand> change) =>
+		_commands = [.. _commands.Select(command => command.State == MokaTerminalCommandState.Running ? change(command) : command)];
+
+	private static readonly string[] AnsiPalette =
+	[
+		$"{Esc}[30mblack{Esc}[0m {Esc}[31mred{Esc}[0m {Esc}[32mgreen{Esc}[0m {Esc}[33myellow{Esc}[0m {Esc}[34mblue{Esc}[0m {Esc}[35mmagenta{Esc}[0m {Esc}[36mcyan{Esc}[0m {Esc}[37mwhite{Esc}[0m",
+		$"{Esc}[90mgray{Esc}[0m {Esc}[91mred{Esc}[0m {Esc}[92mgreen{Esc}[0m {Esc}[93myellow{Esc}[0m {Esc}[94mblue{Esc}[0m {Esc}[95mmagenta{Esc}[0m {Esc}[96mcyan{Esc}[0m {Esc}[97mwhite{Esc}[0m",
+		$"{Esc}[41m red {Esc}[0m {Esc}[42m green {Esc}[0m {Esc}[43m yellow {Esc}[0m {Esc}[44m blue {Esc}[0m {Esc}[45m magenta {Esc}[0m {Esc}[46m cyan {Esc}[0m",
+		$"{Esc}[1mbold{Esc}[0m {Esc}[2mdim{Esc}[0m {Esc}[3mitalic{Esc}[0m {Esc}[4munderline{Esc}[0m {Esc}[7minverse{Esc}[0m {Esc}[38;5;208m256-color{Esc}[0m {Esc}[38;2;120;200;255m24-bit{Esc}[0m",
+		$"{Esc}[33mThis yellow was set on this line,",
+		$"and carries on to this one.{Esc}[0m And this part is plain."
+	];
+
+	private readonly List<MokaTerminalLine> _lines = [.. AnsiPalette.Select(line => new MokaTerminalLine(line))];
+
+	private int ChunkCount => (_lines.Count + 199) / 200;
+
+	private string? DrawNote => _drawMicroseconds is { } time
+		? $"That took {(time / 1000d).ToString("F1", CultureInfo.CurrentCulture)} ms to draw."
+		: null;
+
+	private void Append(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			int number = _lines.Count + 1;
+			string text = number % 7 == 0
+				? $"{Esc}[32mok{Esc}[0m step {number.ToString(CultureInfo.CurrentCulture)}"
+				: $"step {number.ToString(CultureInfo.CurrentCulture)}";
+			_lines.Add(new MokaTerminalLine(text));
+		}
+
+		_drawTime.Restart();
+	}
+}

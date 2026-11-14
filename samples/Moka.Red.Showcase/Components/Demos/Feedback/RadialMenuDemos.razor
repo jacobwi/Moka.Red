@@ -1,0 +1,271 @@
+@using System.Globalization
+
+<DemoSection Id="right-click-a-device" Title="Right click a device">
+	<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+		Right click, Shift+F10 or a long press opens the ring around it. Click a button, hold the right button
+		and flick toward one (macOS and Linux), or use the arrows, Enter and digits. Limit opens a list beside it.
+	</p>
+	<MokaGrid MinColumn="220px" Style="gap: var(--moka-grid-gap);">
+		@foreach (Device device in _devices)
+		{
+			<MokaRadialMenuTrigger Spec="DeviceMenu(device)">
+				<div tabindex="0" style="padding: var(--moka-card-padding); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-card); background: var(--moka-color-surface-variant); cursor: context-menu;">
+					<div style="font-weight: var(--moka-font-weight-semibold);">@device.Name</div>
+					<div style="display: flex; gap: var(--moka-spacing-sm); margin-top: var(--moka-spacing-sm);">
+						<MokaTag Text="@device.State" Size="MokaSize.Sm"/>
+						@if (device.Limit is { } limit)
+						{
+							<MokaTag Text="@($"{limit} Mbit/s")" Size="MokaSize.Sm"/>
+						}
+					</div>
+				</div>
+			</MokaRadialMenuTrigger>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="opened-from-code" Title="Opened from code">
+	<p style="margin: 0 0 var(--moka-spacing-md); color: var(--moka-color-on-surface-variant);">
+		The button calls <code>ShowRadial</code> with its click. From the keyboard the ring centres on the button
+		and starts on its first item.
+	</p>
+	<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="OpenFromCode">Open the ring here</MokaButton>
+</DemoSection>
+
+<DemoSection Id="what-was-picked" Title="What was picked">
+	@if (_picks.Count == 0)
+	{
+		<p style="margin: 0; color: var(--moka-color-on-surface-variant);">Nothing yet.</p>
+	}
+	else
+	{
+		<ol style="margin: 0; padding-left: var(--moka-spacing-lg); font-family: var(--moka-font-family-mono);">
+			@foreach (string pick in _picks)
+			{
+				<li>@pick</li>
+			}
+		</ol>
+	}
+</DemoSection>
+
+<DemoSection Id="shape-look-and-choices" Title="Shape, look and choices" Description="Right click, Shift+F10 or a long press opens the menu around the row. Point around it, flick toward a button with the right button held, or use the arrows, Tab, digits, Enter and Escape. Share holds three choices. The theme's look follows the theme's popup look.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<MokaCaption Micro>Shape</MokaCaption>
+		<MokaSegmentedControl Value="@_shape.ToString()" ValueChanged="v => _shape = Enum.Parse<MokaRadialShape>(v)" AriaLabel="Shape">
+			@foreach (MokaRadialShape shape in Enum.GetValues<MokaRadialShape>())
+			{
+				<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
+			}
+		</MokaSegmentedControl>
+
+		<MokaCaption Micro>Look</MokaCaption>
+		<MokaSegmentedControl Value="@(_look?.ToString() ?? FollowTheme)" ValueChanged="SetLook" AriaLabel="Look">
+			<MokaSegment Value="@FollowTheme" Text="Theme's"/>
+			@foreach (MokaRadialLook look in Enum.GetValues<MokaRadialLook>())
+			{
+				<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
+			}
+		</MokaSegmentedControl>
+
+		<MokaCaption Micro>Choices</MokaCaption>
+		<MokaSegmentedControl Value="@_choices.ToString()" ValueChanged="v => _choices = Enum.Parse<MokaRadialChoiceStyle>(v)" AriaLabel="Choices">
+			@foreach (MokaRadialChoiceStyle style in Enum.GetValues<MokaRadialChoiceStyle>())
+			{
+				<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>
+			}
+		</MokaSegmentedControl>
+
+		<MokaSwitch @bind-Value="_adapt" Label="A ring turns into a half ring at the bottom edge and a corner fan at a corner"/>
+
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+			@foreach (FileRow file in _files)
+			{
+				<MokaRadialMenuTrigger Spec="FileMenu(file)" Shape="_shape" Look="_look" ChoiceStyle="_choices" AdaptToEdges="_adapt">
+					<div tabindex="0"
+					     style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--moka-spacing-lg); align-items: center; padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md); background: var(--moka-color-surface-variant); cursor: context-menu;">
+						<span style="font-weight: var(--moka-font-weight-medium);">@file.Name</span>
+						<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-variant);">@file.Size</span>
+						<span style="font-family: var(--moka-font-family-mono); color: var(--moka-color-on-surface-tertiary);">@file.Shared</span>
+					</div>
+				</MokaRadialMenuTrigger>
+			}
+		</div>
+
+		<div style="position: fixed; right: var(--moka-spacing-md); bottom: var(--moka-spacing-md); z-index: 1;">
+			<MokaRadialMenuTrigger Spec="FileMenu(_files[0])" Shape="_shape" Look="_look" ChoiceStyle="_choices" AdaptToEdges="_adapt">
+				<div tabindex="0"
+				     style="padding: var(--moka-spacing-sm) var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline-strong); border-radius: var(--moka-radius-md); background: var(--moka-color-surface); cursor: context-menu;">
+					Right click me in the corner
+				</div>
+			</MokaRadialMenuTrigger>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="every-shape-from-code" Title="Every shape from code" Description="Each button opens ShowRadial with the shape in its spec, and the look and choices picked above.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-sm);">
+		@foreach (MokaRadialShape shape in Enum.GetValues<MokaRadialShape>())
+		{
+			MokaRadialShape each = shape;
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="e => OpenShape(e, each)">@shape</MokaButton>
+		}
+	</div>
+</DemoSection>
+
+@code {
+	private readonly List<Device> _devices =
+	[
+		new("Office desktop", "Allowed", 50),
+		new("Kitchen speaker", "Limited", 10),
+		new("Unknown phone", "Blocked", null),
+		new("Printer", "Allowed", null)
+	];
+
+	private readonly List<string> _picks = [];
+
+	private MokaRadialMenuSpec DeviceMenu(Device device) => new(
+		device.Name,
+		[
+			new MokaRadialItem("open", "Open", MokaIcons.Content.ExternalLink),
+			new MokaRadialItem("limit", "Limit", MokaIcons.Status.Clock, Choices:
+			[
+				new MokaRadialChoice("10", "10 Mbit/s", device.Limit == 10),
+				new MokaRadialChoice("50", "50 Mbit/s", device.Limit == 50),
+				new MokaRadialChoice("100", "100 Mbit/s", device.Limit == 100)
+			]),
+			new MokaRadialItem("rename", "Rename", MokaIcons.Action.Edit),
+			new MokaRadialItem("allow", "Allow", MokaIcons.Status.Check, MokaRadialTone.Good),
+			new MokaRadialItem("block", "Block", MokaIcons.Toggle.Lock, MokaRadialTone.Danger),
+			new MokaRadialItem("forget", "Forget", MokaIcons.Action.Delete, Disabled: device.State != "Blocked")
+		],
+		Sub: device.State,
+		Icon: MokaIcons.File.Terminal,
+		Color: device.State switch
+		{
+			"Blocked" => MokaColor.Error,
+			"Limited" => MokaColor.Warning,
+			_ => MokaColor.Success
+		},
+		OnPick: pick => Apply(device, pick));
+
+	private Task Apply(Device device, MokaRadialPick pick)
+	{
+		_picks.Insert(0, $"{device.Name}: {pick.Answer}");
+		int index = _devices.IndexOf(device);
+		_devices[index] = pick.Item.Id switch
+		{
+			"limit" when int.TryParse(pick.Choice?.Id, CultureInfo.InvariantCulture, out int limit) => device with { State = "Limited", Limit = limit },
+			"allow" => device with { State = "Allowed", Limit = null },
+			"block" => device with { State = "Blocked", Limit = null },
+			_ => device
+		};
+
+		if (pick.Item.Id == "forget")
+		{
+			_devices.RemoveAt(index);
+		}
+
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private sealed record Device(string Name, string State, int? Limit);
+
+	[Inject]
+	private IMokaContextMenuService Menu { get; set; } = default!;
+
+	private void OpenFromCode(MouseEventArgs e) => Menu.ShowRadial(e, new MokaRadialMenuSpec(
+		"This page",
+		[
+			new MokaRadialItem("refresh", "Refresh", MokaIcons.Action.Refresh),
+			new MokaRadialItem("copy", "Copy link", MokaIcons.Content.Copy),
+			new MokaRadialItem("settings", "Settings", MokaIcons.Action.Settings),
+			new MokaRadialItem("search", "Search", MokaIcons.Action.Search)
+		],
+		Sub: "Actions",
+		OnPick: pick =>
+		{
+			_picks.Insert(0, $"This page: {pick.Answer}");
+			StateHasChanged();
+			return Task.CompletedTask;
+		}));
+
+	private const string FollowTheme = "theme";
+
+	private readonly List<FileRow> _files =
+	[
+		new("report.pdf", "2.4 MB", "Link"),
+		new("q3-budget.xlsx", "88 KB", "Team"),
+		new("site-photo.jpg", "3.1 MB", "Email"),
+		new("backup.zip", "1.2 GB", "Link")
+	];
+
+	private bool _adapt;
+
+	private MokaRadialChoiceStyle _choices = MokaRadialChoiceStyle.List;
+
+	private MokaRadialLook? _look;
+
+	private MokaRadialShape _shape = MokaRadialShape.Ring;
+
+	private void SetLook(string value) => _look = value == FollowTheme ? null : Enum.Parse<MokaRadialLook>(value);
+
+	private MokaRadialMenuSpec FileMenu(FileRow file) => new(
+		file.Name,
+		[
+			new MokaRadialItem("open", "Open", MokaIcons.Content.ExternalLink),
+			new MokaRadialItem("rename", "Rename", MokaIcons.Action.Edit),
+			new MokaRadialItem("share", "Share", MokaIcons.Action.Share, Choices:
+			[
+				new MokaRadialChoice("email", "Email", file.Shared == "Email") { Icon = MokaIcons.Action.Send },
+				new MokaRadialChoice("link", "Link", file.Shared == "Link") { Icon = MokaIcons.Content.Link },
+				new MokaRadialChoice("team", "Team", file.Shared == "Team") { Icon = MokaIcons.Content.Users }
+			]),
+			new MokaRadialItem("copy", "Copy", MokaIcons.Content.Copy),
+			new MokaRadialItem("move", "Move", MokaIcons.File.FolderInput),
+			new MokaRadialItem("delete", "Delete", MokaIcons.Action.Delete, MokaRadialTone.Danger)
+		],
+		Sub: file.Size,
+		Icon: MokaIcons.File.FileText,
+		OnPick: pick => ApplyFilePick(file, pick));
+
+	private Task ApplyFilePick(FileRow file, MokaRadialPick pick)
+	{
+		_picks.Insert(0, $"{file.Name}: {pick.Answer}");
+		if (pick.Choice is { } choice)
+		{
+			int index = _files.IndexOf(file);
+			if (index >= 0)
+			{
+				_files[index] = file with { Shared = choice.Label };
+			}
+		}
+
+		StateHasChanged();
+		return Task.CompletedTask;
+	}
+
+	private sealed record FileRow(string Name, string Size, string Shared);
+
+	private MokaRadialMenuSpec FileRing(FileRow file) => new(
+		file.Name,
+		[
+			new MokaRadialItem("open", "Open", MokaIcons.Content.ExternalLink),
+			new MokaRadialItem("rename", "Rename", MokaIcons.Action.Edit),
+			new MokaRadialItem("share", "Share", MokaIcons.Action.Share, Choices:
+			[
+				new MokaRadialChoice("email", "Email", file.Shared == "Email") { Icon = MokaIcons.Action.Send },
+				new MokaRadialChoice("link", "Link", file.Shared == "Link") { Icon = MokaIcons.Content.Link },
+				new MokaRadialChoice("team", "Team", file.Shared == "Team") { Icon = MokaIcons.Content.Users }
+			]),
+			new MokaRadialItem("copy", "Copy", MokaIcons.Content.Copy),
+			new MokaRadialItem("move", "Move", MokaIcons.File.FolderInput),
+			new MokaRadialItem("delete", "Delete", MokaIcons.Action.Delete, MokaRadialTone.Danger)
+		],
+		Sub: file.Size,
+		Icon: MokaIcons.File.FileText,
+		OnPick: pick => ApplyFilePick(file, pick));
+
+	private void OpenShape(MouseEventArgs e, MokaRadialShape shape) =>
+		Menu.ShowRadial(e, FileRing(_files[0]) with { Shape = shape, Look = _look, ChoiceStyle = _choices, AdaptToEdges = _adapt });
+}

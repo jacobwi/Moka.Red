@@ -38,7 +38,7 @@ public partial class ThemeTokenParityTests
 	public void EveryTokenReadingADarkToken_IsDeclaredAgainUnderDark()
 	{
 		IReadOnlyDictionary<string, string> root = ScopedCss.Declarations("moka.css", ":root");
-		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark");
+		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark:not(.moka-root)");
 
 		List<string> missing = root
 			.Where(token => !dark.ContainsKey(token.Key) && Reference().Matches(token.Value)

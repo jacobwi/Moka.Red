@@ -1,0 +1,16 @@
+<DemoSection Id="a-notice-across-the-page" Title="A notice across the page" Description="Sticky keeps it at the top while the page scrolls; Closable adds a close button that raises OnClose.">
+	@if (_shown)
+	{
+		<MokaNotice Sticky="false" Icon="MokaIcons.Status.Info" OnClose="() => _shown = false">
+			Maintenance on Sunday from 02:00 to 04:00. Reports can't be exported then.
+		</MokaNotice>
+	}
+	else
+	{
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="() => _shown = true">Show the notice again</MokaButton>
+	}
+</DemoSection>
+
+@code {
+	private bool _shown = true;
+}

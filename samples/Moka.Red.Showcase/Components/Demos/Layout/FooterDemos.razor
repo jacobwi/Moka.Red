@@ -1,0 +1,17 @@
+<DemoSection Id="default-bordered" Title="Default (bordered)" Description="A page or panel footer, bordered or elevated.">
+	<MokaFooter>
+		<MokaFlexbox Direction="MokaDirection.Row" Justify="MokaJustify.SpaceBetween" Align="MokaAlign.Center">
+			<span>&copy; 2026 Moka.Red</span>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md">
+				<a href="components" style="color: var(--moka-color-primary); text-decoration: none; font-size: var(--moka-font-size-sm);">Components</a>
+				<a href="appearance" style="color: var(--moka-color-primary); text-decoration: none; font-size: var(--moka-font-size-sm);">Appearance</a>
+			</MokaFlexbox>
+		</MokaFlexbox>
+	</MokaFooter>
+</DemoSection>
+
+<DemoSection Id="elevated" Title="Elevated">
+	<MokaFooter Elevated="true" Bordered="false">
+		<p style="text-align: center;">Elevated footer with shadow, no border</p>
+	</MokaFooter>
+</DemoSection>

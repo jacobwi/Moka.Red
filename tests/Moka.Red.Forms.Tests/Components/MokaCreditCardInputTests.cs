@@ -105,7 +105,8 @@ public class MokaCreditCardInputTests : BunitContext
 
 		await cut.Find(Expiry).InputAsync(new ChangeEventArgs { Value = "12/3" });
 
+		// The dropped letter leaves the date as it was, so it raises nothing.
 		Assert.Equal("12/3", cut.Find(Expiry).GetAttribute("value"));
-		Assert.Equal(["12", "12/", "12/", "12/3"], dates);
+		Assert.Equal(["12", "12/", "12/3"], dates);
 	}
 }

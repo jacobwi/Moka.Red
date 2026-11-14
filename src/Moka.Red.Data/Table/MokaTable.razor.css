@@ -208,7 +208,9 @@
 	border-color: var(--moka-color-primary);
 }
 
-.moka-table-column-menu {
+.moka-table-column-menu,
+.moka-table-density-menu,
+.moka-table-export-menu {
 	position: absolute;
 	right: 0;
 	top: 100%;
@@ -225,7 +227,9 @@
 	gap: var(--moka-spacing-xxs);
 }
 
-.moka-table-column-menu-item {
+.moka-table-column-menu-item,
+.moka-table-density-item,
+.moka-table-export-item {
 	display: flex;
 	align-items: center;
 	gap: var(--moka-spacing-xs);
@@ -238,8 +242,23 @@
 	transition: background var(--moka-transition-fast);
 }
 
-.moka-table-column-menu-item:hover {
+.moka-table-column-menu-item:hover,
+.moka-table-density-item:hover,
+.moka-table-export-item:hover,
+.moka-table-export-item:focus-visible {
 	background: var(--moka-color-surface-variant);
+}
+
+.moka-table-export {
+	position: relative;
+}
+
+.moka-table-export-item {
+	border: none;
+	background: transparent;
+	text-align: start;
+	font-family: inherit;
+	outline: none;
 }
 
 /* Table container */
@@ -469,19 +488,120 @@ th:hover .moka-table-sort-icon,
 	cursor: text;
 }
 
-.moka-table-edit-input {
-	width: 100%;
+/* The open cell holds a library input; the row keeps its height as near as the input lets it. */
+.moka-table-cell--editing {
+	padding-block: var(--moka-spacing-xxs);
+	vertical-align: top;
+}
+
+.moka-table-editor {
 	min-width: 0;
-	box-sizing: border-box;
+}
+
+.moka-table-editor ::deep .moka-field {
+	margin: 0;
+	min-width: 0;
+}
+
+.moka-table-editor-error {
+	display: block;
+	margin-top: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-error);
+}
+
+.moka-table-row--new > td {
+	background: var(--moka-color-primary-glow-faint);
+}
+
+.moka-table-edit-problems > td {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+}
+
+.moka-table-edit-problem {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-error);
+}
+
+/* After a save: what changed, with Undo. */
+.moka-table-undo {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table-undo-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Rows still arriving from a stream. */
+.moka-table-stream {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-table-stream-text {
+	flex: 1 1 auto;
+}
+
+/* A copy of the picked rows, in the selection and bulk bars. */
+.moka-table-copy-rows {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
 	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
-	border: 1px solid var(--moka-color-primary);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-sm);
-	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface);
-	font-family: inherit;
-	font-size: inherit;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+}
+
+.moka-table-copy-rows:hover {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-table-copy-rows:focus-visible {
 	outline: none;
 	box-shadow: var(--moka-focus-ring);
+}
+
+/* A block of marked cells, drawn by moka-table.js. */
+.moka-table-container > .moka-table > tbody > tr > td[data-moka-range] {
+	background: var(--moka-color-primary-glow);
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border);
+}
+
+.moka-table-wrapper--ranging {
+	user-select: none;
+}
+
+/* Column virtualization: the headings' widths lay the columns out, so a row that leaves columns out stays lined up. */
+.moka-table--column-window {
+	table-layout: fixed;
+	width: 1px;
+}
+
+.moka-table--column-window > thead > tr > th {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-table-col-gap {
+	padding: 0;
 }
 
 .moka-table-sort-priority {
@@ -704,14 +824,6 @@ th:hover .moka-table-sort-icon,
 /* Text-line placeholder - width varies per cell via an inline style */
 .moka-table-skeleton-box--bar {
 	height: var(--moka-spacing-lg);
-}
-
-/* Sticky columns */
-.moka-table-cell--sticky {
-	position: sticky;
-	left: 0;
-	z-index: 1;
-	background: inherit;
 }
 
 /* Text alignment */
@@ -1452,6 +1564,554 @@ th:hover .moka-table-sort-icon,
 	}
 }
 
+/* ── Densities ──
+   Compact is the dense look the table has always had; standard is the table without it, and comfortable a step
+   roomier. The new design's own steps are with its rules below. */
+
+.moka-table--comfortable th {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+}
+
+.moka-table--comfortable td {
+	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
+}
+
+/* ── Column kinds ── */
+
+/* Numbers, amounts and sizes: digits of one width, so they line up down the column. */
+.moka-table-cell--figures {
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-table-cell--sparkline {
+	min-width: calc(var(--moka-spacing-xl) * 4);
+}
+
+/* ── Row numbers (the sheet look) ── */
+
+.moka-table .moka-table-cell--rownum {
+	width: 1%;
+	padding-inline: var(--moka-spacing-sm);
+	text-align: end;
+	font-family: var(--moka-font-family-mono);
+	font-variant-numeric: tabular-nums;
+	color: var(--moka-color-on-surface-tertiary);
+	user-select: none;
+	white-space: nowrap;
+}
+
+/* ── Pagers ──
+   The numbered and compact pagers are MokaPagination; these are the entries, jump and cursor pagers. */
+
+.moka-table-pager {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-md);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	font-size: var(--moka-font-size-sm);
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-table-pager--top {
+	border-top: 0;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table-pager--sticky {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	background: var(--moka-color-surface);
+}
+
+.moka-table-pager--sticky.moka-table-pager--top {
+	top: 0;
+	bottom: auto;
+}
+
+.moka-table-pager--entries {
+	justify-content: space-between;
+}
+
+.moka-table-pager--cursor {
+	justify-content: flex-end;
+}
+
+.moka-table-pager-info {
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-table-pager-buttons {
+	display: inline-flex;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-table-pager-size,
+.moka-table-pager-jump {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.moka-table-pager-select,
+.moka-table-pager-jump-input {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-table-pager-jump-input {
+	width: calc(var(--moka-spacing-xl) * 2.5);
+	text-align: center;
+}
+
+.moka-table-pager-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+}
+
+.moka-table-pager-btn:disabled {
+	cursor: default;
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-table-pager-btn:focus-visible,
+.moka-table-pager-select:focus-visible,
+.moka-table-pager-jump-input:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* ── The list look ──
+   No heading row, and every row the two lines of the phone list, at every width. Below 720 px the phone list's own
+   rules draw it; these draw the same above. */
+
+@media (min-width: 721px) {
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone {
+		display: grid;
+		grid-template-columns: auto auto [text-start] repeat(var(--_phone-secondary), minmax(0, auto)) minmax(0, 1fr) [text-end];
+		grid-auto-flow: row dense;
+		align-items: center;
+		column-gap: var(--moka-spacing-sm);
+		padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+		border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > td {
+		padding: 0;
+		border: 0;
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > .moka-table-cell--phone-primary {
+		grid-row: 1;
+		grid-column: text-start / text-end;
+		font-size: var(--moka-font-size-md);
+		color: var(--moka-color-on-surface);
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > .moka-table-cell--phone-secondary {
+		grid-row: 2;
+		font-size: var(--moka-font-size-xs);
+		color: var(--moka-color-on-surface-variant);
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > .moka-table-cell--phone-secondary + .moka-table-cell--phone-secondary::before {
+		content: "\00b7";
+		margin-inline-end: var(--moka-spacing-xs);
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > .moka-table-cell--phone-trailing {
+		grid-row: 1 / span 2;
+		justify-self: end;
+	}
+
+	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone > .moka-table-cell--phone-hidden {
+		display: none;
+	}
+}
+
+/* ── Pinned columns ──
+   A pinned cell sticks at the offset moka-table.js measures, written as --_pin-N on the table. Its background is the
+   surface with the row's tint over it, so a pinned cell hides what scrolls under it and still shows the row's state. */
+
+.moka-table > * > tr > .moka-table-cell--pin-start,
+.moka-table > * > tr > .moka-table-cell--pin-end {
+	position: sticky;
+	z-index: 1;
+	background-color: var(--moka-color-surface);
+	background-image: linear-gradient(var(--_row-tint, transparent), var(--_row-tint, transparent));
+}
+
+.moka-table > thead > tr > th.moka-table-cell--pin-start,
+.moka-table > thead > tr > th.moka-table-cell--pin-end {
+	z-index: 3;
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-table--striped > tbody > tr:nth-child(even) {
+	--_row-tint: var(--moka-color-surface-variant);
+}
+
+.moka-table--hoverable > tbody > tr:hover {
+	--_row-tint: color-mix(in srgb, var(--moka-color-primary) 5%, transparent);
+}
+
+.moka-table > tbody > tr.moka-table-row--selected {
+	--_row-tint: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-table > * > tr > .moka-table-cell--pin-edge {
+	transition: box-shadow var(--moka-transition-fast);
+}
+
+.moka-table-container[data-moka-scrolled-start] > .moka-table > * > tr > .moka-table-cell--pin-start.moka-table-cell--pin-edge {
+	box-shadow: var(--moka-spacing-xs) 0 var(--moka-spacing-sm) calc(-1 * var(--moka-spacing-xxs)) color-mix(in srgb, var(--moka-color-on-surface) 18%, transparent);
+}
+
+.moka-table-container[data-moka-scrolled-end] > .moka-table > * > tr > .moka-table-cell--pin-end.moka-table-cell--pin-edge {
+	box-shadow: calc(-1 * var(--moka-spacing-xs)) 0 var(--moka-spacing-sm) calc(-1 * var(--moka-spacing-xxs)) color-mix(in srgb, var(--moka-color-on-surface) 18%, transparent);
+}
+
+/* A phone lays a row out as a list, where nothing scrolls sideways to pin against. */
+@media (max-width: 720px) {
+	.moka-table--phone > * > tr > .moka-table-cell--pin-start,
+	.moka-table--phone > * > tr > .moka-table-cell--pin-end {
+		position: static;
+	}
+}
+
+/* ── Heading groups ── */
+
+.moka-table > thead > .moka-table-group-heading-row > .moka-table-group-heading {
+	text-align: center;
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table > thead > .moka-table-group-heading-row > .moka-table-group-heading--none {
+	border-bottom-color: transparent;
+}
+
+.moka-table > thead > .moka-table-group-heading-row > .moka-table-group-heading:not(.moka-table-group-heading--none) + .moka-table-group-heading {
+	border-inline-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+/* ── Heading tools: the filter and menu buttons ── */
+
+.moka-table th.moka-table-header--tools {
+	white-space: nowrap;
+}
+
+.moka-table-header-tools {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	margin-inline-start: var(--moka-spacing-xs);
+	vertical-align: middle;
+}
+
+.moka-table-filter-btn,
+.moka-table-menu-btn,
+.moka-table-expand-all {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast), opacity var(--moka-transition-fast);
+}
+
+.moka-table-filter-btn:hover,
+.moka-table-menu-btn:hover,
+.moka-table-expand-all:hover,
+.moka-table-menu-btn[aria-expanded="true"],
+.moka-table-filter-btn[aria-expanded="true"] {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-filter-btn:focus-visible,
+.moka-table-menu-btn:focus-visible,
+.moka-table-expand-all:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+/* A filtered column's button stays lit, so the heading says the column narrows the rows. */
+.moka-table-filter-btn--on {
+	color: var(--moka-color-primary);
+}
+
+/* The menu button shows on a heading that is hovered or holds focus, and always on a touch screen. */
+.moka-table-menu-btn {
+	opacity: 0;
+}
+
+th:hover .moka-table-menu-btn,
+th:focus-within .moka-table-menu-btn,
+.moka-table-menu-btn[aria-expanded="true"] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.moka-table-menu-btn {
+		opacity: 1;
+	}
+}
+
+/* ── The typed filter row ── */
+
+.moka-table-filter-range {
+	display: flex;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-table-filter-input--range {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.moka-table-filter-choices {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-xs);
+	width: 100%;
+	min-width: 0;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+	font-size: var(--moka-font-size-xs);
+	cursor: pointer;
+}
+
+.moka-table-filter-choices:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-filter-choices-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ── Quick filters, chips and the group bar ── */
+
+.moka-table-quick,
+.moka-table-chips,
+.moka-table-group-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	max-width: 100%;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xxs) var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-table-chip-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-table-chip-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-full);
+	background: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	cursor: pointer;
+}
+
+.moka-table-chip-remove:hover {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-table-chip-remove:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-chips-join,
+.moka-table-group-bar-label {
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xs);
+}
+
+/* ── Facets beside the rows ── */
+
+.moka-table-faceted {
+	display: flex;
+	align-items: stretch;
+	min-width: 0;
+	container: moka-table-faceted / inline-size;
+}
+
+.moka-table-faceted-main {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+}
+
+@container moka-table-faceted (max-width: 40rem) {
+	.moka-table-faceted {
+		flex-direction: column;
+	}
+}
+
+/* ── Groups: nested headings and their totals ── */
+
+.moka-table-group-row--nested > .moka-table-group-cell {
+	padding-inline-start: calc(var(--_group-level, 0) * var(--moka-spacing-lg));
+}
+
+.moka-table-group-row > .moka-table-aggregate-cell {
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-table-group-total {
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ── Pinned rows ── */
+
+.moka-table-row--pinned > td {
+	background-color: var(--moka-color-surface-variant);
+	font-weight: var(--moka-font-weight-medium);
+}
+
+.moka-table-pinned-body--top > .moka-table-row--pinned:last-child > td {
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+.moka-table-pinned-body--bottom > .moka-table-row--pinned:first-child > td {
+	border-top: var(--moka-border-width) solid var(--moka-color-outline);
+}
+
+/* With a fixed header or a height the rows held at the bottom stay in view as the others scroll. */
+.moka-table-container[style] .moka-table-pinned-body--bottom > tr > td,
+.moka-table:has(> .moka-table-head--fixed) > .moka-table-pinned-body--bottom > tr > td {
+	position: sticky;
+	bottom: 0;
+	z-index: 1;
+}
+
+/* ── Search marks ── */
+
+.moka-table-mark {
+	padding: 0;
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-color-warning) 32%, transparent);
+	color: inherit;
+}
+
+/* ── No results and a failed load ── */
+
+.moka-table-no-results,
+.moka-table-failure {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-lg) var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	text-align: start;
+}
+
+.moka-table-failure-icon {
+	color: var(--moka-color-error);
+}
+
+.moka-table-failure-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	min-width: 0;
+}
+
+.moka-table-failure-title {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-table-failure-message {
+	overflow-wrap: anywhere;
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xs);
+}
+
+/* ── The column menu and the filter popup ──
+   Both are parts of their own, drawn inside the wrapper, so these reach them through ::deep. moka-popup.js puts them in
+   the top layer against the button that opened them, and the backdrop under them takes a click outside. */
+
+.moka-table-wrapper ::deep .moka-table-popup {
+	min-width: calc(var(--moka-control-height) * 5);
+	max-width: calc(100vw - var(--moka-spacing-xl));
+	margin: 0;
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-popup);
+	background: var(--moka-color-surface-3);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-table-wrapper ::deep .moka-table-popup-backdrop {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-table-wrapper {
@@ -1544,7 +2204,9 @@ th:hover .moka-table-sort-icon,
 
 .moka-gate .moka-table-filter-input::placeholder { color: var(--moka-color-on-surface-tertiary); opacity: 1; }
 
-.moka-gate .moka-table-column-menu {
+.moka-gate .moka-table-column-menu,
+.moka-gate .moka-table-density-menu,
+.moka-gate .moka-table-export-menu {
 	background: var(--moka-popup-bg, var(--moka-color-surface));
 	color: var(--moka-popup-color, inherit);
 	border-color: var(--moka-popup-border, var(--moka-color-outline-variant));
@@ -1555,12 +2217,16 @@ th:hover .moka-table-sort-icon,
 	font-family: var(--moka-popup-font, inherit);
 }
 
-.moka-gate .moka-table-column-menu-item {
+.moka-gate .moka-table-column-menu-item,
+.moka-gate .moka-table-density-item,
+.moka-gate .moka-table-export-item {
 	border-radius: var(--moka-popup-row-radius, var(--moka-radius-sm));
 	color: var(--moka-popup-color, var(--moka-color-on-surface));
 }
 
-.moka-gate .moka-table-column-menu-item:hover {
+.moka-gate .moka-table-column-menu-item:hover,
+.moka-gate .moka-table-density-item:hover,
+.moka-gate .moka-table-export-item:hover {
 	background: var(--moka-popup-row-hover, var(--moka-color-surface-variant));
 	color: var(--moka-popup-row-hover-color, var(--moka-popup-color, var(--moka-color-on-surface)));
 	box-shadow: var(--moka-popup-row-hover-shadow, none);
@@ -1701,3 +2367,177 @@ th:hover .moka-table-sort-icon,
 .moka-gate .moka-table-wrapper--bleed > .moka-table-container > .moka-table > tbody > tr > td:last-child {
 	padding-inline-end: var(--_table-bleed) !important;
 }
+
+/* The new design's densities: compact is the theme's own cell padding, as before; the others a step and two up. */
+.moka-gate .moka-table--standard th,
+.moka-gate .moka-table--standard td {
+	padding: calc(var(--moka-spacing-sm) + var(--moka-spacing-xs)) var(--moka-spacing-lg);
+}
+
+.moka-gate .moka-table--comfortable th,
+.moka-gate .moka-table--comfortable td {
+	padding: var(--moka-spacing-lg) var(--moka-spacing-xl);
+}
+
+.moka-gate .moka-table-pager {
+	padding: var(--moka-card-gap) var(--moka-card-padding);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-gate .moka-table-pager-select,
+.moka-gate .moka-table-pager-jump-input {
+	height: var(--moka-control-height);
+	padding: 0 var(--moka-input-padding);
+	border-color: var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface-2);
+}
+
+.moka-gate .moka-table-pager-btn {
+	width: var(--moka-button-height);
+	height: var(--moka-button-height);
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-gate .moka-table-pager-btn:hover:not(:disabled) {
+	background: var(--moka-color-surface-hover);
+	border-color: var(--moka-color-outline-hover);
+}
+
+.moka-gate .moka-table .moka-table-cell--rownum {
+	color: var(--moka-color-on-surface-quaternary);
+}
+
+/* ── Table looks ──
+   Each is a class on the wrapper, written only when the look isn't the default. Every value is a token. */
+
+/* Soft stripes: every other row tinted, no lines between rows. */
+.moka-gate .moka-table-wrapper--look-soft-stripes .moka-table td {
+	border-bottom-color: transparent;
+}
+
+.moka-gate .moka-table-wrapper--look-soft-stripes .moka-table tbody > tr:nth-child(even):not(.moka-table-detail-row) {
+	background: color-mix(in srgb, var(--moka-color-on-surface) 3%, transparent);
+}
+
+/* Cards: each row a card with a gap between them, on the page's background. */
+.moka-gate .moka-table-wrapper--look-cards {
+	border: 0;
+	box-shadow: none;
+	background: transparent;
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table {
+	border-collapse: separate;
+	border-spacing: 0 var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table thead {
+	background: transparent;
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table th {
+	border-bottom: 0;
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table tbody > tr > td {
+	background: var(--moka-color-surface);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table tbody > tr > td:first-child {
+	border-inline-start: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-start-start-radius: var(--moka-radius-card);
+	border-end-start-radius: var(--moka-radius-card);
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table tbody > tr > td:last-child {
+	border-inline-end: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-start-end-radius: var(--moka-radius-card);
+	border-end-end-radius: var(--moka-radius-card);
+}
+
+.moka-gate .moka-table-wrapper--look-cards .moka-table--hoverable tbody > tr:hover > td {
+	background: var(--moka-color-surface-raised);
+}
+
+/* Sheet: boxed cells, row numbers, figures in monospace, tight. */
+.moka-gate .moka-table-wrapper--look-sheet .moka-table th,
+.moka-gate .moka-table-wrapper--look-sheet .moka-table td {
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-gate .moka-table-wrapper--look-sheet .moka-table thead {
+	background: var(--moka-color-surface-variant);
+}
+
+.moka-gate .moka-table-wrapper--look-sheet .moka-table th {
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+.moka-gate .moka-table-wrapper--look-sheet .moka-table .moka-table-cell--right,
+.moka-gate .moka-table-wrapper--look-sheet .moka-table .moka-table-cell--figures,
+.moka-gate .moka-table-wrapper--look-sheet .moka-table .moka-table-cell--rownum {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-gate .moka-table-wrapper--look-sheet .moka-table--dense td {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-table-wrapper--look-sheet .moka-table .moka-table-cell--rownum {
+	background: var(--moka-color-surface-variant);
+}
+
+/* Airy: no lines between rows, roomy (comfortable unless a density is set), headings quiet. */
+.moka-gate .moka-table-wrapper--look-airy .moka-table td,
+.moka-gate .moka-table-wrapper--look-airy .moka-table th {
+	border-bottom-color: transparent;
+}
+
+.moka-gate .moka-table-wrapper--look-airy .moka-table thead {
+	background: transparent;
+}
+
+.moka-gate .moka-table-wrapper--look-airy .moka-table td {
+	font-size: var(--moka-font-size-md);
+}
+
+/* Framed: a bordered panel with a tinted band behind the headings. */
+.moka-gate .moka-table-wrapper--look-framed {
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	overflow: clip;
+}
+
+.moka-gate .moka-table-wrapper--look-framed .moka-table thead {
+	background: var(--moka-color-primary-row);
+}
+
+.moka-gate .moka-table-wrapper--look-framed .moka-table th {
+	color: var(--moka-color-on-surface-variant);
+	border-bottom-color: var(--moka-color-outline);
+}
+
+/* List: the rows on the new design's surface. */
+.moka-gate .moka-table-container > .moka-table--list > tbody > .moka-table-row--phone {
+	border-bottom-color: var(--moka-color-outline-variant);
+}
+
+/* Pinned columns, heading tools, chips and the states, on this design's surfaces. */
+.moka-gate .moka-table > thead > tr > th.moka-table-cell--pin-start,
+.moka-gate .moka-table > thead > tr > th.moka-table-cell--pin-end { background-color: var(--moka-color-surface); }
+.moka-gate .moka-table--hoverable > tbody > tr:hover { --_row-tint: var(--moka-color-surface-raised); }
+.moka-gate .moka-table > tbody > tr.moka-table-row--selected { --_row-tint: var(--moka-color-primary-row); }
+.moka-gate .moka-table-filter-btn--on { color: var(--moka-color-primary-light); }
+.moka-gate .moka-table-chip { background: var(--moka-color-surface-raised); border-color: var(--moka-color-outline); }
+.moka-gate .moka-table-filter-choices { border-color: var(--moka-color-outline); border-radius: var(--moka-radius-md); }
+.moka-gate .moka-table-filter-choices:hover { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-table-row--pinned > td { background-color: var(--moka-color-surface-2); }
+.moka-gate .moka-table-mark { background: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
+.moka-gate .moka-table-failure-icon { color: var(--moka-color-error-soft); }

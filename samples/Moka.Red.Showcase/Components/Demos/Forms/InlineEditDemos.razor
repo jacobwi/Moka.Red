@@ -1,0 +1,63 @@
+@using Moka.Red.Forms.InlineEdit
+
+<DemoSection Id="click-the-text-enter-saves-escape" Title="Click the text. Enter saves, Escape cancels, clicking away saves">
+	<MokaInlineEdit @bind-Value="_title" Label="Title"/>
+	<p>Saved: <code>@_title</code></p>
+</DemoSection>
+
+<DemoSection Id="validation" Title="Validation">
+	<MokaInlineEdit @bind-Value="_name" Label="Name" Validate="CheckName"/>
+	<p>Spaces aren't allowed, and blank is blocked.</p>
+</DemoSection>
+
+<DemoSection Id="a-save-that-can-fail" Title="A save that can fail">
+	<MokaInlineEdit @bind-Value="_server" Label="Server name" Save="SaveServerAsync"/>
+	<p>Anything containing "taken" fails after a moment.</p>
+</DemoSection>
+
+<DemoSection Id="double-click" Title="Double click">
+	<MokaInlineEdit @bind-Value="_note" Label="Note" Trigger="MokaInlineEditTrigger.DoubleClick"/>
+</DemoSection>
+
+<DemoSection Id="a-file-name-opens-with-the-stem-selected" Title="A file name opens with the stem selected">
+	<MokaInlineEdit @bind-Value="_file" Label="File name" Selection="MokaInlineEditSelection.Stem" Mono/>
+</DemoSection>
+
+<DemoSection Id="started-by-the-parent" Title="Started by the parent">
+	<MokaInlineEdit @bind-Value="_driven" @bind-Editing="_editing" Label="Driven" Trigger="MokaInlineEditTrigger.Manual"/>
+	<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="() => _editing = true">Rename</MokaButton>
+</DemoSection>
+
+<DemoSection Id="blank-allowed" Title="Blank allowed">
+	<MokaInlineEdit @bind-Value="_optional" Label="Subtitle" AllowBlank Placeholder="Add a subtitle"/>
+</DemoSection>
+
+@code {
+	private string _title = "Quarterly report";
+
+	private string _name = "archive";
+
+	private static string? CheckName(string text) =>
+		text.Contains(' ', StringComparison.Ordinal) ? "Use a name without spaces" : null;
+
+	private string _server = "web-01";
+
+	private static async Task SaveServerAsync(string text)
+	{
+		await Task.Delay(600);
+		if (text.Contains("taken", StringComparison.OrdinalIgnoreCase))
+		{
+			throw new InvalidOperationException("That name is already in use");
+		}
+	}
+
+	private string _note = "Double click to change this note";
+
+	private string _file = "budget.final.xlsx";
+
+	private string _driven = "Only the button opens this";
+
+	private bool _editing;
+
+	private string _optional = "";
+}

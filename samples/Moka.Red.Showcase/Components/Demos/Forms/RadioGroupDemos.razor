@@ -1,0 +1,23 @@
+<DemoSection Id="basics" Title="Basics" Description="One choice from a few, all in view.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<MokaRadioGroup TValue="string" @bind-Value="_radioValue" Label="Choose an option">
+			<MokaRadioItem TValue="string" Value="@("option1")" Label="Option 1"/>
+			<MokaRadioItem TValue="string" Value="@("option2")" Label="Option 2"/>
+			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
+		</MokaRadioGroup>
+		<MokaRadioGroup TValue="string" @bind-Value="_radioValue" Label="Horizontal" Orientation="MokaDirection.Row">
+			<MokaRadioItem TValue="string" Value="@("option1")" Label="Option 1"/>
+			<MokaRadioItem TValue="string" Value="@("option2")" Label="Option 2"/>
+			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
+		</MokaRadioGroup>
+		<MokaRadioGroup TValue="string" @bind-Value="_radioValue" Label="With hints">
+			<MokaRadioItem TValue="string" Value="@("option1")" Label="Option 1" Hint="A line that says what this one does"/>
+			<MokaRadioItem TValue="string" Value="@("option2")" Label="Option 2" Hint="And a longer line, to see how it sits under the label and clear of the circle"/>
+			<MokaRadioItem TValue="string" Value="@("option3")" Label="Option 3"/>
+		</MokaRadioGroup>
+	</div>
+</DemoSection>
+
+@code {
+	private string _radioValue = "option1";
+}

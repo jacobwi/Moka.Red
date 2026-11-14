@@ -1,0 +1,37 @@
+<DemoSection Id="one-legend-for-a-whole-dashboard" Title="One legend for a whole dashboard">
+	<MokaChartLegend Items="Toggles" @bind-Hidden="_dashboard" Actions="MokaChartLegendActions.All"
+	                 Key="MokaChartLegendKey.Mark" Title="Zones" SyncGroup="dashboard"/>
+	<MokaGrid MinColumn="min(100%, 320px)" Style="gap: var(--moka-grid-gap);">
+		<MokaLineChart Series="Zones" Labels="Hours" Title="Traffic" HiddenSeries="_dashboard" ShowLegend="false" SyncGroup="dashboard"/>
+		<MokaBarChart Series="ZoneBars" Labels="Days" Title="Data per day" HiddenSeries="_dashboard" ShowLegend="false"/>
+	</MokaGrid>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<string> Hours = [.. Enumerable.Range(0, 169).Select(hour => $"{hour % 24:00}:00")];
+
+	private static readonly IReadOnlyList<string> Days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Zones =
+	[
+		new() { Name = "LAN", Values = [.. Enumerable.Range(0, 169).Select(h => 400 + 200 * Math.Sin(h / 6.0))] },
+		new() { Name = "Wi-Fi", Values = [.. Enumerable.Range(0, 169).Select(h => 250 + 120 * Math.Cos(h / 9.0))] },
+		new() { Name = "Guest", Values = [.. Enumerable.Range(0, 169).Select(h => 80 + 60 * Math.Sin(h / 3.0 + 1))] }
+	];
+
+	private static readonly IReadOnlyList<MokaBarSeries> ZoneBars =
+	[
+		new() { Name = "LAN", Values = [120, 140, 135, 160, 150, 90, 80] },
+		new() { Name = "Wi-Fi", Values = [80, 85, 90, 95, 100, 120, 130] },
+		new() { Name = "Guest", Values = [10, 12, 9, 15, 20, 40, 45] }
+	];
+
+	private static readonly IReadOnlyList<MokaChartLegendItem> Toggles =
+	[
+		new("LAN", "LAN") { Slot = 1, Mark = MokaChartLegendMark.Box },
+		new("Wi-Fi", "Wi-Fi") { Slot = 2, Mark = MokaChartLegendMark.Box },
+		new("Guest", "Guest") { Slot = 3, Mark = MokaChartLegendMark.Box }
+	];
+
+	private IReadOnlyCollection<string>? _dashboard;
+}

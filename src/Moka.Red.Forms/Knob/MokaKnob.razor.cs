@@ -47,10 +47,12 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private bool _dragging;
 	private double _dragStartValue;
 	private double _dragStartY;
+	private readonly MokaInputValue<double> _input;
 	private bool _keysCancelled;
-	private double? _lastValue;
 	private ElementReference _slider;
-	private double _value;
+
+	/// <summary>Creates the knob. It shows its own value until the parent passes one.</summary>
+	public MokaKnob() => _input = new MokaInputValue<double>(StateHasChanged, DispatchExceptionAsync);
 
 	/// <summary>The current knob value. Two-way bindable.</summary>
 	[Parameter]
@@ -133,7 +135,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 				return 0;
 			}
 
-			return Math.Clamp((_value - Min) / (Max - Min), 0, 1);
+			return Math.Clamp((Shown - Min) / (Max - Min), 0, 1);
 		}
 	}
 
@@ -147,7 +149,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private double DashOffset => ArcLength * (1 - NormalizedValue);
 
 	/// <summary>Formatted value string for display.</summary>
-	private string FormattedValue => _value.ToString(Format, CultureInfo.CurrentCulture);
+	private string FormattedValue => Shown.ToString(Format, CultureInfo.CurrentCulture);
 
 	/// <summary>Computes the SVG arc path d attribute for the track.</summary>
 	private string ArcPath
@@ -204,18 +206,29 @@ public partial class MokaKnob : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
-	/// <inheritdoc />
-	protected override void OnParametersSet()
-	{
-		base.OnParametersSet();
+	// The knob shows what _input holds, not Value: a parent that doesn't own the value can't turn an unbound knob back
+	// to where it started by rendering again.
+	private double Shown => _input.Shown;
 
-		// Value only moves the knob when the parent passes a new value. Copying it on every parent
-		// render turned an unbound knob back to where it started.
-		if (!EqualityComparer<double?>.Default.Equals(_lastValue, Value))
-		{
-			_lastValue = Value;
-			_value = Value;
-		}
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_input.Stop();
+		return base.DisposeAsyncCore();
 	}
 
 	/// <inheritdoc />
@@ -239,7 +252,7 @@ public partial class MokaKnob : MokaVisualComponentBase
 	private static int DecimalPlaces(double value) =>
 		double.IsFinite(value) && Math.Abs(value) < 1e15 ? Math.Min((int)((decimal)value).Scale, 15) : 0;
 
-	private async Task HandleKeyDown(KeyboardEventArgs e)
+	private void HandleKeyDown(KeyboardEventArgs e)
 	{
 		if (!IsInteractive || e.AltKey || e.CtrlKey || e.MetaKey)
 		{
@@ -248,18 +261,18 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 		double? next = e.Key switch
 		{
-			"ArrowRight" or "ArrowUp" => SnapToStep(_value + KeyStep),
-			"ArrowLeft" or "ArrowDown" => SnapToStep(_value - KeyStep),
-			"PageUp" => SnapToStep(_value + KeyStep * PageSteps),
-			"PageDown" => SnapToStep(_value - KeyStep * PageSteps),
+			"ArrowRight" or "ArrowUp" => SnapToStep(Shown + KeyStep),
+			"ArrowLeft" or "ArrowDown" => SnapToStep(Shown - KeyStep),
+			"PageUp" => SnapToStep(Shown + KeyStep * PageSteps),
+			"PageDown" => SnapToStep(Shown - KeyStep * PageSteps),
 			"Home" => Low,
 			"End" => High,
 			_ => null
 		};
 
-		if (next is { } newValue && Math.Abs(newValue - _value) > double.Epsilon)
+		if (next is { } newValue && Math.Abs(newValue - Shown) > double.Epsilon)
 		{
-			await SetValueAsync(newValue);
+			SetValue(newValue);
 		}
 	}
 
@@ -278,14 +291,14 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 		_dragging = true;
 		_dragStartY = e.ClientY;
-		_dragStartValue = _value;
+		_dragStartValue = Shown;
 
 		// The full range takes 200px and the knob is smaller than that, so a drag has to go on outside it.
 		// Capture also means the release always arrives, so the handler above can't be left attached.
 		await SafeModuleInvokeVoidAsync(DragModule, "capturePointer", _slider, e.PointerId);
 	}
 
-	private async Task OnPointerMove(PointerEventArgs e)
+	private void OnPointerMove(PointerEventArgs e)
 	{
 		if (!_dragging || Disabled)
 		{
@@ -300,15 +313,15 @@ public partial class MokaKnob : MokaVisualComponentBase
 		double valueDelta = deltaY / 200.0 * range;
 		double newValue = SnapToStep(_dragStartValue + valueDelta);
 
-		if (Math.Abs(newValue - _value) > double.Epsilon)
+		if (Math.Abs(newValue - Shown) > double.Epsilon)
 		{
-			await SetValueAsync(newValue);
+			SetValue(newValue);
 		}
 	}
 
 	private void OnPointerUp(PointerEventArgs e) => _dragging = false;
 
-	private async Task OnWheel(WheelEventArgs e)
+	private void OnWheel(WheelEventArgs e)
 	{
 		if (Disabled)
 		{
@@ -317,11 +330,11 @@ public partial class MokaKnob : MokaVisualComponentBase
 
 		// Scroll up = increase, scroll down = decrease
 		double direction = e.DeltaY < 0 ? 1 : -1;
-		double newValue = SnapToStep(_value + direction * KeyStep);
+		double newValue = SnapToStep(Shown + direction * KeyStep);
 
-		if (Math.Abs(newValue - _value) > double.Epsilon)
+		if (Math.Abs(newValue - Shown) > double.Epsilon)
 		{
-			await SetValueAsync(newValue);
+			SetValue(newValue);
 		}
 	}
 
@@ -347,9 +360,6 @@ public partial class MokaKnob : MokaVisualComponentBase
 		return clamped;
 	}
 
-	private async Task SetValueAsync(double newValue)
-	{
-		_value = newValue;
-		await ValueChanged.InvokeAsync(newValue);
-	}
+	private void SetValue(double newValue) => _input.Pick(newValue, ValueChanged);
+
 }

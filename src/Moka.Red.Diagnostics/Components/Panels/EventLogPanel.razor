@@ -3,22 +3,22 @@
 	<div class="moka-diag-log">
 		<div class="moka-diag-log-toolbar">
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showRender" @onchange="e => { _showRender = (bool)e.Value!; }"/> Render
+				<input type="checkbox" @bind="_showRender"/> Render
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showSkip" @onchange="e => { _showSkip = (bool)e.Value!; }"/> Skip
+				<input type="checkbox" @bind="_showSkip"/> Skip
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showDisposal" @onchange="e => { _showDisposal = (bool)e.Value!; }"/> Disposal
+				<input type="checkbox" @bind="_showDisposal"/> Disposal
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showJsInterop" @onchange="e => { _showJsInterop = (bool)e.Value!; }"/> JS
+				<input type="checkbox" @bind="_showJsInterop"/> JS
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showWarning" @onchange="e => { _showWarning = (bool)e.Value!; }"/> Warn
+				<input type="checkbox" @bind="_showWarning"/> Warn
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" checked="@_showError" @onchange="e => { _showError = (bool)e.Value!; }"/> Error
+				<input type="checkbox" @bind="_showError"/> Error
 			</label>
 			<button type="button" class="moka-diag-log-clear" @onclick="Clear" title="Clear event log">Clear</button>
 		</div>

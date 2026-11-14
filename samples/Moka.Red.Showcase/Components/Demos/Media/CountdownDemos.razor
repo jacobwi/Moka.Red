@@ -1,0 +1,21 @@
+<DemoSection Id="new-year-countdown-boxes" Title="New year countdown (boxes)" Description="The time left to a date, in boxes, inline or as flip digits.">
+	<MokaCountdown TargetDate="_newYear" CountdownStyle="MokaCountdownStyle.Boxes"/>
+</DemoSection>
+
+<DemoSection Id="5-minute-countdown-inline" Title="5-Minute countdown (inline)">
+	<MokaCountdown TargetDate="_fiveMinutes" CountdownStyle="MokaCountdownStyle.Inline" Separator=" : " CompletedText="Done!"/>
+</DemoSection>
+
+<DemoSection Id="flip-style-compact-labels" Title="Flip style (compact labels)">
+	<MokaCountdown TargetDate="_newYear" CountdownStyle="MokaCountdownStyle.Flip" CompactLabels="true"/>
+</DemoSection>
+
+<DemoSection Id="hours-minutes-only" Title="Hours/Minutes only">
+	<MokaCountdown TargetDate="_fiveMinutes" ShowDays="false" ShowSeconds="false" CountdownStyle="MokaCountdownStyle.Boxes"/>
+</DemoSection>
+
+@code {
+	private static readonly DateTime _newYear = new(DateTime.Now.Year + 1, 1, 1, 0, 0, 0);
+
+	private readonly DateTime _fiveMinutes = DateTime.Now.AddMinutes(5);
+}

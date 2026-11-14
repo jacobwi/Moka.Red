@@ -108,7 +108,7 @@ public class MokaMenuAdaptiveTests : BunitContext
 	[Fact]
 	public void ThePill_OnTheRail_IsACornerBadgeAt15Pixels()
 	{
-		const string Rail = "[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill";
+		const string Rail = "[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *)";
 
 		Assert.Equal("absolute", ScopedCss.Declarations("MokaMenu.razor.css", Rail)["position"]);
 		Assert.Equal("0.9375rem", ScopedCss.Declarations("MokaMenu.razor.css", $"{Rail} .moka-badge__indicator")["min-width"]);
@@ -120,7 +120,7 @@ public class MokaMenuAdaptiveTests : BunitContext
 	{
 		IReadOnlyDictionary<string, string> rule = ScopedCss.Declarations(
 			"MokaMenu.razor.css",
-			"[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__text");
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__text:not(.moka-menu-item__submenu *)");
 
 		Assert.Equal("inset(50%)", rule["clip-path"]);
 		Assert.DoesNotContain("display", rule.Keys);

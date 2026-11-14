@@ -1,0 +1,70 @@
+@using System.Globalization
+
+<DemoSection Id="basics" Title="Basics">
+	<MokaSankey Title="Where requests went" Subtitle="Thousands of requests a minute, last hour" Links="@Requests"
+	            Nodes="@RequestNames" Formatter="Thousands"/>
+</DemoSection>
+
+<DemoSection Id="sankey-too-many-a-side" Title="Sankey, too many a side">
+	<MokaSankey Title="WAN to devices" Subtitle="Folds past four a side" Links="@Fan" MaxNodesPerSide="4"
+	            Formatter="Gb"/>
+</DemoSection>
+
+<DemoSection Id="sankey-three-columns" Title="Sankey, three columns">
+	<MokaSankey Title="Through the router" Links="@Router" Formatter="Gb"/>
+</DemoSection>
+
+<DemoSection Id="sankey-flows-in-their-own-colors" Title="Sankey, flows in their own colors">
+	<MokaSankey Title="Where the traffic goes" Subtitle="Click a flow or a node" Links="@Traffic" Formatter="Gb" Tooltip="MokaChartTooltip.Auto" Keyboard="true" OnPointClick="Picked"/>
+	<MokaCaption>@_picked</MokaCaption>
+</DemoSection>
+
+@code {
+	private static readonly MokaDonutSegment[] Storage =
+	[
+		new() { Name = "Media", Value = 864 },
+		new() { Name = "Backups", Value = 476 },
+		new() { Name = "Work", Value = 185 },
+		new() { Name = "System", Value = 95 }
+	];
+
+	private static readonly MokaSankeyLink[] Requests =
+	[
+		new("web", "cache", 3.4), new("web", "db", 1.9), new("web", "storage", 0.5),
+		new("api", "cache", 1.1), new("api", "db", 1.5), new("api", "storage", 0.5),
+		new("jobs", "cache", 0.1), new("jobs", "db", 0.4), new("jobs", "storage", 0.6)
+	];
+
+	private static readonly MokaSankeyNode[] RequestNames =
+	[
+		new("web", "Web"), new("api", "API"), new("jobs", "Jobs"),
+		new("cache", "Cache"), new("db", "Database"), new("storage", "Storage")
+	];
+
+	private static string Thousands(double value) => value.ToString("0.0", CultureInfo.InvariantCulture) + "K";
+
+	private static readonly MokaSankeyLink[] Fan =
+		[.. new[] { "nas-01", "laptop-ana", "phone-bo", "tv", "printer", "camera-front", "thermostat", "doorbell" }
+			.Select((name, i) => new MokaSankeyLink("WAN", name, Math.Round(48d / (i + 1), 1)))];
+
+	private static string Gb(double value) => value.ToString("#,0.#", CultureInfo.InvariantCulture) + " GB";
+
+	private static readonly MokaSankeyLink[] Router =
+	[
+		new("WAN", "Router", 20), new("VPN", "Router", 4), new("Router", "LAN", 12), new("Router", "Wi-Fi", 9),
+		new("Router", "Guest", 3)
+	];
+
+	private static readonly MokaSankeyLink[] Traffic =
+	[
+		new("laptop", "web", 14), new("laptop", "video", 6), new("tv", "video", 22), new("phone", "web", 5),
+		new("camera", "cloud", 3) { Color = MokaColor.Warning }, new("phone", "cloud", 1),
+		new("web", "US", 12), new("web", "DE", 7), new("video", "US", 28), new("cloud", "CN", 4) { Color = MokaColor.Error }
+	];
+
+	private string _picked = "Nothing picked yet";
+
+	private void Picked(MokaChartPoint point) => _picked = point.ToKey is { } to
+		? $"Flow from {point.SeriesKey} to {to} ({point.SeriesName} to {point.ToName}), {point.ValueText}"
+		: $"Node {point.SeriesKey}, {point.ValueText}";
+}

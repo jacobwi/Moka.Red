@@ -31,8 +31,7 @@ public class MokaTableTooltipTests : BunitContext
 		IconTooltip.AssertNamed(cut.Find(".moka-table-column-toggle-btn"), "Toggle columns", MokaTooltipPosition.Bottom);
 		IconTooltip.AssertNamed(cut.Find("button[aria-label=Export]"), "Export", MokaTooltipPosition.Bottom);
 		IconTooltip.AssertNamed(cut.Find("button[aria-label=Refresh]"), "Refresh", MokaTooltipPosition.Bottom);
-		// A table starts dense, so the button offers the other density.
-		IconTooltip.AssertNamed(cut.Find("button[aria-label=Comfortable]"), "Comfortable", MokaTooltipPosition.BottomEnd);
+		IconTooltip.AssertNamed(cut.Find("button[aria-label=Density]"), "Density", MokaTooltipPosition.BottomEnd);
 	}
 
 	[Fact]
@@ -46,14 +45,24 @@ public class MokaTableTooltipTests : BunitContext
 		IconTooltip.AssertNamed(cut.Find("button[aria-label=Refresh]"), "Refresh", MokaTooltipPosition.Bottom);
 	}
 
+	// The button opens the three densities; open, the menu sits where the tooltip would be.
 	[Fact]
-	public async Task TheDensityButton_NamesWhatItSwitchesTo()
+	public async Task TheDensityButton_OpensTheDensities_AndAPickSpacesTheRows()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowDensityToggle, true));
 
-		await cut.Find("button[aria-label=Comfortable]").ClickAsync(new MouseEventArgs());
+		await cut.Find("button[aria-label=Density]").ClickAsync(new MouseEventArgs());
 
-		IconTooltip.AssertNamed(cut.Find("button[aria-label=Dense]"), "Dense", MokaTooltipPosition.BottomEnd);
+		Assert.Equal("true", cut.Find("button[aria-label=Density]").GetAttribute("aria-expanded"));
+		Assert.Empty(cut.FindAll(".moka-table-density .moka-tooltip-popup"));
+		IReadOnlyList<IElement> radios = cut.FindAll(".moka-table-density-menu input[type=radio]");
+		Assert.Equal(3, radios.Count);
+		Assert.True(radios[0].HasAttribute("checked"));
+
+		await radios[2].ChangeAsync(new ChangeEventArgs { Value = true });
+
+		Assert.Contains("moka-table--comfortable", cut.Find("table").ClassList);
+		Assert.Empty(cut.FindAll(".moka-table-density-menu"));
 	}
 
 	// Open, the menu sits right under the button, where the tooltip would cover it.

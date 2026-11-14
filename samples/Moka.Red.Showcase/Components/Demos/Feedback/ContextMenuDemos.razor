@@ -1,0 +1,343 @@
+@inject IMokaContextMenuService Menu
+
+<DemoSection Id="right-click-trigger" Title="Right-Click trigger" Description="A menu on right-click or left-click, with shortcuts, dividers and submenus.">
+	<MokaContextMenuTrigger Items="_contextMenuItems">
+		<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;">
+			Right-click me
+		</div>
+	</MokaContextMenuTrigger>
+</DemoSection>
+
+<DemoSection Id="left-click-trigger" Title="Left-Click trigger">
+	<MokaContextMenuTrigger Items="_contextMenuItems" Trigger="MokaContextMenuTriggerType.LeftClick">
+		<MokaButton Variant="MokaVariant.Outlined">Click for menu</MokaButton>
+	</MokaContextMenuTrigger>
+</DemoSection>
+
+<DemoSection Id="quiet-rows-focus-on-the-row-only" Title="Quiet rows, focus on the row only" Description="ItemStyle Quiet draws rows in regular weight; FocusRing off shows focus on the lit row only, as its sub-menu does.">
+	<p class="page-desc">
+		Open a menu with a right click, or from the keyboard with the button, then move to Color with the arrows or the mouse.
+	</p>
+	<div style="@Columns">
+		@foreach (MenuVariant variant in _menuVariants)
+		{
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+				<MokaCaption Micro>@variant.Name</MokaCaption>
+				<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;"
+				     @oncontextmenu="e => OpenAtPointer(variant, e)" @oncontextmenu:preventDefault>
+					Right-click here
+				</div>
+				<div>
+					<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm"
+					            OnClick="e => OpenUnderButton(variant, e)">
+						Open the menu
+					</MokaButton>
+				</div>
+				<MokaContextMenu Items="_menuItems" Visible="variant.Open" X="variant.X" Y="variant.Y"
+				                 OpenedFromKeyboard="variant.FromKeyboard" AnchorToFocus="variant.UnderFocus"
+				                 ItemStyle="variant.ItemStyle" FocusRing="variant.FocusRing"
+				                 OnClose="() => variant.Open = false"/>
+			</div>
+		}
+	</div>
+	<pre style="margin: var(--moka-spacing-md) 0 0; white-space: pre-wrap; overflow-wrap: anywhere;"><code>&lt;MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet" FocusRing="false"/&gt;</code></pre>
+</DemoSection>
+
+<DemoSection Id="items-redraw-their-owner" Title="Items redraw their owner">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaSegmentedControl Value="@(_passOwner ? "this" : "none")" ValueChanged="@(v => _passOwner = v == "this")" AriaLabel="Owner">
+				<MokaSegment Value="this" Text="Owner: this"/>
+				<MokaSegment Value="none" Text="No owner"/>
+			</MokaSegmentedControl>
+			<MokaCaption>
+				Right click a file, or focus it and press Shift+F10. With no owner the list keeps the old name until
+				something else redraws it.
+			</MokaCaption>
+		</div>
+		<MokaList Bordered>
+			@foreach (FileRow file in _files)
+			{
+				<MokaListItem @key="file" Text="@file.Name" Icon="MokaIcons.File.Document" Label="file.Color"
+				              SecondaryText="@Describe(file)"
+				              OnClick="@(() => { })"
+				              OnContextMenu="e => ShowFileMenu(e, file)"/>
+			}
+		</MokaList>
+	</div>
+</DemoSection>
+
+<DemoSection Id="triggers" Title="Triggers">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<MokaCaption>
+			A trigger without an owner redraws itself and the content inside it. With Owner="this" the count outside it
+			follows too, and so does the radial menu's pick.
+		</MokaCaption>
+		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-grid-gap);">
+			<MokaContextMenuTrigger Items="CounterItems" Owner="@(_passOwner ? this : null)">
+				<div tabindex="0" style="padding: var(--moka-card-padding); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-card); cursor: context-menu;">
+					Right click me. Inside: <strong>@_count</strong>
+				</div>
+			</MokaContextMenuTrigger>
+			<MokaRadialMenuTrigger Spec="CounterRing" Owner="@(_passOwner ? this : null)">
+				<div tabindex="0" style="padding: var(--moka-card-padding); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-card); cursor: context-menu;">
+					Right click for the ring. Inside: <strong>@_count</strong>
+				</div>
+			</MokaRadialMenuTrigger>
+		</div>
+		<p style="margin: 0;">Outside both triggers: <strong>@_count</strong></p>
+	</div>
+</DemoSection>
+
+<DemoSection Id="colors-in-a-menu" Title="Colors in a menu">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		<MokaCaption>
+			A label color is a swatch in the icon's place, or the icon in that color. A checked color gets the check
+			beside it. The swatch keeps its color on a hovered or lit row.
+		</MokaCaption>
+		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+			<MokaContextMenuTrigger Items="ColorItems" Trigger="MokaContextMenuTriggerType.LeftClick" Owner="this">
+				<MokaButton Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Content.Palette">Pick a color</MokaButton>
+			</MokaContextMenuTrigger>
+			@if (_color is { } color)
+			{
+				<MokaTag Text="@MokaLabelColors.Name(color)" Label="color"/>
+			}
+			else
+			{
+				<MokaTag Text="No color"/>
+			}
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly MokaContextMenuItem[] _contextMenuItems =
+	[
+		new() { Text = "Cut", Icon = MokaIcons.Action.Edit, Shortcut = "Ctrl+X", OnClickSync = () => { } },
+		new() { Text = "Copy", Icon = MokaIcons.Content.Copy, Shortcut = "Ctrl+C", OnClickSync = () => { } },
+		new() { Text = "Paste", Icon = MokaIcons.Content.Paste, Shortcut = "Ctrl+V", OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Select All", Shortcut = "Ctrl+A", OnClickSync = () => { } },
+		new() { Text = "Delete", Icon = MokaIcons.Action.Delete, OnClickSync = () => { }, Disabled = true },
+		MokaContextMenuItems.Divider(),
+		new()
+		{
+			Text = "Share", Children =
+			[
+				new MokaContextMenuItem { Text = "Email", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Link", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Export", OnClickSync = () => { } }
+			]
+		},
+		new() { Text = "Properties", OnClickSync = () => { } }
+	];
+
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-grid-gap);";
+
+	private static readonly MokaContextMenuItem[] _menuItems =
+	[
+		new() { Text = "Open", Icon = MokaIcons.File.FolderOpen, OnClickSync = () => { } },
+		new() { Text = "Open in new tab", Icon = MokaIcons.Content.ExternalLink, OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Download", Icon = MokaIcons.Action.Download, OnClickSync = () => { } },
+		new() { Text = "Share", Icon = MokaIcons.Action.Share, OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => { } },
+		new() { Text = "Copy to", Icon = MokaIcons.Content.Copy, OnClickSync = () => { } },
+		new() { Text = "Delete", Icon = MokaIcons.Action.Delete, Shortcut = "Delete", OnClickSync = () => { } },
+		MokaContextMenuItems.Divider(),
+		new() { Text = "Star", Icon = MokaIcons.Toggle.Star, OnClickSync = () => { } },
+		new()
+		{
+			Text = "Color", Icon = MokaIcons.Content.Tag, Children =
+			[
+				new MokaContextMenuItem { Text = "Red", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Amber", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Green", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Blue", OnClickSync = () => { } },
+				MokaContextMenuItems.Divider(),
+				new MokaContextMenuItem { Text = "No color", OnClickSync = () => { } }
+			]
+		},
+		new() { Text = "Time machine", Icon = MokaIcons.Action.History, Disabled = true }
+	];
+
+	private readonly MenuVariant[] _menuVariants =
+	[
+		new("ctx-quiet", "ItemStyle=\"Quiet\", FocusRing=\"false\"", MokaContextMenuItemStyle.Quiet, false)
+	];
+
+	private void OpenAtPointer(MenuVariant variant, MouseEventArgs e)
+	{
+		CloseMenus();
+		variant.X = e.ClientX;
+		variant.Y = e.ClientY;
+		variant.FromKeyboard = false;
+		variant.UnderFocus = false;
+		variant.Open = true;
+	}
+
+	// A keyboard click reports no position, so the menu opens under the button, which has focus.
+	private void OpenUnderButton(MenuVariant variant, MouseEventArgs e)
+	{
+		CloseMenus();
+		variant.FromKeyboard = e.Detail == 0;
+		variant.UnderFocus = true;
+		variant.Open = true;
+	}
+
+	private void CloseMenus()
+	{
+		foreach (MenuVariant variant in _menuVariants)
+		{
+			variant.Open = false;
+		}
+	}
+
+	private sealed class MenuVariant(string key, string name, MokaContextMenuItemStyle itemStyle, bool focusRing)
+	{
+		public string Key { get; } = key;
+
+		public string Name { get; } = name;
+
+		public MokaContextMenuItemStyle ItemStyle { get; } = itemStyle;
+
+		public bool FocusRing { get; } = focusRing;
+
+		public bool Open { get; set; }
+
+		public double X { get; set; }
+
+		public double Y { get; set; }
+
+		public bool FromKeyboard { get; set; }
+
+		public bool UnderFocus { get; set; }
+	}
+
+	private readonly List<FileRow> _files =
+	[
+		new("Report.pdf") { Color = MokaLabelColor.Blue },
+		new("Budget.xlsx") { Starred = true },
+		new("Notes.txt")
+	];
+
+	private bool _passOwner = true;
+
+	private void ShowFileMenu(MouseEventArgs e, FileRow file)
+	{
+		IReadOnlyList<MokaContextMenuItem> items = FileMenu(file);
+		if (_passOwner)
+		{
+			Menu.Show(e, items, this);
+		}
+		else
+		{
+			Menu.Show(e, items);
+		}
+	}
+
+	private static IReadOnlyList<MokaContextMenuItem> FileMenu(FileRow file) =>
+	[
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => file.Name = Renamed(file.Name) },
+		new()
+		{
+			Text = file.Starred ? "Remove star" : "Star",
+			Icon = file.Starred ? MokaIcons.Toggle.Star : MokaIcons.Toggle.StarOutline,
+			OnClickSync = () => file.Starred = !file.Starred
+		},
+		new()
+		{
+			Text = "Save",
+			Icon = MokaIcons.Action.Save,
+			OnClick = async () =>
+			{
+				file.Status = "Saving...";
+				await Task.Delay(700);
+				file.Status = "Saved";
+			}
+		},
+		new() { Text = "Color", Icon = MokaIcons.Content.Palette, DividerBefore = true, Children = ColorChoices(file.Color, color => file.Color = color) },
+		new() { Text = "Tag as work", Icon = MokaIcons.Content.Tag, Label = MokaLabelColor.Teal, OnClickSync = () => file.Status = "Tagged work" },
+		new() { Text = "Brand orange", ColorValue = "#ff8800", OnClickSync = () => file.Status = "Brand orange" }
+	];
+
+	private static IReadOnlyList<MokaContextMenuItem> ColorChoices(MokaLabelColor? current, Action<MokaLabelColor?> set) =>
+	[
+		.. MokaLabelColors.Standard.Select(color => new MokaContextMenuItem
+		{
+			Text = MokaLabelColors.Name(color),
+			Label = color,
+			Checked = current == color,
+			OnClickSync = () => set(color)
+		}),
+		new MokaContextMenuItem { Text = "No color", DividerBefore = true, Disabled = current is null, OnClickSync = () => set(null) }
+	];
+
+	private static string Renamed(string name) =>
+		name.StartsWith("Renamed ", StringComparison.Ordinal) ? name["Renamed ".Length..] : $"Renamed {name}";
+
+	private static string? Describe(FileRow file)
+	{
+		List<string> parts = [];
+		if (file.Starred)
+		{
+			parts.Add("Starred");
+		}
+
+		if (file.Color is { } color)
+		{
+			parts.Add(MokaLabelColors.Name(color));
+		}
+
+		if (file.Status is { } status)
+		{
+			parts.Add(status);
+		}
+
+		return parts.Count == 0 ? null : string.Join(", ", parts);
+	}
+
+	private sealed class FileRow(string name)
+	{
+		public string Name { get; set; } = name;
+
+		public bool Starred { get; set; }
+
+		public MokaLabelColor? Color { get; set; }
+
+		public string? Status { get; set; }
+	}
+
+	private int _count;
+
+	private IReadOnlyList<MokaContextMenuItem> CounterItems =>
+	[
+		new() { Text = "Add one", Icon = MokaIcons.Action.Add, OnClickSync = () => _count++ },
+		new() { Text = "Reset", Disabled = _count == 0, OnClickSync = () => _count = 0 }
+	];
+
+	private MokaRadialMenuSpec CounterRing => new(
+		"Counter",
+		[
+			new MokaRadialItem("add", "Add one", MokaIcons.Action.Add),
+			new MokaRadialItem("ten", "Add ten", MokaIcons.Navigation.ChevronUp),
+			new MokaRadialItem("reset", "Reset", MokaIcons.Action.Refresh, MokaRadialTone.Danger, Disabled: _count == 0)
+		],
+		Sub: $"{_count}",
+		OnPick: pick =>
+		{
+			_count = pick.Answer switch
+			{
+				"add" => _count + 1,
+				"ten" => _count + 10,
+				_ => 0
+			};
+			return Task.CompletedTask;
+		});
+
+	private MokaLabelColor? _color = MokaLabelColor.Teal;
+
+	private IReadOnlyList<MokaContextMenuItem> ColorItems => ColorChoices(_color, color => _color = color);
+}

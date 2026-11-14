@@ -3,7 +3,7 @@ rem Moka.Red - run the demos, the docs site, tests and tooling from one menu.
 rem
 rem Interactive:  RunSamples.bat
 rem One-shot:     RunSamples.bat <choice> [option] [--no-browser] [--dry-run] [--no-color]
-rem               RunSamples.bat devapp            hot reload, browser opens when ready
+rem               RunSamples.bat showcase          hot reload, browser opens when ready
 rem               RunSamples.bat test primitives
 rem               RunSamples.bat docs build
 rem Help:         RunSamples.bat help
@@ -20,7 +20,7 @@ setlocal EnableDelayedExpansion
 set "SELF=%~f0"
 for %%r in ("%~dp0..") do set "ROOT=%%~fr"
 set "SLN=%ROOT%\Moka.Red.slnx"
-set "DEVAPP=%ROOT%\samples\Moka.Red.DevApp"
+set "SHOWCASE=%ROOT%\samples\Moka.Red.Showcase"
 set "WASMAPP=%ROOT%\samples\Moka.Red.WasmApp"
 set "BENCH=%ROOT%\tests\Moka.Red.Benchmarks"
 set "DOCS_DIR=%ROOT%\docs"
@@ -75,7 +75,7 @@ rem ===========================================================================
 cls
 call :banner
 echo   %C_MUTED%RUN%C_OFF%
-echo     %C_RED%1%C_OFF%  DevApp        %C_DIM%Blazor Server demo%C_OFF%            %C_MUTED%%URL_DEVAPP%%C_OFF%
+echo     %C_RED%1%C_OFF%  Showcase      %C_DIM%Blazor Server demo%C_OFF%            %C_MUTED%%URL_SHOWCASE%%C_OFF%
 echo     %C_RED%2%C_OFF%  WasmApp       %C_DIM%Blazor WebAssembly demo%C_OFF%       %C_MUTED%%URL_WASM%%C_OFF%
 echo     %C_RED%3%C_OFF%  Docs          %C_DIM%mokadocs site, live previews%C_OFF%  %C_MUTED%%URL_DOCS%%C_OFF%
 echo.
@@ -93,7 +93,7 @@ echo     %C_RED%0%C_OFF%  Exit
 echo.
 call :read_key 1234567890
 if "%KEY_INDEX%"=="0"  goto :end
-if "%KEY_INDEX%"=="1"  goto :devapp
+if "%KEY_INDEX%"=="1"  goto :showcase
 if "%KEY_INDEX%"=="2"  goto :wasm
 if "%KEY_INDEX%"=="3"  goto :docs
 if "%KEY_INDEX%"=="4"  goto :build
@@ -105,8 +105,8 @@ if "%KEY_INDEX%"=="9"  goto :utils
 goto :end
 
 :dispatch
-if /i "%ARG1%"=="1"          goto :devapp
-if /i "%ARG1%"=="devapp"     goto :devapp
+if /i "%ARG1%"=="1"          goto :showcase
+if /i "%ARG1%"=="showcase"   goto :showcase
 if /i "%ARG1%"=="2"          goto :wasm
 if /i "%ARG1%"=="wasm"       goto :wasm
 if /i "%ARG1%"=="wasmapp"    goto :wasm
@@ -137,14 +137,14 @@ goto :end
 
 
 rem ===========================================================================
-rem  1, 2  DevApp and WasmApp
+rem  1, 2  Showcase and WasmApp
 rem ===========================================================================
 
-:devapp
-set "APP_NAME=DevApp"
+:showcase
+set "APP_NAME=Showcase"
 set "APP_DESC=Blazor Server demo"
-set "APP_PROJECT=%DEVAPP%"
-set "APP_URL=%URL_DEVAPP%"
+set "APP_PROJECT=%SHOWCASE%"
+set "APP_URL=%URL_SHOWCASE%"
 set "APP_HTTPS_URL="
 goto :app
 
@@ -767,7 +767,7 @@ echo     RunSamples.bat                                interactive menu
 echo     RunSamples.bat ^<choice^> [option] [flags]      run one thing and exit
 echo.
 echo   %C_MUTED%CHOICES%C_OFF%
-echo     1  devapp   watch ^| run ^| release                      default watch
+echo     1  showcase watch ^| run ^| release                      default watch
 echo     2  wasm     watch ^| run ^| release ^| https              default watch
 echo     3  docs     serve ^| build ^| watch ^| validate ^| doctor  default serve
 echo                 update ^| local
@@ -789,7 +789,7 @@ echo     MOKA_DOCS_PORT   docs server port, default 5080
 echo     MOKA_DOCS_LOCAL  set to run mokadocs from ..\Moka.Docs source
 echo.
 echo   %C_MUTED%EXAMPLES%C_OFF%
-echo     RunSamples.bat devapp
+echo     RunSamples.bat showcase
 echo     RunSamples.bat wasm https --no-browser
 echo     RunSamples.bat test primitives
 echo     RunSamples.bat test filter:Barcode
@@ -844,9 +844,9 @@ if not defined VERSION set "VERSION=unknown"
 set "BRANCH="
 for /f "delims=" %%b in ('git -C "%ROOT%" rev-parse --abbrev-ref HEAD 2^>nul') do set "BRANCH=%%b"
 if not defined BRANCH set "BRANCH=n/a"
-call :read_urls "%DEVAPP%\Properties\launchSettings.json" URL_DEVAPP URL_DEVAPP_HTTPS
+call :read_urls "%SHOWCASE%\Properties\launchSettings.json" URL_SHOWCASE URL_SHOWCASE_HTTPS
 call :read_urls "%WASMAPP%\Properties\launchSettings.json" URL_WASM URL_WASM_HTTPS
-if not defined URL_DEVAPP set "URL_DEVAPP=http://localhost:5015"
+if not defined URL_SHOWCASE set "URL_SHOWCASE=http://localhost:5015"
 if not defined URL_WASM set "URL_WASM=http://localhost:5240"
 exit /b 0
 

@@ -127,17 +127,16 @@ public class MokaTableItemsNameTests : BunitContext
 	[Fact]
 	public async Task ShowAtLeast_UnderServerData_AsksForThatMany()
 	{
-		List<MokaTableState> asked = [];
+		List<MokaTableRequest> asked = [];
 		Person[] all = Many(9);
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
-			.Add(t => t.ShowMore, true)
 			.Add(t => t.PageSize, 2)
 			.Add(t => t.ServerData, state =>
 			{
 				asked.Add(state);
 				return Task.FromResult(new MokaTableResult<Person> { Items = all.Take(state.PageSize).ToList(), TotalItems = all.Length });
 			})
-			.Add(t => t.ChildContent, DefaultColumns));
+			.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore)));
 
 		await cut.InvokeAsync(() => cut.Instance.ShowAtLeastAsync(5));
 
@@ -146,7 +145,7 @@ public class MokaTableItemsNameTests : BunitContext
 	}
 
 	[Fact]
-	public async Task ShowAtLeast_WithoutShowMore_StillReadsTheListAgain()
+	public async Task ShowAtLeast_WithoutLoadMore_StillReadsTheListAgain()
 	{
 		List<Person> rows = [.. Many(3)];
 		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
@@ -176,10 +175,9 @@ public class MokaTableItemsNameTests : BunitContext
 		Render<MokaTable<Person>>(p =>
 		{
 			p.Add(t => t.Items, rows);
-			p.Add(t => t.ShowMore, true);
 			p.Add(t => t.Selectable, true);
 			p.Add(t => t.PageSize, pageSize);
-			p.Add(t => t.ChildContent, DefaultColumns);
+			p.Add(t => t.ChildContent, DefaultColumnsWithPager(LoadMore));
 			extra?.Invoke(p);
 		});
 }

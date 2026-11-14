@@ -1,0 +1,11 @@
+<DemoSection Id="with-label" Title="With label" Description="An IPv4 address, one box per octet.">
+	<MokaIpAddressInput @bind-Value="_ipAddress" Label="Server IP" HelperText="Enter the target server address"/>
+</DemoSection>
+
+<DemoSection Id="disabled" Title="Disabled">
+	<MokaIpAddressInput Value="10.0.0.1" Label="Gateway" Disabled="true"/>
+</DemoSection>
+
+@code {
+	private string? _ipAddress = "192.168.1.1";
+}

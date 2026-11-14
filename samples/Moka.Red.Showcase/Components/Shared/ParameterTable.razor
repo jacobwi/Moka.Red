@@ -1,0 +1,63 @@
+@using Moka.Red.Showcase.Components.Library
+
+<div class="parameter-table">
+	@if (Named)
+	{
+		<MokaHeading Level="3" Class="parameter-table__name">@ComponentParameters.DisplayName(Type)</MokaHeading>
+	}
+	@if (Rows.Count == 0)
+	{
+		<MokaText Size="MokaSize.Sm" Class="parameter-table__none">Takes no parameters.</MokaText>
+	}
+	else
+	{
+		<MokaTable TItem="ComponentParameter" Items="Rows" ItemKey="row => (row.Group, row.Name)"
+		           Label="@($"{ComponentParameters.DisplayName(Type)} parameters")" GroupBy="@NameColumn"
+		           InitiallyCollapsedGroups="InheritedGroups" ShowPagination="false" ShowToolbar="@(Rows.Count > 12)"
+		           Searchable Text="SearchText" ItemsName="parameters">
+			<MokaColumn TItem="ComponentParameter" Title="@NameColumn" Field="row => row.Name" GroupKey="row => row.Group"
+			            Phone="MokaColumnPhone.Primary" NoWrap>
+				<CellTemplate Context="row">
+					<span class="parameter-table__param">
+						<code>@row.Name</code>
+						@if (row.IsEvent)
+						{
+							<MokaTag Size="MokaSize.Xs" Color="MokaColor.Info" Text="Event"/>
+						}
+						@if (row.IsRequired)
+						{
+							<MokaTag Size="MokaSize.Xs" Color="MokaColor.Warning" Text="Required"/>
+						}
+						@if (row.CapturesUnmatched)
+						{
+							<MokaTag Size="MokaSize.Xs" Text="Unmatched attributes"/>
+						}
+					</span>
+				</CellTemplate>
+			</MokaColumn>
+			<MokaColumn TItem="ComponentParameter" Title="Type" Field="row => row.Type" Mono Phone="MokaColumnPhone.Secondary"/>
+			<MokaColumn TItem="ComponentParameter" Title="Default" Field="row => row.Default" Mono Phone="MokaColumnPhone.Trailing"/>
+			<MokaColumn TItem="ComponentParameter" Title="Description" Field="row => row.Description" Phone="MokaColumnPhone.Secondary"/>
+		</MokaTable>
+	}
+</div>
+
+@code {
+	// Grouped by the name column, whose GroupKey is the declaring type, so the search still reads only the visible text.
+	private const string NameColumn = "Name";
+
+	private static readonly MokaTableText SearchText = MokaTableText.Default with { SearchPlaceholder = "Find a parameter" };
+
+	[Parameter]
+	[EditorRequired]
+	public Type Type { get; set; } = typeof(object);
+
+	// A page that shows several types names each table.
+	[Parameter]
+	public bool Named { get; set; }
+
+	private IReadOnlyList<ComponentParameter> Rows => ComponentParameters.Of(Type);
+
+	private IReadOnlyCollection<string> InheritedGroups =>
+		[.. Rows.Where(row => row.Inherited).Select(row => row.Group).Distinct(StringComparer.Ordinal)];
+}

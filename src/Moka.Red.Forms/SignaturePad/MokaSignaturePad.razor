@@ -14,7 +14,7 @@
 		        height="200"
 		        style="@CanvasStyle">
 		</canvas>
-		@if (string.IsNullOrEmpty(_value) && !ReadOnly)
+		@if (string.IsNullOrEmpty(Drawing) && !ReadOnly)
 		{
 			<span class="moka-signature-pad__placeholder">@Placeholder</span>
 		}

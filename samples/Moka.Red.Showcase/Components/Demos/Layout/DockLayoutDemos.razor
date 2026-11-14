@@ -1,0 +1,407 @@
+@using Moka.Red.Layout.DockLayout
+@using Moka.Red.Showcase.Components.Demos.Layout.Dock
+@inject IMokaDialogService Dialogs
+
+<DemoSection Id="groups-and-tabs" Title="Groups and tabs" Description="Panels in a MokaDockGroup start as tabs in one place. MokaDockContent is the main area: it takes the room the groups leave.">
+	<div class="dock-demo">
+		<MokaDockLayout>
+			<MokaDockRow>
+				<MokaDockGroup Id="tabs-side" Size="320px">
+					<MokaDockPanel Id="tabs-explorer" Title="Explorer" Icon="MokaIcons.File.Folder">
+						<MokaList Dense>
+							<MokaListItem Text="report.md" Icon="MokaIcons.File.FileText"/>
+							<MokaListItem Text="budget.csv" Icon="MokaIcons.File.FileText"/>
+						</MokaList>
+					</MokaDockPanel>
+					<MokaDockPanel Id="tabs-outline" Title="Outline" Icon="MokaIcons.Content.ListTree" Badge="3">
+						<p class="dock-demo__text">Three headings in report.md.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockContent Title="Editor">
+					<p class="dock-demo__text">The main area. Pick a tab on the left with the mouse or the arrow keys.</p>
+				</MokaDockContent>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="rows-and-columns" Title="Rows and columns" Description="MokaDockRow and MokaDockColumn nest to any depth. A Size is a CSS length or a share; MinSize and MaxSize bound the splitters, which also move from the keyboard.">
+	<div class="dock-demo">
+		<MokaDockLayout>
+			<MokaDockRow>
+				<MokaDockGroup Id="split-left" Size="25%" MinSize="120px" MaxSize="40%">
+					<MokaDockPanel Id="split-files" Title="Files">
+						<p class="dock-demo__text">25% of the row, between 120px and 40%.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockColumn>
+					<MokaDockContent Title="Report">
+						<p class="dock-demo__text">One share of what the lengths leave.</p>
+					</MokaDockContent>
+					<MokaDockGroup Id="split-bottom" Size="35%" MinSize="64px">
+						<MokaDockPanel Id="split-log" Title="Log">
+							<p class="dock-demo__text">Drag the splitter above, or focus it and press the arrows.</p>
+						</MokaDockPanel>
+					</MokaDockGroup>
+				</MokaDockColumn>
+				<MokaDockGroup Id="split-right" Size="2fr" MinSize="120px">
+					<MokaDockPanel Id="split-details" Title="Details">
+						<p class="dock-demo__text">Two shares.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="one-panel-per-side" Title="One panel per side" Description="The markup from before 0.6.0 still works: a panel placed directly in the layout docks to its Dock edge as a group of one. Size and Collapsed bind.">
+	<div class="dock-demo">
+		<MokaDockLayout>
+			<MokaDockPanel Id="side-files" Dock="MokaDockPosition.Left" Size="180px" MinSize="120px" Title="Files" Collapsible CollapsedSize="32px">
+				<MokaList Dense>
+					<MokaListItem Text="report.md" Icon="MokaIcons.File.FileText"/>
+					<MokaListItem Text="notes.txt" Icon="MokaIcons.File.FileText"/>
+				</MokaList>
+			</MokaDockPanel>
+			<MokaDockPanel Id="side-output" Dock="MokaDockPosition.Bottom" Title="Output" @bind-Size="_outputSize">
+				<p class="dock-demo__text">Saved report.md. This panel is @_outputSize tall.</p>
+			</MokaDockPanel>
+			<MokaDockContent>
+				<p class="dock-demo__text">Drag a panel's edge to resize it, or fold Files to a strip.</p>
+			</MokaDockContent>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tab-styles" Title="Tab styles" Description="TabStyle picks how groups show their tabs, for the whole layout or one group. A strip that runs out of room adds an All tabs button.">
+	<DemoChoice TValue="MokaDockTabStyle" Label="Tabs" Options="TabStyles" @bind-Value="_tabStyle"/>
+	<div class="dock-demo">
+		<MokaDockLayout TabStyle="_tabStyle">
+			<MokaDockColumn>
+				<MokaDockGroup Id="style-docs">
+					<MokaDockPanel Id="style-report" Title="report.md" Icon="MokaIcons.File.FileText">
+						<p class="dock-demo__text">The report.</p>
+					</MokaDockPanel>
+					<MokaDockPanel Id="style-budget" Title="budget.csv" Icon="MokaIcons.File.FileText">
+						<p class="dock-demo__text">The budget.</p>
+					</MokaDockPanel>
+					<MokaDockPanel Id="style-notes" Title="notes.txt" Icon="MokaIcons.File.FileText">
+						<p class="dock-demo__text">The notes.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockColumn>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="drag-to-dock" Title="Drag to dock" Description="Drag a tab, or a group by its header, to an edge of any group or of the layout. DropIndicator picks what shows where it lands; Escape cancels.">
+	<DemoChoice TValue="MokaDockDropIndicator" Label="Drop" Options="Drops" @bind-Value="_drop"/>
+	<MokaSwitch @bind-Value="_dragging" Label="Allow dragging"/>
+	<div class="dock-demo">
+		<MokaDockLayout DropIndicator="_drop" AllowDragging="_dragging">
+			<MokaDockRow>
+				<MokaDockGroup Id="drag-left">
+					<MokaDockPanel Id="drag-files" Title="Files">
+						<p class="dock-demo__text">Drag this tab onto the other group.</p>
+					</MokaDockPanel>
+					<MokaDockPanel Id="drag-search" Title="Search">
+						<p class="dock-demo__text">Or this one to the layout's edge.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockGroup Id="drag-right">
+					<MokaDockPanel Id="drag-log" Title="Log">
+						<p class="dock-demo__text">Dropping where nothing lights up floats the panel.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="floating-windows" Title="Floating windows" Description="Undock floats a group in a window over the layout that moves by its header, resizes from any edge and snaps to the edges. Dock puts it back where it came from.">
+	<div class="button-row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Navigation.Undock" OnClick="FloatLogAsync">Float the log</MokaButton>
+	</div>
+	<div class="dock-demo dock-demo--tall">
+		<MokaDockLayout @ref="_floatDock">
+			<MokaDockColumn>
+				<MokaDockContent Title="Report">
+					<p class="dock-demo__text">The log floats over this area.</p>
+				</MokaDockContent>
+				<MokaDockGroup Id="float-bottom" Size="35%">
+					<MokaDockPanel Id="float-log" Title="Log" Icon="MokaIcons.File.Logs">
+						<p class="dock-demo__text">Build 12 finished with no errors.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockColumn>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="side-bars" Title="Side bars" Description="A group with AutoHide starts pinned to a side bar of its tabs. Clicking a tab, or hovering one while AutoHideOnHover is on, slides it in over the content.">
+	<MokaSwitch @bind-Value="_hover" Label="Open on hover"/>
+	<div class="dock-demo">
+		<MokaDockLayout AutoHideOnHover="_hover">
+			<MokaDockGroup Id="pinned-side" Dock="MokaDockPosition.Left" AutoHide="MokaDockPosition.Left" Size="200px">
+				<MokaDockPanel Id="pinned-files" Title="Files" Icon="MokaIcons.File.Folder">
+					<p class="dock-demo__text">Press outside or Escape to send it back.</p>
+				</MokaDockPanel>
+				<MokaDockPanel Id="pinned-search" Title="Search" Icon="MokaIcons.Action.Search">
+					<p class="dock-demo__text">Dock in the header returns the group to its place.</p>
+				</MokaDockPanel>
+			</MokaDockGroup>
+			<MokaDockContent>
+				<p class="dock-demo__text">The side bar holds the pinned group's tabs.</p>
+			</MokaDockContent>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="header-controls" Title="Header controls" Description="Controls picks the buttons group headers show. A panel's CanClose can refuse to close, and its Actions sit in the header while it shows.">
+	<div class="button-row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ShowDraftAsync">Show the draft again</MokaButton>
+	</div>
+	<div class="dock-demo">
+		<MokaDockLayout @ref="_controlsDock" Controls="MokaDockControls.All">
+			<MokaDockRow>
+				<MokaDockGroup Id="controls-main">
+					<MokaDockPanel Id="controls-draft" Title="draft.md" Icon="MokaIcons.File.FilePen" CanClose="ConfirmDraftCloseAsync">
+						<Actions>
+							<MokaTooltip Text="Count words" Position="MokaTooltipPosition.Bottom">
+								<MokaButton Quiet StartIcon="MokaIcons.Action.Refresh" aria-label="Count words" OnClick="CountWords"/>
+							</MokaTooltip>
+						</Actions>
+						<ChildContent>
+							<p class="dock-demo__text">Closing asks first. Counted @_wordCounts times.</p>
+						</ChildContent>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockGroup Id="controls-side" Size="40%">
+					<MokaDockPanel Id="controls-help" Title="Help" Closable="false">
+						<p class="dock-demo__text">Closable="false" keeps this one open whatever Controls says.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="looks" Title="Looks" Description="Look draws the layout on the new design; MokaTheme.WithDocks sets it for the whole app. The original design always draws Classic.">
+	<DemoChoice TValue="MokaDockLook" Label="Look" Options="Looks" @bind-Value="_look"/>
+	<div class="dock-demo">
+		<MokaDockLayout Look="_look">
+			<MokaDockRow>
+				<MokaDockGroup Id="look-side" Size="30%">
+					<MokaDockPanel Id="look-files" Title="Files" Icon="MokaIcons.File.Folder">
+						<p class="dock-demo__text">The file list.</p>
+					</MokaDockPanel>
+					<MokaDockPanel Id="look-search" Title="Search" Icon="MokaIcons.Action.Search">
+						<p class="dock-demo__text">Search the files.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockColumn>
+					<MokaDockContent Title="Report">
+						<p class="dock-demo__text">The report.</p>
+					</MokaDockContent>
+					<MokaDockGroup Id="look-bottom" Size="35%">
+						<MokaDockPanel Id="look-log" Title="Log" Icon="MokaIcons.File.Logs">
+							<p class="dock-demo__text">Build 12 finished.</p>
+						</MokaDockPanel>
+					</MokaDockGroup>
+				</MokaDockColumn>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="narrow-screens" Title="Narrow screens" Description="Below NarrowBelow of its own width the layout switches to NarrowMode. It measures itself, so this box narrows it without the window changing.">
+	<DemoChoice TValue="MokaDockNarrowMode" Label="Narrow" Options="NarrowModes" @bind-Value="_narrowMode"/>
+	<MokaSwitch @bind-Value="_narrowBox" Label="Narrow box"/>
+	<div class="@NarrowBoxClass">
+		<MokaDockLayout NarrowMode="_narrowMode">
+			<MokaDockRow>
+				<MokaDockGroup Id="narrow-side" Size="200px">
+					<MokaDockPanel Id="narrow-files" Title="Files" Icon="MokaIcons.File.Folder">
+						<p class="dock-demo__text">The file list.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockColumn>
+					<MokaDockContent Title="Report">
+						<p class="dock-demo__text">The report.</p>
+					</MokaDockContent>
+					<MokaDockGroup Id="narrow-bottom" Size="35%">
+						<MokaDockPanel Id="narrow-log" Title="Log" Icon="MokaIcons.File.Logs">
+							<p class="dock-demo__text">Build 12 finished.</p>
+						</MokaDockPanel>
+					</MokaDockGroup>
+				</MokaDockColumn>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="content-that-scrolls-itself" Title="Content that scrolls itself" Description="A panel with Scrollable off clips instead of scrolling and a single child fills it, so a view with its own scrollbar gets a definite size.">
+	<div class="dock-demo">
+		<MokaDockLayout>
+			<MokaDockColumn>
+				<MokaDockContent Title="Report">
+					<p class="dock-demo__text">The terminal below shows the only scrollbar.</p>
+				</MokaDockContent>
+				<MokaDockGroup Id="scroll-bottom" Size="55%">
+					<MokaDockPanel Id="scroll-terminal" Title="Terminal" Icon="MokaIcons.File.Terminal" Scrollable="false">
+						<MokaTerminal Class="dock-demo__terminal" Lines="TerminalLines" ShowHeader="false" MaxHeight="100%"/>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockColumn>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="binding-the-state" Title="Binding the state" Description="Where everything is lives in a MokaDockState. Binding State hands it to the page after every change; ToJson is what StorageKey saves.">
+	<div class="dock-demo">
+		<MokaDockLayout @bind-State="_boundState">
+			<MokaDockRow>
+				<MokaDockGroup Id="bound-left">
+					<MokaDockPanel Id="bound-files" Title="Files">
+						<p class="dock-demo__text">Move, fold or close a panel and watch the JSON.</p>
+					</MokaDockPanel>
+					<MokaDockPanel Id="bound-search" Title="Search">
+						<p class="dock-demo__text">Search the files.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockGroup Id="bound-right">
+					<MokaDockPanel Id="bound-log" Title="Log">
+						<p class="dock-demo__text">Build 12 finished.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+	<MokaCodeBlock Code="@(_boundState?.ToJson() ?? "")" Language="json" Highlighter="MokaCodeHighlighters.Json" ShowLineNumbers="false" Wrap MaxHeight="10rem"/>
+</DemoSection>
+
+<DemoSection Id="panels-from-code" Title="Panels from code" Description="OpenPanelAsync opens a document as a tab in the main area. Its content is a component, and its CanClose asks before an edited one closes.">
+	<div class="button-row">
+		@foreach (DockFile file in _codeFiles)
+		{
+			<MokaButton @key="file.Name" Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.File.FileText"
+			            OnClick="() => OpenDocumentAsync(file)">@file.Name</MokaButton>
+		}
+	</div>
+	<div class="dock-demo">
+		<MokaDockLayout @ref="_codeDock" TabStyle="MokaDockTabStyle.Editor" PanelClosed="OnDocumentClosed">
+			<MokaDockContent Title="Documents">
+				<p class="dock-demo__text">Open a file above. Edit it, then close its tab.</p>
+			</MokaDockContent>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+<DemoSection Id="named-layouts" Title="Named layouts" Description="Presets are named states. ApplyPresetAsync switches to one inside a view transition, so the groups glide to their places.">
+	<div class="button-row">
+		@foreach (MokaDockPreset preset in _presets)
+		{
+			<MokaButton @key="preset.Name" Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => ApplyPresetAsync(preset.Name)">@preset.Name</MokaButton>
+		}
+	</div>
+	<div class="dock-demo">
+		<MokaDockLayout @ref="_presetDock" Presets="_presets">
+			<MokaDockRow>
+				<MokaDockGroup Id="preset-side" Size="30%">
+					<MokaDockPanel Id="preset-files" Title="Files" Icon="MokaIcons.File.Folder">
+						<p class="dock-demo__text">The file list.</p>
+					</MokaDockPanel>
+				</MokaDockGroup>
+				<MokaDockColumn>
+					<MokaDockContent Title="Report">
+						<p class="dock-demo__text">The report.</p>
+					</MokaDockContent>
+					<MokaDockGroup Id="preset-bottom" Size="35%">
+						<MokaDockPanel Id="preset-log" Title="Log" Icon="MokaIcons.File.Logs">
+							<p class="dock-demo__text">Build 12 finished.</p>
+						</MokaDockPanel>
+					</MokaDockGroup>
+				</MokaDockColumn>
+			</MokaDockRow>
+		</MokaDockLayout>
+	</div>
+</DemoSection>
+
+@code {
+
+	private static readonly MokaDockTabStyle[] TabStyles = Enum.GetValues<MokaDockTabStyle>();
+	private static readonly MokaDockDropIndicator[] Drops = Enum.GetValues<MokaDockDropIndicator>();
+	private static readonly MokaDockLook[] Looks = Enum.GetValues<MokaDockLook>();
+	private static readonly MokaDockNarrowMode[] NarrowModes = Enum.GetValues<MokaDockNarrowMode>();
+
+	private static readonly IReadOnlyList<MokaTerminalLine> TerminalLines =
+	[
+		.. Enumerable.Range(1, 40).Select(line => new MokaTerminalLine($"[info] step {line} of 40 done", null, "$"))
+	];
+
+	private readonly List<DockFile> _codeFiles = [.. DockFile.Samples().Take(3)];
+	private MokaDockState? _boundState;
+	private MokaDockLayout? _codeDock;
+	private MokaDockLayout? _controlsDock;
+	private bool _dragging = true;
+	private MokaDockDropIndicator _drop = MokaDockDropIndicator.Zones;
+	private MokaDockLayout? _floatDock;
+	private bool _hover = true;
+	private MokaDockLook _look = MokaDockLook.Ide;
+	private bool _narrowBox = true;
+	private MokaDockNarrowMode _narrowMode = MokaDockNarrowMode.Tabs;
+	private string? _outputSize = "90px";
+	private MokaDockLayout? _presetDock;
+	private IReadOnlyList<MokaDockPreset> _presets = [];
+	private MokaDockTabStyle _tabStyle = MokaDockTabStyle.Editor;
+	private int _wordCounts;
+
+	private string NarrowBoxClass => new CssBuilder("dock-demo")
+		.AddClass("dock-demo--narrow", _narrowBox)
+		.Build();
+
+	// The presets are built on the markup's own layout, which the dock layout knows once it has rendered.
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender && _presetDock is { DefaultState: { Root: not null } defaults })
+		{
+			_presets =
+			[
+				new MokaDockPreset("Edit", defaults),
+				new MokaDockPreset("Wide log", defaults.MoveGroup("preset-bottom", new MokaDockTarget(null, MokaDockZone.Right))),
+				new MokaDockPreset("Focus", defaults.AutoHide("preset-side", MokaDockPosition.Left).AutoHide("preset-bottom", MokaDockPosition.Bottom))
+			];
+			StateHasChanged();
+		}
+	}
+
+	private Task FloatLogAsync() => _floatDock?.FloatPanelAsync("float-log") ?? Task.CompletedTask;
+
+	private Task ShowDraftAsync() => _controlsDock?.ShowPanelAsync("controls-draft") ?? Task.CompletedTask;
+
+	private void CountWords() => _wordCounts++;
+
+	private Task<bool> ConfirmDraftCloseAsync() =>
+		Dialogs.ConfirmAsync("Close draft.md? You can show it again with the button above.", "Close the draft", options => options.ConfirmText = "Close");
+
+	private Task OpenDocumentAsync(DockFile file) => _codeDock?.OpenPanelAsync(new MokaDockPanelOptions
+	{
+		Id = $"demo-{file.PanelId}",
+		Title = file.Name,
+		Icon = MokaIcons.File.FileText,
+		Component = MokaDockComponent.Create<DockDocument>(new Dictionary<string, object?> { ["File"] = file }),
+		CanClose = () => file.Dirty
+			? Dialogs.ConfirmAsync($"{file.Name} has changes that aren't saved. Close it and lose them?", "Unsaved changes", options =>
+			{
+				options.ConfirmText = "Close without saving";
+				options.ConfirmColor = MokaColor.Error;
+			})
+			: Task.FromResult(true)
+	}) ?? Task.CompletedTask;
+
+	private void OnDocumentClosed(MokaDockPanelChange change) =>
+		_codeFiles.Find(file => $"demo-{file.PanelId}" == change.Panel)?.Revert();
+
+	private Task ApplyPresetAsync(string name) => _presetDock?.ApplyPresetAsync(name) ?? Task.CompletedTask;
+
+}

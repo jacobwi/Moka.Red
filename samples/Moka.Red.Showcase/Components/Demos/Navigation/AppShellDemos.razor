@@ -1,0 +1,16 @@
+@inject ShowcaseLook Look
+
+<DemoSection Id="a-framed-main-area" Title="A framed main area" Description="Framed draws the main area as an inset panel; on a phone it goes back to full bleed. The frame is the app shell pattern in a window of its own.">
+	<iframe src="@ShellSource(true)" title="App shell, framed" style="@Frame"></iframe>
+</DemoSection>
+
+@code {
+	private const string Frame = "display: block; width: 100%; height: 34rem; border: var(--moka-border-width) solid var(--moka-color-outline); border-radius: var(--moka-radius-md);";
+
+	private string ShellSource(bool framed)
+	{
+		string palette = Look.Settings.Appearance.Palette ?? "red";
+		string theme = palette.Length == 0 ? "Red" : char.ToUpperInvariant(palette[0]) + palette[1..];
+		return $"/patterns/app-shell?theme={Uri.EscapeDataString(theme)}&framed={(framed ? "true" : "false")}";
+	}
+}

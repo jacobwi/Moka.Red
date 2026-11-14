@@ -1,0 +1,16 @@
+<DemoSection Id="basics" Title="Basics" Description="A number in a range, dragged or set with the arrow keys.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div style="width: 300px;">
+			<MokaSlider @bind-Value="_sliderValue" Label="Volume" ShowMinMax="true"/>
+		</div>
+		<div style="width: 300px;">
+			<MokaSlider @bind-Value="_preciseValue" Label="Precise" Min="0" Max="1" Step="0.01" ValueFormat="P0"/>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private double _sliderValue = 50;
+
+	private double _preciseValue = 0.5;
+}

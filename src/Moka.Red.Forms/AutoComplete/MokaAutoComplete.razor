@@ -36,7 +36,7 @@
 		       autocomplete="off"
 		       aria-describedby="@DescribedBy"
 		       @attributes="ControlAttributes"/>
-		@if (Clearable && _value is not null)
+		@if (Clearable && Chosen is not null)
 		{
 			@* No tooltip while the list is open: it would cover the list's first suggestions. *@
 			<MokaTooltip Text="@(_isOpen ? null : "Clear")" Position="MokaTooltipPosition.BottomEnd" Class="moka-autocomplete-clear-tip">

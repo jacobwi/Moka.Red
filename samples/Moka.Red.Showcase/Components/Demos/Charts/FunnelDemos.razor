@@ -1,0 +1,45 @@
+@using System.Globalization
+@using Moka.Red.Core.Charts
+
+<DemoSection Id="basics" Title="Basics">
+	<MokaFunnel Title="New device setup" Subtitle="Devices that reached each step, this month" Steps="@Setup"
+	            Controls="Tools"/>
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export | MokaChartControls.ResetZoom;
+
+	private static readonly MokaFunnelStep[] Setup =
+	[
+		new("Discovered", 1240) { Detail = "Every device the router saw" }, new("Named", 980), new("Zone assigned", 712),
+		new("Rules reviewed", 431), new("Trusted", 288), new("Pinned to the dashboard", 64)
+	];
+
+	private static readonly MokaScatterSeries[] Devices = DeviceSeries();
+
+	private static MokaScatterSeries[] DeviceSeries()
+	{
+		Random random = new(31);
+		MokaScatterPoint[] Make(string prefix, int count, double connections, double connectionSpread, double gb, double gbSpread) =>
+		[
+			.. Enumerable.Range(0, count).Select(i => new MokaScatterPoint(
+				Math.Max(8, Math.Round(connections + connectionSpread * Gauss(random))),
+				Math.Max(0.1, Math.Round(gb + gbSpread * Gauss(random), 1)), null,
+				$"{prefix}-{(i + 1).ToString("00", CultureInfo.InvariantCulture)}"))
+		];
+		MokaScatterPoint[] iot = [.. Make("iot", 13, 290, 55, 0.9, 0.7), new(214, 26.4, null, "tv-living-room")];
+		return
+		[
+			new("Laptops", Make("laptop", 13, 190, 50, 11, 3.6)),
+			new("Phones", Make("phone", 14, 80, 32, 3.2, 1.4)),
+			new("IoT", iot)
+		];
+	}
+
+	private static double Gauss(Random random)
+	{
+		double u = 1 - random.NextDouble();
+		double v = random.NextDouble();
+		return Math.Sqrt(-2 * Math.Log(u)) * Math.Cos(2 * Math.PI * v);
+	}
+}

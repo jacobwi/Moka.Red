@@ -1,6 +1,8 @@
 using AngleSharp.Dom;
 using Bunit;
+using Moka.Red.Core.Code;
 using Moka.Red.Forms.CodeEditor;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;
 
@@ -52,6 +54,37 @@ public class MokaCodeEditorTests : BunitContext
 		Assert.Equal("[Peer]\nPort=51820\n ", copy.TextContent);
 		Assert.Equal("true", copy.GetAttribute("aria-hidden"));
 		Assert.Equal("[Peer]\nPort=51820", cut.Find("textarea").GetAttribute("value"));
+	}
+
+	// The kinds a markup or C# highlighter writes get classes of their own; the older kinds keep theirs.
+	[Fact]
+	public void ABuiltInHighlighter_ColorsTheCopyWithTheNewKinds()
+	{
+		IRenderedComponent<MokaCodeEditor> cut = Render<MokaCodeEditor>(p => p
+			.Add(x => x.Value, "@page \"/x\"\n<MokaCard Title=\"Hi\">@count</MokaCard>\n@code { int count = 1; }")
+			.Add(x => x.Highlighter, MokaCodeHighlighters.Razor));
+
+		IElement copy = cut.Find(".moka-code-editor__highlight");
+		Assert.Equal("@page", copy.QuerySelector(".moka-code-editor__token--directive")!.TextContent);
+		Assert.Equal("\"/x\"", copy.QuerySelector(".moka-code-editor__token--string")!.TextContent);
+		Assert.Equal("MokaCard", copy.QuerySelector(".moka-code-editor__token--tag")!.TextContent);
+		Assert.Equal("Title", copy.QuerySelector(".moka-code-editor__token--attribute")!.TextContent);
+		Assert.Equal("int", copy.QuerySelector(".moka-code-editor__token--keyword")!.TextContent);
+		Assert.Equal("1", copy.QuerySelector(".moka-code-editor__token--number")!.TextContent);
+	}
+
+	[Theory]
+	[InlineData("tag", "--moka-code-tag")]
+	[InlineData("attribute", "--moka-code-attribute")]
+	[InlineData("string", "--moka-code-string")]
+	[InlineData("type", "--moka-code-type")]
+	[InlineData("directive", "--moka-code-directive")]
+	public void TheNewKinds_ReadTheCodeTokens(string kind, string token)
+	{
+		string color = ScopedCss.Declarations("MokaCodeEditor.razor.css",
+			$".moka-code-editor__highlight ::deep .moka-code-editor__token--{kind}")["color"];
+
+		Assert.StartsWith($"var({token}, ", color, StringComparison.Ordinal);
 	}
 
 	// A highlighter is the app's code, so the editor copes with spans out of order, overlapping or past the end.

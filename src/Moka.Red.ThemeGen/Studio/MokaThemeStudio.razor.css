@@ -1,0 +1,326 @@
+/* A container can't restyle its own columns, so the root is the container and the layout inside it is the grid. The mark
+   color is resolved here, outside the previews, so a mark keeps the studio's accent rather than the theme being edited. */
+.moka-theme-studio {
+	--_studio-mark: var(--moka-color-primary);
+	container: moka-theme-studio / inline-size;
+	color: var(--moka-color-on-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-base);
+}
+
+.moka-theme-studio__layout {
+	display: grid;
+	grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr) minmax(18rem, 24rem);
+	align-items: start;
+	gap: var(--moka-grid-gap);
+}
+
+/* The side columns are panels: a surface with a line round it, and a heading row that stays put while the column
+   scrolls. */
+.moka-theme-studio__controls,
+.moka-theme-studio__inspector {
+	position: sticky;
+	top: var(--moka-appbar-space, 0px);
+	max-height: calc(100vh - var(--moka-appbar-space, 0px));
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-card);
+	min-width: 0;
+}
+
+.moka-theme-studio__head {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-panel-padding);
+	background: var(--moka-color-surface);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-theme-studio__panel-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-card-gap);
+	padding: var(--moka-panel-padding);
+	min-width: 0;
+}
+
+.moka-theme-studio__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-md);
+	min-width: 0;
+}
+
+.moka-theme-studio__group + .moka-theme-studio__group {
+	padding-top: var(--moka-card-gap);
+	border-top: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-theme-studio__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+}
+
+/* The middle is a stage rather than a panel: a heading bar over a dotted well, so a card in a preview never reads as
+   one of the controls. The bar stays in view while the previews scroll under it, with the line saying what changed. */
+.moka-theme-studio__stage {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-card);
+	overflow: clip;
+}
+
+.moka-theme-studio__stage-head {
+	position: sticky;
+	top: var(--moka-appbar-space, 0px);
+	z-index: 2;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+	padding: var(--moka-panel-padding);
+	background: var(--moka-color-surface);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+}
+
+.moka-theme-studio__stage-title {
+	display: flex;
+	flex: 1 1 16rem;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-theme-studio__title-row {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+}
+
+.moka-theme-studio__stage-tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+.moka-theme-studio__change {
+	margin: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}
+
+.moka-theme-studio__change--said {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-theme-studio__well {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+	align-items: start;
+	gap: var(--moka-grid-gap);
+	padding: var(--moka-page-gap);
+	min-width: 0;
+}
+
+.moka-theme-studio__frame {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	margin: 0;
+	min-width: 0;
+}
+
+.moka-theme-studio__caption {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	background: var(--moka-color-surface);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-full);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-theme-studio__preview {
+	min-width: 0;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-card);
+	box-shadow: var(--moka-shadow-2);
+	overflow: hidden;
+}
+
+/* A change's marks, set by the script for --_mark-time. Two values, so an element marked again by the next change
+   starts over. Only the outline moves, which the comparison never reads, so a mark never counts as a change itself. */
+.moka-theme-studio__well ::deep [data-moka-changed="a"] {
+	animation: moka-theme-studio-mark-a var(--_mark-time) ease-out;
+}
+
+.moka-theme-studio__well ::deep [data-moka-changed="b"] {
+	animation: moka-theme-studio-mark-b var(--_mark-time) ease-out;
+}
+
+@keyframes moka-theme-studio-mark-a {
+	0%, 50% {
+		outline: var(--moka-focus-width) solid var(--_studio-mark);
+		outline-offset: calc(var(--moka-focus-width) * -1);
+	}
+
+	100% {
+		outline: var(--moka-focus-width) solid transparent;
+		outline-offset: calc(var(--moka-focus-width) * -1);
+	}
+}
+
+@keyframes moka-theme-studio-mark-b {
+	0%, 50% {
+		outline: var(--moka-focus-width) solid var(--_studio-mark);
+		outline-offset: calc(var(--moka-focus-width) * -1);
+	}
+
+	100% {
+		outline: var(--moka-focus-width) solid transparent;
+		outline-offset: calc(var(--moka-focus-width) * -1);
+	}
+}
+
+/* Without motion the mark holds still until the script takes it off. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-theme-studio__well ::deep [data-moka-changed] {
+		outline: var(--moka-focus-width) solid var(--_studio-mark);
+		outline-offset: calc(var(--moka-focus-width) * -1);
+	}
+}
+
+.moka-theme-studio__report,
+.moka-theme-studio__tokens {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding-top: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-theme-studio__checks,
+.moka-theme-studio__token-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.moka-theme-studio__check,
+.moka-theme-studio__token {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-md);
+	min-width: 0;
+}
+
+.moka-theme-studio__check--fail {
+	background: var(--moka-color-error-bg);
+}
+
+.moka-theme-studio__sample {
+	flex: none;
+	display: inline-grid;
+	place-items: center;
+	width: var(--moka-control-height);
+	height: var(--moka-control-height);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	font-weight: var(--moka-font-weight-semibold);
+	font-size: var(--moka-font-size-md);
+}
+
+.moka-theme-studio__check-text,
+.moka-theme-studio__token-text {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-theme-studio__check-use {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-theme-studio__mono {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+	overflow-wrap: anywhere;
+}
+
+.moka-theme-studio__token-value {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-tertiary);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.moka-theme-studio__swatch {
+	flex: none;
+	width: var(--moka-spacing-lg);
+	height: var(--moka-spacing-lg);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+}
+
+.moka-theme-studio__pin-editor {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-panel-padding);
+	background: var(--moka-color-surface-variant);
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-theme-studio__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--moka-spacing-sm);
+}
+
+@container moka-theme-studio (max-width: 75rem) {
+	.moka-theme-studio__layout {
+		grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+	}
+
+	.moka-theme-studio__inspector {
+		grid-column: 1 / -1;
+		position: static;
+		max-height: none;
+	}
+}
+
+@container moka-theme-studio (max-width: 48rem) {
+	.moka-theme-studio__layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.moka-theme-studio__controls {
+		position: static;
+		max-height: none;
+	}
+}

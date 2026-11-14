@@ -1,0 +1,41 @@
+.dock-build-log {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+
+.dock-build-log__head {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+}
+
+.dock-build-log__lines {
+	flex: 1;
+	min-height: 0;
+	margin: 0;
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
+	overflow: auto;
+	list-style: none;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-mono);
+	line-height: 1.7;
+}
+
+.dock-build-log__line {
+	color: var(--moka-color-on-surface-variant);
+	white-space: pre;
+}
+
+.dock-build-log__line--done {
+	color: var(--moka-color-success);
+}
+
+.dock-build-log__line--warn {
+	color: var(--moka-color-warning);
+}

@@ -1,0 +1,957 @@
+@using Moka.Red.Core.Charts
+@using System.Globalization
+@using System.Diagnostics
+@implements IDisposable
+
+<DemoSection Id="basics" Title="Basics" Description="Lines over labelled points, with an area if you want one.">
+	<MokaLineChart Labels="_monthLabels" Series="_lineSeries" ShowArea="true"/>
+</DemoSection>
+
+<DemoSection Id="line-chart-live" Title="Line chart, live"
+             Description="A rate fed once a second into a 110 second window: the lines slide, the legend shows the latest values and the peak, and the ticks stay round in the unit shown.">
+	<MokaLineChart Series="_series"
+	               Labels="Labels"
+	               Label="Throughput"
+	               Formatter="Rate"
+	               AutoScale="true"
+	               ScaleUnits="Units"
+	               SuggestedMax="4096"
+	               ShowArea="true"
+	               ShowPoints="false"
+	               ShowLastPoint="true"
+	               ShowCurrent="true"
+	               ShowPeak="true"
+	               Smooth="true"
+	               Live="true"
+	               Height="230px"
+	               EmptyText="Waiting for traffic"/>
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="Toggle">@(_running ? "Pause" : "Resume")</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="Reset">Reset</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="stacked-area" Title="Stacked area" Description="The top edge is the total.">
+	<MokaLineChart Title="Bandwidth by zone" Subtitle="Mbit/s, today by the hour" Look="MokaChartLook.Quiet" Stacked="true"
+	               Labels="Hours" Series="Zones" Unit="Mbps"/>
+</DemoSection>
+
+<DemoSection Id="range-band" Title="Range band" Description="The median inside the 5th to 95th percentile.">
+	<MokaLineChart Title="Response time" Look="MokaChartLook.Quiet" Labels="Hours" Series="Latency" Unit="MokaChartUnit.Milliseconds"/>
+</DemoSection>
+
+<DemoSection Id="step-line" Title="Step line" Description="Counts that jump rather than drift.">
+	<MokaLineChart Title="Instances running" Look="MokaChartLook.Quiet" Curve="MokaLineCurve.Step" Times="StepTimes" Series="Instances"
+	               DirectLabels="MokaDirectLabels.Values"/>
+</DemoSection>
+
+<DemoSection Id="slope-chart" Title="Slope chart" Description="Before and after, the ones that got worse in color.">
+	<MokaLineChart Title="Error rate around release 2.4" Look="MokaChartLook.Quiet" Labels="BeforeAfter" Series="Slopes"
+	               HighlightSeries="Worse" DirectLabels="MokaDirectLabels.Both" Formatter="Percent"
+	               Points="MokaChartPoints.Always"/>
+</DemoSection>
+
+<DemoSection Id="target-band" Title="Target band" Description="Inside 100 to 250 ms is fine.">
+	<MokaLineChart Title="p95 today" Look="MokaChartLook.Quiet" Labels="Hours" Series="P95" TargetLow="100" TargetHigh="250"
+	               Unit="MokaChartUnit.Milliseconds"/>
+</DemoSection>
+
+<DemoSection Id="emphasis" Title="Emphasis" Description="Search is the story, the rest stay quiet.">
+	<MokaLineChart Title="p95 latency by service" Look="MokaChartLook.Quiet" Labels="Hours" Series="Services" Highlight="Search"
+	               Unit="MokaChartUnit.Milliseconds"/>
+</DemoSection>
+
+<DemoSection Id="indexed-to-100" Title="Indexed to 100" Description="Users and sessions compare by growth.">
+	<MokaLineChart Title="Users and sessions" Look="MokaChartLook.Quiet" Labels="Days" Series="Growth" IndexTo="100"
+	               DirectLabels="MokaDirectLabels.Both"/>
+</DemoSection>
+
+<DemoSection Id="names-at-the-line-ends" Title="Names at the line ends" Description="Ends that crowd get leaders.">
+	<MokaLineChart Title="Traffic by zone" Look="MokaChartLook.Quiet" Labels="Hours" Series="Crowded" DirectLabels="MokaDirectLabels.Both"
+	               Unit="Mbps"/>
+</DemoSection>
+
+<DemoSection Id="small-multiples-synced" Title="Small multiples, synced" Description="One panel per zone on one scale, one crosshair through all.">
+	<MokaLineChart Title="Bandwidth by zone" Look="MokaChartLook.Quiet" Split="true" Labels="Hours" Series="Zones" Unit="Mbps"
+	               Tooltip="MokaChartTooltip.Crosshair" Keyboard="true" SplitColumns="2"/>
+</DemoSection>
+
+<DemoSection Id="points-and-areas" Title="Points and areas">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+		<MokaSegmentedControl Value="@_points.ToString()" ValueChanged="@(v => _points = Enum.Parse<MokaChartPoints>(v))" AriaLabel="Points">
+			@foreach (MokaChartPoints option in Enum.GetValues<MokaChartPoints>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@_area.ToString()" ValueChanged="@(v => _area = Enum.Parse<MokaChartArea>(v))" AriaLabel="Area">
+			@foreach (MokaChartArea option in Enum.GetValues<MokaChartArea>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@_curve.ToString()" ValueChanged="@(v => _curve = Enum.Parse<MokaLineCurve>(v))" AriaLabel="Curve">
+			@foreach (MokaLineCurve option in Enum.GetValues<MokaLineCurve>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+	</div>
+	<MokaLineChart Title="Traffic today" Look="MokaChartLook.Quiet" Labels="Hours" Series="Pair" Points="_points" Area="_area" Curve="_curve"
+	               Unit="Mbps"/>
+</DemoSection>
+
+<DemoSection Id="tooltips-and-keys" Title="Tooltips and keys" Description="Point, or Tab in and use the arrows; Enter pins.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+		<MokaSegmentedControl Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))" AriaLabel="Tooltip">
+			@foreach (MokaChartTooltip option in Enum.GetValues<MokaChartTooltip>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSwitch @bind-Value="_pinnable" Label="Pins"/>
+	</div>
+	<MokaLineChart Title="Traffic today" Look="MokaChartLook.Quiet" Labels="Hours" Series="Crowded" Tooltip="_tooltip" Pinnable="_pinnable"
+	               Keyboard="true" Unit="Mbps" Annotations="Limit" Controls="MokaChartControls.All"/>
+</DemoSection>
+
+<DemoSection Id="gaps-that-break-the-line" Title="Gaps that break the line" Description="Maintenance and a sample gap over 20 minutes.">
+	<MokaLineChart Title="Response time today" Look="MokaChartLook.Quiet" Times="QuarterTimes" Series="Gappy" Annotations="Maintenance"
+	               BreakGapsOver="TimeSpan.FromMinutes(20)" Unit="MokaChartUnit.Milliseconds"/>
+</DemoSection>
+
+<DemoSection Id="live-paused-while-you-point" Title="Live, paused while you point" Description="Once a second; point at it and it holds still.">
+	<MokaLineChart Title="Throughput" Look="MokaChartLook.Quiet" Live="true" PauseWhilePointing="true" Labels="_liveLabels" Series="_live"
+	               Unit="Mbps" Tooltip="MokaChartTooltip.Crosshair" Points="MokaChartPoints.Hover"/>
+</DemoSection>
+
+<DemoSection Id="scale" Title="Scale" Description="A day of samples per series: zoom by brush, Ctrl and the wheel, or the strip.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+		<MokaSegmentedControl Value="@_size.ToString(CultureInfo.InvariantCulture)" ValueChanged="SizeChosen" AriaLabel="Points per series">
+			@foreach (int size in Sizes)
+			{
+				<MokaSegment Value="@size.ToString(CultureInfo.InvariantCulture)" Text="@size.ToString("N0", CultureInfo.InvariantCulture)"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@(_labelled ? "labels" : "times")" ValueChanged="AxisChosen" AriaLabel="X axis">
+			<MokaSegment Value="times" Text="Times"/>
+			<MokaSegment Value="labels" Text="Labels"/>
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@_downsample.ToString()" ValueChanged="@(v => _downsample = Enum.Parse<MokaDownsample>(v))" AriaLabel="Downsample">
+			<MokaSegment Value="Auto" Text="MinMax"/>
+			<MokaSegment Value="Lttb" Text="LTTB"/>
+		</MokaSegmentedControl>
+		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_timing</span>
+	</div>
+	<MokaLineChart Title="Requests" Look="MokaChartLook.Quiet" Times="@(_labelled ? null : _bigTimes)" Labels="@(_labelled ? _bigLabels : null)"
+	               Series="_big" DataVersion="_bigVersion" Downsample="_downsample"
+	               Zoom="MokaChartZoom.All" Controls="MokaChartControls.All" RangePresets="Presets" @bind-Range="_range"
+	               Tooltip="MokaChartTooltip.Crosshair" Keyboard="true"/>
+</DemoSection>
+
+<DemoSection Id="compared-with-last-week-with-a-trend" Title="Compared with last week, with a trend" Description="CompareTo draws last week faint and dashed in this week's color; Trend adds a moving average or a straight line.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+		<MokaSegmentedControl Value="@_trend.ToString()" ValueChanged="@(v => _trend = Enum.Parse<MokaChartTrend>(v))" AriaLabel="Trend">
+			@foreach (MokaChartTrend option in Enum.GetValues<MokaChartTrend>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@_trendWindow.ToString(CultureInfo.InvariantCulture)" ValueChanged="@(v => _trendWindow = int.Parse(v, CultureInfo.InvariantCulture))" AriaLabel="Average over">
+			<MokaSegment Value="6" Text="6 hours"/>
+			<MokaSegment Value="24" Text="A day"/>
+		</MokaSegmentedControl>
+	</div>
+	<MokaLineChart Title="Requests this week" Subtitle="Per hour" Look="MokaChartLook.Quiet" Times="WeekTimes" Series="ThisAndLastWeek"
+	               Trend="_trend" TrendWindow="_trendWindow" Tooltip="MokaChartTooltip.Crosshair" Keyboard="true"
+	               Controls="MokaChartControls.View"/>
+</DemoSection>
+
+<DemoSection Id="streaming" Title="Streaming" Description="One sample a second into a long window: only what arrived is read.">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
+		<MokaSegmentedControl Value="@_streamSize.ToString(CultureInfo.InvariantCulture)" ValueChanged="StreamSizeChosen" AriaLabel="Window">
+			@foreach (int size in StreamSizes)
+			{
+				<MokaSegment Value="@size.ToString(CultureInfo.InvariantCulture)" Text="@size.ToString("N0", CultureInfo.InvariantCulture)"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSegmentedControl Value="@(_streamSlides ? "slide" : "grow")" ValueChanged="@(v => _streamSlides = v == "slide")" AriaLabel="Window moves">
+			<MokaSegment Value="slide" Text="Slides"/>
+			<MokaSegment Value="grow" Text="Grows"/>
+		</MokaSegmentedControl>
+		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_streamTiming</span>
+	</div>
+	<MokaLineChart Title="Samples" Look="MokaChartLook.Quiet" Live="true" Times="_streamTimes" Series="_stream" DataVersion="_streamVersion"
+	               Tooltip="MokaChartTooltip.Crosshair" Points="MokaChartPoints.Hover" Zoom="MokaChartZoom.All"/>
+</DemoSection>
+
+<DemoSection Id="title-toolbar-and-actions" Title="Title, toolbar and actions" Description="Controls All adds the view, export, range presets and reset zoom; State shows loading, empty and error in the frame.">
+	<MokaLineChart @ref="_traffic" Series="ZoneTraffic" Times="Week" Title="Traffic this week" Subtitle="Mbps, every hour"
+	               Look="MokaChartLook.Quiet" Controls="MokaChartControls.All" Zoom="MokaChartZoom.Strip"
+	               RangePresets="FramePresets" @bind-RangePreset="_preset" @bind-Range="_range"
+	               @bind-View="_view" @bind-HiddenSeries="_hidden" ExportName="traffic"
+	               State="State" OnRetry="Retry" EmptyText="No traffic in this range"
+	               ErrorText="The router didn't answer within 10 seconds.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="Retry">Refresh</MokaButton>
+		</Actions>
+	</MokaLineChart>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaSegmentedControl @bind-Value="_state" AriaLabel="State to show" Size="MokaSize.Sm">
+			<MokaSegment Value="Auto" Text="Data"/>
+			<MokaSegment Value="Loading" Text="Loading"/>
+			<MokaSegment Value="Empty" Text="Empty"/>
+			<MokaSegment Value="Error" Text="Error"/>
+		</MokaSegmentedControl>
+		<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ExportCsv">Save the values from outside the chart</MokaButton>
+		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">
+			View @_view, preset @(_preset ?? "none"), range @(_range is null ? "all" : "zoomed"), hidden @HiddenText
+		</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="own-toolbar-controls" Title="Own toolbar controls" Description="ToolbarControl replaces or wraps each control the frame draws.">
+	<MokaLineChart @ref="_requests" Series="ZoneTraffic" Labels="WeekHourLabels" Title="Requests" Look="MokaChartLook.Quiet"
+	               Controls="MokaChartControls.View | MokaChartControls.Export" ToolbarControl="OwnControl"/>
+</DemoSection>
+
+<DemoSection Id="legend-on-top" Title="Legend on top" Description="Toggles that hide and isolate a series.">
+	<MokaLineChart Series="ZoneTraffic" Labels="WeekHourLabels" Title="Top" Legend="MokaChartLegendPosition.Top"
+	               LegendKey="MokaChartLegendKey.Mark" LegendActions="MokaChartLegendActions.All"/>
+</DemoSection>
+
+<DemoSection Id="legend-at-the-right" Title="Legend at the right" Description="It moves under the plot below 36em.">
+	<MokaLineChart Series="ZoneTraffic" Labels="WeekHourLabels" Title="Right" Legend="MokaChartLegendPosition.Right"
+	               LegendKey="MokaChartLegendKey.Pill"/>
+</DemoSection>
+
+<DemoSection Id="legend-in-the-title-row" Title="Legend in the title row" Description="The Dense look puts it beside the title, with values.">
+	<MokaLineChart Series="ZoneTraffic" Labels="WeekHourLabels" Title="Title row" Look="MokaChartLook.Dense"/>
+</DemoSection>
+
+<DemoSection Id="twelve-series" Title="Twelve series" Description="One row of entries, the rest behind +N.">
+	<MokaLineChart Series="ServiceRequests" Labels="WeekHourLabels" Title="Requests by service" LegendActions="MokaChartLegendActions.Hide"/>
+</DemoSection>
+
+<DemoSection Id="the-strip-lines-up-with-the-plot" Title="The strip lines up with the plot" Description="Its track runs from the plot's left edge to its right whatever sits beside it, and on a time axis the overview places each value at its time.">
+	<MokaGrid MinColumn="min(100%, 420px)" Style="gap: var(--moka-grid-gap);">
+		<MokaLineChart Series="ZoneTraffic" Times="Week" Title="Value axis at the end, names at the line ends" Look="MokaChartLook.Quiet"
+		               Zoom="MokaChartZoom.Strip" ValueSide="MokaAxisSide.End" DirectLabels="MokaDirectLabels.Names"/>
+		<MokaLineChart Series="ZoneTraffic" Times="Week" Title="Ticks inside the plot" Look="MokaChartLook.Quiet"
+		               Zoom="MokaChartZoom.Strip" TickLabels="MokaTickPlacement.Inside"/>
+		<MokaLineChart Series="ZoneTraffic" Labels="WeekHourLabels" Title="Categories that scroll" Look="MokaChartLook.Quiet"
+		               Zoom="MokaChartZoom.Strip" LabelFit="MokaAxisLabelFit.Scroll"/>
+		<MokaLineChart Series="Uneven" Times="UnevenTimes" Title="Uneven times: a quiet day in the middle" Look="MokaChartLook.Quiet"
+		               Zoom="MokaChartZoom.Strip" BreakGapsOver="TimeSpan.FromHours(3)"/>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="tooltip-modes" Title="Tooltip modes" Description="Point at the chart, or Tab to it and use the arrow keys.">
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+		<MokaSegmentedControl Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))"
+		                      AriaLabel="Tooltip">
+			@foreach (MokaChartTooltip option in Modes)
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<MokaSwitch @bind-Value="_pinnable" Label="Click or Enter pins"/>
+		<MokaSwitch @bind-Value="_keyboard" Label="Keyboard"/>
+		<MokaSwitch @bind-Value="_template" Label="Own tooltip"/>
+	</div>
+	<MokaLineChart Label="Traffic today" Look="MokaChartLook.Quiet" Tooltip="@_tooltip" Pinnable="@_pinnable"
+	               Keyboard="@_keyboard" Labels="@Day" Series="@_halfHourTraffic" Formatter="MbpsText"
+	               TooltipTemplate="@(_template ? OwnTooltip : null)" ActiveChanged="Heard"/>
+	<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_heard</span>
+</DemoSection>
+
+<DemoSection Id="one-crosshair-through-two-charts" Title="One crosshair through two charts" Description="A sync group in place of a second y axis.">
+	<MokaLineChart Label="Requests per second today" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Readout"
+	               SyncGroup="today" Labels="@Day" Series="@_halfHourRequests" Height="120px"/>
+	<MokaLineChart Label="p95 response time today" Look="MokaChartLook.Quiet" Tooltip="MokaChartTooltip.Readout"
+	               SyncGroup="today" Labels="@Day" Series="@_latency" Height="120px"/>
+</DemoSection>
+
+<DemoSection Id="the-standard-look-asked-for-a-click" Title="The Standard look, asked for a click" Description="OnPointClick and ActiveChanged bind the script; the browser's titles stay.">
+	<MokaLineChart Label="Traffic today" Look="MokaChartLook.Standard" Labels="@Day" Series="@_halfHourTraffic"
+	               OnPointClick="PickedPoint" ActiveChanged="Heard"/>
+	<span>@_pickedPoint</span>
+</DemoSection>
+
+<DemoSection Id="the-standard-look-with-your-own-tooltip" Title="The Standard look, with your own tooltip" Description="A TooltipTemplate turns on a tooltip to draw it in.">
+	<MokaLineChart Label="Traffic today" Look="MokaChartLook.Standard" Labels="@Day" Series="@_halfHourTraffic"
+	               TooltipTemplate="SumTooltip"/>
+</DemoSection>
+
+<DemoSection Id="zoom" Title="Zoom" Description="Drag across, or Ctrl and the wheel; double click or 0 goes back.">
+	<MokaLineChart Label="Traffic this week" Look="MokaChartLook.Quiet" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
+	               Labels="@WeekLabels" Series="@_week" @bind-Range="_range"/>
+	<span>@(_range is { } range ? $"Showing {range.From.Value:0} to {range.To.Value:0}" : "Showing the whole week")</span>
+</DemoSection>
+
+<DemoSection Id="linked-zoom" Title="Linked zoom" Description="SyncZoom: brush, wheel, strip or a preset on one chart zooms the others with the same x axis; panning moves them together.">
+	<MokaGrid MinColumn="min(100%, 360px)" Style="gap: var(--moka-grid-gap);">
+		<MokaLineChart Title="Download this week" Look="MokaChartLook.Quiet" Times="@LinkedWeekTimes" Series="@_weekDown" SyncGroup="linked"
+		               SyncZoom="true" Zoom="MokaChartZoom.All" RangePresets="@LinkedPresets" Controls="MokaChartControls.Ranges | MokaChartControls.ResetZoom"
+		               Range="_linkedA" RangeChanged="@(range => Linked(ref _linkedA, ref _changesA, range))"
+		               Tooltip="MokaChartTooltip.Crosshair" Height="140px"/>
+		<MokaLineChart Title="Upload this week" Look="MokaChartLook.Quiet" Times="@LinkedWeekTimes" Series="@_weekUp" SyncGroup="linked"
+		               SyncZoom="true" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"
+		               Range="_linkedB" RangeChanged="@(range => Linked(ref _linkedB, ref _changesB, range))"
+		               Tooltip="MokaChartTooltip.Crosshair" Height="140px"/>
+	</MokaGrid>
+	<MokaLineChart Title="By hour of the week, labels not times" Look="MokaChartLook.Quiet" Labels="@WeekHours" Series="@_week"
+	               SyncGroup="linked" SyncZoom="true" Tooltip="MokaChartTooltip.Crosshair" Height="140px"/>
+	<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">
+		Download @RangeText(_linkedA) (@_changesA changes), upload @RangeText(_linkedB) (@_changesB changes). The chart of labels counts in hours of the week, not times, so it doesn't follow.
+	</span>
+</DemoSection>
+
+<DemoSection Id="labels-that-dont-fit" Title="Labels that don't fit" Description="Narrow the window: the labels stagger, turn, wrap, cut or thin by the axis's own width, with no script.">
+	<MokaSegmentedControl @bind-Value="_fitName" AriaLabel="What labels that don't fit do">
+		@foreach (string fit in Enum.GetNames<MokaAxisLabelFit>())
+		{
+			<MokaSegment Value="@fit" Text="@fit"/>
+		}
+	</MokaSegmentedControl>
+	<MokaBarChart Series="@_domainSeries" Labels="@Domains" LabelFit="@Fit" Look="MokaChartLook.Quiet"
+	              Label="DNS queries by domain"/>
+	<MokaLineChart Series="@_hourSeries" Labels="@_manyDates" LabelFit="@Fit" Look="MokaChartLook.Quiet"
+	               Label="Requests by day"/>
+</DemoSection>
+
+<DemoSection Id="time-axis" Title="Time axis" Description="Times, not strings: steps by the clock, marks each day.">
+	<MokaSegmentedControl @bind-Value="_span" AriaLabel="Span">
+		<MokaSegment Value="6h" Text="6 h"/>
+		<MokaSegment Value="48h" Text="48 h"/>
+		<MokaSegment Value="30d" Text="30 d"/>
+	</MokaSegmentedControl>
+	<MokaLineChart Series="@TimeSeries" Times="@TimesFor" Unit="MokaChartUnit.BitsPerSecond" Look="MokaChartLook.Quiet"
+	               Label="Download"/>
+</DemoSection>
+
+<DemoSection Id="log-scale-and-units" Title="Log scale and units" Description="Job durations from 40 ms to 90 s.">
+	<MokaLineChart Series="@_jobs" Labels="@_hours" Look="MokaChartLook.Quiet" Label="Job durations today"
+	               YAxis="@(new MokaChartAxis { Scale = MokaAxisScale.Log, Unit = MokaChartUnit.Milliseconds })"/>
+</DemoSection>
+
+<DemoSection Id="grid-and-value-axis" Title="Grid and value axis" Description="Hairlines, ticks inside, on the right.">
+	<MokaLineChart Series="@_hourSeries" Labels="@_hours" Grid="MokaChartGrid.Hairlines" TickLabels="MokaTickPlacement.Inside"
+	               ValueSide="MokaAxisSide.End" Label="Requests per hour"/>
+</DemoSection>
+
+<DemoSection Id="threshold-and-target" Title="Threshold and target" Description="The axis always reaches them; the tooltip says how far over.">
+	<MokaLineChart Series="@_responseTime" Labels="@_quarters" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet"
+	               Annotations="@_limits" TargetLow="100" TargetHigh="250" Label="Response time today"/>
+</DemoSection>
+
+<DemoSection Id="events-and-a-window" Title="Events and a window" Description="Point at or Tab to a marker; the line breaks across maintenance.">
+	<MokaLineChart Series="@_responseTime" Times="@_quarterTimes" Unit="MokaChartUnit.Milliseconds" Look="MokaChartLook.Quiet"
+	               Annotations="@_events" Label="Response time today"/>
+</DemoSection>
+
+<DemoSection Id="a-pinned-hour" Title="A pinned hour" Description="A router that started a minute ago: the axis spans the last hour, the minute sits at its end.">
+	<MokaLineChart Series="@_minute" Times="@_minuteTimes" TimeZone="TimeZoneInfo.Utc" Look="MokaChartLook.Quiet"
+	               XAxis="@_hourAxis" Label="Processor use in the last hour"/>
+</DemoSection>
+
+<DemoSection Id="a-minute-hh-mm-12-hour-tooltips" Title="A minute, HH:mm, 12-hour tooltips" Description="The ticks never repeat; the tooltip writes seconds on a 12-hour clock.">
+	<MokaLineChart Series="@_minute" Times="@_minuteTimes" TimeZone="TimeZoneInfo.Utc" Look="MokaChartLook.Quiet"
+	               XAxis="@_minuteAxis" Label="Processor use in the last minute"/>
+</DemoSection>
+
+@code {
+	private static readonly string[] _monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+	private static readonly MokaLineSeries[] _lineSeries =
+	[
+		new() { Name = "Revenue", Values = [24, 31, 28, 39, 44, 41, 52, 58, 55, 63, 69, 74] },
+		new() { Name = "Costs", Values = [18, 19, 22, 21, 25, 24, 27, 29, 28, 31, 33, 35], Color = MokaColor.Warning }
+	];
+
+	// 111 samples put a label every ten seconds: the chart draws every ceil(count / 12)th one.
+	private const int Window = 111;
+
+	private static readonly double[] Units = [1, 1024, 1024 * 1024];
+
+	private static readonly IReadOnlyList<string> Labels =
+		[.. Enumerable.Range(0, Window).Select(i => Window - 1 - i == 0 ? "now" : $"-{Window - 1 - i}s")];
+
+	private readonly double[] _down = new double[Window];
+
+	private readonly double[] _up = new double[Window];
+
+	private readonly Random _random = new(7);
+
+	private IReadOnlyList<MokaLineSeries> _series = [];
+
+	private Timer? _timer;
+
+	private bool _running = true;
+
+	private double _phase;
+
+	protected override void OnInitialized()
+	{
+		Reset();
+		_timer = new Timer(_ => _ = InvokeAsync(Tick), null, 1000, 1000);
+
+		MakeBig(_size);
+		MakeStream(_streamSize);
+		_liveLabels = [.. Enumerable.Range(0, 60).Select(i => $"-{60 - i}s")];
+		_live = [Live("Down", 0), Live("Up", 1)];
+
+		_domainSeries = [new MokaBarSeries { Name = "Queries", Values = [18240, 12905, 9412, 7830, 6115, 4960, 2284, 1904, 1622, 980] }];
+		_hourSeries = [new MokaLineSeries { Name = "Requests", Values = [.. Enumerable.Range(0, 60).Select(i => 4200 + 3000 * Math.Sin(i / 4d))] }];
+		_jobs =
+		[
+			new MokaLineSeries { Name = "Backup", Values = [62000, 71000, 90000, 66000, 58000, 61000, 70000, 83000, 64000, 59000, 62000, 77000] },
+			new MokaLineSeries { Name = "Search index", Values = [2400, 3100, 2800, 4100, 3600, 2900, 3300, 2700, 3900, 3000, 2600, 3500] },
+			new MokaLineSeries { Name = "DNS sync", Values = [40, 55, 48, 62, 41, 44, 70, 52, 47, 58, 43, 50] }
+		];
+		_written = [new MokaBarSeries { Name = "Written", Values = [.. Enumerable.Range(0, 12).Select(i => 4e8 + 3e9 * Math.Abs(Math.Sin(i)))] }];
+		_responseTime = [new MokaLineSeries { Name = "p95", Values = [.. Enumerable.Range(0, 96).Select(i => i is >= 8 and < 16 ? double.NaN : 140 + 70 * Math.Sin(i / 9d) + (i % 7 * 6))] }];
+		_limits = [new MokaChartThreshold(200) { Label = "Limit 200 ms" }];
+		DateTimeOffset day = Now.Date;
+		_events =
+		[
+			new MokaChartWindow(day.AddHours(2), day.AddHours(4)) { Label = "Maintenance" },
+			new MokaChartEvent(day.AddHours(15.25)) { Label = "Deploy 0.3.23", Detail = "Rolled back the cache change", Tone = MokaColor.Info },
+			new MokaChartEvent(day.AddHours(12.25)) { Label = "Incident: upstream DNS slow", To = day.AddHours(13.25), Tone = MokaColor.Error, Shape = MokaChartMarker.Triangle }
+		];
+		_minute = [new MokaLineSeries { Name = "Processor", Values = [21, 34, 28, 41, 37, 30, 26] }];
+		AddSpan("6h", TimeSpan.FromHours(6), TimeSpan.FromMinutes(5));
+		AddSpan("48h", TimeSpan.FromHours(48), TimeSpan.FromMinutes(30));
+		AddSpan("30d", TimeSpan.FromDays(30), TimeSpan.FromHours(6));
+	}
+
+	public void Dispose() => _timer?.Dispose();
+
+	private static string Rate(double bytes) => bytes switch
+	{
+		>= 1024 * 1024 => $"{bytes / (1024 * 1024):0.0} MiB/s",
+		>= 1024 => $"{bytes / 1024:0} KiB/s",
+		_ => $"{bytes:0} B/s"
+	};
+
+	private void Tick()
+	{
+		if (!_running)
+		{
+			return;
+		}
+
+		_phase += 0.15;
+		double burst = _random.NextDouble() < 0.08 ? 4 : 1;
+		Push(_down, Math.Max(0, (Math.Sin(_phase) + 1.2) * 600_000 * burst + _random.NextDouble() * 120_000));
+		Push(_up, Math.Max(0, (Math.Cos(_phase * 0.7) + 1.1) * 90_000 + _random.NextDouble() * 30_000));
+		Publish();
+		StateHasChanged();
+	}
+
+	private static void Push(double[] window, double value)
+	{
+		Array.Copy(window, 1, window, 0, window.Length - 1);
+		window[^1] = value;
+	}
+
+	private void Publish() =>
+		_series =
+		[
+			new MokaLineSeries { Name = "Down", Values = [.. _down], Color = MokaColor.Primary },
+			new MokaLineSeries { Name = "Up", Values = [.. _up], Color = MokaColor.Info }
+		];
+
+	private void Toggle() => _running = !_running;
+
+	private void Reset()
+	{
+		Array.Fill(_down, double.NaN);
+		Array.Fill(_up, double.NaN);
+		Publish();
+	}
+
+	private static readonly MokaChartUnit Mbps = MokaChartUnit.Of("Mbps");
+
+	private static readonly string[] Hours = [.. Enumerable.Range(0, 24).Select(h => $"{h:00}:00")];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Zones =
+	[
+		Zone("LAN", 120, 80, 14), Zone("Wi-Fi", 90, 60, 20), Zone("Guest", 30, 25, 18), Zone("IoT", 12, 6, 3)
+	];
+
+	private static double Bell(double x, double mid, double width) => Math.Exp(-Math.Pow((x - mid) / width, 2));
+
+	private static MokaLineSeries Zone(string name, double baseline, double swing, double peak) => new()
+	{
+		Name = name,
+		Values = [.. Enumerable.Range(0, 24).Select(h => Math.Round(baseline + swing * Bell(h, peak, 4) + (h * 7 + name.Length) % 6))]
+	};
+
+	private static readonly IReadOnlyList<MokaLineSeries> Latency =
+	[
+		new()
+		{
+			Name = "Median", Values = [.. Enumerable.Range(0, 24).Select(h => Math.Round(92 + 44 * Bell(h, 14, 3.5) + h % 5 * 3))],
+			Low = [.. Enumerable.Range(0, 24).Select(h => Math.Round((92 + 44 * Bell(h, 14, 3.5)) * 0.52))],
+			High = [.. Enumerable.Range(0, 24).Select(h => Math.Round((92 + 44 * Bell(h, 14, 3.5)) * 1.85 + 90 * Bell(h, 13, 1.1)))]
+		}
+	];
+
+	private static readonly DateTimeOffset Today = new(2026, 11, 11, 0, 0, 0, TimeSpan.Zero);
+
+	private static readonly DateTimeOffset[] StepTimes = [.. Enumerable.Range(0, 24).Select(h => Today.AddHours(h))];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Instances =
+		[new() { Name = "Instances", Values = [2, 2, 2, 2, 2, 2, 3, 3, 5, 6, 6, 6, 8, 8, 6, 6, 6, 6, 4, 5, 5, 3, 3, 3] }];
+
+	private static readonly string[] BeforeAfter = ["Before", "After"];
+
+	private static readonly IReadOnlyCollection<string> Worse = ["Search"];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Slopes =
+	[
+		new() { Name = "Sync", Values = [3.1, 1.8] }, new() { Name = "Orders", Values = [2.6, 1.0] },
+		new() { Name = "Auth", Values = [1.8, 0.6] }, new() { Name = "Search", Values = [0.9, 1.4] },
+		new() { Name = "Files", Values = [0.4, 0.3] }
+	];
+
+	private static string Percent(double value) => value.ToString("0.0", CultureInfo.CurrentCulture) + "%";
+
+	private static readonly IReadOnlyList<MokaLineSeries> P95 =
+		[new() { Name = "p95", Values = [.. Enumerable.Range(0, 24).Select(h => Math.Round(140 + 150 * Bell(h, 14, 2) + h % 4 * 9))] }];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Services =
+	[
+		new() { Name = "Search", Values = [.. Enumerable.Range(0, 24).Select(h => Math.Round(150 + 260 * Bell(h, 15, 2.2) + h % 3 * 6))] },
+		Service("Auth", 70, 30, 9), Service("Files", 120, 50, 14), Service("Feed", 180, 40, 20), Service("Sync", 95, 25, 3),
+		Service("Mail", 60, 20, 11)
+	];
+
+	private static MokaLineSeries Service(string name, double baseline, double swing, double peak) => new()
+	{
+		Name = name,
+		Values = [.. Enumerable.Range(0, 24).Select(h => Math.Round(baseline + swing * Bell(h, peak, 2.6) + (h * 5 + name.Length) % 14))]
+	};
+
+	private static readonly string[] Days = [.. Enumerable.Range(1, 30).Select(d => $"{d} Oct")];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Growth =
+	[
+		new() { Name = "Sessions", Values = [.. Enumerable.Range(0, 30).Select(i => Math.Round(18400 * (1 + 0.73 * Math.Pow(i / 29d, 1.3))))] },
+		new() { Name = "Users", Values = [.. Enumerable.Range(0, 30).Select(i => Math.Round(1240 * (1 + 0.30 * (i / 29d))))] }
+	];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Crowded =
+	[
+		Zone("LAN", 60, 20, 10), Zone("Wi-Fi", 58, 18, 12), Zone("Guest", 56, 16, 14), Zone("Lab", 20, 10, 6)
+	];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Pair = [Zone("Download", 80, 60, 15), Zone("Upload", 30, 20, 12)];
+
+	private MokaChartPoints _points = MokaChartPoints.Hover;
+
+	private MokaChartArea _area = MokaChartArea.Flat;
+
+	private MokaLineCurve _curve = MokaLineCurve.Straight;
+
+	private static readonly IReadOnlyList<MokaChartAnnotation> Limit = [new MokaChartThreshold(150) { Label = "Plan 150 Mbps" }];
+
+	private MokaChartTooltip _tooltip = MokaChartTooltip.Crosshair;
+
+	private bool _pinnable = true;
+
+	private static readonly DateTimeOffset[] QuarterTimes =
+		[.. Enumerable.Range(0, 96).Where(i => i is < 50 or > 53).Select(i => Today.AddMinutes(15 * i))];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Gappy =
+		[new() { Name = "p95", Values = [.. QuarterTimes.Select(t => Math.Round(140 + 70 * Math.Sin(t.TimeOfDay.TotalHours / 2.5)))] }];
+
+	private static readonly IReadOnlyList<MokaChartAnnotation> Maintenance =
+		[new MokaChartWindow(Today.AddHours(2), Today.AddHours(4)) { Label = "Maintenance" }];
+
+	private int _size = 100_000;
+
+	private DateTimeOffset[] _bigTimes = [];
+
+	private string[] _bigLabels = [];
+
+	private bool _labelled;
+
+	private IReadOnlyList<MokaLineSeries> _big = [];
+
+	private long _bigVersion;
+
+	private string _timing = string.Empty;
+
+	private Stopwatch? _clock;
+
+	private int _streamSize = 100_000;
+
+	private bool _streamSlides = true;
+
+	private List<DateTimeOffset> _streamTimes = [];
+
+	private List<double> _streamValues = [];
+
+	private IReadOnlyList<MokaLineSeries> _stream = [];
+
+	private long _streamVersion;
+
+	private Stopwatch? _streamClock;
+
+	private string _streamTiming = string.Empty;
+
+	private readonly Random _streamRandom = new(3);
+
+	private string[] _liveLabels = [];
+
+	private IReadOnlyList<MokaLineSeries> _live = [];
+
+	private int _tick;
+
+	protected override void OnAfterRender(bool firstRender)
+	{
+		if (firstRender && RendererInfo.IsInteractive)
+		{
+			_timer = new Timer(_ => InvokeAsync(TickLine), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		}
+
+		if (_clock is { } clock)
+		{
+			_clock = null;
+			_timing = $"{_size:N0} points a series{(_labelled ? ", each labelled" : string.Empty)}: built and rendered in {clock.Elapsed.TotalMilliseconds:0} ms";
+			StateHasChanged();
+		}
+
+		if (_streamClock is { } stream)
+		{
+			_streamClock = null;
+			_streamTiming = $"{_streamValues.Count:N0} samples: the last one built and rendered in {stream.Elapsed.TotalMilliseconds:0.0} ms";
+		}
+	}
+
+	private void TickLine()
+	{
+		_tick++;
+		_live = [Live("Down", 0), Live("Up", 1)];
+		if (_streamSlides && _streamValues.Count > 0)
+		{
+			_streamValues.RemoveAt(0);
+			_streamTimes.RemoveAt(0);
+		}
+
+		_streamTimes.Add(_streamTimes.Count > 0 ? _streamTimes[^1].AddSeconds(1) : Today);
+		_streamValues.Add(Sample(_streamTimes.Count + _tick));
+		_streamVersion++;
+		_streamClock = Stopwatch.StartNew();
+		StateHasChanged();
+	}
+
+	// A list the chart is handed again with a new DataVersion each second, changed in place: the window drops its oldest
+	// sample and takes a new one, or only grows.
+	private void MakeStream(int size)
+	{
+		_streamTimes = [.. Enumerable.Range(0, size).Select(i => Today.AddSeconds(i))];
+		_streamValues = [.. Enumerable.Range(0, size).Select(Sample)];
+		_stream = [new MokaLineSeries { Name = "Samples", Values = _streamValues }];
+		_streamVersion++;
+	}
+
+	private double Sample(int i) => Math.Round(300 + 120 * Math.Sin(i / 900d) + 60 * Math.Sin(i / 37d) + _streamRandom.NextDouble() * 40, 1);
+
+	private MokaLineSeries Live(string name, int seed) => new()
+	{
+		Name = name,
+		Values = [.. Enumerable.Range(_tick, 60).Select(i => Math.Round(40 + 25 * Math.Sin((i + seed * 7) / 6d) + (i * 7 + seed) % 9, 1))]
+	};
+
+	private void MakeBig(int size)
+	{
+		TimeSpan step = TimeSpan.FromDays(1) / Math.Max(1, size - 1);
+		_bigTimes = [.. Enumerable.Range(0, size).Select(i => Today + step * i)];
+		_bigLabels = _labelled ? [.. Enumerable.Range(1, size).Select(i => $"#{i.ToString(CultureInfo.InvariantCulture)}")] : [];
+		double[] down = new double[size];
+		double[] up = new double[size];
+		Random random = new(7);
+		for (int i = 0; i < size; i++)
+		{
+			double hour = i * 24d / Math.Max(1, size - 1);
+			down[i] = 400 + 300 * Bell(hour, 20, 3) + 80 * Math.Sin(hour * 3) + random.NextDouble() * 60;
+			up[i] = 120 + 60 * Bell(hour, 14, 4) + random.NextDouble() * 30;
+		}
+
+		down[size / 3] = 1400;
+		_big = [new MokaLineSeries { Name = "Down", Values = down }, new MokaLineSeries { Name = "Up", Values = up }];
+		_bigVersion++;
+	}
+
+	private static readonly int[] Sizes = [10, 1_000, 100_000, 1_000_000];
+
+	private static readonly IReadOnlyList<MokaChartRangePreset> Presets =
+		[new("1 h", TimeSpan.FromHours(1)), new("6 h", TimeSpan.FromHours(6)), new("24 h", TimeSpan.FromHours(24))];
+
+	private MokaDownsample _downsample = MokaDownsample.Auto;
+
+	private MokaChartRange? _range;
+
+	private void SizeChosen(string value)
+	{
+		_size = int.Parse(value, CultureInfo.InvariantCulture);
+		_clock = Stopwatch.StartNew();
+		_range = null;
+		MakeBig(_size);
+	}
+
+	private void AxisChosen(string value)
+	{
+		_labelled = value == "labels";
+		_clock = Stopwatch.StartNew();
+		_range = null;
+		MakeBig(_size);
+	}
+
+	private static readonly IReadOnlyList<MokaLineSeries> ThisAndLastWeek =
+	[
+		new()
+		{
+			Name = "This week",
+			Values = [.. Enumerable.Range(0, 7 * 24).Select(h => Math.Round(900 + 18 * h / 24d * 24 / 7 + 520 * Bell(h % 24, 14, 3.5) + (h * 37 % 11) * 14))]
+		},
+		new()
+		{
+			Name = "Last week", CompareTo = "This week",
+			Values = [.. Enumerable.Range(0, 7 * 24).Select(h => Math.Round(820 + 440 * Bell(h % 24, 14, 3.5) + (h * 53 % 13) * 12))]
+		}
+	];
+
+	private static readonly DateTimeOffset[] WeekTimes = [.. Enumerable.Range(0, 7 * 24).Select(h => Today.AddHours(h))];
+
+	private MokaChartTrend _trend = MokaChartTrend.MovingAverage;
+
+	private int _trendWindow = 6;
+
+	private static readonly int[] StreamSizes = [10_000, 100_000, 1_000_000];
+
+	private void StreamSizeChosen(string value)
+	{
+		_streamSize = int.Parse(value, CultureInfo.InvariantCulture);
+		MakeStream(_streamSize);
+	}
+
+	private static readonly IReadOnlyList<DateTimeOffset> Week =
+		[.. Enumerable.Range(0, 169).Select(hour => new DateTimeOffset(2026, 3, 2, 0, 0, 0, TimeSpan.Zero).AddHours(hour))];
+
+	private static readonly IReadOnlyList<MokaLineSeries> ZoneTraffic =
+	[
+		new() { Name = "LAN", Values = [.. Enumerable.Range(0, 169).Select(h => 400 + 200 * Math.Sin(h / 6.0))] },
+		new() { Name = "Wi-Fi", Values = [.. Enumerable.Range(0, 169).Select(h => 250 + 120 * Math.Cos(h / 9.0))] },
+		new() { Name = "Guest", Values = [.. Enumerable.Range(0, 169).Select(h => 80 + 60 * Math.Sin(h / 3.0 + 1))] }
+	];
+
+	private static readonly IReadOnlyList<MokaChartRangePreset> FramePresets =
+	[
+		new("1 h", TimeSpan.FromHours(1)), new("6 h", TimeSpan.FromHours(6)), new("24 h", TimeSpan.FromHours(24)),
+		new("7 d", TimeSpan.FromDays(7))
+	];
+
+	private MokaLineChart? _traffic;
+
+	private string _state = "Auto";
+
+	private MokaChartView _view;
+
+	private string? _preset;
+
+	private IReadOnlyCollection<string>? _hidden;
+
+	private MokaChartState State => Enum.Parse<MokaChartState>(_state);
+
+	private string HiddenText => _hidden is { Count: > 0 } hidden ? string.Join(", ", hidden) : "none";
+
+	private void Retry() => _state = "Auto";
+
+	private Task ExportCsv() => _traffic?.ExportAsync(MokaChartControls.ExportCsv) ?? Task.CompletedTask;
+
+	private static readonly IReadOnlyList<string> WeekHourLabels = [.. Enumerable.Range(0, 169).Select(hour => $"{hour % 24:00}:00")];
+
+	private MokaLineChart? _requests;
+
+	private RenderFragment OwnControl(MokaChartControlContext context) => context.Which == MokaChartControls.View
+		? @<span style="display: inline-flex; align-items: center; gap: var(--moka-spacing-xs);">
+			  <span style="font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-variant);">See</span>
+			  @context.Default
+		  </span>
+		: @<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Download"
+		               OnClick="() => _requests!.ExportAsync(MokaChartControls.ExportPng)">Save picture</MokaButton>;
+
+	private static readonly IReadOnlyList<MokaChartLegendItem> Toggles =
+	[
+		new("LAN", "LAN") { Slot = 1, Mark = MokaChartLegendMark.Box },
+		new("Wi-Fi", "Wi-Fi") { Slot = 2, Mark = MokaChartLegendMark.Box },
+		new("Guest", "Guest") { Slot = 3, Mark = MokaChartLegendMark.Box }
+	];
+
+	private static readonly IReadOnlyList<MokaLineSeries> ServiceRequests =
+	[
+		.. new[] { "Auth", "Billing", "Catalog", "Delivery", "Email", "Files", "Gateway", "Health", "Images", "Jobs", "Keys", "Logs" }
+			.Select((name, s) => new MokaLineSeries { Name = name, Values = [.. Enumerable.Range(0, 169).Select(h => 50 + s * 10 + 20 * Math.Sin(h / 12.0 + s))] })
+	];
+
+	// Every hour of the week but a quiet Thursday, when a sample came in only every six hours.
+	private static readonly IReadOnlyList<DateTimeOffset> UnevenTimes =
+		[.. Week.Where((time, hour) => hour / 24 != 3 || hour % 6 == 0)];
+
+	private static readonly IReadOnlyList<MokaLineSeries> Uneven =
+	[
+		new() { Name = "LAN", Values = [.. UnevenTimes.Select(time => 400 + 200 * Math.Sin((time - Week[0]).TotalHours / 6.0))] }
+	];
+
+	private static readonly MokaChartTooltip[] Modes =
+		[MokaChartTooltip.Crosshair, MokaChartTooltip.Nearest, MokaChartTooltip.Readout, MokaChartTooltip.Native];
+
+	private static readonly string[] Day = [.. Enumerable.Range(0, 48).Select(i => $"{i / 2:00}:{i % 2 * 30:00}")];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _halfHourTraffic =
+	[
+		new() { Name = "Download", Values = [.. Enumerable.Range(0, 48).Select(i => 32 + 300 * Bump(i / 2.0, 20.5, 2.1) + 150 * Bump(i / 2.0, 12.5, 1.7))] },
+		new() { Name = "Upload", Values = [.. Enumerable.Range(0, 48).Select(i => 10 + 46 * Bump(i / 2.0, 20.5, 2.3) + 105 * Bump(i / 2.0, 3, 0.5))] },
+		new() { Name = "Guest Wi-Fi", Values = [.. Enumerable.Range(0, 48).Select(i => 3 + 58 * Bump(i / 2.0, 19, 1.7))] }
+	];
+
+	private bool _keyboard = true;
+
+	private bool _template;
+
+	private string _heard = "Nothing under the pointer";
+
+	private static double Bump(double hour, double middle, double width) =>
+		Math.Exp(-((hour - middle) * (hour - middle)) / (2 * width * width));
+
+	private static string MbpsText(double value) => $"{value:0} Mbps";
+
+	private static readonly RenderFragment<MokaChartTooltipContext> OwnTooltip = context =>
+		@<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
+			<strong>@context.Heading</strong>
+			<span>Together @MbpsText(context.Points.Sum(point => point.Value))</span>
+		</div>;
+
+	private void Heard(MokaChartPoint? point) =>
+		_heard = point is null ? "Nothing under the pointer" : $"{point.SeriesName} at {point.Category}: {point.ValueText}";
+
+	private static readonly double[] HalfHourRequests = [.. Enumerable.Range(0, 48).Select(i => 120 + 880 * Bump(i / 2.0, 13, 3.4))];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _halfHourRequests = [new() { Name = "Requests", Values = HalfHourRequests }];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _latency =
+		[new() { Name = "p95", Values = [.. HalfHourRequests.Select(v => 92 + 0.19 * v)], Color = MokaColor.Warning }];
+
+	private string _picked = "Click a bar, or press Enter on one";
+
+	private string _pickedPoint = "Click a point";
+
+	private void Picked(MokaChartPoint point) => _picked = $"Picked {point.Category}, {point.ValueText}";
+
+	private void PickedPoint(MokaChartPoint point) => _pickedPoint = $"Picked {point.SeriesName} at {point.Category}: {point.ValueText}";
+
+	private static readonly RenderFragment<MokaChartTooltipContext> SumTooltip = context =>
+		@<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
+			<strong>@context.Heading</strong>
+			<span>Together @MbpsText(context.Points.Sum(point => point.Value))</span>
+		</div>;
+
+	private static readonly string[] WeekLabels = [.. Enumerable.Range(0, 7 * 24).Select(i => $"{(DayOfWeek)((i / 24 + 1) % 7)} {i % 24:00}:00")];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _week =
+	[
+		new() { Name = "Download", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 28 + 290 * Bump(i % 24, 20.5, 2) + 120 * Bump(i % 24, 13, 2))] },
+		new() { Name = "Upload", Values = [.. Enumerable.Range(0, 7 * 24).Select(i => 9 + 40 * Bump(i % 24, 20.5, 2.2) + 95 * Bump(i % 24, 3, 0.45))] }
+	];
+
+	private static readonly string[] WeekHours = [.. Enumerable.Range(0, 7 * 24).Select(i => $"{(DayOfWeek)((i / 24 + 1) % 7):G}"[..3] + $" {i % 24:00}h")];
+
+	private static readonly DateTimeOffset[] LinkedWeekTimes =
+		[.. Enumerable.Range(0, 7 * 24).Select(i => new DateTimeOffset(2026, 11, 2, 0, 0, 0, TimeSpan.Zero).AddHours(i))];
+
+	private static readonly IReadOnlyList<MokaChartRangePreset> LinkedPresets =
+		[new("6 h", TimeSpan.FromHours(6)), new("1 d", TimeSpan.FromDays(1)), new("3 d", TimeSpan.FromDays(3))];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _weekDown = [_week[0]];
+
+	private static readonly IReadOnlyList<MokaLineSeries> _weekUp = [_week[1] with { Color = MokaColor.Info }];
+
+	private MokaChartRange? _linkedA;
+
+	private MokaChartRange? _linkedB;
+
+	private int _changesA;
+
+	private int _changesB;
+
+	private static void Linked(ref MokaChartRange? kept, ref int changes, MokaChartRange? range)
+	{
+		kept = range;
+		changes++;
+	}
+
+	private static string RangeText(MokaChartRange? range) => range is { } shown
+		? $"{shown.From.Time:ddd HH:mm} to {shown.To.Time:ddd HH:mm}"
+		: "everything";
+
+	private static readonly string[] Domains =
+	[
+		"telemetry.microsoft.com", "i.ytimg.com", "graph.facebook.com", "api.github.com", "time.cloudflare.com",
+		"s3.eu-central-1.amazonaws.com", "updates.nas.local", "connectivity-check.ubuntu.com", "fonts.gstatic.com", "dns.google"
+	];
+
+	private static readonly DateTimeOffset Now = new(2026, 11, 11, 18, 0, 0, TimeSpan.Zero);
+
+	private readonly string[] _manyDates = [.. Enumerable.Range(0, 60).Select(i => new DateTime(2026, 3, 1).AddDays(i).ToString("MMM d", System.Globalization.CultureInfo.InvariantCulture))];
+
+	private string _fitName = nameof(MokaAxisLabelFit.Auto);
+
+	private IReadOnlyList<MokaBarSeries> _domainSeries = [];
+
+	private IReadOnlyList<MokaLineSeries> _hourSeries = [];
+
+	private IReadOnlyList<MokaLineSeries> _jobs = [];
+
+	private IReadOnlyList<MokaBarSeries> _written = [];
+
+	private IReadOnlyList<MokaLineSeries> _responseTime = [];
+
+	private readonly Dictionary<string, (DateTimeOffset[] Times, IReadOnlyList<MokaLineSeries> Series)> _spans = [];
+
+	private IReadOnlyList<MokaChartAnnotation> _limits = [];
+
+	private IReadOnlyList<MokaChartAnnotation> _events = [];
+
+	private IReadOnlyList<MokaLineSeries> _minute = [];
+
+	private MokaAxisLabelFit Fit => Enum.Parse<MokaAxisLabelFit>(_fitName);
+
+	private void AddSpan(string key, TimeSpan span, TimeSpan step)
+	{
+		int count = (int)(span / step) + 1;
+		DateTimeOffset[] times = [.. Enumerable.Range(0, count).Select(i => Now - span + step * i)];
+		_spans[key] = (times, [new MokaLineSeries { Name = "Download", Values = [.. times.Select(t => 4e8 + 3e8 * Math.Sin(t.Hour / 24d * Math.Tau))] }]);
+	}
+
+	private string _span = "48h";
+
+	private DateTimeOffset[] TimesFor => _spans[_span].Times;
+
+	private IReadOnlyList<MokaLineSeries> TimeSeries => _spans[_span].Series;
+
+	private readonly string[] _hours = [.. Enumerable.Range(0, 12).Select(i => $"{i * 2:00}:00")];
+
+	private readonly string[] _quarters = [.. Enumerable.Range(0, 96).Select(i => $"{i / 4:00}:{i % 4 * 15:00}")];
+
+	private readonly DateTimeOffset[] _quarterTimes = [.. Enumerable.Range(0, 96).Select(i => Now.Date.AddMinutes(15 * i))];
+
+	private readonly DateTimeOffset[] _minuteTimes = [.. Enumerable.Range(0, 7).Select(i => Now.AddMinutes(-1).AddSeconds(i * 10))];
+
+	private readonly MokaChartAxis _hourAxis = new() { MinTime = Now.AddHours(-1), MaxTime = Now, TimeFormat = "HH:mm" };
+
+	private readonly MokaChartAxis _minuteAxis = new() { TimeFormat = "HH:mm", Hour12 = true };
+}

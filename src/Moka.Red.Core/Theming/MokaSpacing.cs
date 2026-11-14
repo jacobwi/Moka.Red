@@ -126,17 +126,11 @@ public sealed record MokaSpacing
 	/// <summary>The <see cref="MokaLook.Gate" /> look's sizes at comfortable density: big, soft shapes.</summary>
 	public static MokaSpacing Gate { get; } = new MokaSpacing
 	{
-		RadiusSm = "6px",
-		RadiusMd = "10px",
-		RadiusLg = "14px",
-		RadiusXl = "20px",
-		RadiusCard = "var(--moka-radius-xl)",
-		RadiusPopup = "var(--moka-radius-lg)",
 		ButtonPadding = "14px",
 		ButtonPaddingSm = "10px",
 		InputPadding = "12px",
 		PillPadding = "5px 10px"
-	}.WithGateLayout(false);
+	}.WithCorners(MokaCorners.Soft).WithGateLayout(false);
 
 	/// <summary>The <see cref="MokaLook.Gate" /> look's sizes at compact density.</summary>
 	public static MokaSpacing GateCompact { get; } = Gate.WithGateLayout(true);
@@ -173,16 +167,7 @@ public sealed record MokaSpacing
 	};
 
 	/// <summary>The sizes of <see cref="MokaTheme.Crisp" />: compact density with small corners.</summary>
-	public static MokaSpacing Crisp { get; } = GateCompact with
-	{
-		RadiusSm = "4px",
-		RadiusMd = "8px",
-		RadiusLg = "10px",
-		RadiusXl = "12px",
-		RadiusCard = "var(--moka-radius-lg)",
-		RadiusPopup = "var(--moka-radius-xl)",
-		PillPadding = "3px 8px"
-	};
+	public static MokaSpacing Crisp { get; } = GateCompact.WithCorners(MokaCorners.Tight) with { PillPadding = "3px 8px" };
 
 	/// <summary>The sizes of <see cref="MokaTheme.Ember" />: <see cref="Gate" /> with <see cref="MokaCorners.Tight" /> corners.</summary>
 	public static MokaSpacing Ember { get; } = Gate.WithCorners(MokaCorners.Tight);

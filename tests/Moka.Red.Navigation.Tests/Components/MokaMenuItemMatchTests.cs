@@ -111,19 +111,35 @@ public class MokaMenuItemMatchTests : BunitContext
 		AssertLit(cut, false);
 	}
 
-	// An item with children is a button that opens them, never a link, so it has no page to match.
+	// A parent with no Href is only a button that opens its group, so it has no page to match.
 	[Fact]
-	public void AnItemWithChildren_DoesNotListen()
+	public void AParentWithoutALink_DoesNotListen()
 	{
 		int before = Listeners();
 
 		Render<MokaMenuItem>(p => p
 			.Add(x => x.Text, "Users")
-			.Add(x => x.Href, "users")
 			.Add(x => x.Match, NavLinkMatch.Prefix)
 			.AddChildContent<MokaMenuItem>(child => child.Add(x => x.Text, "All").Add(x => x.Href, "users/all")));
 
 		Assert.Equal(before, Listeners());
+	}
+
+	// A parent with an Href is a page of its own, so it lights from the address like any link.
+	[Fact]
+	public void AParentThatIsALink_ListensAndLights()
+	{
+		Navigation.NavigateTo("users/tv");
+		int before = Listeners();
+
+		IRenderedComponent<MokaMenuItem> cut = Render<MokaMenuItem>(p => p
+			.Add(x => x.Text, "Users")
+			.Add(x => x.Href, "users")
+			.Add(x => x.Match, NavLinkMatch.Prefix)
+			.AddChildContent<MokaMenuItem>(child => child.Add(x => x.Text, "All").Add(x => x.Href, "users/all")));
+
+		Assert.Equal(before + 1, Listeners());
+		Assert.Equal("page", cut.Find("a.moka-menu-item--group-link").GetAttribute("aria-current"));
 	}
 
 	[Fact]

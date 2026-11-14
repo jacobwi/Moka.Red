@@ -792,9 +792,9 @@ public class MokaAppShellTests : BunitContext
 	public void ALabelledRail_ShowsTheNames_AndIsWider()
 	{
 		IReadOnlyDictionary<string, string> text = ScopedCss.Declarations("MokaMenu.razor.css",
-			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__text");
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__text:not(.moka-menu-item__submenu *)");
 		IReadOnlyDictionary<string, string> tile = ScopedCss.Declarations("MokaMenu.razor.css",
-			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item.moka-fill-width > .moka-menu-item__content");
+			"[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item.moka-fill-width:not(.moka-menu-item__submenu *) > .moka-menu-item__content");
 
 		Assert.Equal("none", text["clip-path"]);
 		Assert.Equal("static", text["position"]);

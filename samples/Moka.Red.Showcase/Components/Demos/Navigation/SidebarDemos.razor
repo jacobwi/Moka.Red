@@ -1,0 +1,44 @@
+<DemoSection Id="a-side-menu-that-folds-to-icons" Title="A side menu that folds to icons" Description="Collapsed narrows it to CollapsedWidth; a collapsed MokaMenu shows icons with their names in tooltips.">
+	<div class="button-row">
+		<MokaSwitch @bind-Value="_collapsed" Label="Collapsed"/>
+	</div>
+	<div style="display: flex; height: 18rem; margin-top: var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<MokaSidebar Collapsed="_collapsed" Width="200px">
+			<Header>
+				<MokaText Size="MokaSize.Sm" Style="padding: var(--moka-spacing-sm) var(--moka-spacing-md);">@(_collapsed ? "R" : "Reports")</MokaText>
+			</Header>
+			<ChildContent>
+				<MokaMenu Collapsed="_collapsed">
+					<MokaMenuItem Text="Overview" Icon="MokaIcons.Navigation.Home" Active="@(_page == "Overview")" OnClick="@(() => _page = "Overview")"/>
+					<MokaMenuItem Text="Files" Icon="MokaIcons.File.Folder" Active="@(_page == "Files")" OnClick="@(() => _page = "Files")"/>
+					<MokaMenuItem Text="Settings" Icon="MokaIcons.Action.Settings" Active="@(_page == "Settings")" OnClick="@(() => _page = "Settings")"/>
+				</MokaMenu>
+			</ChildContent>
+		</MokaSidebar>
+		<div style="flex: 1; padding: var(--moka-spacing-lg);">
+			<MokaHeading Level="3">@_page</MokaHeading>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-drawer-on-small-screens" Title="A drawer on small screens" Description="Drawer keeps it beside the page above 720 px; at 720 px and under it slides in over the page when Open, and is modal there.">
+	<div class="button-row">
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="() => _open = !_open">@(_open ? "Close" : "Open") the drawer</MokaButton>
+		<MokaCaption>Narrow the window under 720 px to see it slide over the page.</MokaCaption>
+	</div>
+	<div style="display: flex; height: 12rem; margin-top: var(--moka-spacing-md); border: var(--moka-border-width) solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<MokaSidebar Drawer @bind-Open="_open" Width="180px" aria-label="Sections">
+			<MokaMenu>
+				<MokaMenuItem Text="Inbox" Icon="MokaIcons.Status.Bell"/>
+				<MokaMenuItem Text="Archive" Icon="MokaIcons.File.Folder"/>
+			</MokaMenu>
+		</MokaSidebar>
+		<div style="flex: 1; padding: var(--moka-spacing-lg);">Page content</div>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _collapsed;
+	private bool _open = true;
+	private string _page = "Overview";
+}

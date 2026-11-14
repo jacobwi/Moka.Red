@@ -1,0 +1,38 @@
+<DemoSection Id="severities" Title="Severities" Description="A message in the page about something that happened." Tip="Give an alert the person can resolve a FixAction, so the fix sits next to the problem.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+			<MokaAlert Severity="MokaToastSeverity.Info" Title="Information">This is an informational alert.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Success" Title="Success">Operation completed successfully.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Warning" Title="Warning">Please review before continuing.</MokaAlert>
+			<MokaAlert Severity="MokaToastSeverity.Error" Title="Error">An error occurred while processing.</MokaAlert>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Severity">Info, Success, Warning or Error</DemoParam>
+		<DemoParam Name="Title">A heading over the text</DemoParam>
+		<DemoParam Name="Outlined, Dense">A border instead of a fill, and less padding</DemoParam>
+		<DemoParam Name="Closable, OnClose">A close button</DemoParam>
+		<DemoParam Name="FixAction">The button that fixes the problem</DemoParam>
+		<DemoParam Name="Accent">The accent's tint, whatever the severity</DemoParam>
+	</Notes>
+	<Playground>
+		<AlertPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="outlined" Title="Outlined">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+		<MokaAlert Severity="MokaToastSeverity.Info" Outlined="true">Outlined info alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Success" Outlined="true">Outlined success alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Warning" Outlined="true">Outlined warning alert.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Error" Outlined="true">Outlined error alert.</MokaAlert>
+	</div>
+</DemoSection>
+
+<DemoSection Id="closable-and-dense" Title="Closable & dense">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 600px;">
+		<MokaAlert Severity="MokaToastSeverity.Info" Closable="true">This alert can be dismissed.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Success" Dense="true">Dense alert with reduced padding.</MokaAlert>
+		<MokaAlert Severity="MokaToastSeverity.Warning" Closable="true" Dense="true" Outlined="true">Dense, outlined, closable alert.</MokaAlert>
+	</div>
+</DemoSection>

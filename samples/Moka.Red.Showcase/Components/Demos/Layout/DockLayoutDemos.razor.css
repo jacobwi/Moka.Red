@@ -1,0 +1,34 @@
+.dock-demo {
+	height: 18rem;
+	margin-top: var(--moka-spacing-sm);
+	overflow: hidden;
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-md);
+}
+
+/* Room for a floating window at the size FloatPanelAsync gives it. */
+.dock-demo--tall {
+	height: 24rem;
+}
+
+/* Narrower than the layout's NarrowBelow (40rem), which the layout measures on itself. */
+.dock-demo--narrow {
+	max-width: 30rem;
+}
+
+.dock-demo ::deep .moka-dock-layout {
+	height: 100%;
+}
+
+.dock-demo ::deep .dock-demo__terminal {
+	height: 100%;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.dock-demo__text {
+	margin: 0;
+	padding: var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}

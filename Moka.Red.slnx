@@ -39,7 +39,7 @@
 		<Project Path="tools/Moka.Red.Mcp/Moka.Red.Mcp.csproj" />
 	</Folder>
 	<Folder Name="/samples/">
-		<Project Path="samples/Moka.Red.DevApp/Moka.Red.DevApp.csproj" />
+		<Project Path="samples/Moka.Red.Showcase/Moka.Red.Showcase.csproj" />
 		<Project Path="samples/Moka.Red.WasmApp/Moka.Red.WasmApp.csproj" />
 	</Folder>
 </Solution>

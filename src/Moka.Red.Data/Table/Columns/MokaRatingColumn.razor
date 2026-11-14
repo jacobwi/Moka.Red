@@ -1,0 +1,85 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's rating, from 0 to <see cref="Max" />, or null to draw nothing. It is drawn to the nearest star.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, double?>? Value { get; set; }
+
+	/// <summary>How many stars a full rating has. Default 5.</summary>
+	[Parameter]
+	public int Max { get; set; } = 5;
+
+	/// <summary>Writes a rating into a row and returns the row, for editing. See <see cref="MokaColumn{TItem}.SetField" />.</summary>
+	[Parameter]
+	public Func<TItem, double?, TItem>? SetValue { get; set; }
+
+	/// <inheritdoc />
+	protected internal override Type EditValueType(TItem item) => typeof(double?);
+
+	/// <inheritdoc />
+	protected internal override MokaColumnEditor AutoEditor(TItem item) => MokaColumnEditor.Rating;
+
+	/// <inheritdoc />
+	protected internal override bool CanWrite => SetValue is not null || base.CanWrite;
+
+	/// <inheritdoc />
+	protected internal override TItem WriteValue(TItem item, object? value) =>
+		SetValue is null ? base.WriteValue(item, value) : SetValue(item, TableValues.ToDouble(value));
+
+	/// <inheritdoc />
+	/// <remarks>A number from 0 to <see cref="Max" />.</remarks>
+	protected internal override bool TryParseText(string text, TItem item, out object? value) =>
+		base.TryParseText(text, item, out value) && (value is not double rating || (rating >= 0 && rating <= Math.Max(Max, 0)));
+
+	/// <summary>How many stars a full rating has, for the editor.</summary>
+	internal int Stars => Math.Max(Max, 0);
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Value is not null;
+
+	// Stars as a picture with the rating in words: MokaRating is an input, a tab stop in every row.
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		if (Value?.Invoke(item) is not { } rating)
+		{
+			return static _ => { };
+		}
+
+		int stars = Math.Max(Max, 0);
+		int lit = (int)Math.Clamp(Math.Round(rating, MidpointRounding.AwayFromZero), 0, stars);
+		return @<span class="moka-rating-cell">
+			<span class="moka-rating-cell__stars" aria-hidden="true">
+				@for (int i = 0; i < stars; i++)
+				{
+					<MokaIcon Icon="@(i < lit ? MokaIcons.Toggle.Star : MokaIcons.Toggle.StarOutline)" SizeValue="14px"
+					          Class="@StarClass(i < lit)"/>
+				}
+			</span>
+			<span class="moka-visually-hidden">@Words.RatingOf(rating, stars)</span>
+		</span>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => Max;
+
+	/// <inheritdoc />
+	protected internal override object? ValueOf(TItem item) => Value?.Invoke(item);
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) =>
+		Value?.Invoke(item) is { } rating ? Words.RatingOf(rating, Math.Max(Max, 0)) : string.Empty;
+
+	/// <inheritdoc />
+	protected internal override string ExportTextOf(TItem item) =>
+		Value?.Invoke(item) is { } rating ? rating.ToString(CultureInfo.InvariantCulture) : string.Empty;
+
+	private static string StarClass(bool lit) => new CssBuilder("moka-rating-cell__star")
+		.AddClass("moka-rating-cell__star--lit", lit)
+		.Build();
+}

@@ -1,0 +1,113 @@
+@inject IMokaContextMenuService ContextMenu
+
+<DemoSection Id="basics" Title="Basics" Description="Tab into the tree, then use the arrow keys: Up and Down move, Right expands or steps into a folder, Left collapses or steps out, Home and End jump, Enter or Space selects. Right-click a file, or press the context-menu key or Shift+F10 on it, for its menu.">
+	<div style="max-width: 320px;">
+		<MokaTree Selectable>
+			<MokaTreeItem Text="src" Icon="MokaIcons.File.Folder" @bind-Expanded="_treeSrcOpen">
+				<MokaTreeItem Text="Program.cs" Icon="MokaIcons.File.Document" @bind-Selected="_treeProgramSelected"
+				              OnContextMenu="@(e => ShowFileMenu(e, "Program.cs"))"/>
+				<MokaTreeItem Text="Components" Icon="MokaIcons.File.Folder">
+					<MokaTreeItem Text="App.razor" Icon="MokaIcons.File.Document"
+					              OnContextMenu="@(e => ShowFileMenu(e, "App.razor"))"/>
+					<MokaTreeItem Text="Routes.razor" Icon="MokaIcons.File.Document"
+					              OnContextMenu="@(e => ShowFileMenu(e, "Routes.razor"))"/>
+				</MokaTreeItem>
+			</MokaTreeItem>
+			<MokaTreeItem Text="README.md" Icon="MokaIcons.File.Document"
+			              OnContextMenu="@(e => ShowFileMenu(e, "README.md"))"/>
+			<MokaTreeItem Text="LICENSE" Icon="MokaIcons.File.Document" Disabled/>
+		</MokaTree>
+	</div>
+</DemoSection>
+
+<DemoSection Id="children-that-load" Title="Children that load">
+	<p class="page-desc">Expanding a folder loads its files for two seconds: the arrow turns into a spinner and the open folder says it's loading. The arrow keys pass over that row.</p>
+	<div style="max-width: 320px;">
+		<MokaTree>
+			<MokaTreeItem Text="Remote share" Icon="MokaIcons.File.Folder" HasChildren="true" Loading="_remoteLoading"
+			              Expanded="_remoteOpen" ExpandedChanged="ExpandRemoteAsync">
+				@if (_remoteFiles is not null)
+				{
+					@foreach (string file in _remoteFiles)
+					{
+						<MokaTreeItem Text="@file" Icon="MokaIcons.File.Document"/>
+					}
+				}
+			</MokaTreeItem>
+			<MokaTreeItem Text="Notes.md" Icon="MokaIcons.File.Document"/>
+		</MokaTree>
+	</div>
+	<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ForgetRemote">Forget the loaded files</MokaButton>
+</DemoSection>
+
+<DemoSection Id="anything-where-the-icon-sits" Title="Anything where the icon sits">
+	<p class="page-desc">IconContent puts an emoji, a picture or an identicon in the icon's box, so mixed rows stay aligned.</p>
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-xl);">
+		<div style="width: 260px;">
+			<MokaTree>
+				<MokaTreeItem Text="Photos" Icon="MokaIcons.File.Folder"/>
+				<MokaTreeItem Text="Recipes">
+					<IconContent>&#x1F4DA;</IconContent>
+				</MokaTreeItem>
+				<MokaTreeItem Text="Garden">
+					<IconContent><img src="samples/photo-2.svg" alt=""/></IconContent>
+				</MokaTreeItem>
+				<MokaTreeItem Text="Shared with Dana">
+					<IconContent><MokaIdenticon Value="dana@example.com" IdenticonSize="14"/></IconContent>
+				</MokaTreeItem>
+			</MokaTree>
+		</div>
+		<div style="width: 260px;">
+			<MokaList Bordered>
+				<MokaListItem Text="Reading list" Icon="MokaIcons.File.Folder"/>
+				<MokaListItem Text="Trip to Oslo">
+					<IconContent>&#x2708;&#xFE0F;</IconContent>
+				</MokaListItem>
+				<MokaListItem Text="Dana Kim" SecondaryText="dana@example.com">
+					<IconContent><MokaIdenticon Value="dana@example.com" IdenticonSize="16"/></IconContent>
+				</MokaListItem>
+			</MokaList>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _treeSrcOpen = true;
+
+	private bool _treeProgramSelected;
+
+	private void ShowFileMenu(MouseEventArgs e, string file) =>
+		ContextMenu.Show(e,
+		[
+			new MokaContextMenuItem { Text = $"Open {file}", OnClickSync = () => { } },
+			new MokaContextMenuItem { Text = "Rename", OnClickSync = () => { } }
+		]);
+
+	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
+
+	private bool _remoteOpen;
+
+	private bool _remoteLoading;
+
+	private string[]? _remoteFiles;
+
+	private async Task ExpandRemoteAsync(bool open)
+	{
+		_remoteOpen = open;
+		if (!open || _remoteFiles is not null || _remoteLoading)
+		{
+			return;
+		}
+
+		_remoteLoading = true;
+		await Task.Delay(SaveTime);
+		_remoteFiles = ["Budget 2026.xlsx", "Minutes.docx", "Photos.zip"];
+		_remoteLoading = false;
+	}
+
+	private void ForgetRemote()
+	{
+		_remoteFiles = null;
+		_remoteOpen = false;
+	}
+}

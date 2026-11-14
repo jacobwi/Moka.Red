@@ -1,0 +1,29 @@
+﻿@implements IDisposable
+@using Moka.Red.ThemeGen.Appearance
+@inject ShowcaseLook Look
+
+<div class="showcase-rows">
+	<MokaAppearanceRow Label="Look control" Hint="What the Look button opens">
+		<MokaSegmentedControl Value="@Look.Settings.LookControl.ToString()" ValueChanged="PickControl" AriaLabel="Look control" Size="MokaSize.Sm" FullWidth>
+			@foreach ((ShowcaseLookControl control, string text) in Controls)
+			{
+				<MokaSegment Value="@control.ToString()" Text="@text"/>
+			}
+		</MokaSegmentedControl>
+	</MokaAppearanceRow>
+</div>
+
+@code {
+	public static IReadOnlyList<(ShowcaseLookControl Control, string Text)> Controls { get; } =
+	[
+		(ShowcaseLookControl.Drawer, "Drawer"),
+		(ShowcaseLookControl.Popover, "Popover"),
+		(ShowcaseLookControl.Dock, "Dock")
+	];
+
+	protected override void OnInitialized() => Look.Changed += StateHasChanged;
+
+	public void Dispose() => Look.Changed -= StateHasChanged;
+
+	private Task PickControl(string value) => Look.SetLookControlAsync(Enum.Parse<ShowcaseLookControl>(value));
+}

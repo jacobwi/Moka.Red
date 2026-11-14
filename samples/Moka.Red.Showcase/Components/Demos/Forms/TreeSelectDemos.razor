@@ -1,0 +1,28 @@
+<DemoSection Id="basic-tree-select" Title="Basic tree select" Description="A choice from a tree of options.">
+	<div style="max-width: 350px;">
+		<MokaTreeSelect TValue="string"
+		                @bind-Value="_treeSelectValue"
+		                Label="Category"
+		                Placeholder="Choose a category..."
+		                Items="_treeSelectItems"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @(_treeSelectValue ?? "none")</MokaText>
+	</div>
+</DemoSection>
+
+@code {
+	private string? _treeSelectValue;
+
+	private readonly IReadOnlyList<MokaTreeSelectItem<string>> _treeSelectItems = new[]
+	{
+		new MokaTreeSelectItem<string>("fruits", "Fruits", Children: new[]
+		{
+			new MokaTreeSelectItem<string>("apple", "Apple"),
+			new MokaTreeSelectItem<string>("banana", "Banana")
+		}),
+		new MokaTreeSelectItem<string>("vegetables", "Vegetables", Children: new[]
+		{
+			new MokaTreeSelectItem<string>("carrot", "Carrot"),
+			new MokaTreeSelectItem<string>("pea", "Pea")
+		})
+	};
+}

@@ -21,7 +21,7 @@
 			       min="@Min.ToString(CultureInfo.InvariantCulture)"
 			       max="@Max.ToString(CultureInfo.InvariantCulture)"
 			       step="@Step.ToString(CultureInfo.InvariantCulture)"
-			       @bind:get="_value.ToString(CultureInfo.InvariantCulture)"
+			       @bind:get="Shown.ToString(CultureInfo.InvariantCulture)"
 			       @bind:set="HandleInput"
 			       @bind:event="oninput"
 			       disabled="@Disabled"

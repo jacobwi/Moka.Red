@@ -1,0 +1,24 @@
+@if (Entries.Count > 1)
+{
+	<nav class="on-this-page" aria-labelledby="on-this-page-title">
+		<span class="on-this-page__title" id="on-this-page-title">On this page</span>
+		<ul class="on-this-page__list">
+			@foreach (DemoOutlineEntry entry in Entries)
+			{
+				<li @key="entry.Id">
+					<a class="on-this-page__link" href="@($"{Href.TrimStart('/')}#{entry.Id}")">@entry.Title</a>
+				</li>
+			}
+		</ul>
+	</nav>
+}
+
+@code {
+	[Parameter]
+	[EditorRequired]
+	public string Href { get; set; } = string.Empty;
+
+	[Parameter]
+	[EditorRequired]
+	public IReadOnlyList<DemoOutlineEntry> Entries { get; set; } = [];
+}

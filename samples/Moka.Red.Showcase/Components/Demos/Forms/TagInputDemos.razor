@@ -1,0 +1,11 @@
+<DemoSection Id="basics" Title="Basics" Description="A list of short values typed into one field.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div style="width: 350px;">
+			<MokaTagInput @bind-Values="_tags" Label="Technologies" HelperText="Press Enter or comma to add"/>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private IList<string> _tags = new List<string>(["Blazor", "C#", "Moka.Red"]);
+}

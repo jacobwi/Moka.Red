@@ -1,0 +1,17 @@
+<DemoSection Id="a-picture-at-a-fixed-ratio" Title="A picture at a fixed ratio" Description="AspectRatio keeps the box's shape while the picture loads; ObjectFit decides how the picture fills it.">
+	<MokaGrid MinColumn="12rem" Style="gap: var(--moka-grid-gap);">
+		<MokaImage Src="samples/photo-1.svg" Alt="A lake at dawn" AspectRatio="4/3"/>
+		<MokaImage Src="samples/photo-2.svg" Alt="Hills in fog" AspectRatio="1/1" ObjectFit="MokaObjectFit.Contain"/>
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="a-picture-that-fails" Title="A picture that fails" Description="Fallback swaps in another picture, and FallbackContent draws anything in its place.">
+	<MokaGrid MinColumn="12rem" Style="gap: var(--moka-grid-gap);">
+		<MokaImage Src="samples/missing.png" Fallback="samples/photo-3.svg" Alt="A path, from the fallback" AspectRatio="4/3"/>
+		<MokaImage Src="samples/missing.png" Alt="No picture" AspectRatio="4/3">
+			<FallbackContent>
+				<MokaEmptyState Compact Icon="MokaIcons.Content.Image" Title="No picture"/>
+			</FallbackContent>
+		</MokaImage>
+	</MokaGrid>
+</DemoSection>

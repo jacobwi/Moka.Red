@@ -17,6 +17,11 @@ namespace Moka.Red.Forms.Cascader;
 /// </summary>
 public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 {
+	/// <summary>Creates the cascader, which treats two paths with the same levels as the same value.</summary>
+	public MokaCascader() : base(MokaSequenceComparer<string>.Default)
+	{
+	}
+
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
@@ -39,10 +44,6 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 
 	// The drill-down: the options whose children each column shows, root first.
 	private readonly List<MokaCascaderOption> _expanded = [];
-
-	// The mirror of the Value parameter, so a re-render passing the same path does not have to
-	// walk the tree again.
-	private IReadOnlyList<string> _selected = [];
 
 	// The keyboard highlight: which column it is in, and which option of that column.
 	private int _column;
@@ -191,7 +192,7 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 		{
 			List<string> labels = [];
 			IReadOnlyList<MokaCascaderOption> level = RootOptions;
-			foreach (string value in _selected)
+			foreach (string value in Path)
 			{
 				MokaCascaderOption? match = null;
 				foreach (MokaCascaderOption option in level)
@@ -216,7 +217,9 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 		}
 	}
 
-	private bool HasSelection => _selected.Count > 0;
+	private IReadOnlyList<string> Path => CurrentValue ?? [];
+
+	private bool HasSelection => Path.Count > 0;
 
 	/// <summary>Allows usage without EditForm by providing a default ValueExpression.</summary>
 	public override Task SetParametersAsync(ParameterView parameters)
@@ -238,12 +241,6 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 		{
 			_lastIsOpenParameter = IsOpen;
 			DropdownOpen = IsOpen && !Disabled;
-		}
-
-		if (Value is not null
-		    && (Value.Count != _selected.Count || !Value.SequenceEqual(_selected)))
-		{
-			_selected = Value;
 		}
 	}
 
@@ -344,7 +341,7 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 	{
 		_expanded.Clear();
 		IReadOnlyList<MokaCascaderOption> level = RootOptions;
-		foreach (string value in _selected)
+		foreach (string value in Path)
 		{
 			MokaCascaderOption? match = null;
 			foreach (MokaCascaderOption option in level)
@@ -420,13 +417,11 @@ public partial class MokaCascader : MokaVisualInputBase<IReadOnlyList<string>>
 	private async Task SelectAsync(int column, MokaCascaderOption option)
 	{
 		List<string> path = [.. _expanded.Take(column).Select(o => o.Value), option.Value];
-		_selected = path;
 		CurrentValue = path;
 	}
 
 	private async Task HandleClear()
 	{
-		_selected = [];
 		CurrentValue = [];
 		await CloseAsync();
 	}

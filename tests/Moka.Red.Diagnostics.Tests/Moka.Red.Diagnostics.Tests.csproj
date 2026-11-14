@@ -30,6 +30,7 @@
 
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+		<Compile Include="..\Shared\BindingGoldens.cs" Link="Shared\BindingGoldens.cs" />
 	</ItemGroup>
 
 </Project>

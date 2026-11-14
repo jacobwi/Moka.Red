@@ -2,46 +2,36 @@ using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Layout.Tests.Components;
 
-// The splitter was 1px wide and reached for a 12px grab zone with a ::before centred on its edge. The panel
-// sets overflow: hidden, so it clipped the outer half of that zone and left about a pixel to aim at: hovering
-// the panel edge showed no resize cursor. The grab zone is the splitter's own width now, inside the panel.
+// The splitter was a band inside the panel, clipped by the panel's overflow (gotcha 26). It is a gutter between two
+// cells now: a 1px track whose grab zone reaches over both from a pseudo-element no ancestor clips, above the panel
+// hosts that follow it in the document.
 public class MokaDockPanelSplitterTests
 {
-	private const string Css = "MokaDockPanel.razor.css";
+	private const string Css = "MokaDockFrame.razor.css";
 
 	[Theory]
-	[InlineData(".moka-dock-panel-splitter--left")]
-	[InlineData(".moka-dock-panel-splitter--right")]
-	public void AVerticalSplitterHasAGrabZone(string selector)
-	{
-		IReadOnlyDictionary<string, string> rules = ScopedCss.Declarations(Css, selector);
+	[InlineData(".moka-dock-split--row > .moka-dock-gutter", "col-resize")]
+	[InlineData(".moka-dock-split--column > .moka-dock-gutter", "row-resize")]
+	public void AGutter_ShowsTheResizeCursor(string selector, string cursor) =>
+		Assert.Equal(cursor, ScopedCss.Declarations(Css, selector)["cursor"]);
 
-		Assert.Equal("6px", rules["width"]);
-		Assert.Equal("col-resize", rules["cursor"]);
-	}
-
-	[Theory]
-	[InlineData(".moka-dock-panel-splitter--top")]
-	[InlineData(".moka-dock-panel-splitter--bottom")]
-	public void AHorizontalSplitterHasAGrabZone(string selector)
-	{
-		IReadOnlyDictionary<string, string> rules = ScopedCss.Declarations(Css, selector);
-
-		Assert.Equal("6px", rules["height"]);
-		Assert.Equal("row-resize", rules["cursor"]);
-	}
-
-	// A pseudo-element reaching outside the splitter is what the panel clipped, so it must not come back.
-	[Theory]
-	[InlineData(".moka-dock-panel-splitter--left::before")]
-	[InlineData(".moka-dock-panel-splitter--right::before")]
-	[InlineData(".moka-dock-panel-splitter--top::before")]
-	[InlineData(".moka-dock-panel-splitter--bottom::before")]
-	public void NoHitAreaReachesOutsideThePanel(string selector) =>
-		Assert.Empty(ScopedCss.Declarations(Css, selector));
-
-	// The panel clips its overflow, which is why the grab zone has to sit inside it.
 	[Fact]
-	public void ThePanelStillClipsItsOverflow() =>
-		Assert.Equal("hidden", ScopedCss.Declarations(Css, ".moka-dock-panel")["overflow"]);
+	public void AGutter_SitsAboveThePanelHosts() =>
+		Assert.Equal("1", ScopedCss.Declarations(Css, ".moka-dock-split > .moka-dock-gutter")["z-index"]);
+
+	[Theory]
+	[InlineData(".moka-dock-split--row > .moka-dock-gutter::before", "inset-inline")]
+	[InlineData(".moka-dock-split--column > .moka-dock-gutter::before", "inset-block")]
+	public void TheGrabZone_ReachesOverBothNeighbours(string selector, string property) =>
+		Assert.Equal("calc(var(--moka-spacing-xs) * -1)", ScopedCss.Declarations(Css, selector)[property]);
+
+	// Splits nest, so a split's rules reach its own gutters and cells with child combinators (gotcha 27).
+	[Fact]
+	public void SplitRules_UseChildCombinators()
+	{
+		string css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", Css));
+
+		Assert.DoesNotContain(".moka-dock-split .moka-dock-gutter", css, StringComparison.Ordinal);
+		Assert.DoesNotContain(".moka-dock-split--row .moka-dock-gutter", css, StringComparison.Ordinal);
+	}
 }

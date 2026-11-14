@@ -1,0 +1,132 @@
+<DemoSection Id="basic" Title="Basic" Description="One choice from a few, as native radios, so the browser owns the arrow keys and the tab stop.">
+	<MokaSegmentedControl @bind-Value="_segmentValue">
+		<MokaSegment Value="daily" Text="Daily"/>
+		<MokaSegment Value="weekly" Text="Weekly"/>
+		<MokaSegment Value="monthly" Text="Monthly"/>
+	</MokaSegmentedControl>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">Selected: @_segmentValue</p>
+</DemoSection>
+
+<DemoSection Id="with-icons" Title="With icons">
+	<MokaSegmentedControl @bind-Value="_segmentView">
+		<MokaSegment Value="list" Text="List" Icon="MokaIcons.Navigation.Menu"/>
+		<MokaSegment Value="grid" Text="Grid" Icon="MokaIcons.Content.Image"/>
+		<MokaSegment Value="board" Text="Board" Icon="MokaIcons.File.Folder"/>
+	</MokaSegmentedControl>
+</DemoSection>
+
+<DemoSection Id="full-width" Title="Full width">
+	<div style="width: 320px;">
+		<MokaSegmentedControl @bind-Value="_segmentTab" FullWidth>
+			<MokaSegment Value="overview" Text="Overview"/>
+			<MokaSegment Value="details" Text="Details"/>
+			<MokaSegment Value="history" Text="History"/>
+		</MokaSegmentedControl>
+	</div>
+</DemoSection>
+
+<DemoSection Id="controlled" Title="Controlled">
+	<MokaSegmentedControl Controlled Value="@_segmentPlan" ValueChanged="SetPlan" AriaLabel="Plan">
+		<MokaSegment Value="free" Text="Free"/>
+		<MokaSegment Value="team" Text="Team"/>
+		<MokaSegment Value="enterprise" Text="Enterprise"/>
+	</MokaSegmentedControl>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">@_segmentPlanNote</p>
+</DemoSection>
+
+<DemoSection Id="small-controls-in-one-row" Title="Small controls in one row" Description="MatchControlHeight gives the segmented control the fields' height on the new design, so it lines up with a small text field, select and search box.">
+	<div style="@Row">
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined">Button</MokaButton>
+		<MokaTextField Size="MokaSize.Sm" Placeholder="Text field" aria-label="Text field"/>
+		<MokaSelect TValue="string" Size="MokaSize.Sm" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
+		<div style="flex: 0 1 14rem;"><MokaSearchInput Size="MokaSize.Sm" Placeholder="Search" HideLabel Label="Search"/></div>
+		<MokaSegmentedControl Size="MokaSize.Sm" MatchControlHeight @bind-Value="_range" AriaLabel="Range">
+			<MokaSegment Value="day" Text="Day"/>
+			<MokaSegment Value="week" Text="Week"/>
+		</MokaSegmentedControl>
+	</div>
+	<div style="@Row">
+		<MokaTextField Placeholder="Text field" aria-label="Text field"/>
+		<MokaSelect TValue="string" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
+		<MokaSegmentedControl MatchControlHeight @bind-Value="_range" AriaLabel="Range, default size">
+			<MokaSegment Value="day" Text="Day"/>
+			<MokaSegment Value="week" Text="Week"/>
+		</MokaSegmentedControl>
+	</div>
+</DemoSection>
+
+<DemoSection Id="segments-on-one-row" Title="Segments on one row" Description="Wrap false keeps one row: the longer labels give up width first and end in an ellipsis, with the full text in a title.">
+	<MokaSlider @bind-Value="_segmentWidth" Min="160" Max="600" Step="10" ShowValue="true" Label="Width in pixels"/>
+	<div style="@SegmentBox">
+		@Segments(false)
+	</div>
+</DemoSection>
+
+<DemoSection Id="segments-that-stack" Title="Segments that stack" Description="StackBelow puts each segment on its own row once the control is narrower than the width given, here 24rem, so every label shows whole.">
+	<MokaSlider @bind-Value="_segmentWidth" Min="160" Max="600" Step="10" ShowValue="true" Label="Width in pixels"/>
+	<div style="@Columns">
+		<div style="@SegmentBox">
+			<MokaCaption Micro>Wrap="false" StackBelow="24rem"</MokaCaption>
+			@Segments(false, "24rem")
+		</div>
+		<div style="@SegmentBox">
+			<MokaCaption Micro>StackBelow="24rem"</MokaCaption>
+			@Segments(true, "24rem")
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private string _segmentValue = "daily";
+
+	private string _segmentView = "list";
+
+	private string _segmentTab = "overview";
+
+	private string _segmentPlan = "free";
+
+	private string _segmentPlanNote = "Free";
+
+	private async Task SetPlan(string plan)
+	{
+		if (plan == "enterprise")
+		{
+			_segmentPlanNote = "Refused: Enterprise needs a sales call.";
+			return;
+		}
+
+		if (plan == "team")
+		{
+			_segmentPlanNote = "Saving Team...";
+			StateHasChanged();
+			await Task.Delay(800);
+		}
+
+		_segmentPlan = plan;
+		_segmentPlanNote = plan == "team" ? "Team" : "Free";
+	}
+
+	private const string Row = "display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md); margin: var(--moka-spacing-sm) 0 var(--moka-spacing-lg);";
+
+	private static readonly IReadOnlyList<string> Fruits = ["Apple", "Pear"];
+
+	private string _range = "day";
+
+	private string _period = "week";
+
+	private double _segmentWidth = 360;
+
+	private string SegmentBox => FormattableString.Invariant(
+		$"max-width: {_segmentWidth}px; padding: var(--moka-spacing-md); border: var(--moka-border-width) dashed var(--moka-color-outline); border-radius: var(--moka-radius-md);");
+
+	private RenderFragment Segments(bool wrap, string? stackBelow = null) =>
+		@<MokaSegmentedControl Wrap="wrap" FullWidth StackBelow="@stackBelow" @bind-Value="_period"
+		                       AriaLabel="@($"Period{(wrap ? ", wrapping" : "")}{(stackBelow is null ? "" : ", stacking")}")">
+			<MokaSegment Value="today" Text="Today"/>
+			<MokaSegment Value="week" Text="This week"/>
+			<MokaSegment Value="month" Text="This month"/>
+			<MokaSegment Value="year" Text="This year"/>
+		</MokaSegmentedControl>;
+
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
+}

@@ -1,0 +1,15 @@
+<DemoSection Id="basics" Title="Basics" Description="A menu button that picks one theme from a list.">
+	<MokaThemeSwitcher Themes="_themeSwitcherOptions" @bind-SelectedTheme="_selectedTheme"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @(_selectedTheme is not null ? "theme" : "none")</MokaText>
+</DemoSection>
+
+@code {
+	private MokaTheme? _selectedTheme = MokaTheme.Light;
+
+	private static readonly IReadOnlyList<MokaThemeSwitcherItem> _themeSwitcherOptions =
+	[
+		new("Light", MokaTheme.Light, "Default light theme"),
+		new("Dark", MokaTheme.Dark, "Dark mode"),
+		new("Ocean", MokaTheme.Light.WithPrimary("#0277bd"), "Blue primary")
+	];
+}

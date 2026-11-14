@@ -1,0 +1,11 @@
+<DemoSection Id="basics" Title="Basics" Description="A score out of a few stars.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: center;">
+		<MokaRating @bind-Value="_rating" Label="Rating" ShowValue="true"/>
+		<MokaRating @bind-Value="_rating" Label="Large" Size="MokaSize.Lg"/>
+		<MokaRating Value="4" ReadOnly="true" Label="Read Only"/>
+	</div>
+</DemoSection>
+
+@code {
+	private int _rating = 3;
+}

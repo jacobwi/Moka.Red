@@ -1,0 +1,109 @@
+<DemoSection Id="variants" Title="Variants" Description="A compact choice or filter that can be selected, closed or clicked." Tip="For a row of filters, bind each chip's Selected to a field of its own.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: 8px;">
+			@foreach (MokaVariant variant in new[] { MokaVariant.Soft, MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Text })
+			{
+				<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+					<MokaChip Text="@variant.ToString()" Variant="variant"/>
+					<MokaChip Text="Primary" Variant="variant" Color="MokaColor.Primary"/>
+					<MokaChip Text="Success" Variant="variant" Color="MokaColor.Success"/>
+					<MokaChip Text="Warning" Variant="variant" Color="MokaColor.Warning"/>
+					<MokaChip Text="Error" Variant="variant" Color="MokaColor.Error"/>
+					<MokaChip Text="Info" Variant="variant" Color="MokaColor.Info"/>
+					<MokaChip Text="Selected" Variant="variant" Color="MokaColor.Primary" Selected/>
+					<MokaChip Text="Selected" Variant="variant" Selected/>
+				</div>
+			}
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Text, Icon, Avatar">What the chip shows</DemoParam>
+		<DemoParam Name="Variant">Soft by default; Filled, Outlined or Text</DemoParam>
+		<DemoParam Name="Selected">Bind it for a filter that toggles</DemoParam>
+		<DemoParam Name="Closable, OnClose">A close button, and what it does</DemoParam>
+		<DemoParam Name="OnClick">Makes the whole chip a button</DemoParam>
+	</Notes>
+	<Playground>
+		<ChipPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="selectable-chips" Title="Selectable chips">
+	<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+		<MokaChip Text="Technology" @bind-Selected="_chipTech"/>
+		<MokaChip Text="Science" @bind-Selected="_chipScience"/>
+		<MokaChip Text="Design" @bind-Selected="_chipDesign"/>
+		<MokaChip Text="Business" @bind-Selected="_chipBusiness"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="closable-chips" Title="Closable chips">
+	<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+		<MokaChip Text="Blazor" Icon="MokaIcons.File.Code" Closable/>
+		<MokaChip Text="C#" Closable/>
+		<MokaChip Text="Moka.Red" Closable Selected/>
+		<MokaChip Text="Pinned" Closable @bind-Selected="_chipPinned"/>
+		@foreach (string tag in _chipTags)
+		{
+			<MokaChip @key="tag" Text="@tag" Color="MokaColor.Primary" Closable OnClose="@(() => _chipTags.Remove(tag))"/>
+		}
+	</div>
+</DemoSection>
+
+<DemoSection Id="controlled" Title="Controlled">
+	<div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+		<MokaChip Text="Audit log" Controlled Selected="_chipAudit" SelectedChanged="SetAudit"/>
+		<MokaChip Text="Audit log (not controlled)" Selected="_chipAuditLoose" SelectedChanged="SetAuditLoose"/>
+		<span style="font-size: var(--moka-font-size-xs);">@_chipAuditNote</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="sizes" Title="Sizes">
+	<div style="display: flex; gap: 6px; align-items: center;">
+		<MokaChip Text="XS" Size="MokaSize.Xs"/>
+		<MokaChip Text="SM" Size="MokaSize.Sm"/>
+		<MokaChip Text="MD" Size="MokaSize.Md"/>
+		<MokaChip Text="LG" Size="MokaSize.Lg"/>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _chipBusiness;
+
+	private bool _chipDesign;
+
+	private bool _chipScience;
+
+	private bool _chipTech = true;
+
+	private bool _chipPinned;
+
+	private readonly List<string> _chipTags = ["Blazor", "C#", "CSS"];
+
+	private bool _chipAudit;
+
+	private bool _chipAuditLoose;
+
+	private string _chipAuditNote = "Turn it on, then try to turn it off.";
+
+	private void SetAudit(bool on)
+	{
+		if (on)
+		{
+			_chipAudit = true;
+			_chipAuditNote = "On.";
+		}
+		else
+		{
+			_chipAuditNote = "Refused: the audit log stays on.";
+		}
+	}
+
+	private void SetAuditLoose(bool on)
+	{
+		if (on)
+		{
+			_chipAuditLoose = true;
+		}
+	}
+}

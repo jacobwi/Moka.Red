@@ -1,0 +1,21 @@
+<DemoSection Id="a-label-and-helper-text-for-a-control-of" Title="A label and helper text for a control of your own" Description="The wrapper draws the label, the required or optional mark and the helper or error line. InputId ties the label to the control; HelperIdFor gives the line's id for aria-describedby.">
+	<div style="max-width: 320px;">
+		<MokaFieldWrapper Label="Volume" HelperText="@($"{_volume} percent")" InputId="volume-control" Optional>
+			<input id="volume-control" type="range" min="0" max="100" @bind="_volume" @bind:event="oninput"
+			       aria-describedby="@MokaFieldWrapper.HelperIdFor("volume-control")" style="width: 100%;"/>
+		</MokaFieldWrapper>
+	</div>
+</DemoSection>
+
+<DemoSection Id="an-error-in-place-of-the-helper" Title="An error in place of the helper" Description="HasError and ErrorText replace the helper line and mark the field.">
+	<div style="max-width: 320px;">
+		<MokaFieldWrapper Label="Code" Required HasError ErrorText="Enter the six digits from the email." InputId="code-control">
+			<input id="code-control" inputmode="numeric" value="12" aria-invalid="true"
+			       aria-describedby="@MokaFieldWrapper.HelperIdFor("code-control")" style="width: 100%;"/>
+		</MokaFieldWrapper>
+	</div>
+</DemoSection>
+
+@code {
+	private int _volume = 40;
+}

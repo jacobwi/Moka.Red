@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using Moka.Red.Core.Theming;
+using Moka.Red.Data.Table;
 
 namespace Moka.Red.ThemeGen.Tests;
 
@@ -10,7 +11,10 @@ namespace Moka.Red.ThemeGen.Tests;
 /// </summary>
 internal static class ThemeReflection
 {
-	private static readonly Type[] NestedRecords = [typeof(MokaPalette), typeof(MokaTypography), typeof(MokaSpacing)];
+	private static readonly Type[] NestedRecords =
+	[
+		typeof(MokaPalette), typeof(MokaTypography), typeof(MokaSpacing), typeof(MokaThemeSeed), typeof(MokaAccent), typeof(MokaAccentShades)
+	];
 
 	/// <summary>
 	///     A theme where every property holds a value of its own that no built-in theme has. A property a
@@ -68,7 +72,8 @@ internal static class ThemeReflection
 
 	private static object Fill(object instance, ref int counter, bool importable)
 	{
-		foreach (PropertyInfo property in PublicProperties(instance.GetType()))
+		// A read-only property, such as the theme's pins, is set through methods the serializer tests cover.
+		foreach (PropertyInfo property in PublicProperties(instance.GetType()).Where(property => property.CanWrite))
 		{
 			Type type = property.PropertyType;
 			object? value;
@@ -84,10 +89,31 @@ internal static class ThemeReflection
 			{
 				value = !(bool)property.GetValue(instance)!;
 			}
-			else if (type == typeof(double))
+			else if (type == typeof(double) || type == typeof(double?))
 			{
 				counter++;
 				value = 1 + (counter / 8.0);
+			}
+			else if (type == typeof(MokaSeedContrast))
+			{
+				value = MokaSeedContrast.More;
+			}
+			else if (type == typeof(MokaThemeSeed))
+			{
+				value = Fill(new MokaThemeSeed { Accent = "#000000" }, ref counter, importable);
+			}
+			else if (type == typeof(MokaAccent))
+			{
+				var shades = new MokaAccentShades("#000000", "#000000", "#000000");
+				value = Fill(new MokaAccent("id", "name", shades, shades), ref counter, importable);
+			}
+			else if (type == typeof(MokaAccentShades))
+			{
+				value = Fill(new MokaAccentShades("#000000", "#000000", "#000000"), ref counter, importable);
+			}
+			else if (type == typeof(MokaPalette) && property.GetValue(instance) is null)
+			{
+				value = Fill(MokaPalette.Light with { }, ref counter, importable);
 			}
 			else if (type == typeof(MokaLook))
 			{
@@ -112,6 +138,10 @@ internal static class ThemeReflection
 			else if (type == typeof(MokaStatusBarLook))
 			{
 				value = MokaStatusBarLook.Terminal;
+			}
+			else if (type == typeof(MokaDockLook))
+			{
+				value = MokaDockLook.Terminal;
 			}
 			else if (type == typeof(MokaToastLook))
 			{
@@ -197,6 +227,14 @@ internal static class ThemeReflection
 			{
 				value = MokaChartPrint.Ink;
 			}
+			else if (type == typeof(MokaTableLook?))
+			{
+				value = MokaTableLook.Airy;
+			}
+			else if (type == typeof(MokaTableDensity?))
+			{
+				value = MokaTableDensity.Comfortable;
+			}
 			else if (NestedRecords.Contains(type))
 			{
 				value = Fill(property.GetValue(instance)!, ref counter, importable);
@@ -216,7 +254,7 @@ internal static class ThemeReflection
 
 	private static string ImportableValue(object instance, string name, int counter)
 	{
-		if (instance is MokaPalette)
+		if (instance is MokaPalette or MokaThemeSeed or MokaAccentShades)
 		{
 			return string.Create(CultureInfo.InvariantCulture, $"#{counter:x6}");
 		}

@@ -209,7 +209,7 @@ public class NotificationLookTests : BunitContext
 	{
 		Notifications.Push("One", "1");
 		IRenderedComponent<MokaNotificationCenter> cut = await OpenCenterAsync(MokaNotificationLook.Inbox,
-			p => p.Add(x => x.NewCountText, n => $"{n} nouvelle"));
+			p => p.Add(x => x.Text, new MokaNotificationCenterText { NewCount = n => $"{n} nouvelle" }));
 
 		Assert.Equal("1 nouvelle", cut.Find(".moka-notification-panel__count").TextContent);
 
@@ -248,7 +248,7 @@ public class NotificationLookTests : BunitContext
 	{
 		Notifications.Push(new MokaNotification { Title = "Backup finished", Message = "Done.", Timestamp = JustAfterMidnight });
 		IRenderedComponent<MokaNotificationCenter> cut = await OpenCenterAsync(MokaNotificationLook.Grouped,
-			p => p.Add(x => x.TodayText, "Aujourd'hui").Add(x => x.EarlierText, "Plus tôt"));
+			p => p.Add(x => x.Text, new MokaNotificationCenterText { Today = "Aujourd'hui", Earlier = "Plus tôt" }));
 
 		Assert.Equal("Aujourd'hui", Assert.Single(cut.FindAll(".moka-notification-panel__group")).TextContent);
 	}

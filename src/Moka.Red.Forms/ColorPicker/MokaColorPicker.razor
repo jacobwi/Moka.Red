@@ -127,8 +127,8 @@
 					<div class="moka-colorpicker-hex-group">
 						<span class="moka-colorpicker-input-label">Hex</span>
 						<input type="text" class="moka-colorpicker-hex-input"
-						       value="@CurrentValue"
-						       @onchange="HandleHexInput"/>
+						       @bind:get="CurrentValue"
+						       @bind:set="HandleHexInput"/>
 					</div>
 				}
 				@if (ShowRgbInputs)
@@ -138,22 +138,22 @@
 							<span class="moka-colorpicker-input-label">R</span>
 							<input type="number" class="moka-colorpicker-rgb-input"
 							       min="0" max="255"
-							       value="@_red"
-							       @onchange="e => HandleRgbInput(e, 'r')"/>
+							       @bind:get="_red"
+							       @bind:set="value => SetChannel('r', value)"/>
 						</div>
 						<div class="moka-colorpicker-rgb-field">
 							<span class="moka-colorpicker-input-label">G</span>
 							<input type="number" class="moka-colorpicker-rgb-input"
 							       min="0" max="255"
-							       value="@_green"
-							       @onchange="e => HandleRgbInput(e, 'g')"/>
+							       @bind:get="_green"
+							       @bind:set="value => SetChannel('g', value)"/>
 						</div>
 						<div class="moka-colorpicker-rgb-field">
 							<span class="moka-colorpicker-input-label">B</span>
 							<input type="number" class="moka-colorpicker-rgb-input"
 							       min="0" max="255"
-							       value="@_blue"
-							       @onchange="e => HandleRgbInput(e, 'b')"/>
+							       @bind:get="_blue"
+							       @bind:set="value => SetChannel('b', value)"/>
 						</div>
 					</div>
 				}
@@ -411,8 +411,8 @@
 				{
 					<label class="moka-colorpicker-percent">
 						<input type="number" class="moka-colorpicker-field moka-colorpicker-num" min="0" max="100"
-						       value="@Whole(_pickAlpha * 100)" aria-label="Opacity in percent"
-						       disabled="@Disabled" readonly="@ReadOnly" @onchange="HandleAlphaPercent"/>
+						       @bind:get="Whole(_pickAlpha * 100)" @bind:set="SetAlphaPercent" aria-label="Opacity in percent"
+						       disabled="@Disabled" readonly="@ReadOnly"/>
 						<span aria-hidden="true">%</span>
 					</label>
 				}
@@ -440,9 +440,9 @@
 		{
 			<span class="moka-colorpicker-preview" aria-hidden="true"></span>
 		}
-		<input type="text" class="@HexFieldCssClass" aria-label="Hex" value="@CurrentValue" spellcheck="false"
-		       autocomplete="off" data-cp-hex aria-invalid="@(_hexInvalid ? "true" : null)"
-		       disabled="@Disabled" readonly="@ReadOnly" @onchange="HandlePanelHexInput"/>
+		<input type="text" class="@HexFieldCssClass" aria-label="Hex" @bind:get="PanelHexText" @bind:set="HandlePanelHexInput"
+		       spellcheck="false" autocomplete="off" data-cp-hex aria-invalid="@(_hexInvalid ? "true" : null)"
+		       disabled="@Disabled" readonly="@ReadOnly"/>
 		@switch (end)
 		{
 			case HexEnd.EyeDropper:
@@ -475,11 +475,11 @@
 		@<div class="moka-colorpicker-sl-row">
 			<label class="moka-colorpicker-sl-letter" for="@RangeId(channel)">@letter</label>
 			<input type="range" id="@RangeId(channel)" class="@RangeCssClass(channel)"
-			       min="0" max="@max" step="1" value="@value" aria-label="@name" data-cp-range="@channel.ToString()"
-			       disabled="@(Disabled || ReadOnly)" @onchange="e => HandleHslInput(channel, e)"/>
-			<input type="number" class="moka-colorpicker-field moka-colorpicker-num" min="0" max="@max" value="@value"
-			       aria-label="@numberName" disabled="@Disabled" readonly="@ReadOnly"
-			       @onchange="e => HandleHslInput(channel, e)"/>
+			       min="0" max="@max" step="1" @bind:get="value" @bind:set="number => SetHsl(channel, number)"
+			       aria-label="@name" data-cp-range="@channel.ToString()" disabled="@(Disabled || ReadOnly)"/>
+			<input type="number" class="moka-colorpicker-field moka-colorpicker-num" min="0" max="@max"
+			       @bind:get="value" @bind:set="number => SetHsl(channel, number)"
+			       aria-label="@numberName" disabled="@Disabled" readonly="@ReadOnly"/>
 		</div>;
 
 	// Each row of colors is one radio group, so Tab reaches it once and the arrows move the choice.

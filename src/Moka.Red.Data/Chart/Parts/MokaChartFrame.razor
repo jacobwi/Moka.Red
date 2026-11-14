@@ -71,8 +71,8 @@
 				{
 					<div class="moka-chart-frame__table moka-thin-scrollbar" role="region" aria-label="@TableName" data-moka-export="skip">
 						<MokaTable TItem="int" @ref="_table" ServerData="LoadRowsAsync" Label="@Chart.AccessibleLabel"
-						           PageSize="50" PageSizeOptions="TablePageSizes" ShowToolbar="false" Hoverable="false"
-						           StickyPagination="true" FixedHeader="true" Responsive="false">
+						           PageSize="50" ShowToolbar="false" Hoverable="false" FixedHeader="true" Responsive="false">
+							<MokaTablePager PageSizeOptions="TablePageSizes" Sticky="true"/>
 							@for (int c = 0; c < TableHeaders.Count; c++)
 							{
 								int column = c;

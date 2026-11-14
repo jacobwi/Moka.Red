@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using Moka.Red.Core.Enums;
 
 namespace Moka.Red.Core.Theming;
@@ -42,7 +41,7 @@ internal static class MokaLabelPalette
 		(MokaLabelColor.Slate, new("#64748B", "#64748B", "#AAB3BF", "#64748B", "#3E4856"), new("#6B7480", "#6B7480", "#AEB3B9", "#6B7480", "#42484F"), new("#64748B", "#AAB3BF", "#AAB3BF", "#7E8A9B", "#3E4856"))
 	];
 
-	private static readonly string[] Blocks = BuildBlocks();
+	private static readonly string[][] Blocks = BuildBlocks();
 
 	/// <summary>The shades of <paramref name="color" /> in <paramref name="tone" />.</summary>
 	internal static MokaLabelShades For(MokaLabelColor color, MokaLabelTone tone)
@@ -68,33 +67,43 @@ internal static class MokaLabelPalette
 		string.Create(CultureInfo.InvariantCulture,
 			$"color-mix(in srgb, {shades.Tint} {TintPercent(tone, isDark)}%, var(--moka-color-surface))");
 
-	/// <summary>Every label token as <c>name: value; </c> declarations, the format of <c>ToCssVariables</c>.</summary>
-	internal static string Tokens(MokaLabelTone tone, bool isDark)
+	// Every label token's name, in the order Values gives them: each hue, its tint and its ink.
+	internal static IReadOnlyList<string> Names { get; } =
+	[
+		.. MokaLabelColors.All.SelectMany(color => new[]
+		{
+			$"--moka-label-{MokaLabelColors.Key(color)}",
+			$"--moka-label-{MokaLabelColors.Key(color)}-bg",
+			$"--moka-label-{MokaLabelColors.Key(color)}-ink"
+		})
+	];
+
+	// Every label token's value in one tone and scheme, in the order of Names.
+	internal static IReadOnlyList<string> Values(MokaLabelTone tone, bool isDark)
 	{
 		int index = ((int)tone * 2) + (isDark ? 1 : 0);
 		return (uint)index < (uint)Blocks.Length ? Blocks[index] : Blocks[isDark ? 1 : 0];
 	}
 
-	private static string[] BuildBlocks()
+	private static string[][] BuildBlocks()
 	{
 		MokaLabelTone[] tones = Enum.GetValues<MokaLabelTone>();
-		string[] blocks = new string[tones.Length * 2];
+		string[][] blocks = new string[tones.Length * 2][];
 		foreach (MokaLabelTone tone in tones)
 		{
 			for (int scheme = 0; scheme < 2; scheme++)
 			{
 				bool isDark = scheme == 1;
-				var sb = new StringBuilder(4096);
+				List<string> values = [];
 				foreach (MokaLabelColor color in MokaLabelColors.All)
 				{
 					MokaLabelShades shades = For(color, tone);
-					string token = $"--moka-label-{MokaLabelColors.Key(color)}";
-					sb.Append(token).Append(": ").Append(isDark ? shades.DarkSolid : shades.LightSolid).Append("; ");
-					sb.Append(token).Append("-bg: ").Append(Background(shades, tone, isDark)).Append("; ");
-					sb.Append(token).Append("-ink: ").Append(isDark ? shades.DarkInk : shades.LightInk).Append("; ");
+					values.Add(isDark ? shades.DarkSolid : shades.LightSolid);
+					values.Add(Background(shades, tone, isDark));
+					values.Add(isDark ? shades.DarkInk : shades.LightInk);
 				}
 
-				blocks[((int)tone * 2) + scheme] = sb.ToString();
+				blocks[((int)tone * 2) + scheme] = [.. values];
 			}
 		}
 

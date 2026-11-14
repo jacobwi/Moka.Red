@@ -45,7 +45,7 @@
 			</Header>
 			<ChildContent>
 				<div class="moka-app-shell__list">
-					<MokaMenu Adaptive="true" RailLabels="RailLabels" aria-label="@NavLabel">
+					<MokaMenu Adaptive="true" RailLabels="RailLabels" CollapseOnRepeatClick="CollapseOnRepeatClick" aria-label="@NavLabel">
 						<div class="moka-app-shell__groups moka-thin-scrollbar">
 							@foreach (IGrouping<string, MokaNavEntry> group in Entries.Where(entry => !entry.Bottom).GroupBy(entry => entry.Group, StringComparer.Ordinal))
 							{
@@ -57,8 +57,7 @@
 									}
 									@foreach (MokaNavEntry entry in group)
 									{
-										<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
-										              Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+										@EntryItem(entry, current)
 									}
 								</div>
 							}
@@ -68,8 +67,7 @@
 							<div class="moka-app-shell__bottom">
 								@foreach (MokaNavEntry entry in Entries.Where(entry => entry.Bottom))
 								{
-									<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
-									              Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>
+									@EntryItem(entry, current)
 								}
 							</div>
 						}
@@ -83,3 +81,24 @@
 		@ChildContent
 	</main>
 </div>
+
+@code {
+	// A template, not a local function, since a child's item is drawn inside its parent's ChildContent (gotcha 14).
+	private RenderFragment EntryItem(MokaNavEntry entry, MokaNavEntry? current)
+	{
+		if (entry.Children.Count == 0)
+		{
+			return @<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+			                      Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>;
+		}
+
+		return @<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+		                      Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"
+		                      ShowLabel="ShowGroupLabel" HideLabel="HideGroupLabel">
+			@foreach (MokaNavEntry child in entry.Children)
+			{
+				@EntryItem(child, current)
+			}
+		</MokaMenuItem>;
+	}
+}

@@ -1,0 +1,24 @@
+<DemoSection Id="company-hierarchy" Title="Company hierarchy" Description="A tree of people or things, drawn top down with connectors.">
+	<MokaOrganizationChart TItem="OrgPerson" Root="_orgRoot">
+		<ItemTemplate>
+			<div style="text-align:center;">
+				<strong>@context.Name</strong><br/>
+				<span style="opacity:0.7; font-size: var(--moka-font-size-xs);">@context.Title</span>
+			</div>
+		</ItemTemplate>
+	</MokaOrganizationChart>
+</DemoSection>
+
+@code {
+	private record OrgPerson(string Name, string Title);
+
+	private readonly MokaOrgNode<OrgPerson> _orgRoot = new(new OrgPerson("Alice Johnson", "CEO"), new MokaOrgNode<OrgPerson>[]
+	{
+		new(new OrgPerson("Bob Smith", "VP Engineering"), new MokaOrgNode<OrgPerson>[]
+		{
+			new(new OrgPerson("Dave Wilson", "Senior Dev")),
+			new(new OrgPerson("Eve Garcia", "Senior Dev"))
+		}),
+		new(new OrgPerson("Carol Lee", "VP Sales"))
+	});
+}

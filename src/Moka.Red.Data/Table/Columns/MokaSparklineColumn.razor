@@ -1,0 +1,80 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaColumn<TItem>
+@using Moka.Red.Data.Chart
+
+@code {
+	private RenderFragment<TItem>? _cell;
+
+	/// <summary>The row's values, oldest first. Null or empty draws nothing. A <c>double.NaN</c> is a gap.</summary>
+	[Parameter]
+	[EditorRequired]
+	public Func<TItem, IReadOnlyList<double>?>? Values { get; set; }
+
+	/// <summary>The sparkline's name for screen readers, from the row. Null names it by the column's title.</summary>
+	[Parameter]
+	public Func<TItem, string?>? Label { get; set; }
+
+	/// <summary>The sparkline's height, as a CSS length. Default "1.5rem".</summary>
+	[Parameter]
+	public string Height { get; set; } = "1.5rem";
+
+	/// <summary>Fills the area under the line. Default false.</summary>
+	[Parameter]
+	public bool ShowArea { get; set; }
+
+	/// <inheritdoc />
+	protected internal override bool HasValue => Values is not null;
+
+	/// <inheritdoc />
+	protected internal override string? KindCellClass => "moka-table-cell--sparkline";
+
+	/// <inheritdoc />
+	protected internal override RenderFragment<TItem> CellContent => _cell ??= item =>
+	{
+		IReadOnlyList<double>? values = Values?.Invoke(item);
+		if (values is not { Count: > 0 })
+		{
+			return static _ => { };
+		}
+
+		return @<MokaSparkline Values="values" Height="@Height" ShowArea="ShowArea" ShowLastPoint="true"
+		                       Label="@(Label?.Invoke(item) ?? Title)"/>;
+	};
+
+	/// <inheritdoc />
+	protected override object? KindSettings => (Height, ShowArea);
+
+	/// <inheritdoc />
+	/// <remarks>The latest value, which is what the column sorts and filters by.</remarks>
+	protected internal override object? ValueOf(TItem item) => Latest(Values?.Invoke(item));
+
+	/// <inheritdoc />
+	protected internal override string TextOf(TItem item) =>
+		Latest(Values?.Invoke(item)) is { } latest ? latest.ToString("#,0.##", CultureInfo.CurrentCulture) : string.Empty;
+
+	/// <inheritdoc />
+	/// <remarks>Every value, oldest first, separated by spaces, in the invariant culture.</remarks>
+	protected internal override string ExportTextOf(TItem item) =>
+		Values?.Invoke(item) is { } values
+			? string.Join(' ', values.Select(static value => value.ToString(CultureInfo.InvariantCulture)))
+			: string.Empty;
+
+	private static double? Latest(IReadOnlyList<double>? values)
+	{
+		if (values is null)
+		{
+			return null;
+		}
+
+		for (int i = values.Count - 1; i >= 0; i--)
+		{
+			if (double.IsFinite(values[i]))
+			{
+				return values[i];
+			}
+		}
+
+		return null;
+	}
+}

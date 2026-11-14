@@ -1,0 +1,87 @@
+<DemoSection Id="basic-meter" Title="Basic meter" Description="A measured amount in a range, like disk use, with colored zones if you want them.">
+	<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		<MokaMeter Value="72" Label="Disk Usage"/>
+		<MokaMeter Value="35" Label="CPU Load" Color="MokaColor.Info"/>
+		<MokaMeter Value="90" Label="Memory" Color="MokaColor.Warning"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="without-value-display" Title="Without value display">
+	<div style="max-width: 400px;">
+		<MokaMeter Value="60" Label="Progress" ShowValue="false"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="custom-range" Title="Custom range">
+	<div style="max-width: 400px;">
+		<MokaMeter Value="750" Min="0" Max="1000" Label="Score" Format="F0"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="with-colored-segments" Title="With colored segments">
+	<div style="max-width: 400px;">
+		<MokaMeter Value="65" Label="Performance" Segments="@_meterSegments"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="bullet" Title="Bullet">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
+		@foreach ((string name, double now, double target) in Load)
+		{
+			<MokaMeter Label="@name" Value="now" Target="target" Segments="@Ranges" Figure="@($"{now}%")"/>
+		}
+	</div>
+</DemoSection>
+
+<DemoSection Id="meter-list" Title="Meter list">
+	<div class="moka-meter-rows" style="row-gap: var(--moka-spacing-sm); column-gap: var(--moka-spacing-md);">
+		@foreach ((string name, double used, double size, string unit) in Volumes)
+		{
+			<MokaMeter Layout="MokaMeterLayout.Row" Label="@name" Value="used" Max="size" WarnAt="0.8"
+			           CriticalAt="0.95" Figure="@($"{used} of {size} {unit}")"/>
+		}
+	</div>
+</DemoSection>
+
+<DemoSection Id="meters-in-buttons-in-each-zones-color" Title="Meters in buttons, in each zone's color">
+	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--moka-spacing-sm);">
+		@foreach ((string name, double full, string color) in Zones)
+		{
+			<button type="button" class="showcase-zone" style="@($"--zone: {color}")" @onclick="() => _zone = name"
+			        aria-pressed="@(_zone == name ? "true" : "false")">
+				<span>@name</span>
+				<MokaMeter Value="full" Max="1" ShowValue="false" Size="MokaSize.Sm" ColorValue="var(--zone)"
+				           Figure="@($"{full:P0}")" WarnAt="0.8" WarnText="Getting full" CriticalAt="0.95" CriticalText="Nearly full"/>
+			</button>
+		}
+	</div>
+	<MokaCaption>@(_zone is null ? "Pick a zone" : $"Picked {_zone}")</MokaCaption>
+</DemoSection>
+
+@code {
+	private static readonly MokaMeterSegment[] _meterSegments =
+	[
+		new(0, 33, "var(--moka-color-success)"),
+		new(33, 66, "var(--moka-color-warning)"),
+		new(66, 100, "var(--moka-color-error)")
+	];
+
+	private static readonly (string Name, double Now, double Target)[] Load =
+		[("CPU", 62, 70), ("Memory", 71, 80), ("Disk I/O", 48, 85), ("WAN link", 88, 75)];
+
+	private static readonly MokaMeterSegment[] Ranges = [new(0, 60, ""), new(60, 85, ""), new(85, 100, "")];
+
+	private static readonly (string Name, double Used, double Size, string Unit)[] Volumes =
+		[("System", 41, 64, "GB"), ("Data", 1.2, 2, "TB"), ("Backups", 3.4, 4, "TB"), ("Scratch", 0.2, 1, "TB"), ("Logs", 19.4, 20, "GB")];
+
+	private static readonly (string Name, double Full, string Color)[] Zones =
+		[("Office", 0.42, "var(--moka-label-teal)"), ("Guest", 0.86, "var(--moka-label-violet)"), ("Cameras", 0.97, "var(--moka-label-pink)"), ("Lab", 0.12, "var(--moka-label-lime)")];
+
+	private string _picked = "Nothing picked yet";
+
+	private string? _zone;
+
+	private void Picked(MokaChartPoint point) => _picked = point.ToKey is { } to
+		? $"Flow from {point.SeriesKey} to {to} ({point.SeriesName} to {point.ToName}), {point.ValueText}"
+		: $"Node {point.SeriesKey}, {point.ValueText}";
+}

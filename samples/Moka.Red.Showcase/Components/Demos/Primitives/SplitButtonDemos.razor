@@ -1,0 +1,53 @@
+<DemoSection Id="basic" Title="Basic" Description="A main action with a menu of related ones beside it.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaSplitButton OnClick="() => { }">Save</MokaSplitButton>
+		<MokaSplitButton Color="MokaColor.Success" OnClick="() => { }">Publish</MokaSplitButton>
+		<MokaSplitButton Color="MokaColor.Error" Variant="MokaVariant.Outlined" OnClick="() => { }">Delete</MokaSplitButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="with-dropdown" Title="With dropdown">
+	<MokaSplitButton OnClick="@(() => _splitButtonStatus = "Primary action clicked")">
+		<ChildContent>Save</ChildContent>
+		<DropdownContent>
+			<MokaDropdownItem Text="Save As..." Icon="MokaIcons.Action.Save" OnClick="@(() => _splitButtonStatus = "Save As clicked")"/>
+			<MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.Document" OnClick="@(() => _splitButtonStatus = "Save Draft clicked")"/>
+			<MokaDropdownItem Divider="true"/>
+			<MokaDropdownItem Text="Export" Icon="MokaIcons.Action.Download" OnClick="@(() => _splitButtonStatus = "Export clicked")"/>
+		</DropdownContent>
+	</MokaSplitButton>
+	<p style="margin-top:8px; opacity:0.6; font-size: var(--moka-font-size-sm);">@_splitButtonStatus</p>
+</DemoSection>
+
+<DemoSection Id="busy" Title="Busy">
+	<p class="page-desc">The main action or a menu item runs a two-second save. While it runs both halves keep focus and do nothing, since the menu holds other ways to save.</p>
+	<div>
+		<MokaSplitButton Loading="_splitBusy" LoadingText="Saving" OnClick="@(() => RunSplitAsync("Saved"))">
+			<ChildContent>Save</ChildContent>
+			<DropdownContent>
+				<MokaDropdownItem Text="Save As..." Icon="MokaIcons.Action.Save" OnClick="@(() => RunSplitAsync("Saved as a copy"))"/>
+				<MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.Document" OnClick="@(() => RunSplitAsync("Saved a draft"))"/>
+			</DropdownContent>
+		</MokaSplitButton>
+	</div>
+	<p class="page-desc">@_splitBusyStatus</p>
+</DemoSection>
+
+@code {
+	private string _splitButtonStatus = "Click an action...";
+
+	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
+
+	private bool _splitBusy;
+
+	private string _splitBusyStatus = "Nothing saved yet";
+
+	private async Task RunSplitAsync(string done)
+	{
+		_splitBusy = true;
+		_splitBusyStatus = "Saving...";
+		await Task.Delay(SaveTime);
+		_splitBusy = false;
+		_splitBusyStatus = done;
+	}
+}

@@ -1,0 +1,27 @@
+<DemoSection Id="accordion-single-expand" Title="Accordion (single expand)" Description="Sections that expand and collapse, one at a time or several.">
+	<MokaAccordion style="max-width: 500px;">
+		<MokaAccordionItem Title="Section One" DefaultExpanded>
+			<p>This is the content for section one. Only one item can be expanded at a time in single mode.</p>
+		</MokaAccordionItem>
+		<MokaAccordionItem Title="Section Two" Subtitle="With subtitle">
+			<p>This is the content for section two. Expanding this will collapse section one.</p>
+		</MokaAccordionItem>
+		<MokaAccordionItem Title="Section Three (Disabled)" Disabled>
+			<p>This content is not accessible because the item is disabled.</p>
+		</MokaAccordionItem>
+	</MokaAccordion>
+</DemoSection>
+
+<DemoSection Id="accordion-multiple-expand" Title="Accordion (multiple expand)">
+	<MokaAccordion Multiple style="max-width: 500px;">
+		<MokaAccordionItem Title="First Item">
+			<p>Multiple items can be open simultaneously in this mode.</p>
+		</MokaAccordionItem>
+		<MokaAccordionItem Title="Second Item" DefaultExpanded>
+			<p>This item starts expanded by default.</p>
+		</MokaAccordionItem>
+		<MokaAccordionItem Title="Third Item">
+			<p>Each item toggles independently.</p>
+		</MokaAccordionItem>
+	</MokaAccordion>
+</DemoSection>

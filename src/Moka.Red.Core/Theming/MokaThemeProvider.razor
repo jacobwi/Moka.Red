@@ -15,13 +15,13 @@
 		<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka-flags.css"]"/>
 	}
 	<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka.css"]"/>
-	<style nonce="@Nonce">:root { @_themeStyle @_pageStyle }</style>
+	<style nonce="@Nonce">:root { @_rootStyle @_pageStyle }</style>
 }
 
 <CascadingValue Value="this" Name="@ProviderCascadeName" IsFixed="true">
 	<CascadingValue Value="_themeSource" IsFixed="true">
 		<CascadingValue Value="ActiveTheme">
-			@if (Nonce is not null)
+			@if (Nonce is not null && _themeStyle is not null)
 			{
 				@* With a nonce the tokens for this subtree come from a style element scoped to it: a strict
 				   content security policy blocks the inline style attribute used otherwise. *@

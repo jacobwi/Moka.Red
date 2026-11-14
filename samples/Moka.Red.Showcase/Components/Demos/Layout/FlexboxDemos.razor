@@ -1,0 +1,54 @@
+<DemoSection Id="horizontal-row-of-buttons" Title="Horizontal row of buttons" Description="A flex row or column with gap, alignment and wrapping.">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center">
+		<MokaButton>One</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined">Two</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft">Three</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="vertical-stack" Title="Vertical stack">
+	<MokaFlexbox Gap="MokaSpacingScale.Sm" Style="max-width: 200px;">
+		<MokaButton FullWidth="true">First</MokaButton>
+		<MokaButton FullWidth="true" Variant="MokaVariant.Outlined">Second</MokaButton>
+		<MokaButton FullWidth="true" Variant="MokaVariant.Soft">Third</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="space-between" Title="Space between">
+	<MokaFlexbox Direction="MokaDirection.Row" Justify="MokaJustify.SpaceBetween" Align="MokaAlign.Center" Style="border: 1px solid var(--moka-color-outline-variant); padding: var(--moka-spacing-sm); border-radius: var(--moka-radius-md);">
+		<span>Left</span>
+		<span>Center</span>
+		<span>Right</span>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="centered-content" Title="Centered content">
+	<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Style="height: 80px; border: 1px dashed var(--moka-color-outline-variant); border-radius: var(--moka-radius-md);">
+		<span>Centered vertically and horizontally</span>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="wrapping-tags" Title="Wrapping tags">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Xs" Wrap="true" Style="max-width: 320px;">
+		@foreach (var tag in new[] { "Blazor", "C#", ".NET", "CSS", "HTML", "WebAssembly", "SignalR", "Layout", "Components" })
+		{
+			<span style="padding: var(--moka-spacing-xxs) var(--moka-spacing-sm); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-full); font-size: var(--moka-font-size-xs);">@tag</span>
+		}
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="breakpoints" Title="Breakpoints" Description="A column that turns into a row at 768 px and centres at 1024 px.">
+	<MokaFlexbox Gap="MokaSpacingScale.Sm" Breakpoints="@_flexBreakpoints" Style="border: 1px dashed var(--moka-color-outline-variant); padding: var(--moka-spacing-sm); border-radius: var(--moka-radius-md);">
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Primary">Item 1</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Item 2</MokaButton>
+		<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Success">Item 3</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private static readonly MokaBreakpoint[] _flexBreakpoints =
+	[
+		new() { MinWidth = "768px", Direction = MokaDirection.Row },
+		new() { MinWidth = "1024px", Direction = MokaDirection.Row, Justify = MokaJustify.Center }
+	];
+}

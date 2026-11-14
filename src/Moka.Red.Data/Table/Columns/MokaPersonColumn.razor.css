@@ -1,0 +1,28 @@
+.moka-person-cell {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	max-width: 100%;
+}
+
+.moka-person-cell__text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.moka-person-cell__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-person-cell__detail {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface-variant);
+}

@@ -1,0 +1,110 @@
+<DemoSection Id="basic-list" Title="Basic list" Description="Rows with icons, a second line and content at the end. Clickable rows take the keyboard.">
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Inbox" SecondaryText="5 unread messages" Icon="MokaIcons.Content.Filter"/>
+			<MokaListItem Text="Drafts" SecondaryText="2 drafts" Icon="MokaIcons.File.Document" Divider/>
+			<MokaListItem Text="Sent" Icon="MokaIcons.Navigation.ArrowRight"/>
+			<MokaListItem Text="Trash" Icon="MokaIcons.Action.Delete" Disabled/>
+		</MokaList>
+	</div>
+</DemoSection>
+
+<DemoSection Id="active-end-content" Title="Active + end content">
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Dashboard" Icon="MokaIcons.Navigation.Home" Active/>
+			<MokaListItem Text="Settings" Icon="MokaIcons.Action.Settings" EndIcon="MokaIcons.Navigation.ChevronRight"/>
+			<MokaListItem Text="Profile" Icon="MokaIcons.Toggle.Eye">
+				<EndContent>
+					<MokaAttribute Size="MokaSize.Xs" Color="MokaColor.Success" Variant="MokaVariant.Soft">Online</MokaAttribute>
+				</EndContent>
+			</MokaListItem>
+		</MokaList>
+	</div>
+</DemoSection>
+
+<DemoSection Id="clickable-tab-to-a-row-then-enter-or" Title="Clickable (Tab to a row, then Enter or space)">
+	<div style="width: 320px;">
+		<MokaList Bordered>
+			<MokaListItem Text="Inbox" Icon="MokaIcons.Content.Filter" OnClick="@(() => _lastListClick = "Inbox")"/>
+			<MokaListItem Text="Drafts" Icon="MokaIcons.File.Document" OnClick="@(() => _lastListClick = "Drafts")">
+				<EndContent>
+					@* Stops the button's click reaching the row, for mouse and keyboard alike *@
+					<span @onclick:stopPropagation="true">
+						<MokaButton Size="MokaSize.Xs" Variant="MokaVariant.Text"
+						            OnClick="@(() => _lastListClick = "Drafts: Archive button")">Archive</MokaButton>
+					</span>
+				</EndContent>
+			</MokaListItem>
+			<MokaListItem Text="Trash" Icon="MokaIcons.Action.Delete" Disabled OnClick="@(() => _lastListClick = "Trash")"/>
+		</MokaList>
+	</div>
+	<p>Last activated: <code id="list-last-activated">@(_lastListClick ?? "nothing yet")</code></p>
+</DemoSection>
+
+<DemoSection Id="rows-that-match-a-tree" Title="Rows that match a tree" Description="RowStyle Tree gives list rows a tree's metrics, so a list above a tree reads as one sidebar.">
+	<div style="@Columns">
+		@foreach ((string key, string name, MokaListRowStyle rows) in _sidebars)
+		{
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); max-width: 260px;">
+				<MokaCaption Micro>@name</MokaCaption>
+				<MokaList RowStyle="rows">
+					@foreach ((string text, MokaIconDefinition icon, string? count) in _places)
+					{
+						<MokaListItem Text="@text" Icon="icon" Active="@(text == _place && rows == _activeRows)"
+						              OnClick="() => Pick(text, rows)">
+							<EndContent>
+								@if (count is not null)
+								{
+									<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs); color: var(--moka-color-on-surface-tertiary);">@count</span>
+								}
+							</EndContent>
+						</MokaListItem>
+					}
+				</MokaList>
+				<MokaCaption Micro>Libraries</MokaCaption>
+				<MokaTree>
+					<MokaTreeItem Text="Photos" Icon="MokaIcons.Content.Book">
+						<MokaTreeItem Text="Trip to Oslo" Icon="MokaIcons.File.Folder"/>
+					</MokaTreeItem>
+					<MokaTreeItem Text="Scratch" Icon="MokaIcons.Content.Book"/>
+					<MokaTreeItem Text="Work" Icon="MokaIcons.Content.Book">
+						<MokaTreeItem Text="Contracts" Icon="MokaIcons.File.Folder"/>
+					</MokaTreeItem>
+					<MokaTreeItem Text="Family" Icon="MokaIcons.Content.Book">
+						<MokaTreeItem Text="Recipes" Icon="MokaIcons.File.Folder"/>
+					</MokaTreeItem>
+				</MokaTree>
+			</div>
+		}
+	</div>
+</DemoSection>
+
+@code {
+	private string? _lastListClick;
+
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-grid-gap);";
+
+	private readonly (string Key, string Name, MokaListRowStyle Rows)[] _sidebars =
+	[
+		("sidebar-tree-rows", "RowStyle=\"Tree\"", MokaListRowStyle.Tree)
+	];
+
+	private readonly (string Text, MokaIconDefinition Icon, string? Count)[] _places =
+	[
+		("Recent", MokaIcons.Action.History, "35"),
+		("Starred", MokaIcons.Toggle.Star, "4"),
+		("Shared with me", MokaIcons.Content.Users, null),
+		("Shared by me", MokaIcons.Content.Link, null)
+	];
+
+	private MokaListRowStyle _activeRows = MokaListRowStyle.Tree;
+
+	private string _place = "Recent";
+
+	private void Pick(string place, MokaListRowStyle rows)
+	{
+		_place = place;
+		_activeRows = rows;
+	}
+}

@@ -1,0 +1,35 @@
+@using System.Globalization
+
+<DemoSection Id="basics" Title="Basics">
+	<MokaTreemap Title="@(_drill is null ? "Disk use by folder on nas-01" : $"Inside {_drill.Name}")"
+	             Subtitle="1.62 TB used, colored by top folder" Nodes="@TreeShown" Formatter="Gb"
+	             OnNodeClick="Drill"/>
+	@if (_drill is not null)
+	{
+		<MokaButton Variant="MokaVariant.Text" OnClick="() => _drill = null">Back to every folder</MokaButton>
+	}
+</DemoSection>
+
+@code {
+	private static readonly MokaTreemapNode[] Tree =
+	[
+		new("Media", 0) { Children = [new("Photos", 412) { Children = [new("2024", 180), new("2023", 140), new("Older", 92)] }, new("Videos", 388), new("Music", 64)] },
+		new("Backups", 0) { Children = [new("Laptop", 236), new("Server", 142), new("Phone", 98)] },
+		new("Work", 0) { Children = [new("Projects", 121), new("Mail", 38), new("Documents", 26)] },
+		new("System", 95)
+	];
+
+	private MokaTreemapNode? _drill;
+
+	private IReadOnlyList<MokaTreemapNode> TreeShown => _drill?.Children ?? Tree;
+
+	private void Drill(MokaTreemapNode node)
+	{
+		if (node.Children is { Count: > 0 })
+		{
+			_drill = node;
+		}
+	}
+
+	private static string Gb(double value) => value.ToString("#,0.#", CultureInfo.InvariantCulture) + " GB";
+}

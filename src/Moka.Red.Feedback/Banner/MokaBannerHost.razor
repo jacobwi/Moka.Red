@@ -1,0 +1,44 @@
+@namespace Moka.Red.Feedback.Banner
+@inherits MokaComponentBase
+@using Moka.Red.Core.Announcer
+
+@if (Shown.Count > 0)
+{
+	<section class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text.Region" @attributes="AdditionalAttributes">
+		@foreach (MokaBanner banner in Shown)
+		{
+			string severity = MokaEnumHelpers.ToCssClass(banner.Severity);
+			<div class="@($"moka-banner moka-banner--{severity}")" @key="banner.Id">
+				@if (banner.ShowIcon)
+				{
+					<MokaIcon Icon="IconFor(banner)" Size="MokaSize.Sm" Class="moka-banner__icon"/>
+				}
+				<div class="moka-banner__content">
+					@if (!string.IsNullOrWhiteSpace(banner.Title))
+					{
+						<strong class="moka-banner__title">@banner.Title</strong>
+					}
+					<span class="moka-banner__message">@banner.Message</span>
+					@if (banner.LinkText is not null && UrlValues.SafeHref(banner.Href) is { } href)
+					{
+						<a class="moka-banner__link" href="@href">@banner.LinkText</a>
+					}
+				</div>
+				@if (banner.ActionText is not null && banner.OnAction is not null)
+				{
+					<button type="button" class="moka-banner__action" @onclick="banner.OnAction">@banner.ActionText</button>
+				}
+				@if (banner.Dismissible)
+				{
+					<MokaTooltip Text="@Text.Dismiss" Position="MokaTooltipPosition.BottomEnd">
+						<button type="button" class="moka-banner__close" aria-label="@Text.Dismiss"
+						        @onclick="() => DismissAsync(banner)">
+							<MokaIcon Icon="MokaIcons.Navigation.Close" Size="MokaSize.Sm"/>
+						</button>
+					</MokaTooltip>
+				}
+			</div>
+		}
+	</section>
+}
+<MokaAnnouncerHost/>

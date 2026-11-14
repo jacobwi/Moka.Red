@@ -12,8 +12,8 @@ namespace Moka.Red.Extensions;
 public static class ServiceCollectionExtensions
 {
 	/// <summary>
-	///     Registers all Moka.Red services: theming (cascading value), feedback (toast,
-	///     dialog, notification, command palette), and the context-menu service. This is the
+	///     Registers all Moka.Red services: theming (cascading value), the screen reader announcer, feedback (toast,
+	///     dialog, notification, command palette, banners), and the context-menu service. This is the
 	///     recommended single entry point for consumers installing the <c>Moka.Red</c> meta-package.
 	/// </summary>
 	/// <param name="services">The service collection.</param>
@@ -28,7 +28,10 @@ public static class ServiceCollectionExtensions
 		configure?.Invoke(options);
 		services.AddMokaRedCore(options.Theme);
 
-		// Feedback: toast, dialog, notification, command palette
+		// The announcer: what toasts, banners and the app say to screen readers (a MokaToastHost carries its regions)
+		services.AddMokaAnnouncer();
+
+		// Feedback: toast, dialog, notification, command palette, banners
 		services.AddMokaFeedback();
 
 		// Context menu: shared service-driven menu (needs a MokaContextMenuHost in the layout)

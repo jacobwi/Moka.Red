@@ -1,0 +1,12 @@
+<DemoSection Id="basics" Title="Basics" Description="Bell icon trigger with unread badge and dropdown notification list.">
+	<MokaNotificationBell Notifications="_bellNotifications" UnreadCount="2"/>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<MokaNotificationBellItem> _bellNotifications =
+	[
+		new(Guid.NewGuid(), "Build succeeded", "Pipeline #42 completed.", DateTime.Now.AddMinutes(-5)),
+		new(Guid.NewGuid(), "New comment", "Alice replied to your review.", DateTime.Now.AddMinutes(-15), true),
+		new(Guid.NewGuid(), "Deploy started", "Production deploy in progress.", DateTime.Now.AddHours(-1))
+	];
+}

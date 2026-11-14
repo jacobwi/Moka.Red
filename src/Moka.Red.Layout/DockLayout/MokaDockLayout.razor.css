@@ -1,23 +1,162 @@
+/* The root lays out the side bars around the main area. Panel hosts are its absolutely placed children, drawn over
+   their groups' slots by anchor positioning; isolation keeps their local stacking (gutters 1, maximized group and
+   flyout 2, floating windows from 3) inside the layout, and anchor-scope keeps a nested layout's anchors apart. */
 .moka-dock-layout {
+	--_dock-gutter: var(--moka-border-width);
 	position: relative;
-	overflow: hidden;
-}
-
-/* Scrollable="false" on a MokaDockPanel body or on MokaDockContent. The region clips instead of
-   scrolling and a single child fills it, so a view that scrolls itself (a terminal, an editor)
-   gets a definite size and shows the only scrollbar. Several children stack at their own size;
-   give the one that should fill flex: 1. Written once here because both regions render inside
-   this layout. A collapsed body keeps its hidden attribute, which any display value would beat. */
-.moka-dock-layout ::deep .moka-dock-content--no-scroll,
-.moka-dock-layout ::deep .moka-dock-panel-body--no-scroll:not([hidden]) {
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-}
-
-.moka-dock-layout ::deep .moka-dock-content--no-scroll > :only-child,
-.moka-dock-layout ::deep .moka-dock-panel-body--no-scroll > :only-child {
-	flex: 1 1 auto;
+	display: grid;
+	grid-template:
+		"top top top" auto
+		"left main right" minmax(0, 1fr)
+		"bottom bottom bottom" auto / auto minmax(0, 1fr) auto;
 	min-width: 0;
 	min-height: 0;
+	overflow: hidden;
+	isolation: isolate;
+	anchor-scope: all;
+}
+
+.moka-dock-layout > .moka-dock-layout__hosts {
+	display: contents;
+}
+
+/* The drop indicator: a manual popover in the top layer, filled by the layout's script while a tab or group is
+   dragged. Its children are made by the script, so they carry no scope and are reached with ::deep. */
+.moka-dock-layout > .moka-dock-drop {
+	position: fixed;
+	inset: 0;
+	width: auto;
+	height: auto;
+	max-width: none;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.moka-dock-layout > .moka-dock-drop:not(:popover-open):not([data-moka-open]) {
+	display: none;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__preview {
+	position: fixed;
+	box-sizing: border-box;
+	border: calc(var(--moka-border-width) * 2) solid var(--moka-color-primary);
+	border-radius: var(--moka-radius-md);
+	background: color-mix(in srgb, var(--moka-color-primary) 16%, transparent);
+	opacity: 0;
+	transition: left var(--moka-transition-fast), top var(--moka-transition-fast),
+		width var(--moka-transition-fast), height var(--moka-transition-fast), opacity var(--moka-transition-fast);
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__preview[data-moka-on] {
+	opacity: 1;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__ghost {
+	position: fixed;
+	max-width: 16rem;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-md);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--moka-shadow-popup);
+	font-size: var(--moka-font-size-sm);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass {
+	position: fixed;
+	display: grid;
+	grid-template:
+		". top ." 2.25rem
+		"left center right" 2.25rem
+		". bottom ." 2.25rem / 2.25rem 2.25rem 2.25rem;
+	gap: var(--moka-spacing-xxs);
+	translate: -50% -50%;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__target {
+	box-sizing: border-box;
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__target--edge {
+	position: fixed;
+	width: 2.25rem;
+	height: 2.25rem;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass > .moka-dock-drop__target--top {
+	grid-area: top;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass > .moka-dock-drop__target--left {
+	grid-area: left;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass > .moka-dock-drop__target--center {
+	grid-area: center;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass > .moka-dock-drop__target--right {
+	grid-area: right;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__compass > .moka-dock-drop__target--bottom {
+	grid-area: bottom;
+}
+
+.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__target[data-moka-on] {
+	border-color: var(--moka-color-primary);
+	background: var(--moka-color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__preview {
+		transition: none;
+	}
+}
+
+/* While a preset applies in a view transition, each group's frame and each panel's host is captured on its own and
+   glides from its old box to its new one. match-element names an element by its identity: a host never moves in the
+   page, and a frame Blazor keeps does not either. Where it isn't supported the declaration is dropped and the layout
+   cross-fades. */
+.moka-dock-layout[data-moka-dock-transition] ::deep :is(.moka-dock-group, .moka-dock-host) {
+	view-transition-name: match-element;
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__preview {
+	border-radius: var(--moka-radius-card);
+	background: var(--moka-color-primary-bg);
+}
+
+.moka-gate .moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__ghost,
+.moka-gate .moka-dock-layout > .moka-dock-drop ::deep .moka-dock-drop__target {
+	border-color: var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-popup);
+}
+
+.moka-gate .moka-dock-layout--cards {
+	--_dock-gutter: var(--moka-grid-gap);
+	padding: var(--moka-grid-gap);
+	background: var(--moka-color-background);
+}
+
+.moka-gate .moka-dock-layout--terminal > .moka-dock-drop ::deep .moka-dock-drop__preview,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-drop ::deep .moka-dock-drop__ghost,
+.moka-gate .moka-dock-layout--terminal > .moka-dock-drop ::deep .moka-dock-drop__target {
+	border-radius: 0;
+	font-family: var(--moka-font-family-mono);
 }

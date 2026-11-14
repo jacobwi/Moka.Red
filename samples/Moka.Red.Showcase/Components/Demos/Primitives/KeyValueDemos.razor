@@ -1,0 +1,76 @@
+<DemoSection Id="horizontal-default" Title="Horizontal (default)" Description="A label and its value, side by side or stacked, copyable or cut short.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+		<MokaKeyValue Label="Status" Value="Active"/>
+		<MokaKeyValue Label="Version" Value="0.1.3"/>
+		<MokaKeyValue Label="Environment" Value="Production"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="vertical-orientation" Title="Vertical orientation">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
+		<MokaKeyValue Label="Total Users" Value="12,345" Orientation="MokaDirection.Column"/>
+		<MokaKeyValue Label="Revenue" Value="$54,321" Orientation="MokaDirection.Column"/>
+		<MokaKeyValue Label="Uptime" Value="99.9%" Orientation="MokaDirection.Column"/>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="with-fixed-label-width" Title="With fixed label width">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+		<MokaKeyValue Label="Name" Value="Moka.Red" LabelWidth="120px"/>
+		<MokaKeyValue Label="License" Value="MIT" LabelWidth="120px"/>
+		<MokaKeyValue Label="Framework" Value=".NET 10" LabelWidth="120px"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="copyable" Title="Copyable">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs); max-width: 400px;">
+		<MokaKeyValue Label="API Key" Value="sk-moka-abc123xyz" Copyable/>
+		<MokaKeyValue Label="Endpoint" Value="https://api.moka.red/v1" Copyable/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="truncated" Title="Truncated">
+	<div style="max-width: 350px;">
+		<MokaKeyValue Label="Description" Value="This is a very long value that should be truncated with an ellipsis because it exceeds the container width" Truncate/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="two-columns" Title="Two columns" Description="Look Columns puts labels in a column of their own; Mono draws ids in the mono font.">
+	<div style="@Columns">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaCaption Micro>Look="Columns", ids in Mono</MokaCaption>
+			@foreach ((string label, string value, bool mono) in _account)
+			{
+				<MokaKeyValue Label="@label" Value="@value" Copyable="mono" Look="MokaKeyValueLook.Columns" Mono="mono"/>
+			}
+		</div>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); --moka-kv-label-width: 7rem;">
+			<MokaCaption Micro>A list's label column set once</MokaCaption>
+			@foreach ((string label, string value, bool mono) in _device)
+			{
+				<MokaKeyValue Label="@label" Value="@value" Look="MokaKeyValueLook.Columns" Mono="mono"/>
+			}
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-grid-gap);";
+
+	private readonly (string Label, string Value, bool Mono)[] _account =
+	[
+		("Name", "Avery Quinn", false),
+		("Email", "avery@example.test", false),
+		("Role", "Owner", false),
+		("Devices signed in", "1", true),
+		("Account id", "6b4ffb87be0f51d7ed0215c8b75a7b60", true)
+	];
+
+	private readonly (string Label, string Value, bool Mono)[] _device =
+	[
+		("Name", "Web browser", false),
+		("Device id", "27ba14de32195aa55be5527df777243b", true),
+		("Server", "http://localhost:5391/", true),
+		("Encryption suite", "Standard", false)
+	];
+}

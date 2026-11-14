@@ -1,0 +1,24 @@
+<DemoSection Id="basics" Title="Basics" Description="A text field that suggests matches as you type.">
+	<div class="demo-row" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+		<div style="width: 250px;">
+			<MokaAutoComplete TItem="string"
+			                  @bind-Value="_autoCompleteValue"
+			                  SearchFunc="SearchCountries"
+			                  Label="Country"
+			                  Placeholder="Search countries..."
+			                  HelperText="@($"Selected: {_autoCompleteValue ?? "none"}")"/>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	// Additional form inputs
+	private string? _autoCompleteValue;
+
+	private static readonly string[] _allCountries = ["Argentina", "Australia", "Brazil", "Canada", "China", "France", "Germany", "India", "Japan", "Mexico", "Russia", "United Kingdom", "United States"];
+
+	private Task<IEnumerable<string>> SearchCountries(string query)
+	{
+		return Task.FromResult(_allCountries.Where(c => c.Contains(query, StringComparison.OrdinalIgnoreCase)));
+	}
+}

@@ -1,0 +1,40 @@
+<DemoSection Id="basics" Title="Basics" Description="What to show when there is nothing yet, and what to do about it.">
+	<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+		<div style="width: 280px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-md);">
+			<MokaEmptyState Icon="MokaIcons.Action.Search" Title="No results found"
+			                Description="Try adjusting your search or filter to find what you are looking for.">
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" Color="MokaColor.Primary">Clear Filters</MokaButton>
+			</MokaEmptyState>
+		</div>
+
+		<div style="width: 280px; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-md);">
+			<MokaEmptyState Icon="MokaIcons.Content.Filter" Title="No items yet"
+			                Description="Create your first item to get started.">
+				<MokaButton Size="MokaSize.Sm" Color="MokaColor.Primary" StartIcon="MokaIcons.Action.Add">Add Item</MokaButton>
+			</MokaEmptyState>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="no-orphan-word" Title="No orphan word" Description="TextWrap Pretty or Balance breaks the title and description so neither ends on one word; a browser that doesn't know the style breaks them as usual.">
+	<div style="@Columns">
+		@foreach ((string key, string name, MokaTextWrap wrap) in Wraps)
+		{
+			<div style="max-width: 22rem;">
+				<MokaCaption Micro>@name</MokaCaption>
+				<MokaEmptyState Icon="MokaIcons.File.Folder" Title="Nothing shared with you yet" Framed TextWrap="wrap"
+				                Description="Anything someone shares with you shows up here, and you can open it from any device."/>
+			</div>
+		}
+	</div>
+</DemoSection>
+
+@code {
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
+
+	private static readonly (string Key, string Name, MokaTextWrap Wrap)[] Wraps =
+	[
+		("empty-pretty", "TextWrap=\"Pretty\"", MokaTextWrap.Pretty),
+		("empty-balance", "TextWrap=\"Balance\"", MokaTextWrap.Balance)
+	];
+}

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Forms.Common;
 
 namespace Moka.Red.Forms.SchedulePicker;
 
@@ -11,10 +12,20 @@ namespace Moka.Red.Forms.SchedulePicker;
 /// </summary>
 public partial class MokaSchedulePicker : MokaVisualComponentBase
 {
+	// The slots the grid shows, apart from SelectedSlots. A change goes out as a new list, never by editing the list
+	// the parent passed, which threw on an array and left a parent that kept its list unable to put it back.
+	private readonly MokaInputValue<IList<MokaTimeSlot>> _slots;
 	private bool _dragSelectMode;
 	private bool _isDragging;
 
-	/// <summary>Currently selected time slots. Two-way bindable.</summary>
+	/// <summary>Creates the picker. It shows its own slots until the parent passes a list.</summary>
+	public MokaSchedulePicker() => _slots = new MokaInputValue<IList<MokaTimeSlot>>(StateHasChanged,
+		DispatchExceptionAsync, [], MokaSequenceComparer<MokaTimeSlot>.Default);
+
+	/// <summary>
+	///     Currently selected time slots. Two-way bindable. A change is reported as a new list; the list passed in is
+	///     never edited.
+	/// </summary>
 	[Parameter]
 	public IList<MokaTimeSlot> SelectedSlots { get; set; } = [];
 
@@ -78,35 +89,36 @@ public partial class MokaSchedulePicker : MokaVisualComponentBase
 		}
 	}
 
+	private IList<MokaTimeSlot> Slots => _slots.Shown ?? [];
+
 	/// <summary>Has internal drag state.</summary>
 	protected override bool ShouldRender() => true;
 
-	private bool IsSelected(DayOfWeek day, int hour, int minute) =>
-		SelectedSlots.Any(s => s.Day == day && s.StartHour == hour && s.StartMinute == minute);
-
-	private async Task ToggleSlot(DayOfWeek day, int hour, int minute)
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		if (ReadOnly)
-		{
-			return;
-		}
-
-		MokaTimeSlot? existing = SelectedSlots.FirstOrDefault(s =>
-			s.Day == day && s.StartHour == hour && s.StartMinute == minute);
-
-		if (existing is not null)
-		{
-			SelectedSlots.Remove(existing);
-		}
-		else
-		{
-			SelectedSlots.Add(new MokaTimeSlot(day, hour, minute, SlotDuration));
-		}
-
-		await SelectedSlotsChanged.InvokeAsync(SelectedSlots);
+		_slots.Take(parameters, nameof(SelectedSlots));
+		return base.SetParametersAsync(parameters);
 	}
 
-	private async Task HandleMouseDown(DayOfWeek day, int hour, int minute)
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_slots.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_slots.Stop();
+		return base.DisposeAsyncCore();
+	}
+
+	private bool IsSelected(DayOfWeek day, int hour, int minute) =>
+		Slots.Any(s => s.Day == day && s.StartHour == hour && s.StartMinute == minute);
+
+	private void HandleMouseDown(DayOfWeek day, int hour, int minute)
 	{
 		if (ReadOnly)
 		{
@@ -115,7 +127,7 @@ public partial class MokaSchedulePicker : MokaVisualComponentBase
 
 		_isDragging = true;
 		_dragSelectMode = !IsSelected(day, hour, minute);
-		await ApplyDrag(day, hour, minute);
+		ApplyDrag(day, hour, minute);
 	}
 
 	// Only a drag uses these. A default EventCallback renders no listener, and a week of half hours is 336 slots
@@ -130,23 +142,21 @@ public partial class MokaSchedulePicker : MokaVisualComponentBase
 
 	private void HandleMouseUp() => _isDragging = false;
 
-	private async Task ApplyDrag(DayOfWeek day, int hour, int minute)
+	private void ApplyDrag(DayOfWeek day, int hour, int minute)
 	{
 		bool isSelected = IsSelected(day, hour, minute);
 
 		if (_dragSelectMode && !isSelected)
 		{
-			SelectedSlots.Add(new MokaTimeSlot(day, hour, minute, SlotDuration));
-			await SelectedSlotsChanged.InvokeAsync(SelectedSlots);
+			_slots.Pick([.. Slots, new MokaTimeSlot(day, hour, minute, SlotDuration)], SelectedSlotsChanged);
 		}
 		else if (!_dragSelectMode && isSelected)
 		{
-			MokaTimeSlot existing = SelectedSlots.First(s =>
-				s.Day == day && s.StartHour == hour && s.StartMinute == minute);
-			SelectedSlots.Remove(existing);
-			await SelectedSlotsChanged.InvokeAsync(SelectedSlots);
+			_slots.Pick([.. Slots.Where(s => s.Day != day || s.StartHour != hour || s.StartMinute != minute)],
+				SelectedSlotsChanged);
 		}
 	}
+
 
 	private static string FormatTime(int hour, int minute) =>
 		$"{hour:D2}:{minute:D2}";

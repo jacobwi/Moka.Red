@@ -78,7 +78,15 @@ public class InvariantNumberTests : BunitContext
 		{
 			List<MokaFormField> fields =
 				[new() { Label = "Temperature", Type = MokaFormFieldType.NumericField, Min = -5, Max = 40 }];
-			IRenderedComponent<MokaFormBuilder> cut = Render<MokaFormBuilder>(p => p.Add(x => x.Fields, fields));
+			IList<MokaFormField>? reported = null;
+			IRenderedComponent<MokaFormBuilder>? cut = null;
+			cut = Render<MokaFormBuilder>(p => p
+				.Add(x => x.Fields, fields)
+				.Add(x => x.FieldsChanged, EventCallback.Factory.Create<IList<MokaFormField>>(this, list =>
+				{
+					reported = list;
+					cut!.Render(q => q.Add(x => x.Fields, list));
+				})));
 			await cut.Find(".moka-form-builder__field-item").ClickAsync(new MouseEventArgs());
 
 			Assert.Equal("-5", Property(cut, "Min").GetAttribute("value"));
@@ -86,7 +94,9 @@ public class InvariantNumberTests : BunitContext
 			// The browser sends a number input's value in the invariant culture.
 			await Property(cut, "Min").ChangeAsync(new ChangeEventArgs { Value = "-12" });
 
-			Assert.Equal(-12, fields[0].Min);
+			// The edit comes back as a new field; the parent's own is left as it was.
+			Assert.Equal(-12, Assert.Single(reported!).Min);
+			Assert.Equal(-5, fields[0].Min);
 			Assert.Equal("-12", Property(cut, "Min").GetAttribute("value"));
 		}
 		finally

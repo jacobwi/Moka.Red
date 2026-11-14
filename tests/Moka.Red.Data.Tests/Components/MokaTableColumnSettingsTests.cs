@@ -46,12 +46,14 @@ public class MokaTableColumnSettingsTests : BunitContext
 	[Fact]
 	public void UnchangedColumns_CostNoSecondRender()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = RenderTable(columns: [NameWithTemplate(), Team]);
-		int renders = cut.RenderCount;
+		IRenderedComponent<CountingTable> cut = Render<CountingTable>(p => p
+			.Add(t => t.Items, People)
+			.Add(t => t.ChildContent, Columns(NameWithTemplate(), Team)));
+		int renders = cut.Instance.Renders;
 
 		cut.Render(p => p.Add(t => t.ChildContent, Columns(NameWithTemplate(), Team)));
 
-		Assert.Equal(renders + 1, cut.RenderCount);
+		Assert.Equal(renders + 1, cut.Instance.Renders);
 	}
 
 	// Sorts and filters name a column by its title, so a renamed column lost both: the filter went on
@@ -60,7 +62,7 @@ public class MokaTableColumnSettingsTests : BunitContext
 	public async Task RenamedColumn_KeepsItsFilterAndSort()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.ShowFilters, true),
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
 			[Name, Team with { Filterable = true }, Age]);
 		await cut.Find("input[aria-label='Filter by Team']").InputAsync(new ChangeEventArgs { Value = "Research" });
 		cut.WaitForAssertion(() => Assert.Equal(2, DataRows(cut).Count), Debounce);
@@ -79,7 +81,7 @@ public class MokaTableColumnSettingsTests : BunitContext
 	public async Task ColumnMadeUnfilterable_DropsItsFilter()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = RenderTable(
-			p => p.Add(t => t.ShowFilters, true),
+			p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row),
 			[Name, Team with { Filterable = true }]);
 		await cut.Find("input[aria-label='Filter by Team']").InputAsync(new ChangeEventArgs { Value = "Research" });
 		cut.WaitForAssertion(() => Assert.Equal(2, DataRows(cut).Count), Debounce);

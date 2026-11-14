@@ -37,7 +37,7 @@
 
 				@pill
 
-				@if (HasChildren)
+				@if (HasChildren && !ShowsLinkRow)
 				{
 					<span class="@ChevronClass">
 						<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="16px"/>
@@ -57,21 +57,54 @@
 		</span>;
 
 	// MokaMenu is site navigation, so its items are links and buttons, and a parent is a disclosure
-	// button. The ARIA menu roles would hide the links from screen readers and take Tab away.
+	// button. The ARIA menu roles would hide the links from screen readers and take Tab away. A parent that is also a page
+	// is a link with a disclosure button beside it, as in WAI-ARIA's disclosure navigation with top-level links: two
+	// controls side by side, since a link can't hold a button.
 	RenderFragment item;
-	if (HasChildren)
+	if (ShowsLinkRow)
+	{
+		item =
+			@<div class="moka-menu-item__row">
+				<a class="@CssClass" style="@CssStyle" id="@Id"
+				   href="@(Disabled ? null : LinkHref)"
+				   role="@(Disabled ? "link" : null)"
+				   aria-disabled="@(Disabled ? "true" : null)"
+				   aria-current="@(IsActive ? "page" : null)"
+				   @attributes="AdditionalAttributes"
+				   @onclick="HandleGroupLinkClick"
+				   @onclick:preventDefault="ClickStaysHere"
+				   @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
+				   @oncontextmenu="HandleContextMenu">
+					@itemContent
+				</a>
+				<MokaTooltip Text="@ToggleLabel" Position="MokaTooltipPosition.Right" Class="moka-menu-item__toggle-tip">
+					<button type="button" class="moka-menu-item__toggle" disabled="@Disabled"
+					        aria-expanded="@(_expanded ? "true" : "false")"
+					        aria-controls="@SubmenuId"
+					        aria-label="@ToggleLabel"
+					        @onclick="HandleToggleClick">
+						<span class="@ChevronClass">
+							<MokaIcon Icon="MokaIcons.Navigation.ChevronDown" SizeValue="16px"/>
+						</span>
+					</button>
+				</MokaTooltip>
+			</div>;
+	}
+	else if (HasChildren)
 	{
 		item =
 			@<button type="button" class="@CssClass" style="@CssStyle" id="@Id"
 			         disabled="@Disabled"
-			         aria-expanded="@(_expanded ? "true" : "false")"
+			         aria-expanded="@(GroupShown ? "true" : "false")"
 			         aria-controls="@SubmenuId"
 			         aria-current="@(IsActive ? "true" : null)"
 			         aria-label="@CollapsedLabel"
 			         @attributes="AdditionalAttributes"
 			         @onclick="HandleClick"
+			         @onkeydown:stopPropagation="_flyoutOpen"
 			         @oncontextmenu:preventDefault="OnContextMenu.HasDelegate"
-			         @oncontextmenu="HandleContextMenu">
+			         @oncontextmenu="HandleContextMenu"
+			         @ref="_button">
 				@itemContent
 			</button>;
 	}
@@ -118,10 +151,12 @@
 	}
 }
 
-@* A menu showing only icons is a column, so the name opens beside it, on the side that has room. *@
+@* A menu showing only icons is a column, so the name opens beside it, on the side that has room. The tag gives way to
+   an open flyout, which names the group itself. *@
 @if (TagLabel is not null)
 {
-	<MokaTooltip Text="@TagLabel" Content="tag" Position="MokaTooltipPosition.Right" Delay="TagDelay" Class="moka-menu-item-tooltip">
+	<MokaTooltip Text="@(_flyoutOpen ? null : TagLabel)" Content="@(_flyoutOpen ? null : tag)" Position="MokaTooltipPosition.Right"
+	             Delay="TagDelay" Class="moka-menu-item-tooltip">
 		@item
 	</MokaTooltip>
 }
@@ -132,11 +167,33 @@ else
 
 @if (HasChildren)
 {
-	@* inert keeps the links of a collapsed group out of the tab order and away from screen
-	   readers. The group stays rendered so it can animate open. *@
-	<div class="@SubmenuClass" id="@SubmenuId" inert="@(!_expanded)">
-		<CascadingValue Value="@(ResolvedIndent + 1)" Name="MenuIndent">
-			@ChildContent
-		</CascadingValue>
+	@* inert keeps the links of a closed group out of the tab order and away from screen readers. The group stays rendered
+	   so it can animate open, and on the rail it's the flyout, shown in the top layer by the menu's script. The clip is
+	   what the grid row shrinks. *@
+	<div class="@SubmenuClass" id="@SubmenuId" inert="@(!GroupShown)"
+	     popover="@(_flyoutOpen ? "manual" : null)" data-moka-popup="@_flyoutOpen" tabindex="@(_flyoutOpen ? "-1" : null)"
+	     @onkeydown:stopPropagation="_flyoutOpen" @ref="_submenu">
+		<div class="moka-menu-item__submenu-clip">
+			@if (OnRail && IsLink)
+			{
+				@* The parent's icon only opens its flyout on the rail, so its own page is the flyout's first link. Only there,
+				   so the page isn't marked current twice while the link beside the arrow shows. *@
+				<a class="moka-menu-item__flyout-title moka-menu-item__flyout-link" href="@LinkHref"
+				   aria-current="@(IsActive ? "page" : null)" @onclick="HandleFlyoutLinkClick">@Text</a>
+			}
+			else if (CanFlyout && !IsLink)
+			{
+				<span class="moka-menu-item__flyout-title" aria-hidden="true">@Text</span>
+			}
+			<CascadingValue Value="this" IsFixed="true">
+				<CascadingValue Value="false" Name="MenuCollapsed" IsFixed="true">
+					<CascadingValue Value="false" Name="MenuAdaptive" IsFixed="true">
+						<CascadingValue Value="ChildIndent" Name="MenuIndent">
+							@ChildContent
+						</CascadingValue>
+					</CascadingValue>
+				</CascadingValue>
+			</CascadingValue>
+		</div>
 	</div>
 }

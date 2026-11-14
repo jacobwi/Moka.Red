@@ -1,0 +1,18 @@
+<DemoSection Id="basics" Title="Basics" Component="DiagnosticComponentBase">
+	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface); margin-bottom: var(--moka-spacing-md);">
+		These counters extend <code>DiagnosticComponentBase</code>. Click buttons to generate render data,
+		then open the Diagnostics panel (M badge or Ctrl+Shift+D) and check the <strong>Render</strong> and <strong>Perf</strong> tabs.
+	</p>
+	<div class="button-row">
+		<DiagDemoCounter Label="Counter A"/>
+		<DiagDemoCounter Label="Counter B"/>
+		<DiagDemoCounter Label="Counter C"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="full-window" Title="Full window" Component="MokaDiagnosticsPage">
+	<p style="font-size: var(--moka-font-size-sm); color: var(--moka-color-on-surface); margin-bottom: var(--moka-spacing-md);">
+		The same panels on a page of their own at <code>/moka-diagnostics</code>, for a second screen. It opens in a new tab so this one stays where it is.
+	</p>
+	<MokaButton Href="moka-diagnostics" Target="_blank" Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Content.ExternalLink">Open the diagnostics window</MokaButton>
+</DemoSection>

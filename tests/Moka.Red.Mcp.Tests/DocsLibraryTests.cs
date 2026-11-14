@@ -5,12 +5,68 @@ public sealed class DocsLibraryTests
 	private static readonly DocsLibrary Docs = new();
 
 	[Fact]
-	public void EmbedsEveryComponentPage()
+	public void EmbedsEveryComponentAndLayoutPage()
 	{
-		string folder = Path.Combine(RepositoryRoot(), "docs", "docs", "components");
-		string[] expected = [.. Directory.GetFiles(folder, "*.md").Select(file => Path.GetFileNameWithoutExtension(file)).Order(StringComparer.Ordinal)];
+		string docs = Path.Combine(Repository.Root(), "docs", "docs");
+		string[] expected =
+		[
+			.. ((string[])["components", "layout"])
+				.SelectMany(folder => Directory.GetFiles(Path.Combine(docs, folder), "*.md"))
+				.Select(file => Path.GetFileNameWithoutExtension(file))
+				.Order(StringComparer.Ordinal)
+		];
 
 		Assert.Equal(expected, Docs.ComponentPages.Select(page => page.Slug).Order(StringComparer.Ordinal));
+	}
+
+	[Theory]
+	[InlineData("table-columns")]
+	[InlineData("table-filters")]
+	[InlineData("table-editing")]
+	[InlineData("table-export")]
+	[InlineData("theme-studio")]
+	[InlineData("banner")]
+	[InlineData("announcer")]
+	[InlineData("system-notifications")]
+	[InlineData("dock-layout")]
+	[InlineData("dock-layout-state")]
+	public void ThePagesNewIn060_AreFoundByName(string slug) =>
+		Assert.Equal(slug, Docs.Find(slug)?.Slug);
+
+	[Theory]
+	[InlineData("MokaThemeStudio", "theme-studio")]
+	[InlineData("MokaBannerHost", "banner")]
+	[InlineData("MokaAnnouncerHost", "announcer")]
+	[InlineData("MokaDockLayout", "dock-layout")]
+	[InlineData("MokaTable", "table")]
+	public void TheNewComponents_PointAtTheirPages(string component, string slug) =>
+		Assert.Equal(slug, Docs.ForComponent(component)?.Slug);
+
+	// MokaAnnouncerHost is named after the announcer page's MokaAnnouncer; MokaStatistics isn't named after MokaStat.
+	[Fact]
+	public void AComponentNamedAfterAPagesOwn_BelongsOnItsPage_AtAWordBoundary()
+	{
+		Assert.Equal("announcer", Docs.ForComponent("MokaAnnouncerHost")?.Slug);
+		Assert.Equal("stat", Docs.ForComponent("MokaStat")?.Slug);
+		Assert.Null(Docs.ForComponent("MokaStatistics"));
+	}
+
+	[Fact]
+	public void ARowNamingSeveralParameters_DescribesEachOfThem()
+	{
+		Assert.NotNull(Docs.Parameter("MokaBottomSheet", "Margin"));
+		Assert.NotNull(Docs.Parameter("MokaBottomSheet", "MarginValue"));
+		Assert.NotNull(Docs.Parameter("MokaFileBrowser", "Folder"));
+		Assert.Null(Docs.Parameter("MokaFileBrowser", "@bind-Folder"));
+	}
+
+	[Fact]
+	public void TheTablesParameters_NameNoRemovedOne()
+	{
+		foreach (string removed in (string[])["OnCellEdit", "ShowFilters", "Layout"])
+		{
+			Assert.Null(Docs.Parameter("MokaTable", removed));
+		}
 	}
 
 	[Fact]
@@ -68,18 +124,5 @@ public sealed class DocsLibraryTests
 		Assert.Contains("## not a heading", usage, StringComparison.Ordinal);
 		Assert.Contains("### Detail", usage, StringComparison.Ordinal);
 		Assert.DoesNotContain("## Other", usage, StringComparison.Ordinal);
-	}
-
-	private static string RepositoryRoot()
-	{
-		for (DirectoryInfo? folder = new(AppContext.BaseDirectory); folder is not null; folder = folder.Parent)
-		{
-			if (File.Exists(Path.Combine(folder.FullName, "Moka.Red.slnx")))
-			{
-				return folder.FullName;
-			}
-		}
-
-		throw new InvalidOperationException("Moka.Red.slnx not found above the test output.");
 	}
 }

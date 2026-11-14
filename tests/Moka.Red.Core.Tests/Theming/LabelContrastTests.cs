@@ -1,13 +1,13 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
 
 // Every label color, in every tone, on every preset: ink reads 4.5:1 on its tint, and a dot shows 3:1 on the page. The
-// tint is a color-mix over the theme's surface, so it is worked out here the way a browser mixes in srgb. The math is
-// written again on purpose, apart from the library's.
+// tint is a color-mix over the theme's surface, so it is worked out here the way a browser mixes in srgb.
 public sealed partial class LabelContrastTests
 {
 	private const double Text = 4.5;
@@ -94,12 +94,7 @@ public sealed partial class LabelContrastTests
 		Assert.True(match.Success, $"{mix} is not a tint over the surface.");
 
 		double weight = double.Parse(match.Groups["weight"].Value, CultureInfo.InvariantCulture) / 100;
-		(double r, double g, double b) = Channels(match.Groups["color"].Value);
-		(double sr, double sg, double sb) = Channels(surface);
-
-		static int Blend(double a, double z, double w) => (int)Math.Round((a * w) + (z * (1 - w)));
-		return string.Create(CultureInfo.InvariantCulture,
-			$"#{Blend(r, sr, weight):X2}{Blend(g, sg, weight):X2}{Blend(b, sb, weight):X2}");
+		return MokaColorMix.InSrgb(Color(match.Groups["color"].Value), Color(surface), weight).ToHex(uppercase: true);
 	}
 
 	private static void AtLeast(double target, string what, string a, string b)
@@ -108,31 +103,12 @@ public sealed partial class LabelContrastTests
 		Assert.True(contrast >= target, $"{what}: {a} on {b} is {contrast:0.00}, needs {target}.");
 	}
 
-	private static double Contrast(string a, string b)
-	{
-		(double la, double lb) = (Luminance(a), Luminance(b));
-		return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
-	}
+	private static double Contrast(string a, string b) => MokaContrast.Ratio(Color(a), Color(b));
 
-	private static double Luminance(string hex)
-	{
-		(double r, double g, double b) = Channels(hex);
-
-		static double Linear(double value)
-		{
-			double c = value / 255.0;
-			return c <= 0.03928 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-		}
-
-		return (0.2126 * Linear(r)) + (0.7152 * Linear(g)) + (0.0722 * Linear(b));
-	}
-
-	private static (double R, double G, double B) Channels(string hex)
+	private static MokaSrgb Color(string hex)
 	{
 		Assert.Matches("^#[0-9A-Fa-f]{6}$", hex);
-
-		double Channel(int i) => int.Parse(hex.AsSpan(1 + (i * 2), 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-		return (Channel(0), Channel(1), Channel(2));
+		return MokaCssColor.Parse(hex);
 	}
 
 	[GeneratedRegex(@"^color-mix\(in srgb, (?<color>#[0-9A-Fa-f]{6}) (?<weight>\d+)%, var\(--moka-color-surface\)\)$")]

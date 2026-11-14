@@ -62,7 +62,7 @@ Put the sidebar and the page in a flex row. The sidebar fills the row's height, 
 
 ## Mini Mode
 
-The sidebar has no collapse button of its own. Put one in the header and set `Collapsed` on both the sidebar and the menu, so the menu hides its text too.
+The sidebar has no collapse button of its own. Put one in the header and set `Collapsed` on both the sidebar and the menu, so the menu hides its text too. In the collapsed menu a group opens beside its icon as a flyout (see [Groups on the Rail](navigation.md#groups-on-the-rail)).
 
 ```blazor-preview
 <div style="display:flex;width:100%;height:260px;border:1px solid var(--moka-color-outline-variant);border-radius:var(--moka-radius-md);overflow:hidden">

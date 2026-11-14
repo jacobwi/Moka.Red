@@ -1,0 +1,60 @@
+<DemoSection Id="drill-down-picker" Title="Drill-down picker" Description="A path picked one level at a time.">
+	<div style="max-width: 350px;">
+		<MokaCascader @bind-Value="_cascaderPath" Options="_cascaderOptions" Label="Location"
+		              Placeholder="Pick a location..." Clearable="true"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
+			Path: @(_cascaderPath.Count > 0 ? string.Join(" / ", _cascaderPath) : "none")
+		</MokaText>
+	</div>
+</DemoSection>
+
+<DemoSection Id="choose-as-you-go" Title="Choose as you go">
+	<div style="max-width: 350px;">
+		<MokaCascader @bind-Value="_cascaderPathEarly" Options="_cascaderOptions"
+		              ChangeOnSelect="true" Placeholder="Any level selects..."/>
+	</div>
+</DemoSection>
+
+@code {
+	private IReadOnlyList<string> _cascaderPath = [];
+
+	private IReadOnlyList<string> _cascaderPathEarly = [];
+
+	private static readonly MokaCascaderOption[] _cascaderOptions =
+	[
+		new()
+		{
+			Value = "cz", Label = "Czechia",
+			Children =
+			[
+				new()
+				{
+					Value = "prague", Label = "Prague",
+					Children =
+					[
+						new MokaCascaderOption { Value = "old-town", Label = "Old Town" },
+						new MokaCascaderOption { Value = "vinohrady", Label = "Vinohrady" }
+					]
+				},
+				new()
+				{
+					Value = "brno", Label = "Brno",
+					Children = [new MokaCascaderOption { Value = "veveri", Label = "Veveří" }]
+				}
+			]
+		},
+		new()
+		{
+			Value = "de", Label = "Germany",
+			Children =
+			[
+				new()
+				{
+					Value = "berlin", Label = "Berlin",
+					Children = [new MokaCascaderOption { Value = "mitte", Label = "Mitte" }]
+				},
+				new MokaCascaderOption { Value = "locked", Label = "Classified", Disabled = true }
+			]
+		}
+	];
+}

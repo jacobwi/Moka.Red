@@ -1,0 +1,9 @@
+<DemoSection Id="basics" Title="Basics" Description="Page links for a long list, on their own.">
+	<MokaPagination TotalItems="247" PageSize="10" CurrentPage="_demoPaginationPage"
+	                CurrentPageChanged="p => _demoPaginationPage = p"/>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: var(--moka-spacing-xs);">Current page: @_demoPaginationPage</p>
+</DemoSection>
+
+@code {
+	private int _demoPaginationPage = 1;
+}

@@ -10,21 +10,30 @@ namespace Moka.Red.Forms.CreditCard;
 public partial class MokaCreditCardInput : MokaVisualComponentBase
 {
 	private readonly string _labelId = $"moka-creditcard-{Guid.NewGuid():N}-label";
-	private string _cardholderName = "";
-	private string _cardNumber = "";
+
+	// What each box shows, apart from its parameter, each owned by a parent that passes it and listens: typing shows
+	// before the parent answers, and a parent that doesn't own a field can't wipe it by rendering again.
+	private readonly MokaInputValue<string> _name;
+	private readonly MokaInputValue<string> _number;
+	private readonly MokaInputValue<string> _expiry;
+	private readonly MokaInputValue<string> _cvv;
 	private string _cardType = "unknown";
-	private string _cvv = "";
+	private bool _numberTaken;
 
 	// What a box renders for one pass after its handler dropped characters (see RenderRawOnceAsync).
 	// Null the rest of the time.
 	private string? _cvvEcho;
-	private string _expiryDate = "";
 	private string? _expiryEcho;
-	private string? _lastCardholderName;
-	private string? _lastCardNumber;
-	private string? _lastCvv;
-	private string? _lastExpiryDate;
 	private string? _numberEcho;
+
+	/// <summary>Creates the input. Each field shows its own text until the parent passes a value for it.</summary>
+	public MokaCreditCardInput()
+	{
+		_number = Field();
+		_expiry = Field();
+		_cvv = Field();
+		_name = Field();
+	}
 
 	/// <summary>Card number, auto-formatted with spaces (e.g., 4242 4242 4242 4242).</summary>
 	[Parameter]
@@ -148,7 +157,7 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	{
 		get
 		{
-			string digits = StripNonDigits(_cardNumber);
+			string digits = StripNonDigits(ShownNumber);
 			if (digits.Length == 0)
 			{
 				return "**** **** **** ****";
@@ -160,11 +169,19 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		}
 	}
 
-	private string NumberInputValue => _numberEcho ?? _cardNumber;
+	private string ShownNumber => _number.Shown ?? "";
 
-	private string ExpiryInputValue => _expiryEcho ?? _expiryDate;
+	private string ShownExpiry => _expiry.Shown ?? "";
 
-	private string CvvInputValue => _cvvEcho ?? _cvv;
+	private string ShownCvv => _cvv.Shown ?? "";
+
+	private string ShownName => _name.Shown ?? "";
+
+	private string NumberInputValue => _numberEcho ?? ShownNumber;
+
+	private string ExpiryInputValue => _expiryEcho ?? ShownExpiry;
+
+	private string CvvInputValue => _cvvEcho ?? ShownCvv;
 
 	private string? GroupLabelledBy => Label is null ? null : _labelId;
 
@@ -183,38 +200,56 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_numberTaken |= _number.Take(parameters, nameof(CardNumber));
+		_expiry.Take(parameters, nameof(ExpiryDate));
+		_cvv.Take(parameters, nameof(Cvv));
+		_name.Take(parameters, nameof(CardholderName));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
-		// Each field only takes the parent's value when the parent passes a new one. Copying them on
-		// every parent render wiped what the user had typed into unbound fields.
-		if (!string.Equals(_lastCardNumber, CardNumber, StringComparison.Ordinal))
+		// The type only came from typing before, so a number set by the parent showed no brand.
+		if (_numberTaken)
 		{
-			_lastCardNumber = CardNumber;
-			_cardNumber = CardNumber ?? "";
-
-			// The type only came from typing before, so a number set by the parent showed no brand.
-			_cardType = DetectCardType(StripNonDigits(_cardNumber));
+			_numberTaken = false;
+			_cardType = DetectCardType(StripNonDigits(ShownNumber));
 		}
+	}
 
-		if (!string.Equals(_lastExpiryDate, ExpiryDate, StringComparison.Ordinal))
-		{
-			_lastExpiryDate = ExpiryDate;
-			_expiryDate = ExpiryDate ?? "";
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_number.AfterRender();
+		_expiry.AfterRender();
+		_cvv.AfterRender();
+		_name.AfterRender();
+	}
 
-		if (!string.Equals(_lastCvv, Cvv, StringComparison.Ordinal))
-		{
-			_lastCvv = Cvv;
-			_cvv = Cvv ?? "";
-		}
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_number.Stop();
+		_expiry.Stop();
+		_cvv.Stop();
+		_name.Stop();
+		return base.DisposeAsyncCore();
+	}
 
-		if (!string.Equals(_lastCardholderName, CardholderName, StringComparison.Ordinal))
-		{
-			_lastCardholderName = CardholderName;
-			_cardholderName = CardholderName ?? "";
-		}
+	private MokaInputValue<string> Field() =>
+		new(ShowParentValue, DispatchExceptionAsync, "");
+
+	// A number the parent didn't take goes back with the brand it had.
+	private void ShowParentValue()
+	{
+		_cardType = DetectCardType(StripNonDigits(ShownNumber));
+		StateHasChanged();
 	}
 
 	private static string StripNonDigits(string? input)
@@ -356,7 +391,7 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		}
 
 		string formatted = FormatCardNumber(digits, cardType);
-		if (formatted != raw && formatted == _cardNumber)
+		if (formatted != raw && formatted == ShownNumber)
 		{
 			_numberEcho = raw;
 			if (!await RenderRawOnceAsync(() => _numberEcho == raw))
@@ -369,7 +404,10 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 
 		bool typeChanged = cardType != _cardType;
 		_cardType = cardType;
-		_cardNumber = formatted;
+		if (formatted != ShownNumber)
+		{
+			_number.Pick(formatted, CardNumberChanged);
+		}
 
 		if (typeChanged)
 		{
@@ -379,19 +417,10 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			}
 
 			// An Amex code has four digits, every other brand three.
-			if (_cvv.Length > CvvMaxLength)
+			if (ShownCvv.Length > CvvMaxLength)
 			{
-				_cvv = _cvv[..CvvMaxLength];
-				if (CvvChanged.HasDelegate)
-				{
-					await CvvChanged.InvokeAsync(_cvv);
-				}
+				_cvv.Pick(ShownCvv[..CvvMaxLength], CvvChanged);
 			}
-		}
-
-		if (CardNumberChanged.HasDelegate)
-		{
-			await CardNumberChanged.InvokeAsync(formatted);
 		}
 	}
 
@@ -416,7 +445,7 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			formatted += "/";
 		}
 
-		if (formatted != raw && formatted == _expiryDate)
+		if (formatted != raw && formatted == ShownExpiry)
 		{
 			_expiryEcho = raw;
 			if (!await RenderRawOnceAsync(() => _expiryEcho == raw))
@@ -427,10 +456,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			_expiryEcho = null;
 		}
 
-		_expiryDate = formatted;
-		if (ExpiryDateChanged.HasDelegate)
+		if (formatted != ShownExpiry)
 		{
-			await ExpiryDateChanged.InvokeAsync(formatted);
+			_expiry.Pick(formatted, ExpiryDateChanged);
 		}
 	}
 
@@ -444,7 +472,7 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			digits = digits[..CvvMaxLength];
 		}
 
-		if (digits != raw && digits == _cvv)
+		if (digits != raw && digits == ShownCvv)
 		{
 			_cvvEcho = raw;
 			if (!await RenderRawOnceAsync(() => _cvvEcho == raw))
@@ -455,10 +483,9 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 			_cvvEcho = null;
 		}
 
-		_cvv = digits;
-		if (CvvChanged.HasDelegate)
+		if (digits != ShownCvv)
 		{
-			await CvvChanged.InvokeAsync(digits);
+			_cvv.Pick(digits, CvvChanged);
 		}
 	}
 
@@ -473,13 +500,6 @@ public partial class MokaCreditCardInput : MokaVisualComponentBase
 		return stillLatest();
 	}
 
-	private async Task HandleNameInput(string? typed)
-	{
-		string value = typed ?? "";
-		_cardholderName = value;
-		if (CardholderNameChanged.HasDelegate)
-		{
-			await CardholderNameChanged.InvokeAsync(value);
-		}
-	}
+	private void HandleNameInput(string? typed) => _name.Pick(typed ?? "", CardholderNameChanged);
+
 }

@@ -1,0 +1,25 @@
+.parameter-table {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.parameter-table ::deep .parameter-table__name {
+	margin: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-md);
+}
+
+.parameter-table__param {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+}
+
+.parameter-table__param code {
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-sm);
+	font-weight: var(--moka-font-weight-semibold);
+}

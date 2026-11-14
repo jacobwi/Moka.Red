@@ -1,0 +1,9 @@
+<DemoSection Id="in-a-box-that-scrolls" Title="In a box that scrolls" Description="ScrollContainerSelector watches the element a selector names; the button appears in the window's corner once the box is scrolled past ShowAfter pixels.">
+	<div class="scroll-top-demo moka-thin-scrollbar">
+		@for (int line = 1; line <= 60; line++)
+		{
+			<p>Line @line of the log.</p>
+		}
+	</div>
+	<MokaScrollToTop ScrollContainerSelector=".scroll-top-demo" ShowAfter="120" Label="Back to the first line"/>
+</DemoSection>

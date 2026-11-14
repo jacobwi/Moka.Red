@@ -13,12 +13,12 @@ namespace Moka.Red.Feedback.Internal;
 internal static class MokaFeedbackFormat
 {
 	/// <summary>
-	///     Renders a UTC timestamp as a short relative age ("just now", "5m ago", "3h ago",
-	///     "2d ago"), falling back to an abbreviated date once it is a week old.
+	///     Renders a UTC timestamp as a short relative age ("just now", "5m ago", "3h ago", "2d ago") measured from
+	///     <paramref name="now" /> (UTC), falling back to an abbreviated date once it is a week old.
 	/// </summary>
-	internal static string RelativeTime(DateTime timestamp)
+	internal static string RelativeTime(DateTime timestamp, DateTime now)
 	{
-		TimeSpan diff = DateTime.UtcNow - timestamp;
+		TimeSpan diff = now - timestamp;
 
 		if (diff.TotalMinutes < 1)
 		{

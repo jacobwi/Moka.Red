@@ -115,22 +115,27 @@ internal static class TypeDescriptions
 				: "";
 			string parameters = string.Join(", ", method.GetParameters().Select(parameter => Parameter(parameter, catalog.Nullability)));
 			text.AppendLine(CultureInfo.InvariantCulture,
-				$"- `{(method.IsStatic ? "static " : "")}{TypeNames.Of(method.ReturnType)} {method.Name}{generic}({parameters})`");
+				$"- `{(method.IsStatic ? "static " : "")}{Written(method.ReturnParameter, catalog.Nullability)} {method.Name}{generic}({parameters})`");
 		}
 	}
 
 	private static string Parameter(ParameterInfo parameter, NullabilityInfoContext nullability)
 	{
-		string type = TypeNames.Of(parameter.ParameterType.IsByRef ? parameter.ParameterType.GetElementType()! : parameter.ParameterType);
-		if (!parameter.ParameterType.IsValueType && !parameter.ParameterType.IsGenericParameter
-		                                         && nullability.Create(parameter).ReadState == NullabilityState.Nullable)
+		Type valueType = parameter.ParameterType.IsByRef ? parameter.ParameterType.GetElementType()! : parameter.ParameterType;
+		string passing = !parameter.ParameterType.IsByRef ? ""
+			: parameter.IsOut ? "out "
+			: parameter.IsIn ? "in "
+			: "ref ";
+		if (parameter.IsDefined(typeof(ParamArrayAttribute), false))
 		{
-			type += "?";
+			passing = "params ";
 		}
 
+		// A struct parameter that defaults to default(T), such as a CancellationToken, reports null as its default.
 		string defaultValue = parameter.HasDefaultValue
 			? " = " + parameter.DefaultValue switch
 			{
+				null when valueType.IsValueType && Nullable.GetUnderlyingType(valueType) is null => "default",
 				null => "null",
 				bool flag => flag ? "true" : "false",
 				string value => $"\"{value}\"",
@@ -139,7 +144,22 @@ internal static class TypeDescriptions
 				{ } other => other.ToString()
 			}
 			: "";
-		return $"{type} {parameter.Name}{defaultValue}";
+		return $"{passing}{Written(parameter, nullability)} {parameter.Name}{defaultValue}";
+	}
+
+	// A parameter's or a return value's type with its nullable annotation; an out parameter is annotated for what it writes.
+	private static string Written(ParameterInfo parameter, NullabilityInfoContext nullability)
+	{
+		Type type = parameter.ParameterType.IsByRef ? parameter.ParameterType.GetElementType()! : parameter.ParameterType;
+		string name = TypeNames.Of(type);
+		if (type.IsValueType || type.IsGenericParameter || type == typeof(void))
+		{
+			return name;
+		}
+
+		NullabilityInfo info = nullability.Create(parameter);
+		NullabilityState state = parameter.IsOut ? info.WriteState : info.ReadState;
+		return state == NullabilityState.Nullable ? name + "?" : name;
 	}
 
 	private static string Kind(Type type) => type switch

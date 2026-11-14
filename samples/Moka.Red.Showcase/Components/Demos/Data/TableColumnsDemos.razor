@@ -1,0 +1,183 @@
+@using Moka.Red.Feedback.JobProgress
+@inject IMokaToastService Toast
+
+<DemoSection Id="every-kind" Title="Every kind in one table" Description="Sixteen column kinds, each drawing its values with the library's own components and telling the table what to sort, filter, search and export. Sort any column, search for a name, or export the CSV." Tip="CellTemplate still wins over what a kind draws, and every MokaColumn parameter works on a kind.">
+	<ChildContent>
+		<MokaTable TItem="FileRow" Items="Files" ItemKey="f => f.Id" Title="Files" Searchable Exportable ShowPagination="false">
+			<MokaIconTextColumn TItem="FileRow" Title="File" Text="f => f.Name" Icon="FileIcon" NoWrap/>
+			<MokaPersonColumn TItem="FileRow" Title="Owner" Name="f => f.Owner" Detail="f => f.OwnerEmail" Picture="f => f.OwnerPicture"/>
+			<MokaStatusColumn TItem="FileRow" Title="State" Status="f => f.State" LabelColor="StateLabel"/>
+			<MokaProgressColumn TItem="FileRow" Title="Synced" Value="f => f.Synced" ShowFigure/>
+			<MokaYesNoColumn TItem="FileRow" Title="Shared" Value="f => f.Shared"/>
+			<MokaDateColumn TItem="FileRow" Title="Modified" Value="f => f.Modified" Relative/>
+			<MokaNumberColumn TItem="FileRow" Title="Downloads" Value="f => f.Downloads" Format="N0"/>
+			<MokaMoneyColumn TItem="FileRow" Title="Storage cost" Value="f => f.Cost" Currency="EUR"/>
+			<MokaBytesColumn TItem="FileRow" Title="Size" Value="f => f.Size"/>
+			<MokaLinkColumn TItem="FileRow" Title="Link" Text="f => f.Id" Href="@(f => $"components/table-columns?file={f.Id}")"/>
+			<MokaCopyableColumn TItem="FileRow" Title="Checksum" Value="f => f.Checksum"/>
+			<MokaSparklineColumn TItem="FileRow" Title="Last week" Values="f => f.Week"/>
+			<MokaRatingColumn TItem="FileRow" Title="Rating" Value="f => f.Rating"/>
+			<MokaImageColumn TItem="FileRow" Title="Preview" Src="f => f.Preview" Alt="f => f.Name"/>
+			<MokaActionsColumn TItem="FileRow" Actions="_fileActions" Reveal="MokaActionsReveal.OnHover"/>
+			<MokaRowMenuColumn TItem="FileRow" Items="FileMenu" ItemName="f => f.Name"/>
+		</MokaTable>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Person, IconText, Status">A person with an avatar, an icon before text, a status tag or dot</DemoParam>
+		<DemoParam Name="Progress, YesNo, Rating">A meter, a check or switch, stars</DemoParam>
+		<DemoParam Name="Date, Number, Money, Bytes">Formatted values that sort and export as values</DemoParam>
+		<DemoParam Name="Link, Copyable, Sparkline, Image">A link, a value with a copy button, a trend, a thumbnail with a viewer</DemoParam>
+		<DemoParam Name="Actions, RowMenu">Icon buttons, or one menu button per row</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="people-and-text" Title="People and text" Description="A picture when there is one, else initials or an identicon. An icon before a name, a link, and a value with a copy button; with Secret the value stays off the page until the button is pressed.">
+	<MokaTable TItem="FileRow" Items="FourFiles" ItemKey="f => f.Id" ShowPagination="false">
+		<MokaPersonColumn TItem="FileRow" Title="Owner" Name="f => f.Owner" Detail="f => f.OwnerEmail" Fallback="MokaAvatarFallback.Identicon"/>
+		<MokaIconTextColumn TItem="FileRow" Title="File" Text="f => f.Name" Icon="FileIcon" IconColor="FileColor"/>
+		<MokaLinkColumn TItem="FileRow" Title="Docs" Text="@(_ => "Column kinds")" Href="@(_ => "https://jacobwi.github.io/Moka.Red/components/table-columns")" External/>
+		<MokaCopyableColumn TItem="FileRow" Title="Share token" Value="f => f.Token" Secret/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="statuses-and-answers" Title="Statuses and answers" Description="A status as a tag in a label color or as a dot in a tone, yes or no as a check or a switch, and a rating as stars. They are pictures with words for screen readers, not controls, so a grid keeps one tab stop.">
+	<MokaTable TItem="FileRow" Items="FourFiles" ItemKey="f => f.Id" ShowPagination="false">
+		<MokaColumn TItem="FileRow" Title="File" Field="f => f.Name"/>
+		<MokaStatusColumn TItem="FileRow" Title="Tag" Status="f => f.State" LabelColor="StateLabel"/>
+		<MokaStatusColumn TItem="FileRow" Title="Dot" Status="f => f.State" Tone="StateTone" Look="MokaStatusLook.Dot"/>
+		<MokaYesNoColumn TItem="FileRow" Title="Shared" Value="f => f.Shared"/>
+		<MokaYesNoColumn TItem="FileRow" Title="Offline" Value="f => f.Offline" Look="MokaYesNoLook.Switch"/>
+		<MokaRatingColumn TItem="FileRow" Title="Rating" Value="f => f.Rating"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="numbers-money-and-sizes" Title="Numbers, money and sizes" Description="Right aligned in tabular figures, in the current culture, and exported as plain numbers. Progress warns and turns critical at the levels you set; the footer sums the downloads.">
+	<MokaTable TItem="FileRow" Items="Files" ItemKey="f => f.Id" ShowPagination="false">
+		<MokaColumn TItem="FileRow" Title="File" Field="f => f.Name"/>
+		<MokaNumberColumn TItem="FileRow" Title="Downloads" Value="f => f.Downloads" Format="N0" Aggregate="MokaAggregateType.Sum" AggregateFormat="N0"/>
+		<MokaMoneyColumn TItem="FileRow" Title="Cost, euro" Value="f => f.Cost" Currency="EUR"/>
+		<MokaMoneyColumn TItem="FileRow" Title="Cost, whole dollars" Value="f => f.Cost" Currency="USD" Decimals="0"/>
+		<MokaBytesColumn TItem="FileRow" Title="Size" Value="f => f.Size" Units="MokaByteUnits.Binary"/>
+		<MokaBytesColumn TItem="FileRow" Title="Upload rate" Value="f => f.Rate" PerSecond/>
+		<MokaProgressColumn TItem="FileRow" Title="Quota used" Value="f => f.Quota" ShowFigure WarnAt="80" CriticalAt="95"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="dates-and-trends" Title="Dates and trends" Description="A moment written with a format, or how long ago it was with the exact time in a tooltip. A sparkline sorts by its latest value and exports every value.">
+	<MokaTable TItem="FileRow" Items="FourFiles" ItemKey="f => f.Id" ShowPagination="false">
+		<MokaColumn TItem="FileRow" Title="File" Field="f => f.Name"/>
+		<MokaDateColumn TItem="FileRow" Title="Modified" Value="f => f.Modified" Format="d"/>
+		<MokaDateColumn TItem="FileRow" Title="Ago" Value="f => f.Modified" Relative Live/>
+		<MokaSparklineColumn TItem="FileRow" Title="Downloads this week" Values="f => f.Week" ShowArea Height="1.75rem"/>
+	</MokaTable>
+</DemoSection>
+
+<DemoSection Id="row-actions-and-images" Title="Row actions and images" Description="Quiet icon buttons that show on hover, a menu button per row built when it opens, and a thumbnail that opens one viewer for the whole column. Delete is hidden for files shared with others.">
+	<MokaTable TItem="FileRow" Items="FourFiles" ItemKey="f => f.Id" ShowPagination="false">
+		<MokaImageColumn TItem="FileRow" Title="Preview" Src="f => f.Preview" Alt="f => f.Name" ThumbnailSize="2.5rem"/>
+		<MokaColumn TItem="FileRow" Title="File" Field="f => f.Name"/>
+		<MokaActionsColumn TItem="FileRow" Actions="_fileActions" Reveal="MokaActionsReveal.OnHover"/>
+		<MokaRowMenuColumn TItem="FileRow" Items="FileMenu" ItemName="f => f.Name"/>
+	</MokaTable>
+</DemoSection>
+
+@code {
+	private sealed record FileRow(
+		string Id,
+		string Name,
+		string Owner,
+		string OwnerEmail,
+		string? OwnerPicture,
+		string State,
+		double Synced,
+		bool Shared,
+		bool Offline,
+		DateTimeOffset Modified,
+		int Downloads,
+		decimal Cost,
+		long Size,
+		long Rate,
+		double Quota,
+		string Checksum,
+		string Token,
+		double[] Week,
+		double Rating,
+		string Preview);
+
+	private static readonly FileRow[] Files =
+	[
+		new("f_8kq2", "Quarterly report.pdf", "Ada Lovelace", "ada@example.com", "samples/photo-1.svg", "Synced", 100, true, true,
+			DateTimeOffset.Now.AddMinutes(-12), 1284, 0.42m, 4_812_000, 0, 41, "a3f9c2e1", "tok_7Hq2Lm", [12, 18, 9, 22, 30, 26, 41], 4.6, "samples/photo-1.svg"),
+		new("f_2mz7", "Team photo.png", "Grace Hopper", "grace@example.com", null, "Uploading", 62, false, false,
+			DateTimeOffset.Now.AddHours(-3), 87, 1.18m, 13_600_000, 2_400_000, 83, "77be0d4a", "tok_K2p9Wx", [3, 4, 2, 6, 5, 8, 7], 3.9, "samples/photo-2.svg"),
+		new("f_5tr1", "Budget 2027.xlsx", "Alan Turing", "alan@example.com", "samples/photo-3.svg", "Failed", 18, false, true,
+			DateTimeOffset.Now.AddDays(-2), 412, 0.05m, 186_000, 0, 97, "c0ffee42", "tok_Zr4nB8", [20, 14, 16, 11, 9, 7, 5], 2.2, "samples/photo-3.svg"),
+		new("f_9vx4", "Release notes.md", "Barbara Liskov", "barbara@example.com", null, "Paused", 47, true, false,
+			DateTimeOffset.Now.AddDays(-40), 9031, 0.01m, 9_400, 0, 12, "5e1d7b90", "tok_Qw1eR5", [80, 95, 70, 110, 120, 105, 130], 4.9, "samples/photo-4.svg"),
+		new("f_3jd8", "Site map.svg", "Edsger Dijkstra", "edsger@example.com", "samples/photo-5.svg", "Synced", 100, true, false,
+			DateTimeOffset.Now.AddDays(-400), 56, 0.00m, 48_300, 0, 5, "9a8b7c6d", "tok_Lp0oK3", [1, 0, 2, 1, 0, 3, 1], 3.1, "samples/photo-5.svg"),
+		new("f_6wn0", "Interview.mp3", "Margaret Hamilton", "margaret@example.com", null, "Uploading", 9, false, true,
+			DateTimeOffset.Now.AddSeconds(-40), 3, 2.75m, 58_900_000, 7_800_000, 64, "1234abcd", "tok_Mn8bV2", [0, 0, 0, 0, 1, 1, 3], 4.0, "samples/photo-6.svg")
+	];
+
+	private static readonly FileRow[] FourFiles = [.. Files.Take(4)];
+
+	private IReadOnlyList<MokaTableAction<FileRow>> _fileActions = [];
+
+	protected override void OnInitialized() => _fileActions =
+	[
+		new("Download", MokaIcons.Action.Download, file => Say($"Downloading {file.Name}")),
+		new("Share", MokaIcons.Action.Share, file => Say($"Sharing {file.Name}")),
+		new("Delete", MokaIcons.Action.Delete, file => Say($"Deleted {file.Name}"))
+		{
+			Hidden = file => file.Shared,
+			Color = MokaColor.Error
+		}
+	];
+
+	private IReadOnlyList<MokaContextMenuItem> FileMenu(FileRow file) =>
+	[
+		new MokaContextMenuItem { Text = "Rename", Icon = MokaIcons.Action.Edit, OnClickSync = () => Toast.ShowInfo($"Rename {file.Name}") },
+		new MokaContextMenuItem { Text = "Move to folder", Icon = MokaIcons.File.FolderInput, OnClickSync = () => Toast.ShowInfo($"Move {file.Name}") },
+		new MokaContextMenuItem { Text = "Delete", Icon = MokaIcons.Action.Delete, DividerBefore = true, OnClickSync = () => Toast.ShowError($"Delete {file.Name}") }
+	];
+
+	private Task Say(string message)
+	{
+		Toast.ShowInfo(message);
+		return Task.CompletedTask;
+	}
+
+	private static MokaIconDefinition? FileIcon(FileRow file) => Path.GetExtension(file.Name) switch
+	{
+		".pdf" or ".md" => MokaIcons.File.FileText,
+		".png" or ".svg" => MokaIcons.File.FileImage,
+		".xlsx" => MokaIcons.File.FileSpreadsheet,
+		".mp3" => MokaIcons.File.FileAudio,
+		_ => MokaIcons.File.Document
+	};
+
+	private static MokaColor? FileColor(FileRow file) => Path.GetExtension(file.Name) switch
+	{
+		".pdf" => MokaColor.Error,
+		".xlsx" => MokaColor.Success,
+		".png" or ".svg" => MokaColor.Info,
+		_ => null
+	};
+
+	private static MokaLabelColor? StateLabel(FileRow file) => file.State switch
+	{
+		"Synced" => MokaLabelColor.Green,
+		"Uploading" => MokaLabelColor.Blue,
+		"Failed" => MokaLabelColor.Red,
+		_ => MokaLabelColor.Slate
+	};
+
+	private static MokaColor? StateTone(FileRow file) => file.State switch
+	{
+		"Synced" => MokaColor.Success,
+		"Uploading" => MokaColor.Info,
+		"Failed" => MokaColor.Error,
+		_ => MokaColor.Warning
+	};
+}

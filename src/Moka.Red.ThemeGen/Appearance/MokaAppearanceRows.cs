@@ -121,6 +121,22 @@ public enum MokaAppearanceRows : long
 	/// <summary>How a disabled button is drawn: faded, a muted neutral fill, or an outline.</summary>
 	DisabledButtons = 1L << 36,
 
+	/// <summary>
+	///     The color whose hue tints the surfaces, borders and greys (<see cref="MokaAppearance.CustomNeutral" />), as
+	///     swatches from <see cref="MokaAppearancePanel.Neutrals" />. It hides while a palette on the original design is
+	///     picked. Not in <see cref="Default" />.
+	/// </summary>
+	Neutral = 1L << 37,
+
+	/// <summary>How dock layouts are drawn: classic, IDE, cards, minimal or terminal.</summary>
+	Docks = 1L << 38,
+
+	/// <summary>How tables draw their rows: lined, soft stripes, cards, sheet, airy, framed or a list.</summary>
+	Tables = 1L << 39,
+
+	/// <summary>How tightly tables space their rows: compact, standard or comfortable.</summary>
+	TableDensity = 1L << 40,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
@@ -130,7 +146,7 @@ public enum MokaAppearanceRows : long
 	///     <see cref="ComponentStyle" /> and <see cref="ChartsGroup" /> hide the same way.
 	/// </summary>
 	Style = Density | TextSize | Corners | Elevation | MainButton | TextButtons | LetterCase | TitleFont | TitleSize | NumberFont | Selection
-		| CurrentPlace | StatusBar | Descriptions | LabelTone,
+		| CurrentPlace | StatusBar | Docks | Tables | TableDensity | Descriptions | LabelTone,
 
 	/// <summary>
 	///     The component look rows, under their own heading after the style rows: toasts, toast stacking, notifications,
@@ -147,5 +163,5 @@ public enum MokaAppearanceRows : long
 	ChartsGroup = Charts | ChartPalette | ChartTexture,
 
 	/// <summary>Every row.</summary>
-	All = ColorMode | Palette | Accent | Style | ComponentStyle | Components | ChartsGroup
+	All = ColorMode | Palette | Accent | Neutral | Style | ComponentStyle | Components | ChartsGroup
 }

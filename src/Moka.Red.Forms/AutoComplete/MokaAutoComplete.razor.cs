@@ -14,8 +14,11 @@ namespace Moka.Red.Forms.AutoComplete;
 /// <typeparam name="TItem">The type of items returned by the search function.</typeparam>
 public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 {
-	private TItem? _value;
-	private TItem? _lastValueParameter;
+	// The selection, apart from Value: a pick shows before the parent answers, and a re-render that passes the old
+	// value again must not undo it or wipe what the user is typing (gotcha #9).
+	private readonly MokaInputValue<TItem?> _input;
+	private bool _valueTaken;
+
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
@@ -45,6 +48,9 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	// Id goes on the input, not a wrapper, and the label, listbox and option ids are built from it.
 	private string InputId => string.IsNullOrEmpty(Id) ? _generatedId : Id;
+
+	/// <summary>Creates the field. It shows its own selection until the parent passes a value.</summary>
+	public MokaAutoComplete() => _input = new MokaInputValue<TItem?>(ShowParentValue, DispatchExceptionAsync);
 
 	/// <summary>The currently selected value. Two-way bindable.</summary>
 	[Parameter]
@@ -192,7 +198,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 
 	private string InputCssClass => new CssBuilder("moka-autocomplete-input")
 		.AddClass($"moka-autocomplete-input--{SizeToKebab(Size)}")
-		.AddClass("moka-autocomplete-input--has-clear", Clearable && _value is not null)
+		.AddClass("moka-autocomplete-input--has-clear", Clearable && Chosen is not null)
 		.Build();
 
 	/// <summary>AutoComplete has internal state that changes independently of parameters.</summary>
@@ -236,28 +242,49 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		}
 	}
 
+	private TItem? Chosen => _input.Shown;
+
+	/// <inheritdoc />
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_valueTaken |= _input.Take(parameters, nameof(Value));
+		return base.SetParametersAsync(parameters);
+	}
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
-		// Value replaces the selection, and the text in the box, only when the parent passes a new
-		// one. A re-render that passes the old one again must not undo a pick or wipe what the user
-		// is typing (gotcha #9).
-		if (!EqualityComparer<TItem>.Default.Equals(Value, _lastValueParameter))
+		// A new value from the parent replaces the text in the box too.
+		if (_valueTaken)
 		{
-			_lastValueParameter = Value;
-			_value = Value;
-			_searchText = Value is null ? string.Empty : GetDisplayText(Value);
+			_valueTaken = false;
+			ShowChosenText();
 		}
 	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_input.AfterRender();
+	}
+
+	private void ShowParentValue()
+	{
+		ShowChosenText();
+		StateHasChanged();
+	}
+
+	private void ShowChosenText() => _searchText = Chosen is null ? string.Empty : GetDisplayText(Chosen);
 
 	private string GetDisplayText(TItem item) => ToStringFunc?.Invoke(item) ?? item?.ToString() ?? string.Empty;
 
 	private RenderFragment OptionContent(TItem item) =>
 		ItemTemplate is not null ? ItemTemplate(item) : builder => builder.AddContent(0, GetDisplayText(item));
 
-	private bool IsChosen(TItem item) => _value is not null && EqualityComparer<TItem>.Default.Equals(item, _value);
+	private bool IsChosen(TItem item) => Chosen is not null && EqualityComparer<TItem>.Default.Equals(item, Chosen);
 
 	private string OptionCssClass(int index, TItem item) => new CssBuilder("moka-autocomplete-option")
 		.AddClass("moka-autocomplete-option--focused", index == _focusedIndex)
@@ -348,7 +375,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		_isLoading = false;
 	}
 
-	private async Task HandleKeyDown(KeyboardEventArgs e)
+	private void HandleKeyDown(KeyboardEventArgs e)
 	{
 		switch (e.Key)
 		{
@@ -375,7 +402,7 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 			case "Enter":
 				if (_focusedIndex >= 0 && _focusedIndex < _items.Count)
 				{
-					await SelectItem(_items[_focusedIndex]);
+					SelectItem(_items[_focusedIndex]);
 				}
 
 				break;
@@ -387,32 +414,24 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		}
 	}
 
-	private async Task SelectItem(TItem item)
+	private void SelectItem(TItem item)
 	{
 		StopSearching();
-		_value = item;
 		_searchText = GetDisplayText(item);
 		_isOpen = false;
 		_focusedIndex = -1;
 		_items = [];
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync(_value);
-		}
+		_input.Pick(item, ValueChanged);
 	}
 
-	private async Task HandleClear()
+	private void HandleClear()
 	{
 		StopSearching();
-		_value = default;
 		_searchText = string.Empty;
 		_isOpen = false;
 		_focusedIndex = -1;
 		_items = [];
-		if (ValueChanged.HasDelegate)
-		{
-			await ValueChanged.InvokeAsync(default);
-		}
+		_input.Pick(default, ValueChanged);
 	}
 
 	private void HandleFocus()
@@ -429,9 +448,9 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 		_focusedIndex = -1;
 
 		// If no selection, restore display text
-		if (_value is not null)
+		if (Chosen is not null)
 		{
-			_searchText = GetDisplayText(_value);
+			_searchText = GetDisplayText(Chosen);
 		}
 	}
 
@@ -439,6 +458,8 @@ public partial class MokaAutoComplete<TItem> : MokaVisualComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		_disposed = true;
+		_input.Stop();
+
 
 		if (_watchingSide)
 		{

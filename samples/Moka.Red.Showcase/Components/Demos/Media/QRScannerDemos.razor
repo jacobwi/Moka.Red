@@ -1,0 +1,121 @@
+@using Microsoft.AspNetCore.Components.Web.HtmlRendering
+@using Moka.Red.Core.Files
+@using Moka.Red.Feedback.ErrorBoundary
+@inject IServiceProvider Services
+@inject ILoggerFactory LoggerFactory
+@implements IDisposable
+
+<DemoSection Id="basics" Title="Basics" Description="Reads a QR code from the camera or from a picked image, decoded in the browser. Point it at the code beside it, pick a screenshot of one, or open it in a dialog.">
+	<div class="qr-demo">
+		<div class="qr-demo__scanner">
+			<MokaQRScanner @bind-Active="_active"
+			               Continuous="_continuous"
+			               Accept="_httpsOnly ? IsHttps : null"
+			               RejectedText="That code isn't an https link."
+			               OnScanned="HandleScanned"
+			               OnStateChanged="state => _state = state"/>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap="true">
+				<MokaButton Size="MokaSize.Sm" StartIcon="MokaIcons.Content.Camera" OnClick="() => _active = !_active">
+					@(_active ? "Stop camera" : "Start camera")
+				</MokaButton>
+				<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Content.QrCode"
+				            OnClick="() => _dialogOpen = true">
+					In a dialog
+				</MokaButton>
+				<MokaSwitch @bind-Value="_continuous" Label="Continuous"/>
+				<MokaSwitch @bind-Value="_httpsOnly" Label="Only https links"/>
+			</MokaFlexbox>
+		</div>
+		<div class="qr-demo__codes">
+			<h3>Codes to try</h3>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Md" Wrap="true">
+				<MokaQRCode Value="https://moka.red/scan-me" QRSize="140" Class="qr-demo-code"/>
+				<MokaQRCode Value="Plain text, not a link" QRSize="140"/>
+			</MokaFlexbox>
+			<p class="qr-demo__state">State: <MokaCode>@_state</MokaCode></p>
+			@if (_scanned.Count > 0)
+			{
+				<ul class="qr-demo__list">
+					@foreach (string text in _scanned)
+					{
+						<li><MokaCode>@text</MokaCode></li>
+					}
+				</ul>
+			}
+		</div>
+	</div>
+
+	<MokaDialog @bind-Open="_dialogOpen" Title="Scan QR code" Icon="MokaIcons.Content.QrCode" DialogSize="MokaDialogSize.Small">
+		<ChildContent>
+			<MokaQRScanner Active="_dialogOpen" OnScanned="HandleDialogScannedAsync"/>
+		</ChildContent>
+	</MokaDialog>
+</DemoSection>
+
+<DemoSection Id="an-image-through-the-apps-picker" Title="An image through the app's picker" Description="FilePicker opens the app's own picker for the image button in place of the browser's dialog.">
+	<MokaErrorBoundary Compact What="The scanner">
+		<MokaQRScanner FilePicker="Picker" OnScanned="text => _scannedFromPicker = text"/>
+	</MokaErrorBoundary>
+	<p>Read: <code>@_scannedFromPicker</code></p>
+</DemoSection>
+
+@code {
+	private readonly List<string> _scanned = [];
+
+	private bool _active;
+
+	private bool _continuous;
+
+	private bool _httpsOnly;
+
+	private bool _dialogOpen;
+
+	private MokaQRScannerState _state;
+
+	private static bool IsHttps(string text) => text.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+	private void HandleScanned(string text) => _scanned.Insert(0, text);
+
+	private Task HandleDialogScannedAsync(string text)
+	{
+		_scanned.Insert(0, text);
+		_dialogOpen = false;
+		return Task.CompletedTask;
+	}
+
+	private const string CodeText = "https://moka.red/picked";
+
+	private readonly PretendFilePicker _picker = new();
+
+	private bool _useApps = true;
+
+	private string? _scannedFromPicker;
+
+	private IMokaFilePicker? Picker => _useApps ? _picker : null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_picker.Changed += Redraw;
+		_picker.CodeImage = await DrawCodeAsync();
+	}
+
+	public void Dispose() => _picker.Changed -= Redraw;
+
+	private void Redraw() => _ = InvokeAsync(StateHasChanged);
+
+	// The picture a pretend picker hands the scanner: the library's own QR code, drawn as a standalone SVG file.
+	private async Task<string> DrawCodeAsync()
+	{
+		await using HtmlRenderer renderer = new(Services, LoggerFactory);
+		string html = await renderer.Dispatcher.InvokeAsync(async () =>
+		{
+			Dictionary<string, object?> parameters = new() { [nameof(MokaQRCode.Value)] = CodeText };
+			HtmlRootComponent code = await renderer.RenderComponentAsync<MokaQRCode>(ParameterView.FromDictionary(parameters));
+			return code.ToHtmlString();
+		});
+
+		int start = html.IndexOf("<svg", StringComparison.Ordinal);
+		int end = html.LastIndexOf("</svg>", StringComparison.Ordinal);
+		return start < 0 || end < 0 ? "" : html[start..(end + "</svg>".Length)];
+	}
+}

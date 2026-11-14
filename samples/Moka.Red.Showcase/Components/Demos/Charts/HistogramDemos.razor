@@ -1,0 +1,169 @@
+@using System.Globalization
+@using Moka.Red.Core.Charts
+
+<DemoSection Id="basics" Title="Basics" Description="Raw values, a bucket size, percentile lines.">
+	<div style="display: flex; gap: var(--moka-spacing-md); align-items: center;">
+		<MokaSegmentedControl Value="@(_million ? "million" : "hour")" ValueChanged="SetMillion" AriaLabel="How many values">
+			<MokaSegment Value="hour" Text="4,200 values"/>
+			<MokaSegment Value="million" Text="1,000,000 values"/>
+		</MokaSegmentedControl>
+	</div>
+	<MokaHistogram Values="@(_million ? _millionTimes : _responseTimes)" DataVersion="@(_million ? 2 : 1)" BucketSize="@(_million ? null : 25)"
+	               Origin="0" Percentiles="@Percentiles" Unit="MokaChartUnit.Milliseconds" CountLabel="requests"
+	               Title="Response times" Subtitle="Requests per bucket, last hour" Label="Response times"
+	               Controls="MokaChartControls.View"/>
+</DemoSection>
+
+@code {
+	private static readonly double[] Percentiles = [50, 95];
+
+	private MokaBarSeries[] _hourly = [];
+
+	private DateTimeOffset[] _hourlyTimes = [];
+
+	private MokaChartAnnotation[] _hourlyNotes = [];
+
+	private MokaTheme _theme = MokaTheme.Red;
+
+	private string _preset = "Red";
+
+	private bool _dark = true;
+
+	private MokaChartLook _look = MokaChartLook.Quiet;
+
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+
+	private MokaChartTexture _texture = MokaChartTexture.None;
+
+	private int _many = 100;
+
+	private long _manyVersion;
+
+	private MokaBarSeries[] _manySeries = [];
+
+	private string[] _manyLabels = [];
+
+	private MokaBarSeries[] _rows = [];
+
+	private string[] _rowLabels = [];
+
+	private bool _million;
+
+	private double[] _responseTimes = [];
+
+	private double[] _millionTimes = [];
+
+	private MokaCandle[] _candles = [];
+
+	private MokaCandle[] _manyCandles = [];
+
+	protected override void OnInitialized()
+	{
+		ApplyTheme();
+		MakeMany();
+		Random random = new(7);
+		_rowLabels = [.. Enumerable.Range(0, 2000).Select(i => $"host-{i + 1:0000}.lan")];
+		_rows = [new MokaBarSeries { Name = "Queries", Values = [.. Enumerable.Range(0, 2000).Select(_ => Math.Round(200 + random.NextDouble() * 9800))] }];
+		_responseTimes = LogNormal(4200, 118, 0.52, 5);
+		_candles = Candles(20, 3);
+		_manyCandles = Candles(2000, 11);
+		MakeHourly();
+	}
+
+	private void MakeHourly()
+	{
+		DateTimeOffset start = new(2026, 11, 10, 0, 0, 0, TimeSpan.Zero);
+		_hourlyTimes = [.. Enumerable.Range(0, 24).Where(hour => hour != 5).Select(hour => start.AddHours(hour))];
+		double[] values = [.. _hourlyTimes.Select(time => Math.Round(4e8 + 3e8 * Math.Sin((time.Hour - 6) / 3.8) + time.Hour * 2e7))];
+		HashSet<int> busiest = [.. values.Select((value, i) => (value, i)).OrderByDescending(x => x.value).Take(3).Select(x => x.i)];
+		_hourly =
+		[
+			new MokaBarSeries
+			{
+				Name = "Internet",
+				Values = values,
+				Colors = [.. values.Select((_, i) => busiest.Contains(i) ? "var(--moka-color-warning)" : null)]
+			}
+		];
+		_hourlyNotes = [new MokaChartEvent(start.AddHours(14)) { Label = "A device called a listed address", Tone = MokaColor.Error }];
+	}
+
+	private void SetMillion(string value)
+	{
+		_million = value == "million";
+		if (_million && _millionTimes.Length == 0)
+		{
+			_millionTimes = LogNormal(1_000_000, 118, 0.52, 9);
+		}
+	}
+
+	private void ApplyTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void MakeMany()
+	{
+		Random random = new(_many);
+		DateTime start = new(2000, 1, 1);
+		_manyLabels = [.. Enumerable.Range(0, _many).Select(i => start.AddDays(i).ToString("d MMM yyyy", CultureInfo.InvariantCulture))];
+		_manySeries =
+		[
+			new MokaBarSeries
+			{
+				Name = "Requests",
+				Values = [.. Enumerable.Range(0, _many).Select(i => Math.Round(400 + 300 * Math.Sin(i / 30.0) + random.NextDouble() * 200))]
+			}
+		];
+		_manyVersion++;
+	}
+
+	private static double[] LogNormal(int count, double median, double spread, int seed)
+	{
+		Random random = new(seed);
+		double[] values = new double[count];
+		for (int i = 0; i < count; i++)
+		{
+			double gauss = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+			values[i] = Math.Exp(Math.Log(median) + spread * gauss);
+		}
+
+		return values;
+	}
+
+	private static MokaCandle[] Candles(int days, int seed)
+	{
+		Random random = new(seed);
+		List<MokaCandle> candles = [];
+		double close = 1.0812;
+		DateTimeOffset day = new(2026, 10, 14, 12, 0, 0, TimeSpan.Zero);
+		while (candles.Count < days)
+		{
+			if (day.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday))
+			{
+				double open = close;
+				close = Math.Round(open + (random.NextDouble() - 0.47) * 0.0064, 4);
+				double high = Math.Round(Math.Max(open, close) + random.NextDouble() * 0.0018 + 0.0004, 4);
+				double low = Math.Round(Math.Min(open, close) - random.NextDouble() * 0.0018 - 0.0004, 4);
+				candles.Add(new MokaCandle(day, open, high, low, close) { Volume = Math.Round(80_000 + random.NextDouble() * 120_000) });
+			}
+
+			day = day.AddDays(1);
+		}
+
+		if (days > 100)
+		{
+			DateTimeOffset end = candles[^1].At;
+			return [.. candles.Select(c => c with { At = c.At - (end - new DateTimeOffset(2026, 11, 10, 12, 0, 0, TimeSpan.Zero)) })];
+		}
+
+		return [.. candles];
+	}
+}

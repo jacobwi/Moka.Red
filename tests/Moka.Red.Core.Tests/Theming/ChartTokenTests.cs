@@ -39,7 +39,7 @@ public sealed partial class ChartTokenTests
 	public void MokaCss_HoldsTheOriginalDesignsValues_ForBothSchemes()
 	{
 		IReadOnlyDictionary<string, string> root = ScopedCss.Declarations("moka.css", ":root");
-		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark");
+		IReadOnlyDictionary<string, string> dark = ScopedCss.Declarations("moka.css", ".moka-dark:not(.moka-root)");
 		Dictionary<string, string> darkTheme = LabelColorTests.Tokens(MokaTheme.Dark.ToCssVariables());
 		Dictionary<string, string> lightTheme = LabelColorTests.Tokens(MokaTheme.Light.ToCssVariables());
 

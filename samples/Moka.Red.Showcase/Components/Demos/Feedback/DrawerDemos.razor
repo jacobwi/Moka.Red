@@ -1,0 +1,42 @@
+<DemoSection Id="basics" Title="Basics" Description="A panel that slides in from an edge.">
+	<div class="button-row">
+		<MokaButton OnClick="@(() => _leftDrawerOpen = true)">Left Drawer</MokaButton>
+		<MokaButton OnClick="@(() => _rightDrawerOpen = true)" Variant="MokaVariant.Outlined">Right Drawer</MokaButton>
+		<MokaButton OnClick="@(() => _bottomDrawerOpen = true)" Variant="MokaVariant.Soft">Bottom Drawer</MokaButton>
+	</div>
+
+	<MokaDrawer @bind-Open="_leftDrawerOpen" Position="MokaDrawerPosition.Left" Title="Left Drawer">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			This drawer slides in from the left edge. It can contain navigation, filters, or settings.
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _leftDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+
+	<MokaDrawer @bind-Open="_rightDrawerOpen" Position="MokaDrawerPosition.Right" Title="Right Drawer" Width="400px">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			A wider drawer from the right, useful for detail panels or forms.
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _rightDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+
+	<MokaDrawer @bind-Open="_bottomDrawerOpen" Position="MokaDrawerPosition.Bottom" Title="Bottom Drawer" Height="30vh">
+		<p style="padding: var(--moka-spacing-md); font-size: var(--moka-font-size-sm);">
+			A bottom drawer, similar to a bottom sheet but with the full drawer API (backdrop, escape key, close button).
+		</p>
+		<div style="padding: 0 var(--moka-spacing-md);">
+			<MokaButton Size="MokaSize.Sm" OnClick="@(() => _bottomDrawerOpen = false)">Close</MokaButton>
+		</div>
+	</MokaDrawer>
+</DemoSection>
+
+@code {
+	private bool _leftDrawerOpen;
+
+	private bool _rightDrawerOpen;
+
+	private bool _bottomDrawerOpen;
+}

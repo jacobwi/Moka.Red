@@ -141,9 +141,14 @@ public class MokaSignaturePadTests : BunitContext
 	public async Task AValueThePadReported_IsNotDrawnAgain()
 	{
 		string? value = Stored;
-		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+		IRenderedComponent<MokaSignaturePad>? cut = null;
+		cut = Render<MokaSignaturePad>(p => p
 			.Add(x => x.Value, value)
-			.Add(x => x.ValueChanged, v => value = v));
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, v =>
+			{
+				value = v;
+				cut!.Render(q => q.Add(x => x.Value, v));
+			})));
 
 		await cut.InvokeAsync(() => cut.Instance.OnSignatureChanged(Drawn));
 		cut.Render(p => p.Add(x => x.Value, value));
@@ -188,9 +193,14 @@ public class MokaSignaturePadTests : BunitContext
 	public async Task Clear_EmptiesThePad_AndTellsTheParent()
 	{
 		List<string?> changes = [];
-		IRenderedComponent<MokaSignaturePad> cut = Render<MokaSignaturePad>(p => p
+		IRenderedComponent<MokaSignaturePad>? cut = null;
+		cut = Render<MokaSignaturePad>(p => p
 			.Add(x => x.Value, Stored)
-			.Add(x => x.ValueChanged, v => changes.Add(v)));
+			.Add(x => x.ValueChanged, EventCallback.Factory.Create<string?>(this, v =>
+			{
+				changes.Add(v);
+				cut!.Render(q => q.Add(x => x.Value, v));
+			})));
 
 		await cut.FindAll("button").Single(b => b.TextContent.Trim() == "Clear").ClickAsync(new MouseEventArgs());
 

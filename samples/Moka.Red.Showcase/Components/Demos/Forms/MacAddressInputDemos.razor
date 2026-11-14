@@ -1,0 +1,8 @@
+<DemoSection Id="with-label" Title="With label" Description="A hardware address, one box per byte.">
+	<MokaMacAddressInput @bind-Value="_macAddress" Label="Device MAC" HelperText="Enter the hardware address"/>
+	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Value: @(_macAddress ?? "none")</MokaText>
+</DemoSection>
+
+@code {
+	private string? _macAddress = "00:1A:2B:3C:4D:5E";
+}

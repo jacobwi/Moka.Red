@@ -1,0 +1,22 @@
+.moka-row-menu-cell {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs);
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-color-on-surface-variant);
+	cursor: pointer;
+	transition: background var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-row-menu-cell:hover {
+	background: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-row-menu-cell:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}

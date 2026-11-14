@@ -1,0 +1,27 @@
+<DemoSection Id="basics" Title="Basics" Description="A ribbon across the corner of a card.">
+	<div style="display: flex; gap: var(--moka-spacing-lg); flex-wrap: wrap;">
+		<MokaRibbon Text="NEW" Color="MokaColor.Primary">
+			<MokaCard Title="Product Card" Subtitle="With ribbon badge" style="width: 200px;">
+				<ChildContent>
+					<p>This card has a "NEW" ribbon.</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+
+		<MokaRibbon Text="SALE" Color="MokaColor.Error">
+			<MokaCard Title="On Sale" style="width: 200px;">
+				<ChildContent>
+					<p>50% off everything!</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+
+		<MokaRibbon Text="BETA" Color="MokaColor.Info" Position="MokaRibbonPosition.TopLeft">
+			<MokaCard Title="Beta Feature" style="width: 200px; text-align: right;">
+				<ChildContent>
+					<p>Try our new beta feature.</p>
+				</ChildContent>
+			</MokaCard>
+		</MokaRibbon>
+	</div>
+</DemoSection>

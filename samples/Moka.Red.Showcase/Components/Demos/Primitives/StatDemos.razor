@@ -1,0 +1,27 @@
+<DemoSection Id="kpi-tiles" Title="KPI tiles">
+	<MokaGrid MinColumn="11rem" Gap="MokaSpacingScale.Sm">
+		<MokaStat Tile="true" Value="1.28M" Label="Requests today" Trend="4.2" TrendLabel="vs yesterday" Spark="@RequestsByHour"/>
+		<MokaStat Tile="true" Value="212 ms" Label="p95 latency" Trend="-8" TrendLabel="vs yesterday" UpIsGood="false"
+		          Spark="@LatencyByHour"/>
+		<MokaStat Tile="true" Value="0.42%" Label="Error rate" Trend="0.11" TrendLabel="vs yesterday" UpIsGood="false"
+		          Spark="@ErrorsByHour"/>
+	</MokaGrid>
+</DemoSection>
+
+@code {
+	private static readonly MokaSankeyLink[] Requests =
+	[
+		new("web", "cache", 3.4), new("web", "db", 1.9), new("web", "storage", 0.5),
+		new("api", "cache", 1.1), new("api", "db", 1.5), new("api", "storage", 0.5),
+		new("jobs", "cache", 0.1), new("jobs", "db", 0.4), new("jobs", "storage", 0.6)
+	];
+
+	private static readonly double[] RequestsByHour =
+		[.. Enumerable.Range(0, 24).Select(h => Math.Round(18000 + 52000 * Bell(h, 14, 4) + 20000 * Bell(h, 20, 2)))];
+
+	private static readonly double[] LatencyByHour = [.. Enumerable.Range(0, 24).Select(h => Math.Round(180 + 60 * Bell(h, 13, 2.5)))];
+
+	private static readonly double[] ErrorsByHour = [.. Enumerable.Range(0, 24).Select(h => 0.25 + 0.3 * Bell(h, 19, 1.5))];
+
+	private static double Bell(double x, double mid, double width) => Math.Exp(-Math.Pow((x - mid) / width, 2) / 2);
+}

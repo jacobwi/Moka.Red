@@ -31,7 +31,8 @@ public interface IMokaNotificationService
 	///     Pushes a pre-built notification. Use this overload to set
 	///     <see cref="MokaNotification.Icon" /> or <see cref="MokaNotification.OnClick" />,
 	///     which the title/message overload cannot reach. A notification whose
-	///     <see cref="MokaNotification.Id" /> is already in the list replaces that one, in its place.
+	///     <see cref="MokaNotification.Id" /> is already in the list replaces that one, in its place, and one whose
+	///     <see cref="MokaNotification.Key" /> another holds replaces that other.
 	/// </summary>
 	/// <param name="notification">The notification to add.</param>
 	void Push(MokaNotification notification);

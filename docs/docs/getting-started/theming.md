@@ -55,6 +55,8 @@ A nested provider stays inside its parent. Only the outermost one fills the wind
 
 A provider inside another one themes its own subtree: its tokens go on its `.moka-root` element. The page-wide stylesheet and `:root` tokens come from the outermost provider only, so a dark sidebar inside a light app leaves overlays rendered elsewhere on the page alone.
 
+A nested root writes only the tokens that differ from the provider around it, and the ones that read those, since every other token reaches it inherited. A preview with the same theme as the page writes none, and one that changes the corners writes a handful. Themes compare by value, so `Theme="MokaTheme.Gate.WithAccent(color)"` in markup, a new but equal theme on every render, isn't worked out again.
+
 ### Following the OS Colour Scheme
 
 `AutoDetectColorScheme` picks `DarkTheme` or `LightTheme` from the OS setting and switches when the setting changes. The detected theme is kept apart from `Theme`, so a parent re-render does not undo it.
@@ -221,7 +223,71 @@ MokaAccent accent = MokaAccent.FromHue(250, saturation: 0.6);
 
 ### Contrast
 
-`WithHighContrast()` swaps in stronger secondary text and borders, and `WithHighContrast(false)` puts them back. It has no effect on `MokaTheme.Dark` or `Light`.
+`WithHighContrast()` swaps in stronger secondary text and borders, and `WithHighContrast(false)` gives back exactly what was there before, your own colors included. It has no effect on `MokaTheme.Dark` or `Light`.
+
+A theme keeps the accent you gave it through a change of scheme, so the order of the calls doesn't matter:
+
+```csharp
+MokaTheme theme = MokaTheme.Gate.WithAccent(MokaAccent.Violet).WithDark(false); // still violet
+```
+
+### Checking Contrast
+
+`CheckContrast()` measures every text-on-background and line-on-background pair the library draws from a theme: body and secondary text on each surface, links, the accent's and meanings' text, code colors, label inks and the edges of controls. Each check has the token names, the colors they resolve to, the WCAG ratio, APCA's Lc and what the pair needs (4.5:1 for text, 3:1 for icons and control lines).
+
+```csharp
+MokaContrastReport report = theme.CheckContrast();
+
+foreach (MokaContrastCheck failure in report.Failures)
+{
+    Console.WriteLine($"{failure.Foreground} on {failure.Background}: {failure.Ratio:0.00}, needs {failure.RequiredRatio}");
+}
+```
+
+`TryResolveColor` works a single token or value out the same way, `var()` and `color-mix()` included:
+
+```csharp
+theme.TryResolveColor("--moka-color-primary-row", out MokaSrgb row);
+```
+
+## Themes From a Seed
+
+`MokaTheme.FromSeed` derives a whole new-design theme from a few colors. Surfaces, borders and text are worked out in OKLCH against the derived surfaces, so every text color meets its contrast target by construction, and the accent you pass is the primary color as it is.
+
+```csharp
+var seed = new MokaThemeSeed
+{
+    Accent = "#7c3aed",
+    Neutral = "#1c1917",          // warm stone surfaces; leave it out for pure greys
+    Success = "oklch(0.72 0.17 150)",
+    Contrast = MokaSeedContrast.More // 7:1 text, 3:1 for every control line
+};
+
+MokaTheme dark = MokaTheme.FromSeed(seed, dark: true);
+MokaTheme light = dark.WithDark(false);
+```
+
+`Neutral` sets the hue and strength of the greys, and `NeutralChroma` how much of it they take. The meanings (`Success`, `Warning`, `Error`, `Info`) are kept as given where they read and moved in lightness where they don't; left out, they take the new design's colors.
+
+A seeded theme takes every style choice like a preset, and keeps its seed: `WithDark`, `WithHighContrast` and `WithAccent` derive it again, and `WithAccent` takes any CSS color there. `WithSeed` and `WithNeutral` turn a theme you already have into a seeded one, keeping its style choices:
+
+```csharp
+MokaTheme theme = MokaTheme.Red.WithCorners(MokaCorners.Tight).WithNeutral("#111723");
+```
+
+To design one by eye, [`MokaThemeStudio`](/components/theme-studio) does all of this in a page: pick a start, change the seeds, pick the style choices, pin tokens, read the contrast report on a sample app in both schemes, and copy the theme out as C#, JSON or CSS.
+
+## Pinning a Token
+
+`WithToken` holds one token at a value of your own, whatever the palette and style choices give it. The value is checked against the token's kind, a pin stays through every later change, including a change of scheme or accent, and `WithoutToken` lets it go. `Pins` lists them.
+
+```csharp
+MokaTheme theme = MokaTheme.Red
+    .WithToken("--moka-radius-card", "6px")
+    .WithToken("--moka-color-paper", "#fafaf5");
+```
+
+A pinned color doesn't move with the scheme, so pin one that reads on both, or pin it again after `WithDark`. `MokaTokens.All` lists every token with what it is for and its `moka.css` fallback, and `ToTokenMap()` gives a theme's values by name.
 
 `WithDensity(0.75)` also still works: it scales the spacing tokens as well as swapping the layout tokens for their compact values.
 
@@ -359,6 +425,8 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-color-primary-focus` | The focus ring's colour |
 
 Success, warning, error and info each have a tint and three colours to use on it, here for success: `--moka-color-success-bg` (the tint), `--moka-color-success-ink` (short text), `--moka-color-success-text` (longer text) and `--moka-color-success-line` (a border). `--moka-color-error-soft` is for counts and field errors that sit directly on a surface.
+
+Highlighted code has ten colors of its own: `--moka-code-text`, `-tag`, `-attribute`, `-string`, `-keyword`, `-type`, `-number`, `-comment`, `-punctuation` and `-directive`. They read the theme's roles and the label inks, so they follow the accent, the scheme and the label tone. Each reads 4.5:1 on a code block in every built-in theme, and comments and punctuation, which step back, 3:1.
 
 ### Typography Tokens
 
@@ -526,5 +594,9 @@ A complete light/dark toggle with theme persistence via `localStorage`:
 | The Gate look | `Theme="MokaTheme.Gate"` or `MokaTheme.GateLight` |
 | Runtime toggle | `Theme="_isDark ? MokaTheme.Default : MokaTheme.DefaultLight"` |
 | Custom brand colours | `MokaPalette.Light with { Primary = "..." }` |
+| A whole theme from a brand color | `MokaTheme.FromSeed(new MokaThemeSeed { Accent = "..." }, dark: true)` |
+| Design a theme on a page and export it | [`MokaThemeStudio`](/components/theme-studio) |
+| One token your own way | `theme.WithToken("--moka-radius-card", "6px")` |
+| Check what a theme reads at | `theme.CheckContrast().Failures` |
 | Your own fonts | `LoadFonts="false"` |
 | Use tokens in CSS | `var(--moka-color-primary)` etc. inside `.moka-root` |

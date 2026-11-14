@@ -1,0 +1,123 @@
+/* The strip of banners along the top of the page. Each banner takes MokaNotice's colors for its severity. */
+.moka-banner-host {
+	display: flex;
+	flex-direction: column;
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-sm);
+	line-height: var(--moka-line-height-base);
+}
+
+.moka-banner-host--sticky {
+	position: sticky;
+	top: var(--moka-appbar-space, 0px);
+	z-index: var(--moka-z-fixed);
+}
+
+.moka-banner {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
+}
+
+.moka-banner ::deep .moka-banner__icon {
+	flex-shrink: 0;
+}
+
+.moka-banner__content {
+	flex: 1;
+	min-width: 0;
+}
+
+.moka-banner__title {
+	margin-inline-end: var(--moka-spacing-xs);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+.moka-banner__link {
+	margin-inline-start: var(--moka-spacing-xs);
+	color: inherit;
+	font-weight: var(--moka-font-weight-semibold);
+	text-decoration: underline;
+}
+
+.moka-banner__action {
+	flex-shrink: 0;
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid currentColor;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	font-weight: var(--moka-font-weight-semibold);
+	cursor: pointer;
+}
+
+.moka-banner__close {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--moka-spacing-xxs);
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: inherit;
+	opacity: 0.7;
+	cursor: pointer;
+	transition: opacity var(--moka-transition-fast);
+}
+
+.moka-banner__close:hover {
+	opacity: 1;
+}
+
+.moka-banner--info {
+	background-color: var(--moka-color-info);
+	color: var(--moka-color-on-info);
+}
+
+.moka-banner--success {
+	background-color: var(--moka-color-success);
+	color: var(--moka-color-on-success);
+}
+
+.moka-banner--warning {
+	background-color: var(--moka-color-warning);
+	color: var(--moka-color-on-warning);
+}
+
+.moka-banner--error {
+	background-color: var(--moka-color-error);
+	color: var(--moka-color-on-error);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+
+.moka-gate .moka-banner-host { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-banner__close { opacity: 1; transition: background-color var(--moka-transition-normal); }
+.moka-gate .moka-banner__close:hover { background-color: var(--moka-color-surface-hover); }
+
+.moka-gate .moka-banner--info {
+	background-color: var(--moka-color-info-bg);
+	color: var(--moka-color-info-ink);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-info-line);
+}
+
+.moka-gate .moka-banner--success {
+	background-color: var(--moka-color-success-bg);
+	color: var(--moka-color-success-ink);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-success-line);
+}
+
+.moka-gate .moka-banner--warning {
+	background-color: var(--moka-color-warning-bg);
+	color: var(--moka-color-warning-ink);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-warning-line);
+}
+
+.moka-gate .moka-banner--error {
+	background-color: var(--moka-color-error-bg);
+	color: var(--moka-color-error-ink);
+	border-bottom: var(--moka-border-width) solid var(--moka-color-error-line);
+}

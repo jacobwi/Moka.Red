@@ -1,0 +1,47 @@
+@page "/components"
+@using Moka.Red.Showcase.Components.Library
+
+<PageTitle>All components - Moka.Red</PageTitle>
+
+<div class="all-components">
+	<MokaPageHeader Title="All components"
+	                Said="@($"{LibraryCatalog.Components.Count} pages covering {LibraryCatalog.TypeCount} components, in {LibraryCatalog.Areas.Count} areas.")"
+	                Lead="Each card opens the component's page: its examples with their code, and every parameter. Ctrl+K finds them too."/>
+
+	<MokaSearchInput @bind-Value="_query" Placeholder="Filter by name or type" aria-label="Filter components"/>
+
+	<MokaTabs Items="Tabs" @bind-Active="_area" Label="Areas"/>
+
+	@if (Shown.Count == 0)
+	{
+		<MokaEmptyState Compact Icon="MokaIcons.Action.Search" Title="@($"Nothing matches \"{_query.Trim()}\"")"
+		                Description="Try part of a name, or a type such as MokaMenuItem."/>
+	}
+	else
+	{
+		<ComponentGrid Components="Shown"/>
+	}
+</div>
+
+@code {
+	private const string Every = "all";
+
+	private string _area = Every;
+	private string _query = string.Empty;
+
+	private IReadOnlyList<MokaTabItem> Tabs =>
+	[
+		new(Every, "All", Matching.Count),
+		.. LibraryCatalog.Areas
+			.Select(area => new MokaTabItem(area.Slug, area.Name, Matching.Count(component => component.Area == area.Name)))
+			.Where(tab => tab.Count > 0 || tab.Id == _area)
+	];
+
+	private IReadOnlyList<LibraryComponent> Matching =>
+		_query.Trim().Length == 0 ? LibraryCatalog.Components : LibraryCatalog.Search(_query);
+
+	private IReadOnlyList<LibraryComponent> Shown =>
+	[
+		.. Matching.Where(component => _area == Every || LibraryCatalog.Area(_area)?.Name == component.Area)
+	];
+}

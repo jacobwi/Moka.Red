@@ -1,0 +1,33 @@
+@using Moka.Red.Navigation.AppShell
+
+<DemoSection Id="a-heading-with-a-detail" Title="A heading with a detail" Description="Open each card's menu. HeadingDetail adds a mono line under the heading, and HeadingContent draws the top of the menu.">
+	<div style="@Columns; align-items: end; min-height: 15rem;">
+		<div style="max-width: 15rem;">
+			<MokaCaption Micro>HeadingDetail</MokaCaption>
+			<MokaAccountCard Name="Ada Park" Detail="Owner" Heading="Ada Park, owner" HeadingDetail="files.example.test:8443"
+			                 Items="_accountItems"/>
+		</div>
+		<div style="max-width: 15rem;">
+			<MokaCaption Micro>HeadingContent</MokaCaption>
+			<MokaAccountCard Name="Ada Park" Detail="Owner" Items="_accountItems">
+				<HeadingContent>
+					<span style="display: flex; align-items: center; gap: var(--moka-spacing-sm);">
+						<MokaStatusDot Color="MokaColor.Success" Uppercase="false" Label="Signed in"/>
+					</span>
+					<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">files.example.test:8443</span>
+				</HeadingContent>
+			</MokaAccountCard>
+		</div>
+	</div>
+</DemoSection>
+
+@code {
+	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";
+
+	private readonly IReadOnlyList<MokaAccountItem> _accountItems =
+	[
+		new("Settings", MokaIcons.Action.Settings, "components/account-card"),
+		MokaAccountItem.Divider,
+		new("Sign out", MokaIcons.Navigation.ArrowRight, Danger: true)
+	];
+}

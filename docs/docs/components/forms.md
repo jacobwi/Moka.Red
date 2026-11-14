@@ -40,6 +40,46 @@ A placeholder too long for its field ends in an ellipsis rather than mid-word, a
 | `MokaCreditCardInput` | four `string` | Number, expiry, code, name |
 | `MokaSignaturePad` | `string` | Canvas draw → base64 PNG |
 
+## Binding
+
+`@bind-Value` is the common way: the input takes every change and shows what the field holds.
+
+Passing `Value` with `ValueChanged` makes the app the owner of the value. The input shows a change while your handler runs, whether it finishes at once or awaits. Once it has finished, the input shows the `Value` you pass: leave your value as it was to refuse the change, and the input goes back; set another value, such as a clamped one, and that one shows. Only the latest change counts, so a slow answer to an earlier change doesn't undo a later one.
+
+```razor
+<MokaSwitch Label="Start with the system" Value="_startup" ValueChanged="SetStartupAsync" />
+
+@code {
+    private bool _startup;
+
+    private async Task SetStartupAsync(bool on)
+    {
+        if (await Startup.TrySetAsync(on))
+        {
+            _startup = on;
+        }
+    }
+}
+```
+
+Listening to `ValueChanged` without passing `Value`, or passing `Value` without `ValueChanged`, leaves the input its own state. It keeps what the user picks, and shows `Value` again only when you pass a different one. `Value` always holds what the parent passed, so read the input's value from your own field rather than through a component reference.
+
+`MokaSlider`, `MokaTagInput` (with `Values`), `MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput`, `MokaMacAddressInput` and `MokaRangeBar` (with `Start`, `End` or `Value`) follow the same rules, and so do these, each for the values named:
+
+| Component | Values |
+|-----------|--------|
+| `MokaRangeSlider` | `ValueStart`, `ValueEnd`, each on its own |
+| `MokaRating`, `MokaKnob`, `MokaColorWheel`, `MokaAutoComplete`, `MokaSearchInput`, `MokaSignaturePad`, `MokaCodeEditor` | `Value` |
+| `MokaCalendar` | `Value`, and `DisplayMonth` for the month it shows |
+| `MokaTreeSelect` | `Value`, or `SelectedValues` when `Multiple` |
+| `MokaSelect`, `MokaCountrySelect` | `SelectedValues` when `Multiple`, as well as `Value` |
+| `MokaDateRangePicker` | `StartDate`, `EndDate`, each on its own |
+| `MokaCreditCardInput` | `CardNumber`, `ExpiryDate`, `Cvv`, `CardholderName`, each on its own |
+| `MokaSchedulePicker` | `SelectedSlots` |
+| `MokaFormBuilder` | `Fields` |
+
+A list comes back as a new list, never the one you passed, and two lists with the same items count as the same value, so a list you build again on every render doesn't undo a change. `MokaFormBuilder` reports an edited field as a new `MokaFormField` with the same `Id`, so a field you passed is never changed and a refused edit leaves it as it was. A change that leaves the value as it was, such as a key at the end of the scale or a click on the date already picked, raises no change callback.
+
 ## Id, Class and Attributes
 
 `Id` names the control itself, the element that takes focus: the input, the select's trigger or the rating's slider. The field's label points at it with `for`. The select's trigger and the rating's slider are not native controls, which `for` may not point at, so they point `aria-labelledby` at the label instead. The tree select's button does the same and adds its current choice after the label, since a button's name replaces its text. The ids built from `Id` follow it: the label is `{Id}-label`, and the option list of `MokaSelect` and `MokaAutoComplete` is `{Id}-listbox`, with options `{Id}-listbox-option-0` and on. Without `Id`, an input whose label points at it makes up an id of its own, so the label still names the control.
@@ -317,6 +357,15 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 
 The field reads and writes numbers in the invariant culture, with a dot before the decimals, whatever the page's culture. Up to 0.1.12 it wrote them in the page's culture and read them back in the invariant one, so a German page showed 1.5 as "1,5" and turned an edit of it into 15.
 
+`TValue` is any number type of the base library (`int`, `long`, `short`, `byte`, `sbyte`, `uint`, `ulong`, `ushort`, `Int128`, `UInt128`, `nint`, `nuint`, `double`, `float`, `decimal`, `Half`, `BigInteger`) or the nullable form of one. A nullable type holds no value as well as numbers: null shows an empty box, and emptying the box reports null. A type that can't be null takes zero for an empty box, as before.
+
+```blazor-preview
+@code { int? _limit; }
+<MokaNumericField TValue="int?" @bind-Value="_limit" Label="Limit" Optional />
+```
+
+Before 0.6.0 `TValue` had to be a non-nullable `INumber<TValue>`. The field now checks the type when it is made, as Blazor's `InputNumber` does, so a number type of your own that implements `INumber<TValue>` throws an `InvalidOperationException` there.
+
 ### MokaNumericField Parameters (extras)
 
 | Name | Type | Default | Description |
@@ -455,7 +504,7 @@ change is raised. That needs an interactive render.
 }
 ```
 
-If the save fails, set the value back yourself when `Loading` ends.
+If the save fails, set the value back yourself when `Loading` ends. Or pass `Value` with `ValueChanged` and set your value only once the save has worked: the switch goes back by itself when it fails (see [Binding](#binding)).
 
 ## SearchInput
 

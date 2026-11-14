@@ -1,0 +1,237 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@inherits MokaComponentBase
+@using System.ComponentModel
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+
+@* A non-modal dialog in the top layer, placed against the button that opened it: the WAI-ARIA dialog pattern, since it
+   holds form fields rather than menu items. Escape and a click outside close it, and focus goes back to the button. *@
+<div class="moka-table-popup moka-table-filter-popup" popover="manual" data-moka-popup role="dialog"
+     aria-label="@Words.FilterDialog(Title)" @ref="_panel">
+	<form class="moka-table-filter-form" @onsubmit="ApplyAsync">
+		@if (IsList)
+		{
+			<fieldset class="moka-table-filter-list">
+				<legend class="moka-visually-hidden">@Words.FilterDialog(Title)</legend>
+				@if (_choices.Count == 0)
+				{
+					<span class="moka-table-filter-none">@Words.NoValues</span>
+				}
+				@foreach (var choice in _choices)
+				{
+					<label class="moka-table-filter-option" @key="choice.Value">
+						<input type="checkbox" @bind:get="IsPicked(choice.Value)" @bind:set="on => Pick(choice.Value, on)"/>
+						<span class="moka-table-filter-option-text">@choice.Text</span>
+						@if (Table.FacetCountsKnown)
+						{
+							<span class="moka-table-filter-option-count">@(MokaTable<TItem>.CountText(choice.Count))</span>
+						}
+					</label>
+				}
+			</fieldset>
+		}
+		else if (_kind == TableFilterKind.YesNo)
+		{
+			<fieldset class="moka-table-filter-list">
+				<legend class="moka-visually-hidden">@Words.FilterDialog(Title)</legend>
+				@foreach (var (value, text) in YesNoChoices)
+				{
+					<label class="moka-table-filter-option" @key="value">
+						<input type="radio" name="@_radioName" checked="@(_first == value)" @onchange="() => _first = value"/>
+						<span class="moka-table-filter-option-text">@text</span>
+					</label>
+				}
+			</fieldset>
+		}
+		else
+		{
+			<label class="moka-table-filter-field">
+				<span class="moka-table-filter-label">@Words.Operator</span>
+				<select class="moka-table-filter-control" @bind="_operator">
+					@foreach (var op in TableOperators)
+					{
+						<option value="@op">@Words.OperatorName(op, _kind == TableFilterKind.Date)</option>
+					}
+				</select>
+			</label>
+			@if (ValueCount >= 1)
+			{
+				<label class="moka-table-filter-field">
+					<span class="moka-table-filter-label">@(ValueCount == 2 ? Words.RangeFrom : Words.Value)</span>
+					<input type="@InputType" class="moka-table-filter-control" step="@Step" @bind="_first"/>
+				</label>
+			}
+			@if (ValueCount == 2)
+			{
+				<label class="moka-table-filter-field">
+					<span class="moka-table-filter-label">@Words.RangeTo</span>
+					<input type="@InputType" class="moka-table-filter-control" step="@Step" @bind="_second"/>
+				</label>
+			}
+		}
+		<div class="moka-table-filter-actions">
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" Color="MokaColor.Secondary"
+			            OnClick="ClearAsync">@Words.ClearFilter</MokaButton>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Filled" Type="submit">@Words.Apply</MokaButton>
+		</div>
+	</form>
+</div>
+<div class="moka-table-popup-backdrop" popover="manual" data-moka-popup @ref="_backdrop" @onclick="Dismiss"></div>
+
+@code {
+	private const string ModulePath = "./_content/Moka.Red.Data/moka-table.js";
+
+	private static readonly MokaFilterOperator[] NoOperators = [];
+
+	private readonly string _radioName = $"moka-table-filter-{Guid.NewGuid():N}";
+	private ElementReference _panel;
+	private ElementReference _backdrop;
+	private DotNetObjectReference<MokaTableFilterPopup<TItem>>? _self;
+	private bool _opened;
+	private TableFilterKind _kind;
+	private IReadOnlyList<MokaFacetValue> _choices = [];
+	private HashSet<string> _picked = new(StringComparer.OrdinalIgnoreCase);
+	private MokaFilterOperator _operator;
+	private string? _first;
+	private string? _second;
+
+	/// <summary>The table the popup filters.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaTable<TItem> Table { get; set; } = default!;
+
+	/// <summary>The column whose filter the popup sets.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaColumn<TItem> Column { get; set; } = default!;
+
+	/// <summary>A selector, inside the table, for what the popup opened from and is placed against.</summary>
+	[Parameter]
+	public string? Anchor { get; set; }
+
+	/// <inheritdoc />
+	protected override string RootClass => "moka-table-filter-popup";
+
+	private MokaTableText Words => Table.Words;
+
+	private string Title => Table.ColumnName(Column);
+
+	private bool IsList => _kind is TableFilterKind.Select or TableFilterKind.MultiSelect;
+
+	private IReadOnlyList<MokaFilterOperator> TableOperators => IsList ? NoOperators : MokaTable<TItem>.OperatorsFor(_kind);
+
+	private int ValueCount => MokaTable<TItem>.ValueCountOf(_operator);
+
+	private string InputType => _kind switch
+	{
+		TableFilterKind.Number => "number",
+		TableFilterKind.Date => "date",
+		_ => "text"
+	};
+
+	private string? Step => _kind == TableFilterKind.Number ? "any" : null;
+
+	private (string Value, string Text)[] YesNoChoices => [(string.Empty, Words.All), ("true", Words.Yes), ("false", Words.No)];
+
+	/// <inheritdoc />
+	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		_kind = Table.FilterKindOf(Column);
+		_choices = Table.ChoicesFor(Column);
+		MokaTableFilter? current = Table.FilterOn(Column);
+		_operator = current?.Operator ?? MokaTable<TItem>.OperatorsFor(_kind)[0];
+		if (IsList && current is { Operator: MokaFilterOperator.IsAnyOf or MokaFilterOperator.Is })
+		{
+			_picked.UnionWith(current.Values);
+		}
+		else if (current is not null)
+		{
+			_first = current.Values.Count > 0 ? current.Values[0] : null;
+			_second = current.Values.Count > 1 ? current.Values[1] : null;
+		}
+
+		if (_kind == TableFilterKind.YesNo)
+		{
+			_first ??= string.Empty;
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+		if (firstRender)
+		{
+			_opened = true;
+			_self = DotNetObjectReference.Create(this);
+			await SafeModuleInvokeVoidAsync(ModulePath, "openPopup", Table.FilterPopupPopupKey, _panel, _backdrop, Table.WrapperRef,
+				Anchor, "bottom-start", _self, false);
+		}
+	}
+
+	/// <summary>Called from JS when Escape is pressed in the popup: it closes and focus goes back to what opened it.</summary>
+	[JSInvokable]
+	public void Dismiss() => Table.CloseFilterPopup(returnFocus: true);
+
+	private bool IsPicked(string value) => _picked.Contains(value);
+
+	private void Pick(string value, bool on)
+	{
+		if (on)
+		{
+			_picked.Add(value);
+		}
+		else
+		{
+			_picked.Remove(value);
+		}
+	}
+
+	private Task ApplyAsync() => Table.ApplyFilterFromPopupAsync(Column, BuildFilter());
+
+	private Task ClearAsync() => Table.ApplyFilterFromPopupAsync(Column, null);
+
+	// The list keeps the choices' order; a range needs both ends, a value its one; the empty tests need none.
+	private MokaTableFilter? BuildFilter()
+	{
+		string title = Column.Title!;
+		if (IsList)
+		{
+			List<string> picked = _choices.Select(static choice => choice.Value).Where(_picked.Contains).ToList();
+			picked.AddRange(_picked.Where(value => !picked.Contains(value, StringComparer.OrdinalIgnoreCase)));
+			return picked.Count == 0 ? null : new MokaTableFilter(title, MokaFilterOperator.IsAnyOf, picked);
+		}
+
+		string? first = string.IsNullOrWhiteSpace(_first) ? null : _first.Trim();
+		string? second = string.IsNullOrWhiteSpace(_second) ? null : _second.Trim();
+		if (_kind == TableFilterKind.YesNo)
+		{
+			return first is null ? null : new MokaTableFilter(title, MokaFilterOperator.Is, first);
+		}
+
+		return ValueCount switch
+		{
+			0 => new MokaTableFilter(title, _operator, Array.Empty<string>()),
+			2 when first is not null && second is not null => new MokaTableFilter(title, _operator, [first, second]),
+			1 when first is not null => new MokaTableFilter(title, _operator, first),
+			_ => null
+		};
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_opened)
+		{
+			_opened = false;
+			await SafeModuleInvokeVoidAsync(ModulePath, "closePopup", Table.FilterPopupPopupKey, _panel);
+		}
+
+		_self?.Dispose();
+		_self = null;
+		await base.DisposeAsyncCore();
+	}
+}

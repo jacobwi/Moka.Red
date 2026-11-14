@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.Presets;
 
@@ -173,22 +174,7 @@ public class MokaThemePresetsTests : BunitContext
 		static int Channel(string value) => int.Parse(value.Trim(), CultureInfo.InvariantCulture);
 	}
 
-	// WCAG relative luminance and contrast ratio.
-	private static double Luminance(string color)
-	{
-		(int r, int g, int b) = Rgb(color);
-		return (0.2126 * Linear(r)) + (0.7152 * Linear(g)) + (0.0722 * Linear(b));
+	private static double Luminance(string color) => MokaCssColor.Parse(color).RelativeLuminance;
 
-		static double Linear(int channel)
-		{
-			double c = channel / 255.0;
-			return c <= 0.03928 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-		}
-	}
-
-	private static double Contrast(string first, string second)
-	{
-		double a = Luminance(first), b = Luminance(second);
-		return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
-	}
+	private static double Contrast(string first, string second) => MokaContrast.Ratio(Luminance(first), Luminance(second));
 }

@@ -22,7 +22,7 @@
 }
 
 .moka-gauge-fill {
-	transition: stroke-dashoffset var(--moka-transition-normal) ease-in-out;
+	transition: stroke-dashoffset var(--moka-transition-normal);
 }
 
 .moka-gauge-center {

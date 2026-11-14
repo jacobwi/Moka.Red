@@ -1,0 +1,31 @@
+@using Moka.Red.ThemeGen.Appearance
+
+<DemoSection Id="looks" Title="Looks" Description="Each look with two states and three, at every size. The segmented looks are a MokaSegmentedControl; Icon and Chip cycle Light, Dark, System.">
+	<div style="display: grid; grid-template-columns: repeat(3, auto) 1fr; align-items: center; justify-items: start; gap: var(--moka-spacing-lg) var(--moka-spacing-xxl);">
+		<MokaCaption Micro>Look</MokaCaption>
+		<MokaCaption Micro>Two states</MokaCaption>
+		<MokaCaption Micro>Three states</MokaCaption>
+		<MokaCaption Micro>Sizes</MokaCaption>
+		@foreach (MokaThemeToggleLook look in Enum.GetValues<MokaThemeToggleLook>())
+		{
+			<span>@look</span>
+			<MokaThemeToggle Look="look" @bind-IsDark="_twoStates"/>
+			<MokaThemeToggle Look="look" ShowSystem @bind-Mode="_threeStates"/>
+			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+				@foreach (MokaSize size in ToggleSizes)
+				{
+					<MokaThemeToggle Look="look" Size="size" ShowSystem @bind-Mode="_threeStates"/>
+				}
+			</div>
+		}
+	</div>
+	<MokaCaption>Two states: @(_twoStates ? "dark" : "light"). Three states: @_threeStates.</MokaCaption>
+</DemoSection>
+
+@code {
+	private static readonly MokaSize[] ToggleSizes = [MokaSize.Xs, MokaSize.Sm, MokaSize.Md, MokaSize.Lg];
+
+	private bool _twoStates = true;
+
+	private MokaColorMode _threeStates = MokaColorMode.System;
+}

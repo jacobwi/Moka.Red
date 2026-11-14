@@ -1,0 +1,8 @@
+<DemoSection Id="trigger-confetti" Title="Trigger confetti" Description="A burst of confetti for a finished task.">
+	<MokaConfetti @bind-Active="_confettiActive"/>
+	<MokaButton OnClick="() => _confettiActive = true" Color="MokaColor.Success">Celebrate!</MokaButton>
+</DemoSection>
+
+@code {
+	private bool _confettiActive;
+}

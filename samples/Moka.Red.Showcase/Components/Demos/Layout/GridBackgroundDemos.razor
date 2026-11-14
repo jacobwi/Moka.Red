@@ -1,0 +1,236 @@
+<DemoSection Id="lines-default" Title="Lines (default)" Description="A patterned grid behind content: lines, dots, dashes, crosses, diagonals or honeycomb.">
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Grid Lines</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Default pattern with fade edges and highlight</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="dots" Title="Dots">
+	<MokaGridBackground Pattern="MokaGridPattern.Dots" MinHeight="200px" CellSize="24" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Dot Grid</MokaHeading>
+			<MokaText Size="MokaSize.Sm">24px cell size, faded edges</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="dashed" Title="Dashed">
+	<MokaGridBackground Pattern="MokaGridPattern.Dashed" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Dashed Grid</MokaHeading>
+			<MokaText Size="MokaSize.Sm">SVG-based dashed lines</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="cross" Title="Cross">
+	<MokaGridBackground Pattern="MokaGridPattern.Cross" MinHeight="200px" CellSize="32" PatternOpacity="0.8" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Cross Pattern</MokaHeading>
+			<MokaText Size="MokaSize.Sm">+ signs at intersections, 32px cells</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="diagonal-lines" Title="Diagonal lines">
+	<MokaGridBackground Pattern="MokaGridPattern.DiagonalLines" MinHeight="200px" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Diagonal Lines</MokaHeading>
+			<MokaText Size="MokaSize.Sm">45-degree repeating lines</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="honeycomb" Title="Honeycomb">
+	<MokaGridBackground Pattern="MokaGridPattern.Honeycomb" MinHeight="200px" CellSize="48" Highlighted Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Honeycomb</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Hexagonal SVG pattern</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="no-fade-custom-color" Title="No fade, custom color">
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" FadeEdges="false" PatternColor="var(--moka-color-success)" PatternOpacity="0.15" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Direction="MokaDirection.Column" Align="MokaAlign.Center" Justify="MokaJustify.Center" Style="height: 100%; min-height: 160px;">
+			<MokaHeading Level="3">Custom Color</MokaHeading>
+			<MokaText Size="MokaSize.Sm">Green grid, no edge fade</MokaText>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="every-option-on-one-background" Title="Every option on one background">
+	<MokaGrid MinColumn="14rem" Gap="MokaSpacingScale.Md">
+		<MokaNativeSelect TValue="MokaGridPattern" Label="Pattern" Items="@Patterns" @bind-Value="_pattern"/>
+		<MokaNativeSelect TValue="MokaGridTone" Label="Tone" Items="@Tones" @bind-Value="_tone"/>
+		<MokaSlider @bind-Value="_cellSize" Min="0" Max="160" Step="4" Label="Cell size (0 is the pattern's own)"/>
+		<MokaSlider @bind-Value="_majorEvery" Min="2" Max="10" Step="1" Label="Major line every (graph paper)"/>
+	</MokaGrid>
+
+	<div style="@Choices">
+		<MokaCaption Micro>Fade</MokaCaption>
+		<MokaSegmentedControl @bind-Value="_fade" AriaLabel="Fade">
+			<MokaSegment Value="" Text="Unset"/>
+			@foreach (MokaGridFade fade in Enum.GetValues<MokaGridFade>())
+			{
+				<MokaSegment Value="@fade.ToString()" Text="@fade.ToString()"/>
+			}
+		</MokaSegmentedControl>
+
+		<MokaCaption Micro>Glow</MokaCaption>
+		<MokaSegmentedControl @bind-Value="_glow" AriaLabel="Glow">
+			<MokaSegment Value="" Text="None"/>
+			@foreach (MokaGridGlow glow in Enum.GetValues<MokaGridGlow>())
+			{
+				<MokaSegment Value="@glow.ToString()" Text="@glow.ToString()"/>
+			}
+		</MokaSegmentedControl>
+
+		<MokaCaption Micro>Motion</MokaCaption>
+		<MokaSegmentedControl @bind-Value="_motion" AriaLabel="Motion">
+			@foreach (MokaGridMotion motion in Enum.GetValues<MokaGridMotion>())
+			{
+				<MokaSegment Value="@motion.ToString()" Text="@motion.ToString()"/>
+			}
+		</MokaSegmentedControl>
+	</div>
+
+<MokaGridBackground Pattern="_pattern" Tone="_tone" Fade="@Fade" Glow="@Glow" Motion="@Motion"
+                    CellSize="@((int)_cellSize)" MajorEvery="@((int)_majorEvery)" MinHeight="320px"
+                    Rounded="MokaRounding.Xl">
+	<div style="@Hero">
+		<MokaHeading Level="2">Start a new app</MokaHeading>
+		<MokaCode>dotnet new mokared-server -n MyApp</MokaCode>
+		<MokaText Style="color: var(--moka-color-on-surface-variant);">@Summary</MokaText>
+	</div>
+</MokaGridBackground>
+</DemoSection>
+
+<DemoSection Id="patterns" Title="Patterns" Description="Every pattern, in the tone picked above.">
+	<MokaGrid MinColumn="11rem" Gap="MokaSpacingScale.Md">
+		@foreach (MokaGridPattern pattern in Patterns)
+		{
+			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xs);">
+				<MokaGridBackground Pattern="pattern" Tone="_tone" MinHeight="120px" Rounded="MokaRounding.Md"
+				                    FadeStart="45" FadeEnd="100"/>
+				<MokaCaption>@pattern</MokaCaption>
+			</div>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="where-the-pattern-fades" Title="Where the pattern fades" Description="Move the pointer over Spotlight.">
+	<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md">
+		@foreach (MokaGridFade fade in Enum.GetValues<MokaGridFade>())
+		{
+			<MokaGridBackground Pattern="_pattern" Tone="_tone" Fade="fade" MinHeight="170px" Rounded="MokaRounding.Md">
+				<div style="@Tile">
+					<strong>@fade</strong>
+					<MokaCaption>Nothing deployed yet</MokaCaption>
+				</div>
+			</MokaGridBackground>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="glow" Title="Glow">
+	<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md">
+		@foreach (MokaGridGlow glow in Enum.GetValues<MokaGridGlow>())
+		{
+			<MokaGridBackground Pattern="_pattern" Tone="_tone" Glow="glow" MinHeight="170px" Rounded="MokaRounding.Md">
+				<div style="@Tile">
+					<strong>@glow</strong>
+					<MokaCaption>Looks for toasts, dialogs and buttons</MokaCaption>
+				</div>
+			</MokaGridBackground>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="motion" Title="Motion" Description="Everything stands still when the system asks for reduced motion.">
+	<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md">
+		@foreach (MokaGridMotion motion in Enum.GetValues<MokaGridMotion>())
+		{
+			<MokaGridBackground Pattern="_pattern" Tone="_tone" Glow="MokaGridGlow.Center" Motion="motion"
+			                    MinHeight="170px" Rounded="MokaRounding.Md">
+				<div style="@Tile">
+					<strong>@motion</strong>
+					<MokaCaption>12 devices on the network</MokaCaption>
+				</div>
+			</MokaGridBackground>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="tone" Title="Tone" Description="Shown on graph paper, the one pattern with major lines.">
+	<MokaGrid MinColumn="16rem" Gap="MokaSpacingScale.Md">
+		@foreach (MokaGridTone tone in Tones)
+		{
+			<MokaGridBackground Pattern="MokaGridPattern.GraphPaper" Tone="tone" Glow="MokaGridGlow.Center"
+			                    MinHeight="170px" Rounded="MokaRounding.Md">
+				<div style="@Tile">
+					<strong>@tone</strong>
+					<MokaCaption>Pick a palette, then export it</MokaCaption>
+				</div>
+			</MokaGridBackground>
+		}
+	</MokaGrid>
+</DemoSection>
+
+<DemoSection Id="content-placed-in-the-background" Title="Content placed in the background" Description="FillContent makes the content fill the background, and Justify and Align place what's in it, here in the middle.">
+	<MokaGridBackground MinHeight="16rem" Rounded="MokaRounding.Lg" Justify="MokaJustify.Center" Align="MokaAlign.Center">
+		@Pitch
+	</MokaGridBackground>
+</DemoSection>
+
+@code {
+	private static readonly MokaGridPattern[] Patterns = Enum.GetValues<MokaGridPattern>();
+
+	private static readonly MokaGridTone[] Tones = Enum.GetValues<MokaGridTone>();
+
+	private const string Hero =
+		"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--moka-spacing-sm); "
+		+ "min-height: 320px; padding: var(--moka-spacing-lg); text-align: center;";
+
+	private const string Choices =
+		"display: flex; flex-direction: column; align-items: flex-start; gap: var(--moka-spacing-sm); "
+		+ "margin-top: var(--moka-spacing-md);";
+
+	private MokaGridPattern _pattern = MokaGridPattern.GraphPaper;
+
+	private MokaGridTone _tone = MokaGridTone.Accent;
+
+	private string? _fade = "";
+
+	private string? _glow = nameof(MokaGridGlow.Aurora);
+
+	private string? _motion = nameof(MokaGridMotion.None);
+
+	private double _cellSize;
+
+	private double _majorEvery = 5;
+
+	private MokaGridFade? Fade => Enum.TryParse(_fade, out MokaGridFade fade) ? fade : null;
+
+	private MokaGridGlow? Glow => Enum.TryParse(_glow, out MokaGridGlow glow) ? glow : null;
+
+	private MokaGridMotion Motion => Enum.TryParse(_motion, out MokaGridMotion motion) ? motion : MokaGridMotion.None;
+
+	private string Summary =>
+		$"{_pattern}, {_tone} tone, fade {Fade?.ToString() ?? "unset"}, glow {Glow?.ToString() ?? "none"}, {Motion} motion";
+
+	private const string Tile =
+		"display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--moka-spacing-xs); "
+		+ "min-height: 170px; padding: var(--moka-spacing-md); text-align: center;";
+
+	private static readonly RenderFragment Pitch =
+		@<div style="display: flex; flex-direction: column; align-items: inherit; gap: var(--moka-spacing-md); max-width: 26rem; padding: var(--moka-spacing-xl); text-align: center;">
+			<MokaHeading Level="3">Your files, safely synced</MokaHeading>
+			<span>Sign in to pick up where you left off on every device.</span>
+			<div>
+				<MokaButton Variant="MokaVariant.Filled">Sign in</MokaButton>
+			</div>
+		</div>;
+}

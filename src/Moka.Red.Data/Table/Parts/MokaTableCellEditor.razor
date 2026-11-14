@@ -1,0 +1,155 @@
+@namespace Moka.Red.Data.Table
+@typeparam TItem
+@using System.ComponentModel
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.Forms.Checkbox
+@using Moka.Red.Forms.DatePicker
+@using Moka.Red.Forms.NativeSelect
+@using Moka.Red.Forms.NumericField
+@using Moka.Red.Forms.Rating
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Forms.TextField
+@attribute [EditorBrowsable(EditorBrowsableState.Never)]
+
+@* The editor of one cell of the row being edited, from the library's inputs. Only the open row draws these, so a table
+   that isn't editing pays nothing. The null EditContext keeps an EditForm around the table from taking the editors as
+   its own fields. *@
+@if (Table.OpenEdit is { } edit)
+{
+	var value = edit.ValueOf(Column);
+	var error = edit.ErrorOf(Column);
+	<div class="moka-table-editor">
+		<CascadingValue TValue="EditContext" Value="@((EditContext?)null)" IsFixed="true">
+			@if (Column.EditTemplate is { } template)
+			{
+				@template(new MokaCellEdit<TItem>(edit.Draft, Column.Title, value, error, Table.EditorLabel(Column), SetFromTemplate))
+			}
+			else
+			{
+				switch (MokaTable<TItem>.EditorOf(Column, edit.Draft))
+				{
+					case MokaColumnEditor.Number:
+						<MokaNumericField TValue="double?" Value="@TableValues.ToDouble(value)" ValueChanged="_number"
+						                  Size="MokaSize.Sm" ErrorText="@error" Disabled="@edit.Saving"
+						                  AdditionalAttributes="_attributes"/>
+						break;
+					case MokaColumnEditor.Date:
+						<MokaDatePicker Value="@TableValues.ToDate(value)" ValueChanged="_date" Size="MokaSize.Sm" ErrorText="@error"
+						                Placeholder="" Disabled="@edit.Saving" AdditionalAttributes="_attributes"/>
+						break;
+					case MokaColumnEditor.Select:
+						var choices = Table.EditChoicesFor(Column, edit.Draft);
+						<MokaNativeSelect TValue="string" Items="@ChoiceValues(choices)" TextSelector="@ChoiceText(choices)"
+						                  Value="@(value is null ? null : TableValues.ToInvariantText(value))" ValueChanged="_choice"
+						                  Size="MokaSize.Sm" ErrorText="@error" Disabled="@edit.Saving"
+						                  AdditionalAttributes="_attributes"/>
+						break;
+					case MokaColumnEditor.Checkbox:
+						<MokaCheckbox Value="@(value as bool? ?? false)" ValueChanged="_toggle" ErrorText="@error"
+						              Disabled="@edit.Saving" AdditionalAttributes="_attributes"/>
+						break;
+					case MokaColumnEditor.Switch:
+						<MokaSwitch Value="@(value as bool? ?? false)" ValueChanged="_toggle" ErrorText="@error"
+						            Disabled="@edit.Saving" AdditionalAttributes="_attributes"/>
+						break;
+					case MokaColumnEditor.Rating:
+						<MokaRating Value="@((int)Math.Round(TableValues.ToDouble(value) ?? 0))" ValueChanged="_stars"
+						            MaxValue="@StarCount" ReadOnly="@edit.Saving" AdditionalAttributes="_attributes"/>
+						@if (error is not null)
+						{
+							<span class="moka-table-editor-error" role="alert">@error</span>
+						}
+						break;
+					default:
+						<MokaTextField Value="@(edit.HasText(Column) ? edit.TextOf(Column) : TableValues.ToText(value))"
+						               ValueChanged="_text" Size="MokaSize.Sm" ErrorText="@error" Disabled="@edit.Saving"
+						               AdditionalAttributes="_attributes"/>
+						break;
+				}
+			}
+		</CascadingValue>
+	</div>
+}
+
+@code {
+	private EventCallback<double?> _number;
+	private EventCallback<DateTime?> _date;
+	private EventCallback<string?> _choice;
+	private EventCallback<bool> _toggle;
+	private EventCallback<int> _stars;
+	private EventCallback<string?> _text;
+	private Dictionary<string, object> _attributes = [];
+	private string? _label;
+
+	/// <summary>The table.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaTable<TItem> Table { get; set; } = default!;
+
+	/// <summary>The column whose cell this edits.</summary>
+	[Parameter]
+	[EditorRequired]
+	public MokaColumn<TItem> Column { get; set; } = default!;
+
+	private int StarCount => Column is MokaRatingColumn<TItem> rating ? rating.Stars : 5;
+
+	/// <inheritdoc />
+	protected override void OnInitialized()
+	{
+		// Made once, so a render while typing retires no handler. They run on this editor, which draws again with the
+		// value and its message; the rest of the table stays as it is until the row is saved.
+		_number = EventCallback.Factory.Create<double?>(this, number => Table.SetEditNumber(Column, number));
+		_date = EventCallback.Factory.Create<DateTime?>(this, day =>
+			Table.SetEditValue(Column, TableValues.FromDate(day, TypeOfColumn(), Table.OpenEdit?.ValueOf(Column))));
+		_choice = EventCallback.Factory.Create<string?>(this, written => Table.SetEditValue(Column, FromChoice(written)));
+		_toggle = EventCallback.Factory.Create<bool>(this, on => Table.SetEditValue(Column, on));
+		_stars = EventCallback.Factory.Create<int>(this, stars => Table.SetEditValue(Column, ToColumnType(stars)));
+		_text = EventCallback.Factory.Create<string?>(this, text => Table.SetEditText(Column, text));
+	}
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		string label = Table.EditorLabel(Column);
+		if (label != _label)
+		{
+			_label = label;
+			_attributes = new Dictionary<string, object> { ["aria-label"] = label };
+		}
+	}
+
+	private Type TypeOfColumn() => Table.OpenEdit is { } edit ? Column.EditValueType(edit.Draft) : typeof(string);
+
+	private object? ToColumnType(double number) =>
+		TableValues.TryFromDouble(number, TypeOfColumn(), out object? value) ? value : number;
+
+	private object? FromChoice(string? written)
+	{
+		if (written is null)
+		{
+			return null;
+		}
+
+		return TableValues.TryParseInvariant(written, TypeOfColumn(), out object? value) ? value : written;
+	}
+
+	private void SetFromTemplate(object? value)
+	{
+		Table.SetEditValue(Column, value);
+		StateHasChanged();
+	}
+
+	private static IReadOnlyList<string> ChoiceValues(IReadOnlyList<MokaFilterOption> choices) =>
+		choices.Select(static choice => choice.Value).ToList();
+
+	private static Func<string, string> ChoiceText(IReadOnlyList<MokaFilterOption> choices)
+	{
+		Dictionary<string, string> texts = new(StringComparer.Ordinal);
+		foreach (MokaFilterOption choice in choices)
+		{
+			texts.TryAdd(choice.Value, choice.Text);
+		}
+
+		return written => texts.GetValueOrDefault(written, written);
+	}
+}

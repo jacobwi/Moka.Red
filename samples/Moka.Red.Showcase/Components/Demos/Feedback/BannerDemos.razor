@@ -1,0 +1,82 @@
+@inject IMokaBannerService Banners
+@inject IMokaToastService Toast
+
+<DemoSection Id="basics" Title="Basics" Description="App-wide notices along the top of the page, sent through IMokaBannerService. This app's layout has one MokaBannerHost above every page, so the banners show there." Tip="A banner with the same Id replaces the one showing, in place.">
+	<ChildContent>
+		<div class="button-row">
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Warning" OnClick="ShowMaintenance">Maintenance</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error" OnClick="GoOffline">Offline</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Success" OnClick="ComeBackOnline">Back online</MokaButton>
+			<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Secondary" OnClick="Banners.Clear">Clear all</MokaButton>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Id">Names the banner; a dismissal is remembered by it</DemoParam>
+		<DemoParam Name="Severity, Title">Color, icon and the bold words before the message</DemoParam>
+		<DemoParam Name="Dismissible">Off for a notice that lasts as long as its cause</DemoParam>
+		<DemoParam Name="LinkText, Href">A link after the message</DemoParam>
+		<DemoParam Name="MokaBannerHost">One at the top of the layout; Sticky keeps it in view</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="an-action-and-a-remembered-dismissal" Title="An action and a remembered dismissal" Description="Remember keeps a dismissal across visits in the browser's local storage, so a notice someone closed stays closed. A new version gets a new id and shows again.">
+	<div class="button-row">
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="ShowNewVersion">A new version is ready</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" OnClick="ShowNextVersion">And the one after</MokaButton>
+	</div>
+</DemoSection>
+
+<DemoSection Id="a-host-of-its-own" Title="A host of its own" Description="A host that doesn't stick, inside a card. Every host draws every banner, so this one shows the banners above too.">
+	<MokaCard Inner>
+		<MokaBannerHost Sticky="false"/>
+		<MokaText Size="MokaSize.Sm">The card's content sits under the banners.</MokaText>
+	</MokaCard>
+</DemoSection>
+
+@code {
+	private void ShowMaintenance() => Banners.Show(new MokaBanner
+	{
+		Id = "maintenance-2026-11-20",
+		Title = "Maintenance",
+		Message = "The service is down on Friday from 22:00 to 23:00.",
+		Severity = MokaToastSeverity.Warning,
+		LinkText = "Details",
+		Href = "components/banner"
+	});
+
+	private void GoOffline() => Banners.Show(new MokaBanner
+	{
+		Id = "offline",
+		Message = "You're offline. Changes are kept and sent once you're back.",
+		Severity = MokaToastSeverity.Error,
+		Dismissible = false
+	});
+
+	private void ComeBackOnline() => Banners.Dismiss("offline");
+
+	private void ShowNewVersion() => Banners.Show(new MokaBanner
+	{
+		Id = "version-2.4",
+		Title = "Version 2.4",
+		Message = "A new version is ready.",
+		Remember = true,
+		ActionText = "Reload",
+		OnAction = ReloadAsync
+	});
+
+	private void ShowNextVersion() => Banners.Show(new MokaBanner
+	{
+		Id = "version-2.5",
+		Title = "Version 2.5",
+		Message = "Another new version is ready.",
+		Remember = true,
+		ActionText = "Reload",
+		OnAction = ReloadAsync
+	});
+
+	private Task ReloadAsync()
+	{
+		Toast.ShowInfo("A real app reloads here.");
+		return Task.CompletedTask;
+	}
+}

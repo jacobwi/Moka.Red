@@ -56,6 +56,16 @@ nav:
         path: /components/dialog
       - label: Table
         path: /components/table
+      - label: Table Column Kinds
+        path: /components/table-columns
+      - label: Table Filters
+        path: /components/table-filters
+      - label: Table Editing
+        path: /components/table-editing
+      - label: Table Export
+        path: /components/table-export
+      - label: Pagination
+        path: /components/pagination
       - label: File Browser
         path: /components/file-browser
       - label: Forms
@@ -106,6 +116,12 @@ nav:
         path: /components/callout
       - label: Notification Center
         path: /components/notification
+      - label: Banner
+        path: /components/banner
+      - label: Announcer
+        path: /components/announcer
+      - label: System Notifications
+        path: /components/system-notifications
       - label: Navigation
         path: /components/navigation
       - label: Page Tabs
@@ -354,7 +370,9 @@ nav:
         path: /components/slash-menu
       - label: Appearance Panel
         path: /components/appearance-panel
-      - label: Theme Editor
+      - label: Theme Studio
+        path: /components/theme-studio
+      - label: Theme Tools
         path: /components/theme-editor
       - label: Diagnostics
         path: /components/diagnostics
@@ -366,6 +384,8 @@ nav:
         path: /layout/grid-flexbox
       - label: Dock Layout
         path: /layout/dock-layout
+      - label: Dock Layout State
+        path: /layout/dock-layout-state
       - label: Split Pane
         path: /layout/split-pane
       - label: Accordion
@@ -452,6 +472,7 @@ plugins:
         - Moka.Red.Core.Interactions
         - Moka.Red.Core.Files
         - Moka.Red.Core.Charts
+        - Moka.Red.Core.Announcer
         - Moka.Red.Core.Clipboard
         - Moka.Red.Icons
         - Moka.Red.Primitives.Button
@@ -551,6 +572,8 @@ plugins:
         - Moka.Red.Forms.Common
         - Moka.Red.Feedback.Dialog
         - Moka.Red.Feedback.Toast
+        - Moka.Red.Feedback.Banner
+        - Moka.Red.Feedback.SystemNotification
         - Moka.Red.Feedback.Tooltip
         - Moka.Red.Feedback.Alert
         - Moka.Red.Feedback.Drawer
@@ -635,7 +658,6 @@ plugins:
         - Moka.Red.Primitives.Tree
         - Moka.Red.Primitives.Utility
         - Moka.Red.ThemeGen
-        - Moka.Red.ThemeGen.Editors
         - Moka.Red.ThemeGen.ImportExport
         - Moka.Red.ThemeGen.Presets
         - Moka.Red.ThemeGen.Preview

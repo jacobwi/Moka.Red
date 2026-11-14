@@ -30,7 +30,8 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 
 | Method | Description |
 |--------|-------------|
-| `Push(title, message, severity)` | Pushes a new notification |
+| `Push(title, message, severity)` | Pushes a new notification, stamped by a registered `TimeProvider`, else the system clock |
+| `Push(notification)` | Pushes a built `MokaNotification`. One with the same `Id` replaces it in place; one with the same `Key` replaces the other |
 | `MarkAsRead(id)` | Marks a specific notification as read |
 | `MarkAllAsRead()` | Marks all notifications as read |
 | `Remove(id)` | Removes a specific notification |
@@ -61,6 +62,9 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 | `Read` | `bool` | `false` | Whether the notification has been read |
 | `Icon` | `MokaIconDefinition?` | -- | Custom icon override |
 | `OnClick` | `Action?` | -- | Optional click action. Enter and Space on the notification run it too |
+| `Key` | `string?` | -- | Names what it is about, so a later one with the same key replaces it (unread, at the top) |
+| `Href` | `string?` | -- | Makes the notification a link there. A `javascript:`, `vbscript:` or `data:` address is dropped |
+| `Actions` | `IReadOnlyList<MokaNotificationAction>` | empty | Buttons under the notification |
 
 ## Pushing Notifications
 
@@ -79,6 +83,40 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
     }
 }
 ```
+
+## Actions, Links and Keys
+
+A notification can carry buttons, lead somewhere, and take the place of an earlier one about the same thing. A
+`MokaNotificationAction` takes its words and an `Action` or a `Func<Task>`; pressing it marks the notification read
+(`MarksRead`, on by default) and, with `Removes`, takes it out of the center once it has run.
+
+```razor
+@inject IMokaNotificationService NotificationService
+
+@code {
+    void BuildStarted() => NotificationService.Push(new MokaNotification
+    {
+        Key = "build-42",
+        Title = "Build #42",
+        Message = "Running."
+    });
+
+    void BuildFailed() => NotificationService.Push(new MokaNotification
+    {
+        Key = "build-42",
+        Title = "Build #42",
+        Message = "Two tests failed.",
+        Severity = MokaToastSeverity.Error,
+        Href = "/builds/42",
+        Actions = [new MokaNotificationAction("Run again", () => RunAgainAsync()) { Removes = true }]
+    });
+
+    Task RunAgainAsync() => Task.CompletedTask;
+}
+```
+
+A toast shown with `AlsoInCenter` lands here too and stays after the toast has gone, under one key, so a tracked task's
+loading entry turns into its result. Its action button comes along as an action.
 
 ## Severity Levels
 
@@ -135,16 +173,27 @@ The parameter way:
 
 ```razor
 <MokaNotificationCenter Look="MokaNotificationLook.Grouped"
-                        TodayText="Aujourd'hui" EarlierText="Plus tôt"
-                        NewCountText="@(n => $"{n} nouvelles")" />
+                        Text="@(new MokaNotificationCenterText { Today = "Aujourd'hui", Earlier = "Plus tôt", NewCount = n => $"{n} nouvelles" })" />
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `Look` | `MokaNotificationLook?` | `null` | This center's look. Null takes the theme's |
-| `TodayText` | `string` | `"Today"` | The heading over today's notifications under `Grouped` |
-| `EarlierText` | `string` | `"Earlier"` | The heading over the rest under `Grouped` |
-| `NewCountText` | `Func<int, string>?` | `"2 new"` | The header's count in `Inbox`, `Grouped` and `Terminal`. Hidden while nothing is unread |
+| `Text` | `MokaNotificationCenterText` | English | Every word the center writes. See [Words](#words) |
+
+## Words
+
+| `MokaNotificationCenterText` | Default |
+|------------------------------|---------|
+| `Title` | "Notifications", the panel's heading |
+| `MarkAllRead`, `ClearAll` | "Mark all read", "Clear all" |
+| `Empty` | "No notifications" |
+| `Unread` | "Unread", what a screen reader hears after an unread notification |
+| `Today`, `Earlier` | The headings under `Grouped` |
+| `NewCount` | "2 new", the header's count in `Inbox`, `Grouped` and `Terminal`. Hidden while nothing is unread |
+| `Bell` | "Notifications, 3 unread", the bell's name, from the unread count |
+| `Dismiss` | "Dismiss *title*" |
+| `Time` | "5m ago", from the UTC timestamp and the clock's now |
 
 `Grouped` counts a notification as today's when its `Timestamp` falls on today's local date. The date comes from a registered `TimeProvider` if there is one, else the system clock, so a test can pin it. A timestamp with no stated kind counts as UTC, as the relative time beside it does. Each heading names the list under it (`aria-labelledby`) rather than sitting in it, so a list still holds only its notifications, Tab still walks them in order, and dismissing one moves focus by the order on screen.
 

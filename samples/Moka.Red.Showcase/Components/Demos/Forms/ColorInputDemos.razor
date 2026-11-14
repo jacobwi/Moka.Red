@@ -1,0 +1,133 @@
+@using System.ComponentModel.DataAnnotations
+
+<DemoSection Id="basic-color-input" Title="Basic color input" Description="A hex color in a text field, with a swatch.">
+	<div style="max-width: 300px;">
+		<MokaColorInput @bind-Value="_colorInputValue" Label="Brand Color" HelperText="Pick a hex color"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @_colorInputValue</MokaText>
+	</div>
+</DemoSection>
+
+<DemoSection Id="looks" Title="Looks">
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+		<span>Panel the popups open</span>
+		<MokaSegmentedControl Value="@_popupLayout.ToString()" ValueChanged="@(v => _popupLayout = Enum.Parse<MokaColorPickerLayout>(v))"
+		                      AriaLabel="Panel the popups open">
+			@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+	</div>
+
+	<MokaGrid MinColumn="240px" Style="gap: var(--moka-grid-gap); margin-top: var(--moka-spacing-lg);">
+		<MokaColorInput Label="Standard (the default)" @bind-Value="_standard" HelperText="The original field"/>
+		<MokaColorInput Look="MokaColorInputLook.SwatchButton" PickerLayout="@_popupLayout" Label="Swatch button"
+		                @bind-Value="_swatch" HelperText="Opens the picker below it"
+		                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+		                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable"/>
+		<MokaColorInput Look="MokaColorInputLook.Split" PickerLayout="@_popupLayout" Label="Split field"
+		                @bind-Value="_split" HelperText="Hex, like #EF5350"
+		                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+		                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable"/>
+		<MokaColorInput Look="MokaColorInputLook.Terminal" Label="Terminal" @bind-Value="_terminal"
+		                HelperText="Type something that isn't a hex"/>
+	</MokaGrid>
+
+	<div style="margin-top: var(--moka-spacing-lg);">
+		<MokaColorInput Look="MokaColorInputLook.Palette" PickerLayout="@_popupLayout" Label="Palette field"
+		                @bind-Value="_palette" HelperText="@($"Chosen {_palette}")"
+		                @bind-RecentColors="_recent" ShowContrast="@_contrast" ShowFormats="@_formats"
+		                ShowThemeColors="@_themeColors" ClearableRecentColors="@_clearable"/>
+	</div>
+
+	<table style="width: 100%; margin-top: var(--moka-spacing-lg); border-collapse: collapse;">
+		<thead>
+		<tr>
+			<th style="text-align: left; padding: var(--moka-spacing-sm);">Label</th>
+			<th style="text-align: left; padding: var(--moka-spacing-sm);">Color (inline chip)</th>
+		</tr>
+		</thead>
+		<tbody>
+		@foreach (TagLabel label in _labels)
+		{
+			<tr>
+				<td style="padding: var(--moka-spacing-sm);">@label.Name</td>
+				<td style="padding: var(--moka-spacing-sm);">
+					<MokaColorInput Look="MokaColorInputLook.Chip" PickerLayout="@_popupLayout" Label="@($"{label.Name} color")"
+					                @bind-Value="label.Color" @bind-RecentColors="_recent"/>
+				</td>
+			</tr>
+		}
+		</tbody>
+	</table>
+</DemoSection>
+
+<DemoSection Id="in-an-editform" Title="In an EditForm">
+	<EditForm Model="@_model" OnValidSubmit="Save">
+		<DataAnnotationsValidator/>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 22rem;">
+			<MokaColorInput Look="MokaColorInputLook.Terminal" Label="Brand color" @bind-Value="_model.Brand"
+			                HelperText="Six hex digits, or a theme token"/>
+			<MokaColorInput Look="MokaColorInputLook.Split" Label="Highlight" @bind-Value="_model.Highlight"
+			                PickerLayout="MokaColorPickerLayout.Tabbed" ShowThemeColors="true"/>
+			<div style="display: flex; align-items: center; gap: var(--moka-spacing-lg);">
+				<MokaButton Type="submit">Save</MokaButton>
+				<span>@_saved</span>
+			</div>
+		</div>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private string _colorInputValue = "#d32f2f";
+
+	private readonly List<TagLabel> _labels =
+	[
+		new("Bug", "#ef5350"),
+		new("Feature", "#42a5f5"),
+		new("Docs", "#66bb6a")
+	];
+
+	private bool _clearable = true;
+
+	private bool _contrast = true;
+
+	private bool _formats = true;
+
+	private string _palette = "#42a5f5";
+
+	private MokaColorPickerLayout _popupLayout = MokaColorPickerLayout.Compact;
+
+	private IReadOnlyList<string> _recent = ["#42a5f5", "#ef5350", "#26a69a", "#ffb547"];
+
+	private string _split = "#ef5350";
+
+	private string _standard = "#ef5350";
+
+	private string _swatch = "#ef5350";
+
+	private string _terminal = "#ef5350";
+
+	private bool _themeColors = true;
+
+	private sealed class TagLabel(string name, string color)
+	{
+		public string Name { get; } = name;
+
+		public string Color { get; set; } = color;
+	}
+
+	private readonly BrandForm _model = new();
+
+	private string? _saved;
+
+	private void Save() => _saved = $"Saved {_model.Brand} and {_model.Highlight}.";
+
+	private sealed class BrandForm
+	{
+		[Required]
+		public string Brand { get; set; } = "#ef5350";
+
+		public string Highlight { get; set; } = "var(--moka-color-primary)";
+	}
+}

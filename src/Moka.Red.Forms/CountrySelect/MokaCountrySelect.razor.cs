@@ -23,6 +23,11 @@ namespace Moka.Red.Forms.CountrySelect;
 /// </remarks>
 public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 {
+	private static readonly MokaSequenceComparer<string> SameCodes = new(StringComparer.OrdinalIgnoreCase);
+
+	// The codes a multiple select shows, apart from SelectedValues: a parent that passes them and listens owns them.
+	private readonly MokaInputValue<IList<string>> _chosen;
+
 	private readonly string _generatedId = $"moka-country-{Guid.NewGuid():N}";
 	private readonly Dictionary<string, string?> _tags = new(StringComparer.Ordinal);
 	private string[] _codes = [];
@@ -30,10 +35,6 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	private Dictionary<string, string?> _groups = new(StringComparer.Ordinal);
 	private string? _builtFrom;
 	private bool _bound;
-	private string? _chosen;
-	private string? _lastValue;
-	private IList<string>? _chosenList;
-	private IList<string>? _lastSelectedValues;
 	private bool _open;
 	private string? _browserCountry;
 	private bool _askedBrowser;
@@ -47,6 +48,9 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	private bool _gridBound;
 	private string _gridQuery = string.Empty;
 	private int _gridColumns = 6;
+
+	/// <summary>Creates the select. A multiple select shows its own codes until the parent passes a list.</summary>
+	public MokaCountrySelect() => _chosen = CreateInputValue<IList<string>>(comparer: SameCodes);
 
 	[CascadingParameter]
 	private MokaTheme? CascadedTheme { get; set; }
@@ -114,7 +118,10 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	[Parameter]
 	public bool Multiple { get; set; }
 
-	/// <summary>The codes picked when <see cref="Multiple" /> is on.</summary>
+	/// <summary>
+	///     The codes picked when <see cref="Multiple" /> is on. Two-way bindable. A change is reported as a new list; the
+	///     list passed in is never edited.
+	/// </summary>
 	[Parameter]
 	public IList<string>? SelectedValues { get; set; }
 
@@ -265,7 +272,7 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 
 	private string ButtonName => Label ?? (Shape == MokaCountrySelectShape.Prefix ? "Country code" : "Country");
 
-	private MokaCountry? ChosenCountry => MokaCountries.Find(_chosen);
+	private MokaCountry? ChosenCountry => MokaCountries.Find(CurrentValue);
 
 	private string? ButtonValueText => ChosenCountry is { } country
 		? Shape == MokaCountrySelectShape.Prefix && country.DialingCode is { } dial ? $"{ShownName(country)} {dial}" : ShownName(country)
@@ -338,8 +345,11 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	public override Task SetParametersAsync(ParameterView parameters)
 	{
 		_bound = parameters.TryGetValue<Expression<Func<string?>>>(nameof(ValueExpression), out var expression) && expression is not null;
+		_chosen.Take(parameters, nameof(SelectedValues));
 		return base.SetParametersAsync(parameters);
 	}
+
+	private IList<string>? ChosenCodes => _chosen.Shown;
 
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
@@ -348,20 +358,14 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
-
-		if (!string.Equals(Value, _lastValue, StringComparison.Ordinal))
-		{
-			_lastValue = Value;
-			_chosen = Value;
-		}
-
-		if (!ReferenceEquals(SelectedValues, _lastSelectedValues))
-		{
-			_lastSelectedValues = SelectedValues;
-			_chosenList = SelectedValues;
-		}
-
 		Rebuild();
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_chosen.AfterRender();
 	}
 
 	/// <inheritdoc />
@@ -400,7 +404,7 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	/// <summary>Called by the grid's script when a tile is clicked or picked with Enter or Space.</summary>
 	/// <param name="code">The tile's country code.</param>
 	[JSInvokable]
-	public async Task PickFromGrid(string code)
+	public void PickFromGrid(string code)
 	{
 		if (Disabled || MokaCountries.Find(code) is not { } country)
 		{
@@ -409,7 +413,7 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 
 		if (Multiple)
 		{
-			List<string> next = _chosenList is null ? [] : [.. _chosenList];
+			List<string> next = ChosenCodes is null ? [] : [.. ChosenCodes];
 			int at = next.FindIndex(c => string.Equals(c, country.Code, StringComparison.OrdinalIgnoreCase));
 			if (at >= 0)
 			{
@@ -420,12 +424,10 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 				next.Add(country.Code);
 			}
 
-			_chosenList = next;
-			await SelectedValuesChanged.InvokeAsync(next);
+			_chosen.Pick(next, SelectedValuesChanged);
 		}
 		else
 		{
-			_chosen = country.Code;
 			CurrentValue = country.Code;
 		}
 
@@ -476,6 +478,7 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 			await SafeModuleInvokeVoidAsync(ModulePath, "unbindGrid", _grid);
 		}
 
+		_chosen.Stop();
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}
@@ -616,17 +619,10 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 		};
 	}
 
-	private Task OnSelectValueChanged(string? value)
-	{
-		_chosen = value;
-		return ValueChanged.InvokeAsync(value);
-	}
+	private void OnSelectValueChanged(string? value) => CurrentValue = value;
 
-	private Task OnSelectValuesChanged(IList<string> values)
-	{
-		_chosenList = values;
-		return SelectedValuesChanged.InvokeAsync(values);
-	}
+	private void OnSelectValuesChanged(IList<string> values) => _chosen.Pick(values, SelectedValuesChanged);
+
 
 	private void OnOpenChanged(bool open) => _open = open;
 
@@ -652,8 +648,8 @@ public partial class MokaCountrySelect : MokaVisualInputBase<string?>
 	}
 
 	private bool IsChosen(string code) => Multiple
-		? _chosenList?.Any(c => string.Equals(c, code, StringComparison.OrdinalIgnoreCase)) == true
-		: string.Equals(_chosen, code, StringComparison.OrdinalIgnoreCase);
+		? ChosenCodes?.Any(c => string.Equals(c, code, StringComparison.OrdinalIgnoreCase)) == true
+		: string.Equals(CurrentValue, code, StringComparison.OrdinalIgnoreCase);
 
 	private void SetGridQuery(string? query) => _gridQuery = query ?? string.Empty;
 

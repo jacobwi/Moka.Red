@@ -41,4 +41,11 @@ public sealed class MokaFormField
 
 	/// <summary>Number of grid columns this field spans (1 or 2).</summary>
 	public int ColSpan { get; set; } = 1;
+
+	internal MokaFormField Copy()
+	{
+		MokaFormField copy = (MokaFormField)MemberwiseClone();
+		copy.Options = Options is null ? null : [.. Options];
+		return copy;
+	}
 }

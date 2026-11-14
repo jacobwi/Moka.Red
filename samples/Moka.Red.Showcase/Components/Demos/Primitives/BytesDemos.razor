@@ -1,0 +1,19 @@
+@using Moka.Red.Feedback.JobProgress
+@using Moka.Red.Primitives.Bytes
+
+<DemoSection Id="byte-counts-as-text" Title="Byte counts as text" Description="Decimal units by default; PerSecond adds /s, and a value that rounds up moves to the next unit.">
+	<MokaDataList Look="MokaDataListLook.SettingsRows">
+		<dt>A file</dt>
+		<dd><MokaBytes Value="1_500_000_000"/></dd>
+		<dt>A transfer</dt>
+		<dd><MokaBytes Value="12_400_000" PerSecond/></dd>
+		<dt>Binary units</dt>
+		<dd><MokaBytes Value="1_073_741_824" Units="MokaByteUnits.Binary"/></dd>
+		<dt>Two decimals</dt>
+		<dd><MokaBytes Value="987_654_321" Decimals="2"/></dd>
+	</MokaDataList>
+</DemoSection>
+
+<DemoSection Id="the-exact-count-in-a-tooltip" Title="The exact count in a tooltip" Description="ShowTooltip shows the count in bytes on hover and keyboard focus.">
+	<MokaBytes Value="734_003_200" ShowTooltip/>
+</DemoSection>

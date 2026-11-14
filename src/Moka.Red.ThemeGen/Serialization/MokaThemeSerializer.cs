@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
@@ -19,38 +20,17 @@ public static class MokaThemeSerializer
 	private const string LookKey = "look";
 	private const string HighContrastKey = "highContrast";
 	private const string SurfacesKey = "surfaces";
-	private const string SelectionKey = "selection";
-	private const string CurrentPlaceKey = "currentPlace";
-	private const string StatusBarKey = "statusBar";
-	private const string ToastsKey = "toasts";
-	private const string ToastStackingKey = "toastStacking";
-	private const string NotificationsKey = "notifications";
-	private const string PopupsKey = "popups";
-	private const string ListsKey = "lists";
-	private const string DialogsKey = "dialogs";
-	private const string ButtonsKey = "buttons";
-	private const string DisabledButtonsKey = "disabledButtons";
-	private const string TooltipsKey = "tooltips";
 	private const string TooltipArrowsKey = "tooltipArrows";
-	private const string TooltipMotionKey = "tooltipMotion";
-	private const string TooltipSizeKey = "tooltipSize";
-	private const string ElevationKey = "elevation";
-	private const string TextButtonsKey = "textButtons";
-	private const string CalloutsKey = "callouts";
-	private const string SwitchesKey = "switches";
-	private const string SettingsHeadersKey = "settingsHeaders";
-	private const string MainButtonKey = "mainButton";
 	private const string DescriptionsKey = "descriptions";
-	private const string LabelToneKey = "labelTone";
-	private const string ChartsKey = "charts";
-	private const string ChartPaletteKey = "chartPalette";
-	private const string ChartTextureKey = "chartTexture";
-	private const string ChartPrintKey = "chartPrint";
 	private const string DensityKey = "density";
 	private const string FontScaleKey = "fontScale";
 	private const string PaletteKey = "palette";
 	private const string TypographyKey = "typography";
 	private const string SpacingKey = "spacing";
+	private const string SeedKey = "seed";
+	private const string AccentKey = "accent";
+	private const string PaletteBeforeHighContrastKey = "paletteBeforeHighContrast";
+	private const string PinsKey = "pins";
 
 	// The export box shows this text to people, so the quotes in font names stay readable instead of
 	// turning into escape sequences. It is never written into HTML or a script unencoded.
@@ -66,183 +46,15 @@ public static class MokaThemeSerializer
 		CommentHandling = JsonCommentHandling.Skip
 	};
 
-	private static readonly string[] ComponentLookKeys =
-	[
-		ToastsKey, ToastStackingKey, NotificationsKey, PopupsKey, ListsKey, DialogsKey, ButtonsKey, DisabledButtonsKey, TooltipsKey, TooltipMotionKey,
-		TooltipSizeKey, ElevationKey, TextButtonsKey, CalloutsKey, SwitchesKey, SettingsHeadersKey, ChartsKey, ChartPaletteKey,
-		ChartTextureKey, ChartPrintKey
-	];
-
 	// Besides numbers with a unit, a length field takes the CSS functions that compute one, and var().
 	private static readonly string[] LengthFunctions = ["calc(", "min(", "max(", "clamp(", "var("];
 
-	// One row per record property. Both formats are written from these tables, and the round-trip
-	// tests fail when a record gains a property that is missing here.
-	private static readonly Field<MokaPalette>[] PaletteFields =
-	[
-		new(nameof(MokaPalette.Primary), p => p.Primary, (p, v) => p with { Primary = v }),
-		new(nameof(MokaPalette.PrimaryLight), p => p.PrimaryLight, (p, v) => p with { PrimaryLight = v }),
-		new(nameof(MokaPalette.PrimaryDark), p => p.PrimaryDark, (p, v) => p with { PrimaryDark = v }),
-		new(nameof(MokaPalette.OnPrimary), p => p.OnPrimary, (p, v) => p with { OnPrimary = v }),
-		new(nameof(MokaPalette.Secondary), p => p.Secondary, (p, v) => p with { Secondary = v }),
-		new(nameof(MokaPalette.SecondaryLight), p => p.SecondaryLight, (p, v) => p with { SecondaryLight = v }),
-		new(nameof(MokaPalette.SecondaryDark), p => p.SecondaryDark, (p, v) => p with { SecondaryDark = v }),
-		new(nameof(MokaPalette.OnSecondary), p => p.OnSecondary, (p, v) => p with { OnSecondary = v }),
-		new(nameof(MokaPalette.Surface), p => p.Surface, (p, v) => p with { Surface = v }),
-		new(nameof(MokaPalette.SurfaceVariant), p => p.SurfaceVariant, (p, v) => p with { SurfaceVariant = v }),
-		new(nameof(MokaPalette.OnSurface), p => p.OnSurface, (p, v) => p with { OnSurface = v }),
-		new(nameof(MokaPalette.OnSurfaceVariant), p => p.OnSurfaceVariant, (p, v) => p with { OnSurfaceVariant = v }),
-		new(nameof(MokaPalette.Background), p => p.Background, (p, v) => p with { Background = v }),
-		new(nameof(MokaPalette.OnBackground), p => p.OnBackground, (p, v) => p with { OnBackground = v }),
-		new(nameof(MokaPalette.Error), p => p.Error, (p, v) => p with { Error = v }),
-		new(nameof(MokaPalette.OnError), p => p.OnError, (p, v) => p with { OnError = v }),
-		new(nameof(MokaPalette.Warning), p => p.Warning, (p, v) => p with { Warning = v }),
-		new(nameof(MokaPalette.OnWarning), p => p.OnWarning, (p, v) => p with { OnWarning = v }),
-		new(nameof(MokaPalette.Success), p => p.Success, (p, v) => p with { Success = v }),
-		new(nameof(MokaPalette.OnSuccess), p => p.OnSuccess, (p, v) => p with { OnSuccess = v }),
-		new(nameof(MokaPalette.Info), p => p.Info, (p, v) => p with { Info = v }),
-		new(nameof(MokaPalette.OnInfo), p => p.OnInfo, (p, v) => p with { OnInfo = v }),
-		new(nameof(MokaPalette.ErrorDim), p => p.ErrorDim, (p, v) => p with { ErrorDim = v }),
-		new(nameof(MokaPalette.WarningDim), p => p.WarningDim, (p, v) => p with { WarningDim = v }),
-		new(nameof(MokaPalette.SuccessDim), p => p.SuccessDim, (p, v) => p with { SuccessDim = v }),
-		new(nameof(MokaPalette.InfoDim), p => p.InfoDim, (p, v) => p with { InfoDim = v }),
-		new(nameof(MokaPalette.Outline), p => p.Outline, (p, v) => p with { Outline = v }),
-		new(nameof(MokaPalette.OutlineVariant), p => p.OutlineVariant, (p, v) => p with { OutlineVariant = v }),
-		new(nameof(MokaPalette.SurfaceHover), p => p.SurfaceHover, (p, v) => p with { SurfaceHover = v }),
-		new(nameof(MokaPalette.Surface2), p => p.Surface2, (p, v) => p with { Surface2 = v }),
-		new(nameof(MokaPalette.Surface3), p => p.Surface3, (p, v) => p with { Surface3 = v }),
-		new(nameof(MokaPalette.PrimaryGlow), p => p.PrimaryGlow, (p, v) => p with { PrimaryGlow = v }),
-		new(nameof(MokaPalette.PrimaryGlowMd), p => p.PrimaryGlowMd, (p, v) => p with { PrimaryGlowMd = v }),
-		new(nameof(MokaPalette.PrimaryGlowStrong), p => p.PrimaryGlowStrong, (p, v) => p with { PrimaryGlowStrong = v }),
-		new(nameof(MokaPalette.PrimaryBorder), p => p.PrimaryBorder, (p, v) => p with { PrimaryBorder = v }),
-		new(nameof(MokaPalette.PrimaryBorderDim), p => p.PrimaryBorderDim, (p, v) => p with { PrimaryBorderDim = v }),
-		new(nameof(MokaPalette.PrimaryGlowFaint), p => p.PrimaryGlowFaint, (p, v) => p with { PrimaryGlowFaint = v }),
-		new(nameof(MokaPalette.OnSurfaceTertiary), p => p.OnSurfaceTertiary, (p, v) => p with { OnSurfaceTertiary = v }),
-		new(nameof(MokaPalette.OnSurfaceQuaternary), p => p.OnSurfaceQuaternary,
-			(p, v) => p with { OnSurfaceQuaternary = v }),
-		new(nameof(MokaPalette.SurfaceRaised), p => p.SurfaceRaised, (p, v) => p with { SurfaceRaised = v }),
-		new(nameof(MokaPalette.NeutralBg), p => p.NeutralBg, (p, v) => p with { NeutralBg = v }),
-		new(nameof(MokaPalette.OutlineStrong), p => p.OutlineStrong, (p, v) => p with { OutlineStrong = v }),
-		new(nameof(MokaPalette.OutlineHover), p => p.OutlineHover, (p, v) => p with { OutlineHover = v }),
-		new(nameof(MokaPalette.Backdrop), p => p.Backdrop, (p, v) => p with { Backdrop = v }),
-		new(nameof(MokaPalette.OnSurface2), p => p.OnSurface2, (p, v) => p with { OnSurface2 = v }),
-		new(nameof(MokaPalette.Icon), p => p.Icon, (p, v) => p with { Icon = v }),
-		new(nameof(MokaPalette.Lift), p => p.Lift, (p, v) => p with { Lift = v }),
-		new(nameof(MokaPalette.Knob), p => p.Knob, (p, v) => p with { Knob = v }),
-		new(nameof(MokaPalette.KnobShadow), p => p.KnobShadow, (p, v) => p with { KnobShadow = v }),
-		new(nameof(MokaPalette.Paper), p => p.Paper, (p, v) => p with { Paper = v }),
-		new(nameof(MokaPalette.PaperEdge), p => p.PaperEdge, (p, v) => p with { PaperEdge = v }),
-		new(nameof(MokaPalette.PrimaryBg), p => p.PrimaryBg, (p, v) => p with { PrimaryBg = v }),
-		new(nameof(MokaPalette.PrimaryRow), p => p.PrimaryRow, (p, v) => p with { PrimaryRow = v }),
-		new(nameof(MokaPalette.PrimaryRing), p => p.PrimaryRing, (p, v) => p with { PrimaryRing = v }),
-		new(nameof(MokaPalette.PrimaryPill), p => p.PrimaryPill, (p, v) => p with { PrimaryPill = v }),
-		new(nameof(MokaPalette.PrimaryFocus), p => p.PrimaryFocus, (p, v) => p with { PrimaryFocus = v }),
-		new(nameof(MokaPalette.PrimaryText), p => p.PrimaryText, (p, v) => p with { PrimaryText = v }),
-		new(nameof(MokaPalette.SuccessBg), p => p.SuccessBg, (p, v) => p with { SuccessBg = v }),
-		new(nameof(MokaPalette.SuccessInk), p => p.SuccessInk, (p, v) => p with { SuccessInk = v }),
-		new(nameof(MokaPalette.SuccessText), p => p.SuccessText, (p, v) => p with { SuccessText = v }),
-		new(nameof(MokaPalette.SuccessLine), p => p.SuccessLine, (p, v) => p with { SuccessLine = v }),
-		new(nameof(MokaPalette.WarningBg), p => p.WarningBg, (p, v) => p with { WarningBg = v }),
-		new(nameof(MokaPalette.WarningInk), p => p.WarningInk, (p, v) => p with { WarningInk = v }),
-		new(nameof(MokaPalette.WarningText), p => p.WarningText, (p, v) => p with { WarningText = v }),
-		new(nameof(MokaPalette.WarningLine), p => p.WarningLine, (p, v) => p with { WarningLine = v }),
-		new(nameof(MokaPalette.ErrorBg), p => p.ErrorBg, (p, v) => p with { ErrorBg = v }),
-		new(nameof(MokaPalette.ErrorInk), p => p.ErrorInk, (p, v) => p with { ErrorInk = v }),
-		new(nameof(MokaPalette.ErrorText), p => p.ErrorText, (p, v) => p with { ErrorText = v }),
-		new(nameof(MokaPalette.ErrorLine), p => p.ErrorLine, (p, v) => p with { ErrorLine = v }),
-		new(nameof(MokaPalette.ErrorSoft), p => p.ErrorSoft, (p, v) => p with { ErrorSoft = v }),
-		new(nameof(MokaPalette.InfoBg), p => p.InfoBg, (p, v) => p with { InfoBg = v }),
-		new(nameof(MokaPalette.InfoInk), p => p.InfoInk, (p, v) => p with { InfoInk = v }),
-		new(nameof(MokaPalette.InfoText), p => p.InfoText, (p, v) => p with { InfoText = v }),
-		new(nameof(MokaPalette.InfoLine), p => p.InfoLine, (p, v) => p with { InfoLine = v })
-	];
+	// One row per record property, from Core's token table. Both formats are written from these tables.
+	private static readonly Field<MokaPalette>[] PaletteFields = Fields(MokaTokens.PaletteProperties);
 
-	private static readonly Field<MokaTypography>[] TypographyFields =
-	[
-		new(nameof(MokaTypography.FontFamily), t => t.FontFamily, (t, v) => t with { FontFamily = v }),
-		new(nameof(MokaTypography.FontFamilyMono), t => t.FontFamilyMono, (t, v) => t with { FontFamilyMono = v }),
-		new(nameof(MokaTypography.FontFamilyDisplay), t => t.FontFamilyDisplay,
-			(t, v) => t with { FontFamilyDisplay = v }),
-		new(nameof(MokaTypography.FontFamilyNumber), t => t.FontFamilyNumber, (t, v) => t with { FontFamilyNumber = v }),
-		new(nameof(MokaTypography.FontFamilyFigure), t => t.FontFamilyFigure, (t, v) => t with { FontFamilyFigure = v }),
-		new(nameof(MokaTypography.FontSizeXxs), t => t.FontSizeXxs, (t, v) => t with { FontSizeXxs = v }),
-		new(nameof(MokaTypography.FontSizeXs), t => t.FontSizeXs, (t, v) => t with { FontSizeXs = v }),
-		new(nameof(MokaTypography.FontSizeSm), t => t.FontSizeSm, (t, v) => t with { FontSizeSm = v }),
-		new(nameof(MokaTypography.FontSizeBase), t => t.FontSizeBase, (t, v) => t with { FontSizeBase = v }),
-		new(nameof(MokaTypography.FontSizeMd), t => t.FontSizeMd, (t, v) => t with { FontSizeMd = v }),
-		new(nameof(MokaTypography.FontSizeLg), t => t.FontSizeLg, (t, v) => t with { FontSizeLg = v }),
-		new(nameof(MokaTypography.FontSizeXl), t => t.FontSizeXl, (t, v) => t with { FontSizeXl = v }),
-		new(nameof(MokaTypography.FontSizeXxl), t => t.FontSizeXxl, (t, v) => t with { FontSizeXxl = v }),
-		new(nameof(MokaTypography.FontSizeDisplay), t => t.FontSizeDisplay, (t, v) => t with { FontSizeDisplay = v }),
-		new(nameof(MokaTypography.FontSizeRoot), t => t.FontSizeRoot, (t, v) => t with { FontSizeRoot = v }),
-		new(nameof(MokaTypography.FontSizeHeading), t => t.FontSizeHeading, (t, v) => t with { FontSizeHeading = v }),
-		new(nameof(MokaTypography.FontSizeCardTitle), t => t.FontSizeCardTitle, (t, v) => t with { FontSizeCardTitle = v }),
-		new(nameof(MokaTypography.FontSizeDialog), t => t.FontSizeDialog, (t, v) => t with { FontSizeDialog = v }),
-		new(nameof(MokaTypography.FontSizeMenu), t => t.FontSizeMenu, (t, v) => t with { FontSizeMenu = v }),
-		new(nameof(MokaTypography.FontSizeMono), t => t.FontSizeMono, (t, v) => t with { FontSizeMono = v }),
-		new(nameof(MokaTypography.LineHeightTight), t => t.LineHeightTight, (t, v) => t with { LineHeightTight = v }),
-		new(nameof(MokaTypography.LineHeightBase), t => t.LineHeightBase, (t, v) => t with { LineHeightBase = v }),
-		new(nameof(MokaTypography.LineHeightRelaxed), t => t.LineHeightRelaxed,
-			(t, v) => t with { LineHeightRelaxed = v }),
-		new(nameof(MokaTypography.FontWeightLight), t => t.FontWeightLight, (t, v) => t with { FontWeightLight = v }),
-		new(nameof(MokaTypography.FontWeightNormal), t => t.FontWeightNormal, (t, v) => t with { FontWeightNormal = v }),
-		new(nameof(MokaTypography.FontWeightMedium), t => t.FontWeightMedium, (t, v) => t with { FontWeightMedium = v }),
-		new(nameof(MokaTypography.FontWeightSemibold), t => t.FontWeightSemibold,
-			(t, v) => t with { FontWeightSemibold = v }),
-		new(nameof(MokaTypography.FontWeightBold), t => t.FontWeightBold, (t, v) => t with { FontWeightBold = v }),
-		new(nameof(MokaTypography.FontWeightHeading), t => t.FontWeightHeading, (t, v) => t with { FontWeightHeading = v }),
-		new(nameof(MokaTypography.ControlCase), t => t.ControlCase, (t, v) => t with { ControlCase = v }),
-		new(nameof(MokaTypography.ControlTracking), t => t.ControlTracking, (t, v) => t with { ControlTracking = v }),
-		new(nameof(MokaTypography.TitleCase), t => t.TitleCase, (t, v) => t with { TitleCase = v }),
-		new(nameof(MokaTypography.TitleTracking), t => t.TitleTracking, (t, v) => t with { TitleTracking = v }),
-		new(nameof(MokaTypography.HeadingTracking), t => t.HeadingTracking, (t, v) => t with { HeadingTracking = v }),
-		new(nameof(MokaTypography.CardTitleCase), t => t.CardTitleCase, (t, v) => t with { CardTitleCase = v }),
-		new(nameof(MokaTypography.CardTitleTracking), t => t.CardTitleTracking, (t, v) => t with { CardTitleTracking = v }),
-		new(nameof(MokaTypography.ChartTitleTracking), t => t.ChartTitleTracking, (t, v) => t with { ChartTitleTracking = v }),
-		new(nameof(MokaTypography.NumberTracking), t => t.NumberTracking, (t, v) => t with { NumberTracking = v })
-	];
+	private static readonly Field<MokaTypography>[] TypographyFields = Fields(MokaTokens.TypographyProperties);
 
-	private static readonly Field<MokaSpacing>[] SpacingFields =
-	[
-		new(nameof(MokaSpacing.Xxs), s => s.Xxs, (s, v) => s with { Xxs = v }),
-		new(nameof(MokaSpacing.Xs), s => s.Xs, (s, v) => s with { Xs = v }),
-		new(nameof(MokaSpacing.Sm), s => s.Sm, (s, v) => s with { Sm = v }),
-		new(nameof(MokaSpacing.Md), s => s.Md, (s, v) => s with { Md = v }),
-		new(nameof(MokaSpacing.Lg), s => s.Lg, (s, v) => s with { Lg = v }),
-		new(nameof(MokaSpacing.Xl), s => s.Xl, (s, v) => s with { Xl = v }),
-		new(nameof(MokaSpacing.Xxl), s => s.Xxl, (s, v) => s with { Xxl = v }),
-		new(nameof(MokaSpacing.RadiusNone), s => s.RadiusNone, (s, v) => s with { RadiusNone = v }),
-		new(nameof(MokaSpacing.RadiusSm), s => s.RadiusSm, (s, v) => s with { RadiusSm = v }),
-		new(nameof(MokaSpacing.RadiusMd), s => s.RadiusMd, (s, v) => s with { RadiusMd = v }),
-		new(nameof(MokaSpacing.RadiusLg), s => s.RadiusLg, (s, v) => s with { RadiusLg = v }),
-		new(nameof(MokaSpacing.RadiusXl), s => s.RadiusXl, (s, v) => s with { RadiusXl = v }),
-		new(nameof(MokaSpacing.RadiusFull), s => s.RadiusFull, (s, v) => s with { RadiusFull = v }),
-		new(nameof(MokaSpacing.RadiusCard), s => s.RadiusCard, (s, v) => s with { RadiusCard = v }),
-		new(nameof(MokaSpacing.RadiusPopup), s => s.RadiusPopup, (s, v) => s with { RadiusPopup = v }),
-		new(nameof(MokaSpacing.PageGap), s => s.PageGap, (s, v) => s with { PageGap = v }),
-		new(nameof(MokaSpacing.CardPadding), s => s.CardPadding, (s, v) => s with { CardPadding = v }),
-		new(nameof(MokaSpacing.CardGap), s => s.CardGap, (s, v) => s with { CardGap = v }),
-		new(nameof(MokaSpacing.GridGap), s => s.GridGap, (s, v) => s with { GridGap = v }),
-		new(nameof(MokaSpacing.PanelPadding), s => s.PanelPadding, (s, v) => s with { PanelPadding = v }),
-		new(nameof(MokaSpacing.InnerPadding), s => s.InnerPadding, (s, v) => s with { InnerPadding = v }),
-		new(nameof(MokaSpacing.RowPadding), s => s.RowPadding, (s, v) => s with { RowPadding = v }),
-		new(nameof(MokaSpacing.ItemPadding), s => s.ItemPadding, (s, v) => s with { ItemPadding = v }),
-		new(nameof(MokaSpacing.ControlHeight), s => s.ControlHeight, (s, v) => s with { ControlHeight = v }),
-		new(nameof(MokaSpacing.MainPadding), s => s.MainPadding, (s, v) => s with { MainPadding = v }),
-		new(nameof(MokaSpacing.MenuRow), s => s.MenuRow, (s, v) => s with { MenuRow = v }),
-		new(nameof(MokaSpacing.ButtonHeight), s => s.ButtonHeight, (s, v) => s with { ButtonHeight = v }),
-		new(nameof(MokaSpacing.ButtonHeightSm), s => s.ButtonHeightSm, (s, v) => s with { ButtonHeightSm = v }),
-		new(nameof(MokaSpacing.ButtonHeightLg), s => s.ButtonHeightLg, (s, v) => s with { ButtonHeightLg = v }),
-		new(nameof(MokaSpacing.ButtonPadding), s => s.ButtonPadding, (s, v) => s with { ButtonPadding = v }),
-		new(nameof(MokaSpacing.ButtonPaddingSm), s => s.ButtonPaddingSm, (s, v) => s with { ButtonPaddingSm = v }),
-		new(nameof(MokaSpacing.InputPadding), s => s.InputPadding, (s, v) => s with { InputPadding = v }),
-		new(nameof(MokaSpacing.SegmentHeight), s => s.SegmentHeight, (s, v) => s with { SegmentHeight = v }),
-		new(nameof(MokaSpacing.CellPadding), s => s.CellPadding, (s, v) => s with { CellPadding = v }),
-		new(nameof(MokaSpacing.PillPadding), s => s.PillPadding, (s, v) => s with { PillPadding = v }),
-		new(nameof(MokaSpacing.ToolbarHeight), s => s.ToolbarHeight, (s, v) => s with { ToolbarHeight = v }),
-		new(nameof(MokaSpacing.ToolbarHeightDense), s => s.ToolbarHeightDense, (s, v) => s with { ToolbarHeightDense = v }),
-		new(nameof(MokaSpacing.StatusBarHeight), s => s.StatusBarHeight, (s, v) => s with { StatusBarHeight = v })
-	];
+	private static readonly Field<MokaSpacing>[] SpacingFields = Fields(MokaTokens.SpacingProperties);
 
 	/// <summary>Serialize a <see cref="MokaTheme" /> to indented JSON with camelCase names.</summary>
 	public static string ToJson(MokaTheme theme)
@@ -257,38 +69,28 @@ public static class MokaThemeSerializer
 			writer.WriteString(LookKey, theme.Look.ToString());
 			writer.WriteBoolean(HighContrastKey, theme.HighContrast);
 			writer.WriteString(SurfacesKey, theme.Surfaces.ToString());
-			writer.WriteString(SelectionKey, theme.Selection.ToString());
-			writer.WriteString(CurrentPlaceKey, theme.CurrentPlace.ToString());
-			writer.WriteString(StatusBarKey, theme.StatusBar.ToString());
-			writer.WriteString(ToastsKey, theme.Toasts.ToString());
-			writer.WriteString(ToastStackingKey, theme.ToastStacking.ToString());
-			writer.WriteString(NotificationsKey, theme.Notifications.ToString());
-			writer.WriteString(PopupsKey, theme.Popups.ToString());
-			writer.WriteString(ListsKey, theme.Lists.ToString());
-			writer.WriteString(DialogsKey, theme.Dialogs.ToString());
-			writer.WriteString(ButtonsKey, theme.Buttons.ToString());
-			writer.WriteString(DisabledButtonsKey, theme.DisabledButtons.ToString());
-			writer.WriteString(TooltipsKey, theme.Tooltips.ToString());
+			foreach (ThemeChoice choice in ThemeChoice.All)
+			{
+				if (choice.NameIn(theme) is { } name)
+				{
+					writer.WriteString(choice.Key, name);
+				}
+			}
+
 			writer.WriteBoolean(TooltipArrowsKey, theme.TooltipArrows);
-			writer.WriteString(TooltipMotionKey, theme.TooltipMotion.ToString());
-			writer.WriteString(TooltipSizeKey, theme.TooltipSize.ToString());
-			writer.WriteString(ElevationKey, theme.Elevation.ToString());
-			writer.WriteString(TextButtonsKey, theme.TextButtons.ToString());
-			writer.WriteString(CalloutsKey, theme.Callouts.ToString());
-			writer.WriteString(SwitchesKey, theme.Switches.ToString());
-			writer.WriteString(SettingsHeadersKey, theme.SettingsHeaders.ToString());
-			writer.WriteString(MainButtonKey, theme.MainButton.ToString());
 			writer.WriteBoolean(DescriptionsKey, theme.Descriptions);
-			writer.WriteString(LabelToneKey, theme.LabelTone.ToString());
-			writer.WriteString(ChartsKey, theme.Charts.ToString());
-			writer.WriteString(ChartPaletteKey, theme.ChartPalette.ToString());
-			writer.WriteString(ChartTextureKey, theme.ChartTexture.ToString());
-			writer.WriteString(ChartPrintKey, theme.ChartPrint.ToString());
 			WriteNumber(writer, DensityKey, theme.Density);
 			WriteNumber(writer, FontScaleKey, theme.FontScale);
 			WriteObject(writer, PaletteKey, theme.Palette, PaletteFields);
 			WriteObject(writer, TypographyKey, theme.Typography, TypographyFields);
 			WriteObject(writer, SpacingKey, theme.Spacing, SpacingFields);
+			WriteSeed(writer, theme.Seed);
+			WritePins(writer, theme.Pins);
+			WriteAccent(writer, theme.Accent);
+			if (theme.PaletteBeforeHighContrast is { } before)
+			{
+				WriteObject(writer, PaletteBeforeHighContrastKey, before, PaletteFields);
+			}
 			writer.WriteEndObject();
 		}
 
@@ -351,13 +153,27 @@ public static class MokaThemeSerializer
 		}
 	}
 
-	/// <summary>Export theme as CSS custom properties block.</summary>
+	/// <summary>
+	///     The theme as CSS, for a page that loads <c>moka.css</c> without a <see cref="MokaThemeProvider" />, or to keep the
+	///     theme in a stylesheet: a comment naming the classes the outermost provider puts on its root, then a <c>:root</c>
+	///     rule with <c>color-scheme</c>, the page background on the new design (as the provider writes it), and every token
+	///     <see cref="MokaTheme.ToCssVariables" /> writes, pins included. Put the classes on the element that holds the app,
+	///     since the components' rules read them.
+	/// </summary>
+	/// <param name="theme">The theme.</param>
+	/// <returns>The stylesheet.</returns>
 	public static string ToCss(MokaTheme theme)
 	{
 		ArgumentNullException.ThrowIfNull(theme);
 		string cssVars = theme.ToCssVariables();
 		var sb = new StringBuilder();
+		sb.Append("/* Root classes: ").Append(string.Join(' ', ThemeRootClasses.For(theme))).AppendLine(" */");
 		sb.AppendLine(":root {");
+		sb.Append("\tcolor-scheme: ").Append(theme.IsDark ? "dark" : "light").AppendLine(";");
+		if (theme.Look == MokaLook.Gate)
+		{
+			sb.AppendLine("\tbackground: var(--moka-color-background);");
+		}
 
 		string[] pairs = cssVars.Split("; ", StringSplitOptions.RemoveEmptyEntries);
 		foreach (string pair in pairs)
@@ -376,13 +192,23 @@ public static class MokaThemeSerializer
 	}
 
 	/// <summary>
-	///     Export theme as a C# <c>new MokaTheme { ... }</c> expression that can be pasted into source.
-	///     Strings are written as escaped C# literals.
+	///     The theme as C# that builds it back, written with the <c>With</c> API where it can be: a preset such as
+	///     <c>MokaTheme.Red</c>, or <c>MokaTheme.FromSeed(new MokaThemeSeed { ... }, dark: true)</c> for a theme from a seed,
+	///     followed by the calls that make the rest of it, such as <c>.WithDensity(MokaDensity.Compact)</c> and
+	///     <c>.WithToken(...)</c>. A theme no such chain reaches, such as one with palette colors of its own, is written as a
+	///     <c>new MokaTheme { ... }</c> initializer holding every value, with its pins as <c>.WithToken</c> calls after it.
+	///     Either way the code builds an equal theme. Strings are written as escaped C# literals.
 	/// </summary>
+	/// <param name="theme">The theme.</param>
+	/// <returns>A C# expression of type <see cref="MokaTheme" />.</returns>
 	public static string ToCSharp(MokaTheme theme)
 	{
 		ArgumentNullException.ThrowIfNull(theme);
+		return ThemeRecipe.Find(theme)?.ToCode() ?? ToCSharpInitializer(theme);
+	}
 
+	private static string ToCSharpInitializer(MokaTheme theme)
+	{
 		var sb = new StringBuilder(4096);
 		sb.AppendLine("new MokaTheme");
 		sb.AppendLine("{");
@@ -390,44 +216,111 @@ public static class MokaThemeSerializer
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Look), $"{nameof(MokaLook)}.{theme.Look}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.HighContrast), theme.HighContrast ? "true" : "false");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Surfaces), $"{nameof(MokaSurfaces)}.{theme.Surfaces}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Selection), $"{nameof(MokaSelection)}.{theme.Selection}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.CurrentPlace), $"{nameof(MokaCurrentPlace)}.{theme.CurrentPlace}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.StatusBar), $"{nameof(MokaStatusBarLook)}.{theme.StatusBar}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Toasts), $"{nameof(MokaToastLook)}.{theme.Toasts}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.ToastStacking), $"{nameof(MokaToastStacking)}.{theme.ToastStacking}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Notifications), $"{nameof(MokaNotificationLook)}.{theme.Notifications}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Popups), $"{nameof(MokaPopupLook)}.{theme.Popups}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Lists), $"{nameof(MokaListLook)}.{theme.Lists}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Dialogs), $"{nameof(MokaDialogLook)}.{theme.Dialogs}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Buttons), $"{nameof(MokaButtonLook)}.{theme.Buttons}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.DisabledButtons), $"{nameof(MokaDisabledButtonLook)}.{theme.DisabledButtons}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Tooltips), $"{nameof(MokaTooltipLook)}.{theme.Tooltips}");
+		foreach (ThemeChoice choice in ThemeChoice.All)
+		{
+			if (choice.CodeIn(theme) is { } code)
+			{
+				AppendAssignment(sb, "\t", choice.Property, code);
+			}
+		}
+
 		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipArrows), theme.TooltipArrows ? "true" : "false");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipMotion), $"{nameof(MokaTooltipMotion)}.{theme.TooltipMotion}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.TooltipSize), $"{nameof(MokaTooltipSize)}.{theme.TooltipSize}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Elevation), $"{nameof(MokaElevation)}.{theme.Elevation}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.TextButtons), $"{nameof(MokaTextButtonColor)}.{theme.TextButtons}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Callouts), $"{nameof(MokaCalloutLook)}.{theme.Callouts}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Switches), $"{nameof(MokaSwitchLook)}.{theme.Switches}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.SettingsHeaders), $"{nameof(MokaSettingsHeaderLook)}.{theme.SettingsHeaders}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.MainButton), $"{nameof(MokaMainButton)}.{theme.MainButton}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Descriptions), theme.Descriptions ? "true" : "false");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.LabelTone), $"{nameof(MokaLabelTone)}.{theme.LabelTone}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.Charts), $"{nameof(MokaChartLook)}.{theme.Charts}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartPalette), $"{nameof(MokaChartPalette)}.{theme.ChartPalette}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartTexture), $"{nameof(MokaChartTexture)}.{theme.ChartTexture}");
-		AppendAssignment(sb, "\t", nameof(MokaTheme.ChartPrint), $"{nameof(MokaChartPrint)}.{theme.ChartPrint}");
 		AppendAssignment(sb, "\t", nameof(MokaTheme.Density), CSharpDouble(theme.Density));
 		AppendAssignment(sb, "\t", nameof(MokaTheme.FontScale), CSharpDouble(theme.FontScale));
 		AppendObject(sb, nameof(MokaTheme.Palette), nameof(MokaPalette), theme.Palette, PaletteFields);
 		AppendObject(sb, nameof(MokaTheme.Typography), nameof(MokaTypography), theme.Typography, TypographyFields);
 		AppendObject(sb, nameof(MokaTheme.Spacing), nameof(MokaSpacing), theme.Spacing, SpacingFields);
+		AppendSeed(sb, theme.Seed);
+		if (theme.Accent is { } accent)
+		{
+			AppendAssignment(sb, "\t", nameof(MokaTheme.Accent),
+				$"new {nameof(MokaAccent)}({CSharpString(accent.Id)}, {CSharpString(accent.Name)}, {CSharpShades(accent.Dark)}, {CSharpShades(accent.Light)})");
+		}
+
+		if (theme.PaletteBeforeHighContrast is { } before)
+		{
+			AppendObject(sb, nameof(MokaTheme.PaletteBeforeHighContrast), nameof(MokaPalette), before, PaletteFields);
+		}
+
 		sb.Append('}');
+
+		// Pins have no setter: WithToken checks each value, so they follow the initializer as calls.
+		foreach ((string name, string value) in theme.Pins.OrderBy(pin => pin.Key, StringComparer.Ordinal))
+		{
+			sb.AppendLine().Append('.').Append(nameof(MokaTheme.WithToken)).Append('(').Append(CSharpString(name)).Append(", ")
+				.Append(CSharpString(value)).Append(')');
+		}
 
 		return sb.ToString();
 	}
 
 	// ── JSON writing ──────────────────────────────────────────────
+
+	private static void WriteSeed(Utf8JsonWriter writer, MokaThemeSeed? seed)
+	{
+		if (seed is null)
+		{
+			return;
+		}
+
+		writer.WriteStartObject(SeedKey);
+		foreach (SeedColor color in SeedColors)
+		{
+			if (color.Get(seed) is { } value)
+			{
+				writer.WriteString(color.JsonName, value);
+			}
+		}
+
+		if (seed.NeutralChroma is { } chroma)
+		{
+			WriteNumber(writer, NeutralChromaKey, chroma);
+		}
+
+		writer.WriteString(ContrastKey, seed.Contrast.ToString());
+		writer.WriteEndObject();
+	}
+
+	private static void WriteAccent(Utf8JsonWriter writer, MokaAccent? accent)
+	{
+		if (accent is null)
+		{
+			return;
+		}
+
+		writer.WriteStartObject(AccentKey);
+		writer.WriteString(AccentIdKey, accent.Id);
+		writer.WriteString(AccentNameKey, accent.Name);
+		WriteShades(writer, AccentDarkKey, accent.Dark);
+		WriteShades(writer, AccentLightKey, accent.Light);
+		writer.WriteEndObject();
+	}
+
+	private static void WriteShades(Utf8JsonWriter writer, string name, MokaAccentShades shades)
+	{
+		writer.WriteStartObject(name);
+		writer.WriteString(ShadeColorKey, shades.Color);
+		writer.WriteString(ShadeSoftKey, shades.Soft);
+		writer.WriteString(ShadeBackgroundKey, shades.Background);
+		writer.WriteEndObject();
+	}
+
+	private static void WritePins(Utf8JsonWriter writer, IReadOnlyDictionary<string, string> pins)
+	{
+		if (pins.Count == 0)
+		{
+			return;
+		}
+
+		writer.WriteStartObject(PinsKey);
+		foreach ((string name, string value) in pins.OrderBy(pin => pin.Key, StringComparer.Ordinal))
+		{
+			writer.WriteString(name, value);
+		}
+
+		writer.WriteEndObject();
+	}
 
 	private static void WriteNumber(Utf8JsonWriter writer, string name, double value)
 	{
@@ -466,16 +359,15 @@ public static class MokaThemeSerializer
 		}
 
 		JsonElement? isDark = null, look = null, highContrast = null, density = null, fontScale = null;
-		JsonElement? surfaces = null, selection = null, currentPlace = null, statusBar = null, mainButton = null, descriptions = null;
-		JsonElement? labelTone = null, tooltipArrows = null;
-		JsonElement? palette = null, typography = null, spacing = null;
-		Dictionary<string, JsonElement?> componentLooks = new(StringComparer.Ordinal);
+		JsonElement? surfaces = null, descriptions = null, tooltipArrows = null;
+		JsonElement? palette = null, typography = null, spacing = null, seed = null, pins = null, accent = null, paletteBefore = null;
+		Dictionary<ThemeChoice, JsonElement> choices = [];
 		foreach (JsonProperty property in root.EnumerateObject())
 		{
 			string name = property.Name;
-			if (Array.Find(ComponentLookKeys, key => IsKey(name, key)) is { } componentLookKey)
+			if (ThemeChoice.Find(name) is { } choice)
 			{
-				componentLooks[componentLookKey] = property.Value;
+				choices[choice] = property.Value;
 			}
 			else if (IsKey(name, IsDarkKey))
 			{
@@ -493,29 +385,9 @@ public static class MokaThemeSerializer
 			{
 				surfaces = property.Value;
 			}
-			else if (IsKey(name, SelectionKey))
-			{
-				selection = property.Value;
-			}
-			else if (IsKey(name, CurrentPlaceKey))
-			{
-				currentPlace = property.Value;
-			}
-			else if (IsKey(name, StatusBarKey))
-			{
-				statusBar = property.Value;
-			}
-			else if (IsKey(name, MainButtonKey))
-			{
-				mainButton = property.Value;
-			}
 			else if (IsKey(name, DescriptionsKey))
 			{
 				descriptions = property.Value;
-			}
-			else if (IsKey(name, LabelToneKey))
-			{
-				labelTone = property.Value;
 			}
 			else if (IsKey(name, TooltipArrowsKey))
 			{
@@ -540,6 +412,22 @@ public static class MokaThemeSerializer
 			else if (IsKey(name, SpacingKey))
 			{
 				spacing = property.Value;
+			}
+			else if (IsKey(name, SeedKey))
+			{
+				seed = property.Value;
+			}
+			else if (IsKey(name, PinsKey))
+			{
+				pins = property.Value;
+			}
+			else if (IsKey(name, AccentKey))
+			{
+				accent = property.Value;
+			}
+			else if (IsKey(name, PaletteBeforeHighContrastKey))
+			{
+				paletteBefore = property.Value;
 			}
 
 			// Any other key is skipped, so a theme exported by a later version, with tokens this one
@@ -592,32 +480,18 @@ public static class MokaThemeSerializer
 
 		string? choiceError = null;
 		MokaSurfaces themeSurfaces = ReadChoice(surfaces, SurfacesKey, MokaSurfaces.BlueGrey, ref choiceError);
-		MokaSelection themeSelection = ReadChoice(selection, SelectionKey, MokaSelection.Ring, ref choiceError);
-		MokaCurrentPlace themeCurrentPlace = ReadChoice(currentPlace, CurrentPlaceKey, MokaCurrentPlace.Ring, ref choiceError);
-		MokaStatusBarLook themeStatusBar = ReadChoice(statusBar, StatusBarKey, MokaStatusBarLook.Standard, ref choiceError);
-		MokaMainButton themeMainButton = ReadChoice(mainButton, MainButtonKey, MokaMainButton.Solid, ref choiceError);
-		MokaLabelTone themeLabelTone = ReadChoice(labelTone, LabelToneKey, MokaLabelTone.Vivid, ref choiceError);
-		MokaToastLook themeToasts = ReadChoice(componentLooks.GetValueOrDefault(ToastsKey), ToastsKey, MokaToastLook.Standard, ref choiceError);
-		MokaToastStacking themeToastStacking = ReadChoice(componentLooks.GetValueOrDefault(ToastStackingKey), ToastStackingKey, MokaToastStacking.List, ref choiceError);
-		MokaNotificationLook themeNotifications = ReadChoice(componentLooks.GetValueOrDefault(NotificationsKey), NotificationsKey, MokaNotificationLook.Standard, ref choiceError);
-		MokaPopupLook themePopups = ReadChoice(componentLooks.GetValueOrDefault(PopupsKey), PopupsKey, MokaPopupLook.Standard, ref choiceError);
-		MokaListLook themeLists = ReadChoice(componentLooks.GetValueOrDefault(ListsKey), ListsKey, MokaListLook.Standard, ref choiceError);
-		MokaDialogLook themeDialogs = ReadChoice(componentLooks.GetValueOrDefault(DialogsKey), DialogsKey, MokaDialogLook.Standard, ref choiceError);
-		MokaButtonLook themeButtons = ReadChoice(componentLooks.GetValueOrDefault(ButtonsKey), ButtonsKey, MokaButtonLook.Standard, ref choiceError);
-		MokaDisabledButtonLook themeDisabledButtons = ReadChoice(componentLooks.GetValueOrDefault(DisabledButtonsKey), DisabledButtonsKey, MokaDisabledButtonLook.Faded, ref choiceError);
-		MokaTooltipLook themeTooltips = ReadChoice(componentLooks.GetValueOrDefault(TooltipsKey), TooltipsKey, MokaTooltipLook.Standard, ref choiceError);
-		MokaTooltipMotion themeTooltipMotion = ReadChoice(componentLooks.GetValueOrDefault(TooltipMotionKey), TooltipMotionKey, MokaTooltipMotion.Fade, ref choiceError);
-		MokaTooltipSize themeTooltipSize = ReadChoice(componentLooks.GetValueOrDefault(TooltipSizeKey), TooltipSizeKey, MokaTooltipSize.Standard, ref choiceError);
-		MokaElevation themeElevation = ReadChoice(componentLooks.GetValueOrDefault(ElevationKey), ElevationKey, MokaElevation.Shadow, ref choiceError);
-		MokaTextButtonColor themeTextButtons = ReadChoice(componentLooks.GetValueOrDefault(TextButtonsKey), TextButtonsKey, MokaTextButtonColor.Accent, ref choiceError);
-		MokaCalloutLook themeCallouts = ReadChoice(componentLooks.GetValueOrDefault(CalloutsKey), CalloutsKey, MokaCalloutLook.Standard, ref choiceError);
-		MokaSwitchLook themeSwitches = ReadChoice(componentLooks.GetValueOrDefault(SwitchesKey), SwitchesKey, MokaSwitchLook.Standard, ref choiceError);
-		MokaSettingsHeaderLook themeSettingsHeaders = ReadChoice(componentLooks.GetValueOrDefault(SettingsHeadersKey), SettingsHeadersKey,
-			MokaSettingsHeaderLook.Standard, ref choiceError);
-		MokaChartLook themeCharts = ReadChoice(componentLooks.GetValueOrDefault(ChartsKey), ChartsKey, MokaChartLook.Standard, ref choiceError);
-		MokaChartPalette themeChartPalette = ReadChoice(componentLooks.GetValueOrDefault(ChartPaletteKey), ChartPaletteKey, MokaChartPalette.Standard, ref choiceError);
-		MokaChartTexture themeChartTexture = ReadChoice(componentLooks.GetValueOrDefault(ChartTextureKey), ChartTextureKey, MokaChartTexture.None, ref choiceError);
-		MokaChartPrint themeChartPrint = ReadChoice(componentLooks.GetValueOrDefault(ChartPrintKey), ChartPrintKey, MokaChartPrint.AsShown, ref choiceError);
+
+		// In the table's order, so the first choice it can't read is the one named whatever order the keys came in. A
+		// choice the JSON leaves out keeps the theme's default.
+		List<Func<MokaTheme, MokaTheme>> chosen = [];
+		foreach (ThemeChoice choice in ThemeChoice.All)
+		{
+			if (choices.TryGetValue(choice, out JsonElement value))
+			{
+				chosen.Add(choice.Read(value, ref choiceError));
+			}
+		}
+
 		if (choiceError is not null)
 		{
 			return choiceError;
@@ -655,33 +529,8 @@ public static class MokaThemeSerializer
 			Look = themeLook,
 			HighContrast = high,
 			Surfaces = themeSurfaces,
-			Selection = themeSelection,
-			CurrentPlace = themeCurrentPlace,
-			StatusBar = themeStatusBar,
-			Toasts = themeToasts,
-			ToastStacking = themeToastStacking,
-			Notifications = themeNotifications,
-			Popups = themePopups,
-			Lists = themeLists,
-			Dialogs = themeDialogs,
-			Buttons = themeButtons,
-			DisabledButtons = themeDisabledButtons,
-			Tooltips = themeTooltips,
 			TooltipArrows = arrows,
-			TooltipMotion = themeTooltipMotion,
-			TooltipSize = themeTooltipSize,
-			Elevation = themeElevation,
-			TextButtons = themeTextButtons,
-			Callouts = themeCallouts,
-			Switches = themeSwitches,
-			SettingsHeaders = themeSettingsHeaders,
-			MainButton = themeMainButton,
 			Descriptions = showDescriptions,
-			LabelTone = themeLabelTone,
-			Charts = themeCharts,
-			ChartPalette = themeChartPalette,
-			ChartTexture = themeChartTexture,
-			ChartPrint = themeChartPrint,
 			Density = ReadNumber(density, DensityKey, baseTheme.Density, ref error),
 			FontScale = ReadNumber(fontScale, FontScaleKey, baseTheme.FontScale, ref error),
 			Palette = ReadObject(palette, PaletteKey, baseTheme.Palette, PaletteFields,
@@ -692,9 +541,22 @@ public static class MokaThemeSerializer
 				ref error),
 			Spacing = ReadObject(spacing, SpacingKey, baseTheme.Spacing, SpacingFields,
 				field => field.EndsWith("Padding", StringComparison.Ordinal) ? ValueKind.Lengths : ValueKind.Length,
-				ref error)
+				ref error),
+			Seed = ReadSeed(seed, ref error),
+			Accent = ReadAccent(accent, ref error),
+			PaletteBeforeHighContrast = paletteBefore is { ValueKind: JsonValueKind.Object }
+				? ReadObject(paletteBefore, PaletteBeforeHighContrastKey, baseTheme.Palette, PaletteFields,
+					field => field == nameof(MokaPalette.KnobShadow) ? ValueKind.Css : ValueKind.Color,
+					ref error)
+				: null
 		};
 
+		foreach (Func<MokaTheme, MokaTheme> choose in chosen)
+		{
+			theme = choose(theme);
+		}
+
+		theme = ReadPins(pins, theme, ref error);
 		if (error is not null)
 		{
 			theme = null;
@@ -704,6 +566,160 @@ public static class MokaThemeSerializer
 	}
 
 	private static bool IsKey(string name, string key) => string.Equals(name, key, StringComparison.OrdinalIgnoreCase);
+
+	private static MokaThemeSeed? ReadSeed(JsonElement? element, ref string? error)
+	{
+		if (error is not null || element is not { ValueKind: not JsonValueKind.Null } json)
+		{
+			return null;
+		}
+
+		if (json.ValueKind != JsonValueKind.Object)
+		{
+			error = $"'{SeedKey}' must be an object.";
+			return null;
+		}
+
+		Dictionary<string, string> colors = new(StringComparer.Ordinal);
+		double? chroma = null;
+		MokaSeedContrast contrast = MokaSeedContrast.Standard;
+		foreach (JsonProperty property in json.EnumerateObject())
+		{
+			if (Array.Find(SeedColors, color => IsKey(property.Name, color.JsonName)) is { } color)
+			{
+				string? value = property.Value.ValueKind == JsonValueKind.String ? property.Value.GetString() : null;
+				if (!CssValues.IsColor(value))
+				{
+					error = $"'{SeedKey}.{color.JsonName}' must be a CSS color.";
+					return null;
+				}
+
+				colors[color.Name] = value;
+			}
+			else if (IsKey(property.Name, NeutralChromaKey))
+			{
+				chroma = ReadNumber(property.Value, $"{SeedKey}.{NeutralChromaKey}", 0, ref error);
+			}
+			else if (IsKey(property.Name, ContrastKey))
+			{
+				contrast = ReadChoice<MokaSeedContrast>(property.Value, $"{SeedKey}.{ContrastKey}", MokaSeedContrast.Standard, ref error);
+			}
+		}
+
+		if (error is not null)
+		{
+			return null;
+		}
+
+		if (!colors.TryGetValue(nameof(MokaThemeSeed.Accent), out string? accent))
+		{
+			error = $"'{SeedKey}' needs an accent.";
+			return null;
+		}
+
+		return new MokaThemeSeed
+		{
+			Accent = accent,
+			Neutral = colors.GetValueOrDefault(nameof(MokaThemeSeed.Neutral)),
+			NeutralChroma = chroma,
+			Success = colors.GetValueOrDefault(nameof(MokaThemeSeed.Success)),
+			Warning = colors.GetValueOrDefault(nameof(MokaThemeSeed.Warning)),
+			Error = colors.GetValueOrDefault(nameof(MokaThemeSeed.Error)),
+			Info = colors.GetValueOrDefault(nameof(MokaThemeSeed.Info)),
+			Contrast = contrast
+		};
+	}
+
+	private static MokaAccent? ReadAccent(JsonElement? element, ref string? error)
+	{
+		if (error is not null || element is not { ValueKind: not JsonValueKind.Null } json)
+		{
+			return null;
+		}
+
+		if (json.ValueKind != JsonValueKind.Object)
+		{
+			error = $"'{AccentKey}' must be an object.";
+			return null;
+		}
+
+		string? id = null, name = null;
+		MokaAccentShades? dark = null, light = null;
+		foreach (JsonProperty property in json.EnumerateObject())
+		{
+			if (IsKey(property.Name, AccentIdKey))
+			{
+				id = property.Value.ValueKind == JsonValueKind.String ? property.Value.GetString() : null;
+			}
+			else if (IsKey(property.Name, AccentNameKey))
+			{
+				name = property.Value.ValueKind == JsonValueKind.String ? property.Value.GetString() : null;
+			}
+			else if (IsKey(property.Name, AccentDarkKey))
+			{
+				dark = ReadShades(property.Value);
+			}
+			else if (IsKey(property.Name, AccentLightKey))
+			{
+				light = ReadShades(property.Value);
+			}
+		}
+
+		if (id is null || name is null || dark is null || light is null)
+		{
+			error = $"'{AccentKey}' needs an id, a name, and dark and light shades as hex colors.";
+			return null;
+		}
+
+		return new MokaAccent(id, name, dark, light);
+	}
+
+	// The theme works an accent's shades out as hex, so only hex is read.
+	private static MokaAccentShades? ReadShades(JsonElement json)
+	{
+		if (json.ValueKind != JsonValueKind.Object)
+		{
+			return null;
+		}
+
+		string? Hex(string key) => json.EnumerateObject()
+			.Where(property => IsKey(property.Name, key) && property.Value.ValueKind == JsonValueKind.String)
+			.Select(property => property.Value.GetString())
+			.FirstOrDefault(value => MokaCssColor.TryParseHex(value, out _));
+
+		return Hex(ShadeColorKey) is { } color && Hex(ShadeSoftKey) is { } soft && Hex(ShadeBackgroundKey) is { } background
+			? new MokaAccentShades(color, soft, background)
+			: null;
+	}
+
+	// Each pin is checked the way WithToken checks it, so a bad one comes back as a message rather than an exception.
+	private static MokaTheme ReadPins(JsonElement? element, MokaTheme theme, ref string? error)
+	{
+		if (error is not null || element is not { ValueKind: not JsonValueKind.Null } json)
+		{
+			return theme;
+		}
+
+		if (json.ValueKind != JsonValueKind.Object)
+		{
+			error = $"'{PinsKey}' must be an object of token names and values.";
+			return theme;
+		}
+
+		foreach (JsonProperty property in json.EnumerateObject())
+		{
+			string? value = property.Value.ValueKind == JsonValueKind.String ? property.Value.GetString()?.Trim() : null;
+			if (!MokaTokens.TryFind(property.Name, out MokaToken? token) || !token.Accepts(value))
+			{
+				error = $"'{PinsKey}.{property.Name}' is not a theme token with a value it takes.";
+				return theme;
+			}
+
+			theme = theme.WithToken(property.Name, value);
+		}
+
+		return theme;
+	}
 
 	// The Read helpers return the fallback and record the first problem in error, so the caller can
 	// read every part in one expression and check once.
@@ -794,7 +810,7 @@ public static class MokaThemeSerializer
 	}
 
 	// By name only: Enum.TryParse also takes numbers and comma lists, which no export writes.
-	private static TChoice ReadChoice<TChoice>(JsonElement? element, string key, TChoice fallback, ref string? error)
+	internal static TChoice ReadChoice<TChoice>(JsonElement? element, string key, TChoice fallback, ref string? error)
 		where TChoice : struct, Enum
 	{
 		if (element is not { } value)
@@ -877,10 +893,39 @@ public static class MokaThemeSerializer
 		sb.AppendLine("\t},");
 	}
 
+	private static void AppendSeed(StringBuilder sb, MokaThemeSeed? seed)
+	{
+		if (seed is null)
+		{
+			return;
+		}
+
+		sb.Append('\t').Append(nameof(MokaTheme.Seed)).Append(" = new ").AppendLine(nameof(MokaThemeSeed));
+		sb.AppendLine("\t{");
+		foreach (SeedColor color in SeedColors)
+		{
+			if (color.Get(seed) is { } value)
+			{
+				AppendAssignment(sb, "\t\t", color.Name, CSharpString(value));
+			}
+		}
+
+		if (seed.NeutralChroma is { } chroma)
+		{
+			AppendAssignment(sb, "\t\t", nameof(MokaThemeSeed.NeutralChroma), CSharpDouble(chroma));
+		}
+
+		AppendAssignment(sb, "\t\t", nameof(MokaThemeSeed.Contrast), $"{nameof(MokaSeedContrast)}.{seed.Contrast}");
+		sb.AppendLine("\t},");
+	}
+
+	private static string CSharpShades(MokaAccentShades shades) =>
+		$"new {nameof(MokaAccentShades)}({CSharpString(shades.Color)}, {CSharpString(shades.Soft)}, {CSharpString(shades.Background)})";
+
 	private static void AppendAssignment(StringBuilder sb, string indent, string name, string literal) =>
 		sb.Append(indent).Append(name).Append(" = ").Append(literal).AppendLine(",");
 
-	private static string CSharpDouble(double value) => value switch
+	internal static string CSharpDouble(double value) => value switch
 	{
 		double.PositiveInfinity => "double.PositiveInfinity",
 		double.NegativeInfinity => "double.NegativeInfinity",
@@ -888,7 +933,7 @@ public static class MokaThemeSerializer
 		_ => value.ToString("R", CultureInfo.InvariantCulture)
 	};
 
-	private static string CSharpString(string value)
+	internal static string CSharpString(string value)
 	{
 		var sb = new StringBuilder(value.Length + 2);
 		sb.Append('"');
@@ -935,6 +980,38 @@ public static class MokaThemeSerializer
 		Length,
 		Lengths,
 		Css
+	}
+
+	private const string NeutralChromaKey = "neutralChroma";
+	private const string AccentIdKey = "id";
+	private const string AccentNameKey = "name";
+	private const string AccentDarkKey = "dark";
+	private const string AccentLightKey = "light";
+	private const string ShadeColorKey = "color";
+	private const string ShadeSoftKey = "soft";
+	private const string ShadeBackgroundKey = "background";
+	private const string ContrastKey = "contrast";
+
+	private static readonly SeedColor[] SeedColors =
+	[
+		new(nameof(MokaThemeSeed.Accent), seed => seed.Accent),
+		new(nameof(MokaThemeSeed.Neutral), seed => seed.Neutral),
+		new(nameof(MokaThemeSeed.Success), seed => seed.Success),
+		new(nameof(MokaThemeSeed.Warning), seed => seed.Warning),
+		new(nameof(MokaThemeSeed.Error), seed => seed.Error),
+		new(nameof(MokaThemeSeed.Info), seed => seed.Info)
+	];
+
+	private static Field<T>[] Fields<T>(IReadOnlyList<MokaThemeProperty<T>> properties) =>
+		[.. properties.Select(property => new Field<T>(property.Name, property.Get, property.Set))];
+
+	private sealed class SeedColor(string name, Func<MokaThemeSeed, string?> get)
+	{
+		public string Name { get; } = name;
+
+		public string JsonName { get; } = JsonNamingPolicy.CamelCase.ConvertName(name);
+
+		public Func<MokaThemeSeed, string?> Get { get; } = get;
 	}
 
 	private sealed class Field<T>(string name, Func<T, string> get, Func<T, string, T> set)

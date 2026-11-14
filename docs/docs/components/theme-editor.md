@@ -1,12 +1,12 @@
 ---
-title: Theme Editor
-description: Visual editor for MokaTheme palettes, typography and spacing, with presets, a live preview, and JSON, CSS and C# export.
+title: Theme Tools
+description: The parts of Moka.Red.ThemeGen besides the studio - a sample app drawn in any theme, preset cards, import and export in C#, JSON and CSS, and MokaThemeSerializer.
 order: 104
 ---
 
-# Theme Editor
+# Theme Tools
 
-`Moka.Red.ThemeGen` is a visual editor for `MokaTheme`. `MokaThemeEditor` puts it all in one tabbed panel: palette, typography and spacing editors, a preset gallery and an import and export tab, next to a live preview. Each of those parts is also a component you can use alone, and `MokaThemeSerializer` does the conversions without any UI.
+`Moka.Red.ThemeGen` builds and stores themes. [`MokaThemeStudio`](/components/theme-studio) is the whole generator; the parts on this page are what it is made of, each usable alone, and `MokaThemeSerializer` does the conversions without any UI. [`MokaAppearancePanel`](/components/appearance-panel) is the panel for the people using an app.
 
 ThemeGen is part of the `Moka.Red` meta-package. On its own:
 
@@ -18,65 +18,21 @@ It needs no service registration.
 
 | Type | Namespace |
 |------|-----------|
-| `MokaThemeEditor` | `Moka.Red.ThemeGen` |
-| `MokaPaletteEditor`, `MokaTypographyEditor`, `MokaSpacingEditor` | `Moka.Red.ThemeGen.Editors` |
+| `MokaThemeStudio`, `MokaThemePair` | `Moka.Red.ThemeGen` |
 | `MokaThemePresets` | `Moka.Red.ThemeGen.Presets` |
 | `MokaThemePreview` | `Moka.Red.ThemeGen.Preview` |
 | `MokaThemeImportExport` | `Moka.Red.ThemeGen.ImportExport` |
 | `MokaThemeSerializer` | `Moka.Red.ThemeGen.Serialization` |
 
-The ThemeGen components inherit plain `ComponentBase`, so they take no `Class`, `Style` or extra attributes. Wrap one in an element to size or place it.
+Their buttons are `type="button"`, so a tool inside a form or `EditForm` never submits it, and every field has an accessible name.
 
-Their buttons are `type="button"`, so an editor inside a form or `EditForm` never submits it, and every field has an accessible name. Up to 0.1.12 the buttons submitted an enclosing form and the fields had no names.
+## The Editor Is Retired
 
-## MokaThemeEditor
+`MokaThemeEditor` and its palette, typography and spacing editors (`MokaPaletteEditor`, `MokaTypographyEditor`, `MokaSpacingEditor`) were removed in 0.6.0. They edited the palette, type and spacing records field by field, which bypassed the seed derivation and its contrast targets, and covered only part of the tokens. Use `MokaThemeStudio` instead:
 
-### Parameters
-
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `Theme` | `MokaTheme` | `MokaTheme.Light` | Theme to edit. Two-way bindable. The editor works on its own copy, and a different theme from the parent replaces it |
-| `ThemeChanged` | `EventCallback<MokaTheme>` | -- | Raised with the new theme after every edit, preset or import |
-| `OnExport` | `EventCallback<string>` | -- | Raised with the theme as JSON when the user clicks Export. The Export button only shows when this is set |
-| `ShowPreview` | `bool` | `true` | Shows the live preview panel |
-| `ShowImportExport` | `bool` | `true` | Shows the Import/Export tab |
-| `Compact` | `bool` | `false` | One column, with the preview under the editor instead of in a 280px column beside it |
-
-The tabs are Palette, Typography, Spacing, Presets and Import/Export.
-
-### Example
-
-```blazor-preview
-@code {
-    MokaTheme _theme = MokaTheme.Light;
-}
-
-<div style="width:100%">
-    <MokaThemeEditor @bind-Theme="_theme" Compact />
-</div>
-```
-
-### Applying the Edited Theme
-
-Give the bound theme to `MokaThemeProvider`, and the app restyles as the user edits:
-
-```razor
-<MokaThemeProvider Theme="_theme">
-    <MokaThemeEditor @bind-Theme="_theme" OnExport="SaveAsync" />
-    @Body
-</MokaThemeProvider>
-
-@code {
-    MokaTheme _theme = MokaTheme.Dark;
-
-    // OnExport hands over the theme as JSON, ready to store.
-    async Task SaveAsync(string json) => await Settings.SaveThemeAsync(json);
-}
-```
-
-`Settings` stands for your own storage. Load the theme back with `MokaThemeSerializer.FromJson`.
-
-Up to 0.1.12 the editor wrote each edit into its own `Theme` parameter, so with a one-way `Theme` the next parent render threw the edits away.
+- `<MokaThemeEditor @bind-Theme="_theme" />` becomes `<MokaThemeStudio @bind-Theme="_theme" />`.
+- A palette color edited by hand becomes a seed (`MokaTheme.WithSeed`) or a pin (`MokaTheme.WithToken("--moka-color-primary", "#0277bd")`), which the studio's Tokens tab sets for any token.
+- A type or spacing value becomes a style choice (`WithTextSize`, `WithDensity`, `WithCorners` and the rest) or a pin on its token.
 
 ## Presets
 
@@ -115,72 +71,59 @@ Up to 0.1.12 these colors kept their `MokaPalette` initializer values, which are
 </div>
 ```
 
-## Palette, Typography and Spacing Editors
+## Live Preview
 
-Each editor edits one part of the theme and reports a new record through its `...Changed` callback. They keep no copy of their own, so bind them two-way (`@bind-Palette`) or write the new value back yourself. A field applies its change when it loses focus or on Enter, and a color picker when it closes.
+`MokaThemePreview` draws a small app made of the library's own components in a theme, through a real `MokaThemeProvider`: a page header, tabs, buttons in every variant, two fields (one in its error state), a select, a switch and a checkbox, alerts, cards, a table, a bar chart, label tags and a chip, a notification list drawn in place, a small dock layout, and a dialog and toasts that open inside it. Nested in an app's own provider, it writes only the tokens that differ from the app's theme.
 
-| Component | Parameter | Type | Default | Callback |
-|-----------|-----------|------|---------|----------|
-| `MokaPaletteEditor` | `Palette` | `MokaPalette` | `MokaPalette.Light` | `PaletteChanged` (`EventCallback<MokaPalette>`) |
-| `MokaTypographyEditor` | `Typography` | `MokaTypography` | `MokaTypography.Default` | `TypographyChanged` (`EventCallback<MokaTypography>`) |
-| `MokaSpacingEditor` | `Spacing` | `MokaSpacing` | `MokaSpacing.Default` | `SpacingChanged` (`EventCallback<MokaSpacing>`) |
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `PreviewTheme` | `MokaTheme` | `MokaTheme.Default` | Theme to draw the sample in |
+| `Text` | `MokaThemePreviewText` | `new()` | Every word of the sample |
+| `Nonce` | `string?` | `null` | A content security policy nonce for its provider |
 
-- **Palette** covers the 23 core colors in five groups: Primary, Secondary, Surface, Semantic (error, warning, success, info and their `On` colors) and Outline. Each row has a swatch, a native color picker and a text field. The text field takes `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`. Anything else is dropped and the field shows the current color again. The picker has no alpha: it shows a hex or `rgb()` color as `#rrggbb` and any other value as black, and a picked color replaces the value with an opaque `#rrggbb`. Up to 0.1.12 the text field stored any text, and a `#` value shorter than `#rrggbb` other than `#rgb` (such as `#abcd`) crashed the render.
-- **Typography** covers both font families, the font sizes from `Xs` to `Xxl` (each with an "Aa" sample), the three line heights and the five weights, all as CSS strings.
-- **Spacing** covers the spacing scale from `Xxs` to `Xxl`, drawn as bars, and the radii from `None` to `Full`, drawn as sample corners.
+The dialog and the toasts stay inside the preview: its overlay area has layout containment, so their fixed positions are taken from it rather than the window. The Show toast button and the preview's toast host need the toast service (`AddMokaFeedback()`); while a preview is on the page its toast host also shows the app's own toasts, since the service is one per app.
 
-The glow, border, dim and extended surface colors (such as `PrimaryGlow`, `PrimaryBorder` or `SurfaceHover`) are not in the palette editor, and changing `Primary` there leaves them as they were. `MokaTheme.WithAccent(color)` recomputes them from one accent color.
+Up to 0.5.x the preview was plain HTML styled to look like the components, with the tokens on its own element.
 
 ```blazor-preview
-@code {
-    MokaSpacing _spacing = MokaSpacing.Default;
-
-    MokaTheme SpacedTheme => MokaTheme.Light with { Spacing = _spacing };
-}
-
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:100%;align-items:start">
-    <MokaSpacingEditor @bind-Spacing="_spacing" />
-    <MokaThemePreview PreviewTheme="SpacedTheme" />
+<div style="width:100%">
+    <MokaThemePreview PreviewTheme="MokaTheme.GateLight.WithCorners(MokaCorners.Tight)" />
 </div>
 ```
 
-## Live Preview
-
-`MokaThemePreview` shows sample buttons, a card, a text field, the semantic colors and the type scale in a given theme. It sets the theme's tokens on its own root element, so it needs no provider and leaves the rest of the page alone. The samples are plain HTML styled by the preview, not Moka.Red components.
-
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `PreviewTheme` | `MokaTheme` | `MokaTheme.Light` | Theme to show |
-
 ## Import and Export
 
-`MokaThemeImportExport` shows the theme as JSON, CSS or C# in a read-only box with a Copy button, and takes pasted JSON to import.
+`MokaThemeImportExport` shows a theme as C#, JSON or CSS in a highlighted `MokaCodeBlock` with its copy button, and takes pasted JSON to import. Only the format on show is written, and only when the theme or the format changes.
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Theme` | `MokaTheme` | `MokaTheme.Light` | Theme to export |
-| `OnImport` | `EventCallback<MokaTheme>` | -- | Raised with the parsed theme when the user clicks Apply |
-| `OnExport` | `EventCallback<string>` | -- | Raised with the theme as JSON when the user clicks Export. The Export button only shows when this is set |
+| `Theme` | `MokaTheme` | `MokaTheme.Default` | Theme to export |
+| `Format` | `MokaThemeExportFormat` | `CSharp` | The format on show: `CSharp`, `Json` or `Css`. Two-way bindable |
+| `FormatChanged` | `EventCallback<MokaThemeExportFormat>` | | Raised when the person picks another format |
+| `OnImport` | `EventCallback<MokaTheme>` | | Raised with the theme read from the pasted JSON when the person presses Apply |
+| `OnExport` | `EventCallback<string>` | | Raised with the theme as JSON when the person presses Export. The button shows only while this has a listener |
+| `ShowImport` | `bool` | `true` | Whether the import field shows |
+| `MaxHeight` | `string?` | `null` | How tall the code block grows before it scrolls |
+| `Text` | `MokaThemeImportExportText` | `new()` | Every word it writes |
 
-Apply with an empty box shows "Please paste theme JSON." Text that is not a theme shows what is wrong and where, such as `'palette' must be an object.`, `'isDark' must be true or false.` or the line and position of a JSON syntax error, and the theme stays as it was. Keys the theme does not have, such as tokens from a later version, are skipped, and missing ones take the built-in light or dark value. Copy copies the box's text in the browser, inside the click, the way `MokaCopyButton` does (up to 0.4.2 it called the clipboard API a round trip later, which Safari, iOS and Firefox refuse), and says "Couldn't copy" when the browser refuses.
+Apply with an empty field shows `ImportEmpty`. Text that is not a theme shows what is wrong and where under the field, such as `'palette' must be an object.` or the line and position of a JSON syntax error, and nothing is imported. Keys the theme does not have, such as tokens from a later version, are skipped.
 
 Every value is checked before the theme is built, since the theme writes its values into a `<style>` element:
 
-- Palette values must be CSS colors: hex, a keyword, or a color function such as `rgb()`, `oklch()` or `var()`. Otherwise: `'palette.primary' must be a CSS color, like #ef5350 or rgb(239 83 80).`
+- Palette values must be CSS colors: hex, a keyword, or a color function such as `rgb()`, `oklch()` or `var()`.
 - Font sizes and spacing values must be lengths, such as `8px` or `0.5rem`, or a `calc()`, `min()`, `max()`, `clamp()` or `var()` expression.
 - Font families, weights and line heights cannot contain `;`, braces, `<`, `>` or `\`, or leave a quote, bracket or comment open.
+- A pin must name a token and hold a value of the token's kind, and a seed needs an accent.
+
+Up to 0.5.x the output was a read-only text box, the formats were plain buttons and the words were English only.
 
 ```blazor-preview
 @code {
-    MokaTheme _theme = MokaTheme.Dark;
-    int _exportedLength;
-
-    void OnExported(string json) => _exportedLength = json.Length;
+    MokaTheme _theme = MokaTheme.Red.WithDensity(MokaDensity.Compact);
 }
 
-<div style="display:flex;flex-direction:column;gap:8px;width:100%">
-    <MokaThemeImportExport Theme="_theme" OnImport="@(imported => _theme = imported)" OnExport="OnExported" />
-    <MokaCaption>@(_exportedLength == 0 ? "Click Export to raise OnExport." : $"OnExport received {_exportedLength} characters of JSON.")</MokaCaption>
+<div style="width:100%">
+    <MokaThemeImportExport Theme="_theme" OnImport="@(imported => _theme = imported)" MaxHeight="320px" />
 </div>
 ```
 
@@ -193,8 +136,8 @@ using Moka.Red.ThemeGen.Serialization;
 
 string json = MokaThemeSerializer.ToJson(theme);
 MokaTheme? restored = MokaThemeSerializer.FromJson(json); // null when the text is not a theme
-string css = MokaThemeSerializer.ToCss(theme);            // :root { --moka-color-primary: ...; }
-string code = MokaThemeSerializer.ToCSharp(theme);        // new MokaTheme { ... }
+string css = MokaThemeSerializer.ToCss(theme);
+string code = MokaThemeSerializer.ToCSharp(theme);
 
 if (!MokaThemeSerializer.TryFromJson(json, out MokaTheme? imported, out string? error))
 {
@@ -204,22 +147,52 @@ if (!MokaThemeSerializer.TryFromJson(json, out MokaTheme? imported, out string? 
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `ToJson(theme)` | `string` | Indented JSON with camelCase names and every theme, palette, typography and spacing property |
+| `ToJson(theme)` | `string` | Indented JSON with camelCase names: every theme, palette, typography and spacing property, the style choices, the seed, the pins, the accent and the palette before high contrast |
 | `FromJson(json)` | `MokaTheme?` | Reads JSON written by `ToJson`, as `TryFromJson` does. Returns null when the text is not a theme |
-| `TryFromJson(json, out theme, out error)` | `bool` | Reads JSON written by `ToJson` and never throws. Names match in any case, and names it does not know are skipped. A value left out comes from `MokaTheme.Dark` or `MokaTheme.Light`, whichever `isDark` says. A `null`, an empty string, a value of the wrong type or a value the theme cannot use (see Import and Export above) fails, and `error` says which, ready to show to a user |
-| `ToCss(theme)` | `string` | A `:root { }` block with every token `MokaTheme.ToCssVariables()` writes |
-| `ToCSharp(theme)` | `string` | A `new MokaTheme { ... }` expression to paste into code, with every property set. Strings are escaped C# literals |
+| `TryFromJson(json, out theme, out error)` | `bool` | Reads JSON written by `ToJson` and never throws. Names match in any case, and names it does not know are skipped. A value left out comes from the built-in theme of the same look, surfaces and scheme |
+| `ToCss(theme)` | `string` | A stylesheet: a comment naming the root classes, then a `:root` rule with `color-scheme`, the page background on the new design and every token `MokaTheme.ToCssVariables()` writes, pins included |
+| `ToCSharp(theme)` | `string` | C# that builds the theme back, written with the `With` API where it can be |
+
+### The C# Export
+
+`ToCSharp` writes a theme as a start and the calls that make the rest of it:
+
+```csharp
+MokaTheme.FromSeed(new MokaThemeSeed
+{
+	Accent = "#7C3AED",
+	Neutral = "#1C1917",
+	Contrast = MokaSeedContrast.More
+}, dark: true)
+	.WithDensity(MokaDensity.Compact)
+	.WithCorners(MokaCorners.Tight)
+	.WithToken("--moka-radius-card", "6px")
+```
+
+The start is a preset (`MokaTheme.Red`, `MokaTheme.CrispLight` and the rest), `MokaTheme.FromSeed(...)` for a theme from a seed, or a preset's `WithSeed(...)` when that is closer. The shortest chain wins, and every chain is built back before it is written, so the code always gives an equal theme. A theme no chain reaches, such as one with palette colors of its own, is written as a `new MokaTheme { ... }` initializer holding every value, with its pins as `.WithToken` calls after it.
+
+Up to 0.5.x the export was always the initializer.
+
+### The CSS Export
+
+```css
+/* Root classes: moka-root moka-dark moka-gate moka-popups-standard moka-buttons-standard */
+:root {
+	color-scheme: dark;
+	background: var(--moka-color-background);
+	--moka-color-primary: #EF5350;
+	...
+}
+```
+
+It is for a page that loads `moka.css` without a `MokaThemeProvider`. Put the root classes on the element that holds the app, as the provider does, since the components' rules read them. A provider sets its tokens on its own `.moka-root` element, and those win over `:root`.
 
 ### What Each Format Keeps
 
 | Part of the theme | JSON and C# | CSS |
 |-------------------|-------------|-----|
-| `IsDark` | Yes | No (dark shadow values are in the tokens) |
-| Every palette color, the glow, border, dim and extended surface colors included | Yes | Yes |
+| `IsDark` | Yes | As `color-scheme` and the `moka-dark` class |
+| Every palette color | Yes | Yes |
 | Typography and spacing | Yes | Yes, with `FontScale` and `Density` applied |
-| `Density`, `FontScale` | Yes | As `--moka-density` and `--moka-font-scale` |
-| The style choices and component looks, from `Selection` to `ChartPrint`, with `Elevation`, `TextButtons`, `Callouts`, `Switches` and `SettingsHeaders` | Yes | As the tokens they write; a component look read in code, such as `SettingsHeaders` or `Toasts`, has none |
-
-Up to 0.1.12 JSON and C# kept only the 23 core palette colors and dropped `Density` and `FontScale`, and the C# export did not escape quotes. Reading an older JSON export back fills the missing colors from the built-in theme that matches its `isDark`.
-
-The CSS export is for pages without a `MokaThemeProvider`. A provider sets its tokens on its `.moka-root` element, and those win over `:root`.
+| The style choices and component looks | Yes | As the tokens and root classes they write; a look read in code, such as `Toasts`, has none |
+| The seed and the pins | Yes | As the tokens they give |

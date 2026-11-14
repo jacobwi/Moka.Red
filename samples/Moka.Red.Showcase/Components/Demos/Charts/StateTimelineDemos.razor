@@ -1,0 +1,247 @@
+@using System.Globalization
+
+<DemoSection Id="services-last-24-hours" Title="Services, last 24 hours">
+	<MokaStateTimeline Title="Is it up" Subtitle="Uptime at the end of each row leaves unknown time out"
+	                   Rows="@ServiceRows" From="@DayStart" To="@Now" Now="@Now" ShowUptime
+	                   TimeZone="TimeZoneInfo.Utc" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="links-with-their-own-states" Title="Links, with their own states">
+	<MokaStateTimeline Title="WAN links" Subtitle="Last 6 hours" Rows="@LinkRows" States="@LinkStates"
+	                   From="@Now.AddHours(-6)" To="@Now" Now="@Now" ShowUptime TimeZone="TimeZoneInfo.Utc"
+	                   Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="planned-work-with-a-deadline" Title="Planned work, with a deadline">
+	<MokaStateTimeline Title="Tonight's maintenance" Subtitle="The window runs past now" Rows="@PlannedRows"
+	                   From="@Now.AddHours(-2)" To="@Now.AddHours(2)" Now="@Now" TimeZone="TimeZoneInfo.Utc"
+	                   Annotations="@Deadline" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="in-a-centred-flex-parent" Title="In a centred flex parent" Description="A chart in a parent that shrinks to fit still fills its width.">
+	<div class="state-charts__centred">
+		<MokaStateTimeline Title="In a centred flex parent" Rows="@LinkRows" States="@LinkStates" From="@Now.AddHours(-6)"
+		                   To="@Now" Now="@Now" TimeZone="TimeZoneInfo.Utc"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="large-charts" Title="Large charts" Description="Marks are placed in time quanta, so a window that slides leaves them alone and a tick sends only what changed.">
+	<div class="state-charts__row">
+		<MokaSegmentedControl Value="@_large" ValueChanged="SetLarge" AriaLabel="Large chart">
+			<MokaSegment Value="none" Text="Off"/>
+			<MokaSegment Value="calm" Text="50 rows, 24 spans each"/>
+			<MokaSegment Value="wide" Text="50 rows, 2,000 spans each"/>
+			<MokaSegment Value="tall" Text="1,000 rows"/>
+		</MokaSegmentedControl>
+		<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="NextMinute" Disabled="@(_large == "none")">Next minute, one row in ten changes</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="Slide" Disabled="@(_large == "none")">Next minute, nothing changes</MokaButton>
+	</div>
+	@if (_large != "none")
+	{
+		<MokaStateTimeline Title="@LargeTitle" Rows="@_largeRows" From="@_largeFrom" To="@_largeNow" Now="@_largeNow"
+		                   ShowUptime TimeZone="TimeZoneInfo.Utc" MaxHeight="420px" DataVersion="@_largeVersion"
+		                   Controls="Tools"/>
+	}
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export;
+
+	private static readonly DateTimeOffset Now = new(2026, 11, 12, 14, 30, 0, TimeSpan.Zero);
+
+	private static readonly DateTimeOffset DayStart = Now.AddHours(-24);
+
+	private static readonly MokaStateRow[] ServiceRows = BuildServices();
+
+	private static MokaStateRow[] BuildServices()
+	{
+		Random random = new(3);
+		string[] names = ["api-gateway", "auth", "search", "db-primary", "db-replica", "cache", "mail-relay", "cdn"];
+		List<MokaStateRow> rows = [];
+		foreach (string name in names)
+		{
+			List<MokaStateSpan> spans = [];
+			DateTimeOffset at = name == "mail-relay" ? DayStart.AddHours(9) : DayStart;
+			spans.Add(new MokaStateSpan(at, MokaStateTimeline.UpKey));
+			while (at < Now)
+			{
+				at = at.AddMinutes(60 + random.NextDouble() * 300);
+				if (at >= Now)
+				{
+					break;
+				}
+
+				bool down = random.NextDouble() < 0.4;
+				double minutes = down ? 2 + random.NextDouble() * 18 : 10 + random.NextDouble() * 50;
+				spans.Add(new MokaStateSpan(at, down ? MokaStateTimeline.DownKey : MokaStateTimeline.DegradedKey)
+				{
+					Detail = down ? "HTTP 503 from upstream" : "p95 over 800 ms"
+				});
+				at = at.AddMinutes(minutes);
+				spans.Add(new MokaStateSpan(at, MokaStateTimeline.UpKey));
+			}
+
+			if (name == "db-primary")
+			{
+				spans.Add(new MokaStateSpan(DayStart.AddHours(13), MokaStateTimeline.MaintenanceKey)
+				{
+					End = DayStart.AddHours(13.75),
+					Detail = "Index rebuild"
+				});
+			}
+
+			if (name == "cdn")
+			{
+				spans =
+				[
+					new MokaStateSpan(DayStart, MokaStateTimeline.UpKey) { End = DayStart.AddHours(16) },
+					new MokaStateSpan(DayStart.AddHours(17.5), MokaStateTimeline.UpKey),
+					new MokaStateSpan(DayStart.AddHours(20), MokaStateTimeline.DegradedKey) { Detail = "Origin slow" },
+					new MokaStateSpan(DayStart.AddHours(20.6), MokaStateTimeline.UpKey)
+				];
+			}
+
+			if (name == "search")
+			{
+				spans.Add(new MokaStateSpan(Now.AddMinutes(-80), MokaStateTimeline.DownKey)
+				{
+					End = Now.AddMinutes(-80).AddSeconds(4),
+					Detail = "Four second blip"
+				});
+			}
+
+			rows.Add(new MokaStateRow(name, spans) { Detail = name.StartsWith("db", StringComparison.Ordinal) ? "eu-west-1" : null });
+		}
+
+		return [.. rows];
+	}
+
+	private static readonly MokaTimelineState[] LinkStates =
+	[
+		new("online", "Online") { Tone = MokaStateTone.Good },
+		new("flapping", "Flapping") { Tone = MokaStateTone.Warn },
+		new("offline", "Offline") { Tone = MokaStateTone.Bad },
+		new("asleep", "Asleep") { Tone = MokaStateTone.Off, Icon = MokaIcons.Status.Clock },
+		new("nodata", "No data") { Tone = MokaStateTone.Unknown }
+	];
+
+	private static readonly MokaStateRow[] LinkRows = BuildLinks();
+
+	private static MokaStateRow[] BuildLinks()
+	{
+		Random random = new(9);
+		string[] names = ["wan-fiber", "wan-lte", "office-vpn", "branch-vpn"];
+		DateTimeOffset start = Now.AddHours(-6);
+		return
+		[
+			.. names.Select(name =>
+			{
+				List<MokaStateSpan> spans = [];
+				DateTimeOffset at = start;
+				while (at < Now)
+				{
+					double roll = random.NextDouble();
+					string state = name == "wan-lte" && roll < 0.5 ? "asleep"
+						: roll < 0.08 ? "offline" : roll < 0.25 ? "flapping" : roll < 0.28 ? "nodata" : "online";
+					spans.Add(new MokaStateSpan(at, state));
+					at = at.AddMinutes(5 + random.NextDouble() * 40);
+				}
+
+				return new MokaStateRow(name, spans);
+			})
+		];
+	}
+
+	private static readonly MokaChartAnnotation[] Deadline =
+	[
+		new MokaChartThreshold(MokaChartX.FromDateTimeOffset(Now.AddHours(1)).Value) { Label = "Back by 15:30" }
+	];
+
+	private static readonly MokaStateRow[] PlannedRows =
+	[
+		new("db-primary", [
+			new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey),
+			new MokaStateSpan(Now.AddMinutes(-40), MokaStateTimeline.MaintenanceKey) { End = Now.AddMinutes(50), Detail = "Postgres 17 upgrade" },
+			new MokaStateSpan(Now.AddMinutes(-25), MokaStateTimeline.DownKey) { End = Now.AddMinutes(-12), Detail = "Restart" }
+		]),
+		new("db-replica", [
+			new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey),
+			new MokaStateSpan(Now.AddMinutes(-35), MokaStateTimeline.DegradedKey) { Detail = "Catching up" }
+		]),
+		new("search", [new MokaStateSpan(Now.AddHours(-2), MokaStateTimeline.UpKey)])
+	];
+
+	private string _large = "none";
+
+	private MokaStateRow[] _largeRows = [];
+
+	private DateTimeOffset _largeFrom = DayStart;
+
+	private DateTimeOffset _largeNow = Now;
+
+	private long _largeVersion;
+
+	private Random _random = new(5);
+
+	private string LargeTitle => _large switch
+	{
+		"calm" => "50 rows, 24 spans each",
+		"wide" => "50 rows, 2,000 spans each",
+		_ => "1,000 rows"
+	};
+
+	private void SetLarge(string value)
+	{
+		_large = value;
+		_random = new Random(5);
+		_largeFrom = DayStart;
+		_largeNow = Now;
+		_largeRows = value switch
+		{
+			"calm" => BuildLarge(50, 24),
+			"wide" => BuildLarge(50, 2000),
+			"tall" => BuildLarge(1000, 24),
+			_ => []
+		};
+		_largeVersion++;
+	}
+
+	private void Slide()
+	{
+		_largeFrom = _largeFrom.AddMinutes(1);
+		_largeNow = _largeNow.AddMinutes(1);
+	}
+
+	private void NextMinute()
+	{
+		_largeFrom = _largeFrom.AddMinutes(1);
+		_largeNow = _largeNow.AddMinutes(1);
+		_largeRows =
+		[
+			.. _largeRows.Select((row, index) => index % 10 != _largeVersion % 10 ? row : row with
+			{
+				Spans = [.. row.Spans, new MokaStateSpan(_largeNow.AddSeconds(-30), Pick(_random))]
+			})
+		];
+		_largeVersion++;
+	}
+
+	private MokaStateRow[] BuildLarge(int rows, int spansPerRow)
+	{
+		double step = TimeSpan.FromHours(24).TotalSeconds / spansPerRow;
+		return
+		[
+			.. Enumerable.Range(0, rows).Select(row => new MokaStateRow(
+				$"host-{(row + 1).ToString("0000", CultureInfo.InvariantCulture)}",
+				[.. Enumerable.Range(0, spansPerRow).Select(i => new MokaStateSpan(DayStart.AddSeconds(i * step), Pick(_random)))]))
+		];
+	}
+
+	private static string Pick(Random random) => random.NextDouble() switch
+	{
+		< 0.08 => MokaStateTimeline.DownKey,
+		< 0.22 => MokaStateTimeline.DegradedKey,
+		< 0.24 => MokaStateTimeline.UnknownKey,
+		_ => MokaStateTimeline.UpKey
+	};
+}

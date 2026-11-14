@@ -87,14 +87,15 @@ public class MokaTableServerRaceTests : BunitContext
 	}
 
 	[Fact]
-	public async Task TheLatestRequestFailing_StillFails()
+	public async Task TheLatestRequestFailing_ShowsTheFailure()
 	{
 		IRenderedComponent<MokaTable<Row>> cut = await RenderLoadedTable();
 		Task reload = await Reload(cut);
 
 		_requests[1].Fail(new InvalidOperationException("the page failed"));
+		await reload;
 
-		await Assert.ThrowsAsync<InvalidOperationException>(() => reload);
+		Assert.Contains("the page failed", cut.Find(".moka-table-failure").TextContent, StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -191,11 +192,11 @@ public class MokaTableServerRaceTests : BunitContext
 
 	public sealed record Row(string Name);
 
-	private sealed class Request(MokaTableState state)
+	private sealed class Request(MokaTableRequest state)
 	{
 		private readonly TaskCompletionSource<MokaTableResult<Row>> _answer = new();
 
-		public MokaTableState State { get; } = state;
+		public MokaTableRequest State { get; } = state;
 
 		public Task<MokaTableResult<Row>> Answered => _answer.Task;
 

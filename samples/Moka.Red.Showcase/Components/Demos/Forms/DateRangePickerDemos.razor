@@ -1,0 +1,14 @@
+<DemoSection Id="basic-date-range" Title="Basic date range" Description="A start and an end date from one calendar.">
+	<div style="max-width: 400px;">
+		<MokaDateRangePicker @bind-StartDate="_rangeStartDate" @bind-EndDate="_rangeEndDate" Label="Date Range"/>
+		<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
+			Start: @(_rangeStartDate?.ToString("yyyy-MM-dd") ?? "none") | End: @(_rangeEndDate?.ToString("yyyy-MM-dd") ?? "none")
+		</MokaText>
+	</div>
+</DemoSection>
+
+@code {
+	private DateOnly? _rangeStartDate = DateOnly.FromDateTime(DateTime.Today);
+
+	private DateOnly? _rangeEndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+}

@@ -1,0 +1,16 @@
+<DemoSection Id="in-app-razor" Title="In App.razor" Code="@AppRazor" Description="Blazor shows it while the circuit is lost and hides it once it's back. It goes in App.razor outside any render mode, because Blazor looks it up by its id, so one per app: this app's own sits there, and stopping the server shows it.">
+	<MokaCallout Type="MokaCalloutType.Info" Title="One per app">
+		Rendering a second one here would give the page two elements with the id Blazor looks for, so the Code tab shows
+		the markup instead.
+	</MokaCallout>
+</DemoSection>
+
+@code {
+	private const string AppRazor = """
+		<body>
+		<Routes @rendermode="InteractiveServer"/>
+		<MokaReconnectModal/>
+		<script src="@Assets["_framework/blazor.web.js"]"></script>
+		</body>
+		""";
+}

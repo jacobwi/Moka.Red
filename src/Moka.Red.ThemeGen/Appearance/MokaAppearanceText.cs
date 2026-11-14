@@ -1,3 +1,5 @@
+using Moka.Red.Primitives.ColorSwatch;
+
 namespace Moka.Red.ThemeGen.Appearance;
 
 /// <summary>
@@ -54,6 +56,24 @@ public sealed record MokaAppearanceText
 
 	/// <summary>The button that goes back to the palette's own accent.</summary>
 	public string UsePaletteAccent { get; init; } = "Use the palette's own";
+
+	/// <summary>The name of the accent swatch holding a color picked with the color picker.</summary>
+	public string CustomAccent { get; init; } = "Custom accent";
+
+	/// <summary>Label of the neutral row.</summary>
+	public string Neutral { get; init; } = "Neutral";
+
+	/// <summary>The line beside the neutral row while it keeps the palette's surfaces.</summary>
+	public string NeutralFromPalette { get; init; } = "The palette's own surfaces";
+
+	/// <summary>The button that puts the palette's own surfaces back.</summary>
+	public string UsePaletteNeutral { get; init; } = "Use the palette's own";
+
+	/// <summary>The name of the neutral swatch holding a color picked with the color picker.</summary>
+	public string CustomNeutral { get; init; } = "Custom neutral";
+
+	/// <summary>The words of the color picker the accent and neutral rows open.</summary>
+	public MokaColorSwatchText Swatches { get; init; } = new();
 
 	/// <summary>Said in place of the style rows while the palette picked ignores them.</summary>
 	public string StyleFixed { get; init; } = "This palette keeps its own style, so density and the other style choices don't apply to it. They come back with another palette.";
@@ -216,6 +236,60 @@ public sealed record MokaAppearanceText
 
 	/// <summary>The right end of the sample status bar on each card.</summary>
 	public string StatusBarSampleEnd { get; init; } = "12";
+
+	/// <summary>Label of the dock layouts row.</summary>
+	public string Docks { get; init; } = "Dock layouts";
+
+	/// <summary>Panels with a title over each and a line between them.</summary>
+	public string DocksClassic { get; init; } = "Classic";
+
+	/// <summary>Tab strips, an activity bar of icons and hairline splitters, as in an IDE.</summary>
+	public string DocksIde { get; init; } = "IDE";
+
+	/// <summary>Each group a raised card with a gap between them.</summary>
+	public string DocksCards { get; init; } = "Cards";
+
+	/// <summary>Headers only on hover, hairline splitters and tinted panes.</summary>
+	public string DocksMinimal { get; init; } = "Minimal";
+
+	/// <summary>Monospace titles in brackets, square corners and an accent edge.</summary>
+	public string DocksTerminal { get; init; } = "Terminal";
+
+	/// <summary>Label of the tables row.</summary>
+	public string Tables { get; init; } = "Tables";
+
+	/// <summary>A line under each row.</summary>
+	public string TablesLined { get; init; } = "Lined";
+
+	/// <summary>Every other row softly tinted.</summary>
+	public string TablesSoftStripes { get; init; } = "Soft stripes";
+
+	/// <summary>Each row its own small card.</summary>
+	public string TablesCards { get; init; } = "Cards";
+
+	/// <summary>Boxed cells and row numbers, like a spreadsheet.</summary>
+	public string TablesSheet { get; init; } = "Sheet";
+
+	/// <summary>Roomy rows with no lines.</summary>
+	public string TablesAiry { get; init; } = "Airy";
+
+	/// <summary>A bordered panel with a tinted band behind the headings.</summary>
+	public string TablesFramed { get; init; } = "Framed";
+
+	/// <summary>No heading row, two lines per row.</summary>
+	public string TablesList { get; init; } = "List";
+
+	/// <summary>Label of the table density row.</summary>
+	public string TableDensity { get; init; } = "Table rows";
+
+	/// <summary>Tight table rows.</summary>
+	public string TableDensityCompact { get; init; } = "Compact";
+
+	/// <summary>Table rows a step roomier.</summary>
+	public string TableDensityStandard { get; init; } = "Standard";
+
+	/// <summary>The roomiest table rows.</summary>
+	public string TableDensityComfortable { get; init; } = "Comfortable";
 
 	/// <summary>Label of the descriptions row.</summary>
 	public string Descriptions { get; init; } = "Descriptions";
@@ -549,4 +623,51 @@ public sealed record MokaAppearanceText
 
 	/// <summary>Hatched on screen and in print.</summary>
 	public string ChartTextureAlwaysHatched { get; init; } = "Always hatched";
+
+	// One row's label. The panel labels its rows with it, and MokaThemeStudio names a change by it.
+	internal string LabelOf(MokaAppearanceRows row) => row switch
+	{
+		MokaAppearanceRows.ColorMode => ColorMode,
+		MokaAppearanceRows.Palette => Palette,
+		MokaAppearanceRows.Accent => Accent,
+		MokaAppearanceRows.Neutral => Neutral,
+		MokaAppearanceRows.Density => Density,
+		MokaAppearanceRows.TextSize => TextSize,
+		MokaAppearanceRows.Corners => Corners,
+		MokaAppearanceRows.MainButton => MainButton,
+		MokaAppearanceRows.LetterCase => LetterCase,
+		MokaAppearanceRows.TitleFont => TitleFont,
+		MokaAppearanceRows.TitleSize => TitleSize,
+		MokaAppearanceRows.NumberFont => NumberFont,
+		MokaAppearanceRows.Elevation => Elevation,
+		MokaAppearanceRows.TextButtons => TextButtons,
+		MokaAppearanceRows.Selection => Selection,
+		MokaAppearanceRows.CurrentPlace => CurrentPlace,
+		MokaAppearanceRows.StatusBar => StatusBar,
+		MokaAppearanceRows.Docks => Docks,
+		MokaAppearanceRows.Tables => Tables,
+		MokaAppearanceRows.TableDensity => TableDensity,
+		MokaAppearanceRows.Descriptions => Descriptions,
+		MokaAppearanceRows.LabelTone => LabelTone,
+		MokaAppearanceRows.ComponentStyle => ComponentStyle,
+		MokaAppearanceRows.Toasts => Toasts,
+		MokaAppearanceRows.ToastStacking => ToastStacking,
+		MokaAppearanceRows.Notifications => Notifications,
+		MokaAppearanceRows.Popups => Popups,
+		MokaAppearanceRows.Lists => Lists,
+		MokaAppearanceRows.Dialogs => Dialogs,
+		MokaAppearanceRows.Buttons => Buttons,
+		MokaAppearanceRows.Tooltips => Tooltips,
+		MokaAppearanceRows.TooltipArrows => TooltipArrows,
+		MokaAppearanceRows.TooltipMotion => TooltipMotion,
+		MokaAppearanceRows.TooltipSize => TooltipSize,
+		MokaAppearanceRows.DisabledButtons => DisabledButtons,
+		MokaAppearanceRows.Callouts => Callouts,
+		MokaAppearanceRows.Switches => Switches,
+		MokaAppearanceRows.SettingsHeaders => SettingsHeaders,
+		MokaAppearanceRows.Charts => Charts,
+		MokaAppearanceRows.ChartPalette => ChartPalette,
+		MokaAppearanceRows.ChartTexture => ChartTexture,
+		_ => throw new ArgumentOutOfRangeException(nameof(row), row, "Not one row.")
+	};
 }

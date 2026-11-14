@@ -1,0 +1,41 @@
+<DemoSection Id="horizontal-split" Title="Horizontal split" Description="Two panes with a handle between them.">
+	<div style="height: 200px; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<MokaSplitPane InitialSize="40%">
+			<FirstContent>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-surface-variant); height: 100%;">
+					<MokaHeading Level="4">File Explorer</MokaHeading>
+					<MokaList Dense>
+						<MokaListItem Text="src/" Icon="MokaIcons.File.Folder"/>
+						<MokaListItem Text="tests/" Icon="MokaIcons.File.Folder"/>
+						<MokaListItem Text="README.md" Icon="MokaIcons.File.Document"/>
+					</MokaList>
+				</div>
+			</FirstContent>
+			<SecondContent>
+				<div style="padding: var(--moka-spacing-md); height: 100%;">
+					<MokaHeading Level="4">Editor</MokaHeading>
+					<MokaCode>Console.WriteLine("Hello, world!");</MokaCode>
+				</div>
+			</SecondContent>
+		</MokaSplitPane>
+	</div>
+</DemoSection>
+
+<DemoSection Id="vertical-split" Title="Vertical split">
+	<div style="height: 300px; border: 1px solid var(--moka-color-outline-variant); border-radius: var(--moka-radius-md); overflow: hidden;">
+		<MokaSplitPane Orientation="MokaSplitOrientation.Vertical" InitialSize="60%">
+			<FirstContent>
+				<div style="padding: var(--moka-spacing-md); height: 100%;">
+					<MokaHeading Level="4">Source</MokaHeading>
+					<MokaParagraph>Code editor area above the output panel.</MokaParagraph>
+				</div>
+			</FirstContent>
+			<SecondContent>
+				<div style="padding: var(--moka-spacing-md); background: var(--moka-color-surface-variant); height: 100%;">
+					<MokaHeading Level="4">Output</MokaHeading>
+					<MokaParagraph>Build output and logs appear here.</MokaParagraph>
+				</div>
+			</SecondContent>
+		</MokaSplitPane>
+	</div>
+</DemoSection>

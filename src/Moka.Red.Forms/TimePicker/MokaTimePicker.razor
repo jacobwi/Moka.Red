@@ -17,7 +17,8 @@
 	     @onkeydown:stopPropagation="_isOpen">
 		<div class="moka-timepicker-input-wrapper">
 			<input type="text" class="@InputCssClass" style="@InputStyle" aria-required="@(Required ? "true" : null)"
-			       value="@ShownText"
+			       @bind:get="ShownText"
+			       @bind:set="CommitTyped"
 			       readonly="@(!Typed || ReadOnly)"
 			       placeholder="@ShownPlaceholder"
 			       aria-haspopup="@(Typed ? null : "dialog")"
@@ -28,7 +29,6 @@
 			       @ref="_triggerRef"
 			       @onclick="FieldClick"
 			       @onkeydown="HandleTriggerKeyDown"
-			       @onchange="TypedChange"
 			       disabled="@Disabled"
 			       id="@InputId"
 			       aria-describedby="@DescribedBy"

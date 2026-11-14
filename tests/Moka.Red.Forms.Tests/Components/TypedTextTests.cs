@@ -14,13 +14,14 @@ public class TypedTextTests : BunitContext
 	[Fact]
 	public void ANumber_ThatDoesNotParseYet_StaysAsTyped()
 	{
+		double reported = 0;
 		IRenderedComponent<MokaNumericField<double>> cut = Render<MokaNumericField<double>>(p => p
-			.Add(x => x.Value, 0));
+			.Add(x => x.ValueChanged, value => reported = value));
 
 		cut.Find("input").Input("1.");
 
 		Assert.Equal("1.", cut.Find("input").GetAttribute("value"));
-		Assert.Equal(1, cut.Instance.Value);
+		Assert.Equal(1, reported);
 	}
 
 	[Fact]

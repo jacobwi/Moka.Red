@@ -359,6 +359,206 @@ export function removeResizable(splitter) {
 	splitter?._mokaResize?.destroy();
 }
 
+// Moves the line between two children of a grid whose tracks alternate child, gutter, child, gutter, child. Only
+// the two children beside the gutter change size, so a split of three keeps its third child where it was. This is
+// what a window splitter does (WAI-ARIA "Window Splitter"): the gutter is a focusable role="separator" whose
+// aria-valuenow is the first child's share of the pair, in percent.
+//
+// options.direction: 'horizontal' moves a line between columns, 'vertical' between rows.
+// options.index: the gutter's number, so it sits between child index and child index + 1.
+// options.min, options.max: one CSS length or null per child (see resolveLength); a missing min is 48px.
+// options.flex: one flag per child, true when its track is a share (fr) rather than a length. A share is written back
+//   as fr weights in proportion to the sizes, so the split keeps its proportions when its container resizes.
+// The callback gets every child's size in px, once per gesture: on release, or on keyup for the keyboard.
+
+const SPLIT_MIN = 48;
+
+export function makeSplitter(dotNetRef, container, gutter, options) {
+	if (!container || !gutter || gutter._mokaSplitter) return;
+
+	const opts = options || {};
+	const callbackMethod = opts.callbackMethod || 'OnSplitterMoved';
+	const report = sizes => dotNetRef?.invokeMethodAsync(callbackMethod, sizes);
+	let keyed = null;
+
+	const onPointerDown = e => startSplitterDrag(container, gutter, e, opts, report);
+	const onKeyDown = e => {
+		const sizes = keySplitter(container, gutter, e, opts);
+		if (sizes) keyed = sizes;
+	};
+	const onKeyUp = () => {
+		if (keyed) {
+			report(keyed);
+			keyed = null;
+		}
+	};
+	const onFocus = () => syncSplitterValues(container, gutter, opts);
+
+	gutter.addEventListener('pointerdown', onPointerDown);
+	gutter.addEventListener('keydown', onKeyDown);
+	gutter.addEventListener('keyup', onKeyUp);
+	gutter.addEventListener('blur', onKeyUp);
+	gutter.addEventListener('focus', onFocus);
+	syncSplitterValues(container, gutter, opts);
+
+	gutter._mokaSplitter = {
+		destroy: () => {
+			gutter.removeEventListener('pointerdown', onPointerDown);
+			gutter.removeEventListener('keydown', onKeyDown);
+			gutter.removeEventListener('keyup', onKeyUp);
+			gutter.removeEventListener('blur', onKeyUp);
+			gutter.removeEventListener('focus', onFocus);
+			delete gutter._mokaSplitter;
+		}
+	};
+}
+
+export function removeSplitter(gutter) {
+	gutter?._mokaSplitter?.destroy();
+}
+
+// Starts a pointer drag of the gutter, for a caller that listens for pointerdown itself (one delegated listener for
+// many gutters). done(sizes) runs once, on release, with every child's size in px; not at all for a press that never
+// moved.
+export function startSplitterDrag(container, gutter, e, options, done) {
+	if (e.button !== 0) return false;
+	const horizontal = (options.direction || 'horizontal') === 'horizontal';
+	const pair = measurePair(container, horizontal, options);
+	if (!pair) return false;
+
+	e.preventDefault();
+	e.stopPropagation();
+
+	const start = horizontal ? e.clientX : e.clientY;
+	let sizes = null;
+
+	document.body.style.userSelect = 'none';
+	document.body.style.cursor = horizontal ? 'col-resize' : 'row-resize';
+	const iframes = document.querySelectorAll('iframe');
+	iframes.forEach(f => f.style.pointerEvents = 'none');
+	gutter.setAttribute('data-moka-dragging', '');
+
+	function onMove(ev) {
+		const delta = (horizontal ? ev.clientX : ev.clientY) - start;
+		sizes = applyPair(container, gutter, pair, pair.a + delta);
+	}
+
+	function onUp() {
+		document.removeEventListener('pointermove', onMove);
+		document.removeEventListener('pointerup', onUp);
+		document.removeEventListener('pointercancel', onUp);
+		document.body.style.userSelect = '';
+		document.body.style.cursor = '';
+		iframes.forEach(f => f.style.pointerEvents = '');
+		gutter.removeAttribute('data-moka-dragging');
+		if (sizes) done?.(sizes);
+	}
+
+	document.addEventListener('pointermove', onMove);
+	document.addEventListener('pointerup', onUp);
+	document.addEventListener('pointercancel', onUp);
+	return true;
+}
+
+// Moves the gutter for a key press: the arrows along its axis by 10px (50px with Shift), Home to the first child's
+// minimum, End to its maximum. Returns every child's new size in px, or null when the key isn't one of those. The
+// caller reports once the key is let go, so a held key doesn't send a report per repeat.
+export function keySplitter(container, gutter, e, options) {
+	if (e.altKey || e.ctrlKey || e.metaKey) return null;
+	const horizontal = (options.direction || 'horizontal') === 'horizontal';
+	const step = e.shiftKey ? KEY_LARGE_STEP : KEY_STEP;
+	const deltas = horizontal ? { ArrowRight: step, ArrowLeft: -step } : { ArrowDown: step, ArrowUp: -step };
+	if (!Object.hasOwn(deltas, e.key) && e.key !== 'Home' && e.key !== 'End') return null;
+
+	e.preventDefault();
+	const pair = measurePair(container, horizontal, options);
+	if (!pair) return null;
+
+	const target = e.key === 'Home' ? -Infinity
+		: e.key === 'End' ? Infinity
+			: pair.a + deltas[e.key];
+	return applyPair(container, gutter, pair, target);
+}
+
+// Writes aria-valuenow, aria-valuemin and aria-valuemax on the gutter from the sizes on screen.
+export function syncSplitterValues(container, gutter, options) {
+	const horizontal = (options.direction || 'horizontal') === 'horizontal';
+	const pair = measurePair(container, horizontal, options);
+	if (pair) writeSplitterValues(gutter, pair, pair.a);
+}
+
+// The child tracks in px, the two either side of the gutter, and their limits. The computed template lists every
+// track in px; the inline one keeps the gutters as written (a var() gap), so the gutters come from there.
+function measurePair(container, horizontal, options) {
+	const prop = horizontal ? 'gridTemplateColumns' : 'gridTemplateRows';
+	const computed = (getComputedStyle(container)[prop] || '').trim().split(/\s+/).map(parseFloat);
+	if (computed.length < 3 || computed.some(n => !Number.isFinite(n))) return null;
+
+	const index = options.index ?? 0;
+	const children = computed.filter((_, i) => i % 2 === 0);
+	if (index < 0 || index + 1 >= children.length) return null;
+
+	const inline = parseTrackList(container.style[prop]);
+	const sameShape = inline && inline.length === computed.length;
+	const gutters = [];
+	for (let i = 1; i < computed.length; i += 2) gutters.push(sameShape ? inline[i] : computed[i] + 'px');
+
+	const basis = horizontal ? container.clientWidth : container.clientHeight;
+	const limit = (list, i, fallback) => resolveLength(list?.[i] ?? null, container, horizontal, basis) ?? fallback;
+
+	return {
+		prop,
+		children,
+		gutters,
+		index,
+		a: children[index],
+		b: children[index + 1],
+		minA: limit(options.min, index, SPLIT_MIN),
+		minB: limit(options.min, index + 1, SPLIT_MIN),
+		maxA: limit(options.max, index, Infinity),
+		maxB: limit(options.max, index + 1, Infinity),
+		flex: options.flex || []
+	};
+}
+
+// The first child at size, clamped by both children's limits (the minimum wins, as in CSS), the second taking the
+// rest of the pair. Writes the template and the gutter's values, and returns every child's size.
+function applyPair(container, gutter, pair, size) {
+	const total = pair.a + pair.b;
+	let a = Math.min(pair.maxA, Math.max(pair.minA, size));
+	let b = Math.min(pair.maxB, Math.max(pair.minB, total - a));
+	a = Math.max(pair.minA, total - b);
+	b = total - a;
+
+	const sizes = pair.children.slice();
+	sizes[pair.index] = a;
+	sizes[pair.index + 1] = b;
+
+	const flexSizes = sizes.filter((_, i) => pair.flex[i]);
+	const average = flexSizes.length ? flexSizes.reduce((sum, n) => sum + n, 0) / flexSizes.length : 1;
+	const tracks = [];
+	sizes.forEach((px, i) => {
+		if (i > 0) tracks.push(pair.gutters[i - 1]);
+		tracks.push(pair.flex[i] ? roundSize(px / (average || 1)) + 'fr' : roundSize(px) + 'px');
+	});
+	container.style[pair.prop] = tracks.join(' ');
+	writeSplitterValues(gutter, pair, a);
+	return sizes.map(roundSize);
+}
+
+function writeSplitterValues(gutter, pair, a) {
+	const total = pair.a + pair.b;
+	if (!(total > 0)) return;
+	const percent = n => String(Math.round(Math.max(0, Math.min(100, n / total * 100))));
+	gutter.setAttribute('aria-valuenow', percent(a));
+	gutter.setAttribute('aria-valuemin', percent(Math.max(pair.minA, total - pair.maxB)));
+	gutter.setAttribute('aria-valuemax', percent(Math.min(pair.maxA, total - pair.minB)));
+}
+
+function roundSize(n) {
+	return Math.round(n * 10000) / 10000;
+}
+
 // ─── GRID TRACKS ────────────────────────────────────────────
 // makeResizable rewrites one track of the grid template while a splitter moves. A track list
 // cannot be split on whitespace: minmax(), min(), calc(), fit-content() and repeat() contain

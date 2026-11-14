@@ -158,14 +158,87 @@
 	transform: rotate(180deg);
 }
 
+/* A parent that is also a page: the link fills the row and the arrow button sits over its end, so the row keeps one
+   highlight. The button's place is on its tooltip's element, centred without a transform, which would hold the tooltip. */
+::deep .moka-menu-item__row {
+	position: relative;
+}
+
+::deep .moka-menu-item__row > .moka-menu-item > .moka-menu-item__content {
+	padding-right: calc(var(--moka-spacing-xxl) + var(--moka-spacing-sm));
+}
+
+::deep .moka-menu-item__row:hover > .moka-menu-item:not(.moka-menu-item--active):not(.moka-menu-item--disabled) > .moka-menu-item__content {
+	background-color: var(--moka-color-surface-variant);
+}
+
+.moka-menu ::deep .moka-menu-item__row > .moka-menu-item__toggle-tip {
+	position: absolute;
+	top: 0;
+	right: var(--moka-spacing-xs);
+	bottom: 0;
+	height: fit-content;
+	margin-block: auto;
+}
+
+::deep .moka-menu-item__toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--moka-spacing-xxl);
+	height: var(--moka-spacing-xxl);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+::deep .moka-menu-item__toggle:hover {
+	background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+::deep .moka-menu-item__toggle:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
+::deep .moka-menu-item__toggle:disabled {
+	opacity: var(--moka-opacity-disabled);
+	cursor: default;
+}
+
+::deep .moka-menu-item__toggle:disabled:hover {
+	background: none;
+}
+
+::deep .moka-menu-item__row:has(> .moka-menu-item--active) .moka-menu-item__toggle {
+	color: var(--moka-color-primary);
+}
+
+/* A grid row animates between 0fr and the group's own height, so a group of any length opens in full. The max-height
+   it replaces cut off anything past 500px, and the links it cut off stayed in the tab order. */
 ::deep .moka-menu-item__submenu {
-	max-height: 0;
-	overflow: hidden;
-	transition: max-height 0.25s ease;
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows var(--moka-transition-normal);
 }
 
 ::deep .moka-menu-item__submenu--open {
-	max-height: 500px;
+	grid-template-rows: 1fr;
+}
+
+::deep .moka-menu-item__submenu-clip {
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* The group's name heads its flyout, since the tag that names its icon gives way while it's open. */
+::deep .moka-menu-item__flyout-title {
+	display: none;
 }
 
 ::deep .moka-menu-divider {
@@ -174,13 +247,72 @@
 	margin: var(--moka-spacing-xxs) var(--moka-spacing-sm);
 }
 
-.moka-menu--collapsed ::deep .moka-menu-item__content {
+/* The rail's rules reach only its own items, not the rows of a group's flyout, which sit inside the group's element. */
+.moka-menu--collapsed ::deep .moka-menu-item__content:not(.moka-menu-item__submenu *) {
 	justify-content: center;
 	padding: var(--moka-spacing-xs);
 }
 
-.moka-menu--collapsed ::deep .moka-menu-item__submenu {
+/* On the rail a group opens beside its icon, as a flyout in the top layer, so it stays hidden in place. */
+.moka-menu--collapsed ::deep .moka-menu-item__flyout,
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__flyout {
 	display: none;
+}
+
+.moka-menu--collapsed ::deep .moka-menu-item__flyout:popover-open,
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__flyout:popover-open {
+	display: block;
+}
+
+/* Away from the rail's edge on either side, since the script opens it on whichever side has room. */
+.moka-menu ::deep .moka-menu-item__flyout:popover-open {
+	min-width: 12.5rem;
+	max-width: min(20rem, calc(100vw - 2 * var(--moka-spacing-md)));
+	max-height: calc(100dvh - 2 * var(--moka-spacing-md));
+	margin: 0 var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs);
+	overflow-y: auto;
+	border: var(--moka-border-width) solid var(--moka-color-outline-strong);
+	border-radius: var(--moka-radius-lg);
+	background-color: var(--moka-color-surface);
+	box-shadow: var(--moka-shadow-popup);
+}
+
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__flyout:popover-open {
+	margin: 0 1.1875rem;
+}
+
+.moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-title {
+	display: block;
+	overflow: hidden;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-sm);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* A parent that is also a page heads its flyout with a link to that page. */
+.moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link {
+	border-radius: var(--moka-radius-sm);
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link:hover {
+	background-color: var(--moka-color-surface-variant);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link:focus-visible {
+	outline: none;
+	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
+.moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link[aria-current="page"] {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 10%, transparent);
+	color: var(--moka-color-primary);
 }
 
 /* In a collapsed menu each item sits in the tooltip that names it. A block-level flex row, so the item still
@@ -203,15 +335,15 @@
 }
 
 /* On the rail a pill is a corner badge on the icon. */
-.moka-menu--collapsed ::deep .moka-menu-item__pill,
-[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill {
+.moka-menu--collapsed ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *),
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *) {
 	position: absolute;
 	top: 1px;
 	right: 0.1875rem;
 }
 
-.moka-menu--collapsed ::deep .moka-menu-item__pill .moka-badge__indicator,
-[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill .moka-badge__indicator {
+.moka-menu--collapsed ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *) .moka-badge__indicator,
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *) .moka-badge__indicator {
 	min-width: 0.9375rem;
 	padding: 0 0.1875rem;
 	font-size: 0.59375rem;
@@ -228,8 +360,8 @@
 	margin-left: 1.1875rem;
 }
 
-/* Two more classes than the look's active row on hover, which sets a padding of its own, so the icon stays centred. */
-[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item.moka-fill-width > .moka-menu-item__content {
+/* More classes than the look's active row on hover, which sets a padding of its own, so the icon stays centred. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item.moka-fill-width:not(.moka-menu-item__submenu *) > .moka-menu-item__content {
 	justify-content: center;
 	gap: 0;
 	min-height: 2.125rem;
@@ -237,7 +369,7 @@
 }
 
 /* Hidden this way so the row's link keeps its name. */
-[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__text {
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__text:not(.moka-menu-item__submenu *) {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -246,15 +378,25 @@
 	white-space: nowrap;
 }
 
+/* A group's flyout opens beside it, so the arrow that opens a group in place has nothing to say on the rail. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__chevron:not(.moka-menu-item__submenu *) {
+	display: none;
+}
+
+/* Until .NET hears the rail has come, a parent that is also a page is still its link: the icon, with no arrow. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__toggle-tip:not(.moka-menu-item__submenu *) {
+	display: none;
+}
+
 /* A labelled rail: each name under its icon, cut to one line. One class more than the rail's rules above. */
-[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item.moka-fill-width > .moka-menu-item__content {
+[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item.moka-fill-width:not(.moka-menu-item__submenu *) > .moka-menu-item__content {
 	flex-direction: column;
 	gap: 0.1875rem;
 	min-height: 3.5rem;
 	padding: 0.4375rem 0.25rem;
 }
 
-[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__text {
+[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__text:not(.moka-menu-item__submenu *) {
 	position: static;
 	flex: none;
 	width: auto;
@@ -266,7 +408,7 @@
 	text-align: center;
 }
 
-[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__pill {
+[data-moka-rail] .moka-menu.moka-menu--adaptive.moka-menu--rail-labels ::deep .moka-menu-item__pill:not(.moka-menu-item__submenu *) {
 	top: 0.25rem;
 	right: 0.625rem;
 }
@@ -358,4 +500,54 @@
 .moka-gate .moka-menu ::deep .moka-menu-divider {
 	border-top-color: var(--moka-color-outline-variant);
 	margin: var(--moka-spacing-sm) var(--moka-button-padding-sm);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__flyout:popover-open {
+	padding: var(--moka-spacing-sm);
+	background: var(--moka-popup-bg, var(--moka-color-surface));
+	color: var(--moka-popup-color, inherit);
+	border-color: var(--moka-popup-border, var(--moka-color-outline-strong));
+	border-radius: var(--moka-popup-radius, var(--moka-radius-popup));
+	box-shadow: var(--moka-popup-shadow, var(--moka-shadow-popup));
+	-webkit-backdrop-filter: var(--moka-popup-blur, none);
+	backdrop-filter: var(--moka-popup-blur, none);
+	font-family: var(--moka-popup-font, inherit);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-title {
+	padding: var(--moka-spacing-xs) var(--moka-button-padding-sm);
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link {
+	border-radius: var(--moka-radius-md);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link:hover {
+	background-color: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__flyout:popover-open .moka-menu-item__flyout-link[aria-current="page"] {
+	background-color: var(--moka-current-bg);
+	color: var(--moka-current-color);
+}
+
+/* The Gate row's own padding is a shorthand, so the room for the arrow is given again here. */
+.moka-gate .moka-menu ::deep .moka-menu-item__row > .moka-menu-item > .moka-menu-item__content {
+	padding-right: calc(var(--moka-spacing-xxl) + var(--moka-spacing-sm));
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__row:hover > .moka-menu-item:not(.moka-menu-item--active):not(.moka-menu-item--disabled) > .moka-menu-item__content {
+	background-color: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__toggle {
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-color-icon);
+}
+
+.moka-gate .moka-menu ::deep .moka-menu-item__row:has(> .moka-menu-item--active) .moka-menu-item__toggle {
+	color: var(--moka-current-color);
 }

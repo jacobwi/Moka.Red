@@ -47,6 +47,14 @@
 	opacity: 0.7;
 }
 
+/* A wrapping track never cuts a label: a segment is at least as wide as its label, and one that doesn't fit wraps to the
+   next row. Left to min-width: auto, the floor is the segment's content minimum, which engines work out differently for
+   a label whose text clips, and where it came out short the segments shared the row equally and the longer labels were
+   cut. The one-row grid below cuts labels on purpose, so it's left out. */
+.moka-segmented:not(.moka-segmented--one-row) ::deep .moka-segment {
+	min-width: max-content;
+}
+
 /* With Rounded set, the segments take the track's corners, so a pill track holds pill segments. */
 .moka-segmented--rounded ::deep .moka-segment {
 	border-radius: inherit;

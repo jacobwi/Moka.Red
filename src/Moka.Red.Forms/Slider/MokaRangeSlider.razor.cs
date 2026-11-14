@@ -14,14 +14,21 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 {
 	private readonly string _startId = $"moka-range-slider-{Guid.NewGuid():N}";
 
+	// The ends the thumbs show, apart from ValueStart and ValueEnd, each owned by a parent that passes it and listens.
+	private readonly MokaInputValue<double> _end;
+	private readonly MokaInputValue<double> _start;
+
 	// What a thumb's input renders for one pass after the other thumb held it back (see
 	// RenderDraggedValueOnceAsync). Null the rest of the time.
 	private string? _endEcho;
-	private double? _lastValueEnd;
-	private double? _lastValueStart;
 	private string? _startEcho;
-	private double _valueEnd = 100;
-	private double _valueStart;
+
+	/// <summary>Creates the slider. Each end shows its own value until the parent passes one.</summary>
+	public MokaRangeSlider()
+	{
+		_start = new MokaInputValue<double>(StateHasChanged, DispatchExceptionAsync, ValueStart);
+		_end = new MokaInputValue<double>(StateHasChanged, DispatchExceptionAsync, ValueEnd);
+	}
 
 	/// <summary>The lower value of the range. Two-way bindable.</summary>
 	[Parameter]
@@ -71,12 +78,16 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		.AddClass(Class)
 		.Build();
 
+	private double ShownStart => _start.Shown;
+
+	private double ShownEnd => _end.Shown;
+
 	private double StartPercent => Max > Min
-		? (_valueStart - Min) / (Max - Min) * 100
+		? (ShownStart - Min) / (Max - Min) * 100
 		: 0;
 
 	private double EndPercent => Max > Min
-		? (_valueEnd - Min) / (Max - Min) * 100
+		? (ShownEnd - Min) / (Max - Min) * 100
 		: 100;
 
 	// The field wrapper is the outermost element, so the margin goes there. Padding widens the
@@ -108,11 +119,11 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		.AddClass("moka-range-slider-input--on-top", StartOnTop)
 		.Build();
 
-	private bool StartOnTop => _valueStart >= Max || (_valueStart >= _valueEnd && (_valueStart - Min) * 2 >= Max - Min);
+	private bool StartOnTop => ShownStart >= Max || (ShownStart >= ShownEnd && (ShownStart - Min) * 2 >= Max - Min);
 
-	private string StartInputValue => _startEcho ?? _valueStart.ToString(CultureInfo.InvariantCulture);
+	private string StartInputValue => _startEcho ?? ShownStart.ToString(CultureInfo.InvariantCulture);
 
-	private string EndInputValue => _endEcho ?? _valueEnd.ToString(CultureInfo.InvariantCulture);
+	private string EndInputValue => _endEcho ?? ShownEnd.ToString(CultureInfo.InvariantCulture);
 
 	// The label cannot name two inputs, so it names the group and each thumb carries its own name.
 	private string? GroupLabelledBy => string.IsNullOrWhiteSpace(Label) ? null : MokaFieldWrapper.LabelIdFor(_startId);
@@ -144,23 +155,27 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
+		_start.Take(parameters, nameof(ValueStart));
+		_end.Take(parameters, nameof(ValueEnd));
+		return base.SetParametersAsync(parameters);
+	}
 
-		// Each end only moves when the parent passes a new value for it. Copying them on every
-		// parent render sent the thumbs of an unbound slider back to where they started.
-		if (!EqualityComparer<double?>.Default.Equals(_lastValueStart, ValueStart))
-		{
-			_lastValueStart = ValueStart;
-			_valueStart = ValueStart;
-		}
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_start.AfterRender();
+		_end.AfterRender();
+	}
 
-		if (!EqualityComparer<double?>.Default.Equals(_lastValueEnd, ValueEnd))
-		{
-			_lastValueEnd = ValueEnd;
-			_valueEnd = ValueEnd;
-		}
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_start.Stop();
+		_end.Stop();
+		return base.DisposeAsyncCore();
 	}
 
 	private async Task HandleStartInput(string? typed)
@@ -173,20 +188,22 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		}
 
 		// The start thumb stops at the end one.
-		double start = Math.Min(value, _valueEnd);
-		if (start != value && start == _valueStart)
+		double start = Math.Min(value, ShownEnd);
+		if (start == ShownStart)
 		{
-			_startEcho = raw;
-			if (!await RenderDraggedValueOnceAsync(() => _startEcho == raw))
+			if (start != value)
 			{
-				return;
+				_startEcho = raw;
+				if (await RenderDraggedValueOnceAsync(() => _startEcho == raw))
+				{
+					_startEcho = null;
+				}
 			}
 
-			_startEcho = null;
+			return;
 		}
 
-		_valueStart = start;
-		await ValueStartChanged.InvokeAsync(start);
+		_start.Pick(start, ValueStartChanged);
 	}
 
 	private async Task HandleEndInput(string? typed)
@@ -199,21 +216,24 @@ public partial class MokaRangeSlider : MokaVisualComponentBase
 		}
 
 		// The end thumb stops at the start one.
-		double end = Math.Max(value, _valueStart);
-		if (end != value && end == _valueEnd)
+		double end = Math.Max(value, ShownStart);
+		if (end == ShownEnd)
 		{
-			_endEcho = raw;
-			if (!await RenderDraggedValueOnceAsync(() => _endEcho == raw))
+			if (end != value)
 			{
-				return;
+				_endEcho = raw;
+				if (await RenderDraggedValueOnceAsync(() => _endEcho == raw))
+				{
+					_endEcho = null;
+				}
 			}
 
-			_endEcho = null;
+			return;
 		}
 
-		_valueEnd = end;
-		await ValueEndChanged.InvokeAsync(end);
+		_end.Pick(end, ValueEndChanged);
 	}
+
 
 	// A thumb held back at the other one keeps the value the last render wrote, so Blazor sends no
 	// change and the browser leaves the thumb where it was dragged, past the other one (gotcha #24).

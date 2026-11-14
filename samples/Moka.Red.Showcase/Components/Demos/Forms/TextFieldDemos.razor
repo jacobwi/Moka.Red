@@ -1,0 +1,43 @@
+<DemoSection Id="basics" Title="Basics" Description="One line of text, with a label, a hint or error, icons and a clear button." Tip="A bound Value updates on every key. Set DebounceDelay when each change costs a search.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaTextField @bind-Value="_model.Name" Label="Name" Placeholder="Enter your name" HelperText="Your full name"/>
+			<MokaTextField @bind-Value="_model.Email" Label="Email" Placeholder="user@example.com" StartIcon="MokaIcons.Action.Search"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Clearable" Placeholder="Type something..." Clearable="true"/>
+			<MokaTextField @bind-Value="_model.Name" Label="With Error" Placeholder="Invalid input" ErrorText="This field is required."/>
+			<MokaTextField @bind-Value="_model.Name" Label="Disabled" Placeholder="Cannot edit" Disabled="true"/>
+
+			<h3>TextField Sizes</h3>
+			<MokaTextField @bind-Value="_model.Name" Label="Small" Size="MokaSize.Sm" Placeholder="Small input"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Medium" Size="MokaSize.Md" Placeholder="Medium input"/>
+			<MokaTextField @bind-Value="_model.Name" Label="Large" Size="MokaSize.Lg" Placeholder="Large input"/>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, HelperText">The name above and the hint under it</DemoParam>
+		<DemoParam Name="ErrorText">Shows the error state in place of the hint</DemoParam>
+		<DemoParam Name="StartIcon, EndIcon">Icons inside the box</DemoParam>
+		<DemoParam Name="Clearable">A button that empties it</DemoParam>
+		<DemoParam Name="Suffix">A unit inside the box, read out with the value</DemoParam>
+		<DemoParam Name="DebounceDelay">Waits this many ms after the last key</DemoParam>
+	</Notes>
+	<Playground>
+		<TextFieldPlayground/>
+	</Playground>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+}

@@ -76,10 +76,10 @@ public class MokaTableHiddenPagerTests : BunitContext
 	[Fact]
 	public async Task HiddenPager_ServerData_IsAskedForEveryRow()
 	{
-		var requests = new List<MokaTableState>();
+		var requests = new List<MokaTableRequest>();
 		IRenderedComponent<MokaTable<Person>> cut = RenderServerTable(requests, p => p.Add(t => t.ShowPagination, false));
 
-		Assert.Equal(RowCount, DataRows(cut).Count);
+		cut.WaitForAssertion(() => Assert.Equal(RowCount, DataRows(cut).Count));
 		Assert.All(requests, r => Assert.Equal(1, r.Page));
 		Assert.True(requests[^1].PageSize >= RowCount);
 
@@ -90,7 +90,7 @@ public class MokaTableHiddenPagerTests : BunitContext
 		await AgeHeader(cut).ClickAsync(new MouseEventArgs());
 
 		// With the total known, a reload is a single call for everything.
-		MokaTableState sorted = Assert.Single(requests);
+		MokaTableRequest sorted = Assert.Single(requests);
 		Assert.Equal(1, sorted.Page);
 		Assert.True(sorted.PageSize >= RowCount);
 		Assert.Equal(RowCount, DataRows(cut).Count);
@@ -102,7 +102,7 @@ public class MokaTableHiddenPagerTests : BunitContext
 		IRenderedComponent<MokaTable<Person>> cut = RenderServerTable([], p => p.Add(t => t.ShowPagination, false));
 
 		string expected = People.Sum(x => x.Age).ToString(CultureInfo.CurrentCulture);
-		Assert.Equal(expected, cut.Find(".moka-table-aggregate-value").TextContent.Trim());
+		cut.WaitForAssertion(() => Assert.Equal(expected, cut.Find(".moka-table-aggregate-value").TextContent.Trim()));
 	}
 
 	[Fact]
@@ -184,7 +184,7 @@ public class MokaTableHiddenPagerTests : BunitContext
 
 	// A well-behaved source: it pages exactly as asked and reports the full total.
 	private IRenderedComponent<MokaTable<Person>> RenderServerTable(
-		List<MokaTableState> requests,
+		List<MokaTableRequest> requests,
 		Action<ComponentParameterCollectionBuilder<MokaTable<Person>>>? extra = null) =>
 		Render<MokaTable<Person>>(p =>
 		{

@@ -205,7 +205,15 @@ public class MokaThemeProviderTests : BunitContext
 		IReadOnlyList<IElement> roots = cut.FindAll(".moka-root");
 		Assert.Equal(2, roots.Count);
 		Assert.Contains("moka-dark", roots[1].ClassName, StringComparison.Ordinal);
-		Assert.Equal(MokaTheme.Dark.ToCssVariables(), roots[1].GetAttribute("style"));
+
+		// The nested root declares only what neither the outer root nor moka.css's dark rules give it; ProviderCascadeTests
+		// works out that every token lands.
+		IReadOnlyDictionary<string, string> dark = MokaTheme.Dark.ToTokenMap();
+		foreach (string declaration in (roots[1].GetAttribute("style") ?? "").Split("; ", StringSplitOptions.RemoveEmptyEntries))
+		{
+			string[] pair = declaration.TrimEnd(';').Split(": ", 2);
+			Assert.Equal(dark[pair[0]], pair[1]);
+		}
 	}
 
 	[Fact]
@@ -271,6 +279,24 @@ public class MokaThemeProviderTests : BunitContext
 		IElement root = cut.Find(".moka-root");
 		Assert.Contains("--moka-color-primary", root.GetAttribute("style"), StringComparison.Ordinal);
 		Assert.False(root.HasAttribute("data-moka-theme"));
+	}
+
+	[Fact]
+	public void Nonce_PutsANestedRootsTokensInAScopedStyle()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Nonce, "abc123")
+			.AddChildContent<MokaThemeProvider>(nested => nested
+				.Add(x => x.Nonce, "abc123")
+				.Add(x => x.Theme, MokaTheme.Gate)
+				.AddChildContent("<span>Hello</span>")));
+
+		IElement nested = cut.FindAll(".moka-root")[1];
+		string? scope = nested.GetAttribute("data-moka-theme");
+		Assert.False(nested.HasAttribute("style"));
+		IElement scoped = Assert.Single(cut.FindAll("style"), style => style.TextContent.Contains($"[data-moka-theme=\"{scope}\"]", StringComparison.Ordinal));
+		Assert.Equal("abc123", scoped.GetAttribute("nonce"));
+		Assert.Contains("--moka-color-primary", scoped.TextContent, StringComparison.Ordinal);
 	}
 
 	// The detected theme used to be written into the Theme parameter, so the next parent render put

@@ -1,0 +1,46 @@
+<DemoSection Id="click-trigger-default" Title="Click trigger (default)" Description="Rich content anchored to a trigger, on click or hover.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaPopover>
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Outlined">Click me</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-md); max-width: 250px;">
+					<strong>Popover Title</strong>
+					<p style="font-size: var(--moka-font-size-sm); margin-top: var(--moka-spacing-xs);">This is popover content. It can contain any markup.</p>
+				</div>
+			</PopoverContent>
+		</MokaPopover>
+
+		<MokaPopover Position="MokaPopoverPosition.Top" Arrow="true">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Soft">Top with Arrow</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-sm);">Arrow pointing down</div>
+			</PopoverContent>
+		</MokaPopover>
+
+		<MokaPopover Position="MokaPopoverPosition.Right">
+			<ChildContent>
+				<MokaButton Variant="MokaVariant.Text">Right Position</MokaButton>
+			</ChildContent>
+			<PopoverContent>
+				<div style="padding: var(--moka-spacing-sm);">Positioned to the right</div>
+			</PopoverContent>
+		</MokaPopover>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="hover-trigger" Title="Hover trigger">
+	<MokaPopover Trigger="MokaPopoverTrigger.Hover">
+		<ChildContent>
+			<MokaButton Variant="MokaVariant.Outlined">Hover me</MokaButton>
+		</ChildContent>
+		<PopoverContent>
+			<div style="padding: var(--moka-spacing-md); max-width: 200px;">
+				<p style="font-size: var(--moka-font-size-sm);">This popover appears on hover and stays open while you interact with it.</p>
+			</div>
+		</PopoverContent>
+	</MokaPopover>
+</DemoSection>

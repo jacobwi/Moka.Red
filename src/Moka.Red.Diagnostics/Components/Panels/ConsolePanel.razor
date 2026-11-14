@@ -3,19 +3,19 @@
 	<div class="moka-diag-console">
 		<div class="moka-diag-console-toolbar">
 			<label class="moka-diag-console-filter">
-				<input type="checkbox" checked="@_showDebug" @onchange="e => { _showDebug = (bool)e.Value!; ApplyFilter(); }"/> Debug
+				<input type="checkbox" @bind="_showDebug" @bind:after="ApplyFilter"/> Debug
 			</label>
 			<label class="moka-diag-console-filter">
-				<input type="checkbox" checked="@_showInfo" @onchange="e => { _showInfo = (bool)e.Value!; ApplyFilter(); }"/> Info
+				<input type="checkbox" @bind="_showInfo" @bind:after="ApplyFilter"/> Info
 			</label>
 			<label class="moka-diag-console-filter">
-				<input type="checkbox" checked="@_showWarning" @onchange="e => { _showWarning = (bool)e.Value!; ApplyFilter(); }"/> Warn
+				<input type="checkbox" @bind="_showWarning" @bind:after="ApplyFilter"/> Warn
 			</label>
 			<label class="moka-diag-console-filter">
-				<input type="checkbox" checked="@_showError" @onchange="e => { _showError = (bool)e.Value!; ApplyFilter(); }"/> Error
+				<input type="checkbox" @bind="_showError" @bind:after="ApplyFilter"/> Error
 			</label>
 			<label class="moka-diag-console-filter">
-				<input type="checkbox" checked="@_showCritical" @onchange="e => { _showCritical = (bool)e.Value!; ApplyFilter(); }"/> Critical
+				<input type="checkbox" @bind="_showCritical" @bind:after="ApplyFilter"/> Critical
 			</label>
 			<input class="moka-diag-console-search" type="text" placeholder="Filter by category..." aria-label="Filter by category" @bind:get="_categoryFilter" @bind:set="HandleCategoryFilter" @bind:event="oninput"/>
 			<button type="button" class="moka-diag-console-clear" @onclick="Clear" title="Clear console">Clear</button>

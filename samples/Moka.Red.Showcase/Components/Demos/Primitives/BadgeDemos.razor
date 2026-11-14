@@ -1,0 +1,118 @@
+<DemoSection Id="tones" Title="Tones" Description="A count or a dot on top of something. Tone says what the count means." Tip="Without child content a badge renders as a span, so a count can sit inside a button or a tab.">
+	<ChildContent>
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+			<MokaBadge Tone="MokaBadgeTone.Count" Content="14"/>
+			<MokaBadge Tone="MokaBadgeTone.Limited" Content="2"/>
+			<MokaBadge Tone="MokaBadgeTone.NeedsYou" Content="1"/>
+			<MokaBadge Tone="MokaBadgeTone.Ready" Content="3"/>
+		</MokaFlexbox>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Content">The count or short text</DemoParam>
+		<DemoParam Name="Tone">Count, Limited, NeedsYou or Ready: what the count means</DemoParam>
+		<DemoParam Name="Dot">A dot instead of a count</DemoParam>
+		<DemoParam Name="MaxCount">Shows 99+ above it</DemoParam>
+		<DemoParam Name="Position">The corner it sits on, over child content</DemoParam>
+		<DemoParam Name="Visible">Hides it without taking it out</DemoParam>
+	</Notes>
+	<Playground>
+		<BadgePlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="on-icons" Title="On icons">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="3">
+			<MokaIcon Icon="MokaIcons.Action.Settings" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="12" Color="MokaColor.Primary">
+			<MokaIcon Icon="MokaIcons.Navigation.Home" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="128" MaxCount="99" Color="MokaColor.Warning">
+			<MokaIcon Icon="MokaIcons.File.Folder" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Dot Color="MokaColor.Success">
+			<MokaIcon Icon="MokaIcons.Toggle.Eye" Size="MokaSize.Lg"/>
+		</MokaBadge>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="on-avatars" Title="On avatars">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="5">
+			<MokaAvatar Initials="JD" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Dot Color="MokaColor.Success">
+			<MokaAvatar Initials="AB" Size="MokaSize.Lg" Color="MokaColor.Primary"/>
+		</MokaBadge>
+		<MokaBadge Content="2" Color="MokaColor.Info" Position="MokaBadgePosition.BottomRight">
+			<MokaAvatar IdenticonValue="admin@moka.red" Size="MokaSize.Lg"/>
+		</MokaBadge>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="on-buttons" Title="On buttons">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="4">
+			<MokaButton Variant="MokaVariant.Outlined">Inbox</MokaButton>
+		</MokaBadge>
+		<MokaBadge Dot Color="MokaColor.Warning">
+			<MokaButton Variant="MokaVariant.Soft" Color="MokaColor.Secondary">Updates</MokaButton>
+		</MokaBadge>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="colors" Title="Colors">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="1" Color="MokaColor.Error">
+			<MokaIcon Icon="MokaIcons.Status.Error" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="2" Color="MokaColor.Warning">
+			<MokaIcon Icon="MokaIcons.Status.Warning" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="3" Color="MokaColor.Success">
+			<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="4" Color="MokaColor.Info">
+			<MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="5" Color="MokaColor.Primary">
+			<MokaIcon Icon="MokaIcons.Toggle.Star" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaBadge Content="6" Color="MokaColor.Secondary">
+			<MokaIcon Icon="MokaIcons.Toggle.Heart" Size="MokaSize.Lg"/>
+		</MokaBadge>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="positions" Title="Positions">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="1" Position="MokaBadgePosition.TopRight">
+			<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+		</MokaBadge>
+		<MokaBadge Content="2" Position="MokaBadgePosition.TopLeft">
+			<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+		</MokaBadge>
+		<MokaBadge Content="3" Position="MokaBadgePosition.BottomRight">
+			<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+		</MokaBadge>
+		<MokaBadge Content="4" Position="MokaBadgePosition.BottomLeft">
+			<div style="width:40px;height:40px;background:var(--moka-color-surface-variant);border-radius:var(--moka-radius-md);"></div>
+		</MokaBadge>
+	</MokaFlexbox>
+</DemoSection>
+
+<DemoSection Id="interactive" Title="Interactive">
+	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Align="MokaAlign.Center">
+		<MokaBadge Content="@_badgeCount.ToString()" Visible="@(_badgeCount > 0)">
+			<MokaIcon Icon="MokaIcons.Status.Info" Size="MokaSize.Lg"/>
+		</MokaBadge>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _badgeCount++">Add</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="() => _badgeCount = Math.Max(0, _badgeCount - 1)">Remove</MokaButton>
+		<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Text" OnClick="() => _badgeCount = 0">Clear</MokaButton>
+	</MokaFlexbox>
+</DemoSection>
+
+@code {
+	private int _badgeCount = 3;
+}

@@ -1,0 +1,75 @@
+.moka-table-filter-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs);
+}
+
+.moka-table-filter-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+}
+
+.moka-table-filter-label,
+.moka-table-filter-none,
+.moka-table-filter-option-count {
+	color: var(--moka-color-on-surface-tertiary);
+	font-size: var(--moka-font-size-xs);
+}
+
+.moka-table-filter-control {
+	padding: var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline-variant);
+	border-radius: var(--moka-radius-sm);
+	background: var(--moka-color-surface);
+	color: var(--moka-color-on-surface);
+	font: inherit;
+}
+
+.moka-table-filter-control:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-table-filter-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xxs);
+	max-height: calc(var(--moka-control-height) * 7);
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	border: none;
+}
+
+.moka-table-filter-option {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-sm);
+	cursor: pointer;
+}
+
+.moka-table-filter-option:hover {
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-table-filter-option-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-table-filter-option-count {
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-table-filter-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--moka-spacing-xs);
+}
+
+/* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
+.moka-gate .moka-table-filter-popup .moka-table-filter-control { border-color: var(--moka-color-outline); border-radius: var(--moka-radius-md); }

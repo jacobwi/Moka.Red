@@ -1,0 +1,202 @@
+<DemoSection Id="underline-with-counts-and-a-panel" Title="Underline, with counts and a panel" Description="Plain tabs on a page: underline or segmented, with counts, icons, links and a menu for the ones that don't fit." Tip="Give a tab an Href when it is a page of its own. The arrow keys then follow the links.">
+	<ChildContent>
+		<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views">
+			<Panel>Showing <code>@_pageTab</code>.</Panel>
+		</MokaTabs>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Items">MokaTabItem records: Id, Text, Count, Tone, Href, Icon</DemoParam>
+		<DemoParam Name="@@bind-Active">The Id of the tab showing</DemoParam>
+		<DemoParam Name="Label">Names the tab list for screen readers</DemoParam>
+		<DemoParam Name="Segmented, Stretch">A segmented look, and tabs that share the width</DemoParam>
+		<DemoParam Name="Panel">The content under the tabs</DemoParam>
+		<DemoParam Name="Overflow">Menu sends the tabs that do not fit into a +N menu</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="with-icons" Title="With icons">
+	<MokaTabs Items="_iconTabs" @bind-Active="_iconTab" Label="Sections"/>
+</DemoSection>
+
+<DemoSection Id="segmented" Title="Segmented">
+	<MokaTabs Items="_plainTabs" @bind-Active="_segmentedTab" Label="Log views" Segmented/>
+</DemoSection>
+
+<DemoSection Id="stretch" Title="Stretch">
+	<MokaTabs Items="_rangeTabs" @bind-Active="_rangeTab" Label="Range" Stretch/>
+</DemoSection>
+
+<DemoSection Id="each-tab-its-own-address" Title="Each tab its own address">
+	<MokaTabs Items="_linkTabs" Active="links" Label="Pages"/>
+</DemoSection>
+
+<DemoSection Id="too-many-to-fit-in-320-px" Title="Too many to fit, in 320 px">
+	<div style="max-width: 320px;">
+		<MokaTabs Items="_pageTabs" @bind-Active="_pageTab" Label="Device views, narrow"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tabs-that-show-only-their-icons" Title="Tabs that show only their icons" Description="An icon-only tab keeps its name for screen readers and shows it in a tooltip. Arrow keys and the overflow menu work as on any tab. Narrow shows icons only in a box under 30rem: drag the width below 480.">
+	<MokaSlider @bind-Value="_tabsWidth" Min="200" Max="900" Step="10" ShowValue="true" Label="Width in pixels"/>
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md);">
+		<div style="@TabsBox">
+			<MokaCaption Micro>IconOnly="Always"</MokaCaption>
+			<MokaTabs Items="_tabs" @bind-Active="_activeAlways" Label="Library views" IconOnly="MokaTabsIconOnly.Always"
+			          Overflow="MokaTabsOverflow.Menu"/>
+		</div>
+		<div style="@TabsBox">
+			<MokaCaption Micro>IconOnly="Narrow"</MokaCaption>
+			<MokaTabs Items="_tabs" @bind-Active="_activeNarrow" Label="Library views, narrow" IconOnly="MokaTabsIconOnly.Narrow"
+			          Overflow="MokaTabsOverflow.Menu"/>
+		</div>
+		<div style="@TabsBox">
+			<MokaCaption Micro>IconOnly="Always", segmented and stretched, tooltips above</MokaCaption>
+			<MokaTabs Items="_phoneTabs" @bind-Active="_activeBottom" Label="Sections" IconOnly="MokaTabsIconOnly.Always"
+			          Segmented Stretch TooltipPosition="MokaTooltipPosition.Top"/>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tabs-that-dont-fit-go-into-a-menu" Title="Tabs that don't fit go into a menu" Description="Icons, counts, a disabled tab and tabs with their own address. Overflow Menu sends what doesn't fit into a +N menu; drag the corner to narrow the box.">
+	<div class="showcase-resize">
+		<MokaTabs Items="_overflowTabs" @bind-Active="_active" Label="Project views" Overflow="MokaTabsOverflow.Menu">
+			<Panel>Showing @_active.</Panel>
+		</MokaTabs>
+	</div>
+</DemoSection>
+
+<DemoSection Id="tabs-that-scroll" Title="Tabs that scroll" Description="Without Overflow the list scrolls and keeps the open tab in view.">
+	<div class="showcase-resize">
+		<MokaTabs Items="_overflowTabs" @bind-Active="_activeScroll" Label="Project views, scrolling"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="segmented-2" Title="Segmented">
+	<div class="showcase-resize">
+		<MokaTabs Items="_overflowTabs" @bind-Active="_activeSegmented" Label="Project views, segmented" Segmented Overflow="MokaTabsOverflow.Menu"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="stretch-2" Title="Stretch">
+	<div class="showcase-resize">
+		<MokaTabs Items="_short" @bind-Active="_activeStretch" Label="Range" Stretch Overflow="MokaTabsOverflow.Menu"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="segmented-and-stretch" Title="Segmented and stretch">
+	<div class="showcase-resize">
+		<MokaTabs Items="_short" @bind-Active="_activeBoth" Label="Range, segmented" Segmented Stretch Overflow="MokaTabsOverflow.Menu"/>
+	</div>
+</DemoSection>
+
+@code {
+	private static readonly IReadOnlyList<MokaTabItem> _pageTabs =
+	[
+		new("all", "All", 14),
+		new("online", "Online", 9),
+		new("limited", "Limited", 2, MokaBadgeTone.Limited),
+		new("needs", "Needs you", 1, MokaBadgeTone.NeedsYou),
+		new("updates", "Updates", 3, MokaBadgeTone.Ready),
+		new("guests", "Guests"),
+		new("old", "Retired", Disabled: true)
+	];
+
+	private string? _pageTab = "all";
+
+	private static readonly IReadOnlyList<MokaTabItem> _iconTabs =
+	[
+		new("home", "Home", Icon: MokaIcons.Navigation.Home),
+		new("search", "Search", Icon: MokaIcons.Action.Search),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private string? _iconTab = "home";
+
+	private static readonly IReadOnlyList<MokaTabItem> _plainTabs =
+	[
+		new("overview", "Overview"),
+		new("log", "Log"),
+		new("lists", "Lists")
+	];
+
+	private string? _segmentedTab = "overview";
+
+	private static readonly IReadOnlyList<MokaTabItem> _rangeTabs =
+	[
+		new("day", "Day"),
+		new("week", "Week"),
+		new("month", "Month")
+	];
+
+	private string? _rangeTab = "week";
+
+	private static readonly IReadOnlyList<MokaTabItem> _linkTabs =
+	[
+		new("links", "This page", Href: "components/tabs"),
+		new("layout", "Layout", Href: "/layout"),
+		new("data", "Data", Href: "/data")
+	];
+
+	private readonly IReadOnlyList<MokaTabItem> _tabs =
+	[
+		new("files", "Files", Icon: MokaIcons.File.Folder),
+		new("photos", "Photos", 128, Icon: MokaIcons.Content.Image),
+		new("shared", "Shared", 3, MokaBadgeTone.NeedsYou, Icon: MokaIcons.Action.Share),
+		new("starred", "Starred", Icon: MokaIcons.Toggle.Star),
+		new("trash", "Trash", Icon: MokaIcons.Action.Delete),
+		new("activity", "Activity"),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private readonly IReadOnlyList<MokaTabItem> _phoneTabs =
+	[
+		new("home", "Home", Icon: MokaIcons.Navigation.Home),
+		new("files", "Files", Icon: MokaIcons.File.Folder),
+		new("activity", "Activity", 2, MokaBadgeTone.NeedsYou, Icon: MokaIcons.Status.Bell),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private double _tabsWidth = 900;
+
+	private string? _activeAlways = "files";
+
+	private string? _activeNarrow = "files";
+
+	private string? _activeBottom = "home";
+
+	private string TabsBox => FormattableString.Invariant($"max-width: {_tabsWidth}px;");
+
+	private readonly IReadOnlyList<MokaTabItem> _overflowTabs =
+	[
+		new("overview", "Overview", Icon: MokaIcons.Navigation.Home),
+		new("files", "Files", 128, Icon: MokaIcons.File.Folder),
+		new("activity", "Activity", 3, MokaBadgeTone.NeedsYou),
+		new("members", "Members", Disabled: true),
+		new("sharing", "Sharing", Href: "components/tabs#tabs-that-dont-fit-go-into-a-menu"),
+		new("billing", "Billing", 1, MokaBadgeTone.Limited),
+		new("settings", "Settings", Icon: MokaIcons.Action.Settings)
+	];
+
+	private string? _active = "files";
+
+	private bool _menu = true;
+
+	private MokaTabsOverflow Overflow => _menu ? MokaTabsOverflow.Menu : MokaTabsOverflow.Scroll;
+
+	private string? _activeScroll = "activity";
+
+	private string? _activeSegmented = "overview";
+
+	private readonly IReadOnlyList<MokaTabItem> _short =
+	[
+		new("hour", "Last hour"),
+		new("day", "Last day"),
+		new("week", "Last week"),
+		new("month", "Last month"),
+		new("year", "Last year")
+	];
+
+	private string? _activeStretch = "day";
+
+	private string? _activeBoth = "hour";
+}

@@ -1,0 +1,100 @@
+@using Moka.Red.Forms.Base
+
+<DemoSection Id="basics" Title="Basics" Description="A setting that takes effect at once." Tip="A switch acts the moment it moves. When nothing happens until Save, use a checkbox.">
+	<ChildContent>
+		<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Dark Mode"/>
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Label Before" LabelPlacement="MokaToggleBase.LabelPosition.Before"/>
+			<MokaSwitch @bind-Value="_model.DarkMode" Label="Disabled" Disabled="true"/>
+
+			<h3>Saving</h3>
+			<p class="page-desc">Each change saves for two seconds. While it saves the knob shows a spinner, keeps focus, and a click or Space doesn't flip it again.</p>
+			<div>
+				<MokaSwitch @bind-Value="_backup" @bind-Value:after="SaveBackupAsync" Loading="_backupSaving"
+				            Label="Back up to the server" HelperText="@($"Saved {_backupSaves} times")"/>
+				<MokaSwitch @bind-Value="_backupNightly" @bind-Value:after="SaveBackupNightlyAsync" Loading="_backupNightlySaving"
+				            Color="MokaColor.Success" Label="Every night"/>
+			</div>
+		</EditForm>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Label, LabelPlacement">The text, and which side it sits on</DemoParam>
+		<DemoParam Name="HelperText">A hint under it</DemoParam>
+		<DemoParam Name="Disabled">Shown but not changeable</DemoParam>
+		<DemoParam Name="Loading">A spinner in the knob while a change saves; it keeps focus and won't flip again</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="the-page-owns-the-value" Title="The page owns the value" Description="Pass Value with ValueChanged and the page owns the value: the switch shows a change while the handler runs, then shows what the page passes. Turn Allow changes off and flip the other switch; the handler leaves its field alone, and the switch goes back.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 480px;">
+		<MokaSwitch @bind-Value="_allowStartupChanges" Label="Allow changes"/>
+		<MokaSwitch Label="Start with the system" Value="_startup" ValueChanged="SetStartupAsync" Loading="_startupSaving"/>
+		<MokaCaption>@_startupNote</MokaCaption>
+	</div>
+</DemoSection>
+
+@code {
+	private bool _allowStartupChanges = true;
+
+	private bool _startup;
+
+	private bool _startupSaving;
+
+	private string _startupNote = "Off, and the page agrees.";
+
+	// The page asks something that can say no, as a call to the system would, and keeps its field when it does.
+	private async Task SetStartupAsync(bool on)
+	{
+		_startupSaving = true;
+		await Task.Delay(500);
+		_startupSaving = false;
+		if (_allowStartupChanges)
+		{
+			_startup = on;
+			_startupNote = on ? "On, and the page agrees." : "Off, and the page agrees.";
+		}
+		else
+		{
+			_startupNote = $"Refused: the page kept it {(_startup ? "on" : "off")}.";
+		}
+	}
+
+	private bool _backup = true;
+
+	private bool _backupSaving;
+
+	private int _backupSaves;
+
+	private bool _backupNightly;
+
+	private bool _backupNightlySaving;
+
+	private async Task SaveBackupAsync()
+	{
+		_backupSaving = true;
+		await Task.Delay(2000);
+		_backupSaves++;
+		_backupSaving = false;
+	}
+
+	private async Task SaveBackupNightlyAsync()
+	{
+		_backupNightlySaving = true;
+		await Task.Delay(2000);
+		_backupNightlySaving = false;
+	}
+
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+}

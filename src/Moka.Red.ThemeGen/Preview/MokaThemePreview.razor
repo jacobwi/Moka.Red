@@ -1,70 +1,217 @@
 @namespace Moka.Red.ThemeGen.Preview
+@inherits MokaVisualComponentBase
+@using Moka.Red.Data.Chart
+@using Moka.Red.Data.Table
+@using Moka.Red.Feedback.Alert
+@using Moka.Red.Feedback.Dialog
+@using Moka.Red.Feedback.NotificationBell
+@using Moka.Red.Feedback.Toast
+@using Moka.Red.Forms.Checkbox
+@using Moka.Red.Forms.SelectField
+@using Moka.Red.Forms.SettingsForm
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Forms.TextField
+@using Moka.Red.Layout.Card
+@using Moka.Red.Layout.DockLayout
+@using Moka.Red.Layout.Grid
+@using Moka.Red.Layout.PageHeader
+@using Moka.Red.Layout.StatusBar
+@using Moka.Red.Navigation.Menu
+@using Moka.Red.Navigation.Tabs
+@using Moka.Red.Primitives.Button
+@using Moka.Red.Primitives.Chip
+@using Moka.Red.Primitives.Stat
+@using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Typography
 
-<div class="moka-theme-preview" style="@PreviewStyle">
-	<div class="moka-theme-preview__content">
+<MokaThemeProvider Theme="@PreviewTheme" Nonce="@Nonce">
+	<section class="@CssClass" style="@CssStyle" id="@Id" aria-label="@Text.Region" @attributes="AdditionalAttributes">
+		<MokaPageHeader Eyebrow="@Text.Eyebrow" Title="@Text.Title" Said="@Text.Said" Lead="@Text.Lead">
+			<Actions>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Action.Share">@Text.Share</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" StartIcon="MokaIcons.Action.Add">@Text.NewTask</MokaButton>
+			</Actions>
+		</MokaPageHeader>
+
+		<MokaTabs Items="_tabs" @bind-Active="_tab" Label="@Text.TabsLabel"/>
+
 		<div class="moka-theme-preview__section">
-			<h4 class="moka-theme-preview__title">Buttons</h4>
+			<MokaHeading Level="3" Micro>@Text.ButtonsHeading</MokaHeading>
 			<div class="moka-theme-preview__row">
-				<button type="button" class="moka-theme-preview__btn moka-theme-preview__btn--filled">Filled</button>
-				<button type="button" class="moka-theme-preview__btn moka-theme-preview__btn--outlined">Outlined</button>
-				<button type="button" class="moka-theme-preview__btn moka-theme-preview__btn--text">Text</button>
-				<button type="button" class="moka-theme-preview__btn moka-theme-preview__btn--soft">Soft</button>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook">@Text.Filled</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Outlined">@Text.Outlined</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Soft">@Text.Soft</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Text">@Text.TextButton</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Color="MokaColor.Secondary">@Text.Secondary</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Color="MokaColor.Error" Variant="MokaVariant.Outlined">@Text.Delete</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Disabled>@Text.Disabled</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Loading LoadingText="@Text.Saving">@Text.Saving</MokaButton>
 			</div>
 		</div>
 
+		<MokaGrid MinColumn="var(--_preview-column)" Gap="MokaSpacingScale.Md">
+			<MokaCard Title="@Text.FormHeading">
+				<div class="moka-theme-preview__form">
+					<MokaTextField Label="@Text.NameLabel" @bind-Value="_name"/>
+					<MokaTextField Label="@Text.DueLabel" ErrorText="@Text.DueError"/>
+					<MokaSelect TValue="string" Label="@Text.OwnerLabel" Items="Text.People" @bind-Value="_owner"/>
+					<MokaSwitch Label="@Text.NotifyLabel" @bind-Value="_notify"/>
+					<MokaCheckbox Label="@Text.BlockingLabel" @bind-Value="_blocking"/>
+				</div>
+			</MokaCard>
+
+			<div class="moka-theme-preview__section">
+				<MokaHeading Level="3" Micro>@Text.AlertsHeading</MokaHeading>
+				<MokaAlert Severity="MokaToastSeverity.Info" Live="MokaAlertLive.None">@Text.InfoAlert</MokaAlert>
+				<MokaAlert Severity="MokaToastSeverity.Success" Live="MokaAlertLive.None">@Text.SuccessAlert</MokaAlert>
+				<MokaAlert Severity="MokaToastSeverity.Warning" Live="MokaAlertLive.None">@Text.WarningAlert</MokaAlert>
+				<MokaAlert Severity="MokaToastSeverity.Error" Live="MokaAlertLive.None">@Text.ErrorAlert</MokaAlert>
+			</div>
+		</MokaGrid>
+
 		<div class="moka-theme-preview__section">
-			<h4 class="moka-theme-preview__title">Card</h4>
-			<div class="moka-theme-preview__card">
-				<h5 class="moka-theme-preview__card-title">Sample Card</h5>
-				<p class="moka-theme-preview__card-text">
-					This is a preview of how your theme looks applied to content. Typography, colors, and spacing are all driven by your theme tokens.
-				</p>
+			<MokaHeading Level="3" Micro>@Text.CardsHeading</MokaHeading>
+			<MokaGrid MinColumn="var(--_preview-tile)" Gap="MokaSpacingScale.Md">
+				<MokaCard Title="@Text.DoneTitle">
+					<MokaStat Value="@Text.DoneValue" HelpText="@Text.DoneNote" Color="MokaColor.Success"/>
+				</MokaCard>
+				<MokaCard Title="@Text.OpenTitle">
+					<MokaStat Value="@Text.OpenValue" HelpText="@Text.OpenNote"/>
+				</MokaCard>
+				<MokaCard Title="@Text.LateTitle" AccentColor="MokaColor.Error">
+					<MokaStat Value="@Text.LateValue" HelpText="@Text.LateNote" Color="MokaColor.Error"/>
+				</MokaCard>
+			</MokaGrid>
+		</div>
+
+		<MokaTable TItem="TaskRow" Items="_rows" ShowPagination="false" Label="@Text.TableLabel" Selectable @bind-SelectedItems="_selected">
+			<MokaColumn TItem="TaskRow" Title="@Text.TaskColumn" Field="row => row.Task"/>
+			<MokaColumn TItem="TaskRow" Title="@Text.StatusColumn" Field="row => row.Status">
+				<CellTemplate>
+					<MokaTag Text="@context.Status" Color="context.Tone"/>
+				</CellTemplate>
+			</MokaColumn>
+			<MokaColumn TItem="TaskRow" Title="@Text.OwnerColumn" Field="row => row.Owner"/>
+			<MokaColumn TItem="TaskRow" Title="@Text.PointsColumn" Field="row => row.Points" Mono/>
+		</MokaTable>
+
+		<MokaGrid MinColumn="var(--_preview-column)" Gap="MokaSpacingScale.Md">
+			<MokaCard Title="@Text.ChartTitle">
+				<MokaBarChart Series="_series" Labels="Text.ChartLabels" Label="@Text.ChartTitle"/>
+			</MokaCard>
+
+			<div class="moka-theme-preview__section">
+				<MokaHeading Level="3" Micro>@Text.TagsHeading</MokaHeading>
+				<div class="moka-theme-preview__row">
+					@for (int i = 0; i < Text.Tags.Count; i++)
+					{
+						<MokaTag Text="@Text.Tags[i]" Label="LabelFor(i)"/>
+					}
+				</div>
+				<div class="moka-theme-preview__row">
+					<MokaChip Text="@Text.Chip" Selected="_chip" SelectedChanged="value => _chip = value"/>
+					<MokaTag Text="@Text.NewTag" New/>
+					<MokaTag Text="@Text.StatusDone" Color="MokaColor.Success"/>
+					<MokaTag Text="@Text.StatusReview" Color="MokaColor.Warning"/>
+					<MokaTag Text="@Text.StatusBlocked" Color="MokaColor.Error"/>
+				</div>
+			</div>
+		</MokaGrid>
+
+		<MokaGrid MinColumn="var(--_preview-column)" Gap="MokaSpacingScale.Md">
+			<MokaCard Title="@Text.ProjectsTitle" Elevation="3">
+				<MokaMenu aria-label="@Text.ProjectsTitle">
+					@foreach (string project in Text.Projects)
+					{
+						<MokaMenuItem @key="project" Text="@project" Icon="MokaIcons.Content.Kanban" Active="@(project == _project)" OnClick="() => _project = project"/>
+					}
+				</MokaMenu>
+			</MokaCard>
+
+			<MokaSettingsForm Title="@Text.SettingsTitle" Icon="MokaIcons.Status.Bell" Now="@Text.SettingsNow" NowLabel="@Text.NowLabel">
+				<MokaSwitch Label="@Text.DigestLabel" @bind-Value="_digest"/>
+			</MokaSettingsForm>
+		</MokaGrid>
+
+		<MokaGrid MinColumn="var(--_preview-column)" Gap="MokaSpacingScale.Md">
+			<MokaNotificationBell Inline Notifications="_notices" UnreadCount="UnreadNotices" Text="Text.Bell" OnMarkAllRead="MarkNoticesRead"/>
+
+			<div class="moka-theme-preview__section">
+				<MokaHeading Level="3" Micro>@Text.WorkspaceHeading</MokaHeading>
+				@* The previews sit side by side in a narrow frame, where the layout would switch to its narrow form and hide
+				   what its look draws. *@
+				<div class="moka-theme-preview__dock">
+					<MokaDockLayout NarrowBelow="@null" Text="Text.Dock">
+						<MokaDockRow>
+							<MokaDockGroup Size="38%">
+								<MokaDockPanel Title="@Text.FilesPanel" Icon="MokaIcons.File.Folder">
+									<MokaMenu aria-label="@Text.FilesPanel" Dense>
+										@foreach (string file in Text.WorkspaceFiles)
+										{
+											<MokaMenuItem @key="file" Text="@file" Icon="MokaIcons.File.Document" Active="@(file == _file)" OnClick="() => _file = file"/>
+										}
+									</MokaMenu>
+								</MokaDockPanel>
+								<MokaDockPanel Title="@Text.OutlinePanel" Icon="MokaIcons.Content.List">
+									<MokaParagraph>@Text.OutlineBody</MokaParagraph>
+								</MokaDockPanel>
+							</MokaDockGroup>
+							<MokaDockColumn>
+								<MokaDockContent Title="@_file">
+									<div class="moka-theme-preview__document">
+										<MokaHeading Level="4">@_file</MokaHeading>
+										<MokaParagraph>@Text.DocumentBody</MokaParagraph>
+									</div>
+								</MokaDockContent>
+								<MokaDockGroup Size="36%">
+									<MokaDockPanel Title="@Text.OutputPanel" Icon="MokaIcons.File.Terminal">
+										<MokaText Mono Size="MokaSize.Sm">@Text.OutputLine</MokaText>
+									</MokaDockPanel>
+								</MokaDockGroup>
+							</MokaDockColumn>
+						</MokaDockRow>
+					</MokaDockLayout>
+				</div>
+			</div>
+		</MokaGrid>
+
+		<div class="moka-theme-preview__section">
+			<MokaHeading Level="3" Micro>@Text.OverlaysHeading</MokaHeading>
+			<div class="moka-theme-preview__stage">
+				<div class="moka-theme-preview__row">
+					<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Outlined" OnClick="OpenDialog">@Text.OpenDialog</MokaButton>
+					@if (_toasts is not null)
+					{
+						<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Soft" OnClick="ShowToast">@Text.ShowToast</MokaButton>
+					}
+				</div>
+
+				<MokaDialog @bind-Open="_dialogOpen" Title="@Text.DialogTitle" PreventScroll="false" DialogSize="MokaDialogSize.Small">
+					<ChildContent>
+						<MokaParagraph>@Text.DialogBody</MokaParagraph>
+					</ChildContent>
+					<Actions>
+						<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Variant="MokaVariant.Text" OnClick="CloseDialog">@Text.Cancel</MokaButton>
+						<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" OnClick="CloseDialog">@Text.Confirm</MokaButton>
+					</Actions>
+				</MokaDialog>
+
+				@if (_toasts is not null)
+				{
+					<MokaToastHost Position="MokaToastPosition.BottomRight" MaxVisible="3"/>
+				}
 			</div>
 		</div>
 
-		<div class="moka-theme-preview__section">
-			<h4 class="moka-theme-preview__title">Input</h4>
-			<div class="moka-theme-preview__input-group">
-				<label class="moka-theme-preview__input-label" for="@_inputId">Sample Field</label>
-				<input type="text" id="@_inputId" class="moka-theme-preview__input" placeholder="Type something..."/>
-			</div>
-		</div>
-
-		<div class="moka-theme-preview__section">
-			<h4 class="moka-theme-preview__title">Palette</h4>
-			<div class="moka-theme-preview__palette">
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-primary)">
-					<span>Primary</span>
-				</div>
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-secondary)">
-					<span>Secondary</span>
-				</div>
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-error)">
-					<span>Error</span>
-				</div>
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-warning)">
-					<span>Warning</span>
-				</div>
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-success)">
-					<span>Success</span>
-				</div>
-				<div class="moka-theme-preview__palette-item" style="background: var(--moka-color-info)">
-					<span>Info</span>
-				</div>
-			</div>
-		</div>
-
-		<div class="moka-theme-preview__section">
-			<h4 class="moka-theme-preview__title">Typography</h4>
-			<div class="moka-theme-preview__typography">
-				<span style="font-size: var(--moka-font-size-xxl); font-weight: var(--moka-font-weight-bold)">Heading XXL</span>
-				<span style="font-size: var(--moka-font-size-xl)">Heading XL</span>
-				<span style="font-size: var(--moka-font-size-lg)">Heading LG</span>
-				<span style="font-size: var(--moka-font-size-md)">Body MD</span>
-				<span style="font-size: var(--moka-font-size-base)">Body Base</span>
-				<span style="font-size: var(--moka-font-size-sm)">Caption SM</span>
-				<span style="font-size: var(--moka-font-size-xs)">Caption XS</span>
-			</div>
-		</div>
-	</div>
-</div>
+		<MokaStatusBar Fixed="false" aria-label="@Text.StatusBarLabel">
+			<StartContent>
+				<MokaStatusBarItem Icon="MokaIcons.Content.CloudCheck" Text="@Text.Synced" Tooltip="@Text.SyncedTooltip"/>
+				<MokaStatusBarSeparator/>
+				<MokaStatusBarItem Text="@Text.Said"/>
+			</StartContent>
+			<EndContent>
+				<MokaStatusBarItem Text="@Text.Version"/>
+			</EndContent>
+		</MokaStatusBar>
+	</section>
+</MokaThemeProvider>

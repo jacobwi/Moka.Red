@@ -1,0 +1,105 @@
+<DemoSection Id="basics" Title="Basics" Description="A color from a gradient, sliders, and hex or RGB fields.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaColorPicker @bind-Value="_selectedColor" Label="Color (drag gradient & sliders)"/>
+		<MokaColorPicker @bind-Value="_selectedColor2" Label="With Alpha" ShowAlpha="true"/>
+		<MokaColorPicker @bind-Value="_selectedColor" Label="Hex Only (no RGB)" ShowRgbInputs="false"/>
+		<MokaColorPicker @bind-Value="_selectedColor" Label="Minimal" ShowEyeDropper="false" ShowCopyButton="false" ShowRgbInputs="false" ShowRecentColors="false"/>
+		<MokaColorPicker @bind-Value="_selectedColor" Label="Disabled" Disabled="true"/>
+		<p style="font-size: var(--moka-font-size-xs); opacity: 0.6;">Selected: @_selectedColor</p>
+	</EditForm>
+</DemoSection>
+
+<DemoSection Id="layouts" Title="Layouts">
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
+		<MokaSegmentedControl Value="@_layout.ToString()" ValueChanged="@(v => _layout = Enum.Parse<MokaColorPickerLayout>(v))"
+		                      AriaLabel="Layout">
+			@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
+			{
+				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
+			}
+		</MokaSegmentedControl>
+		<span style="font-family: var(--moka-font-family-mono);">@_panelColor</span>
+	</div>
+
+	<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-lg);">
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<span class="moka-micro-label">In place (Inline)</span>
+			<MokaColorPicker Inline="true" Layout="@_layout" @bind-Value="_panelColor" @bind-RecentColors="_recent"
+			                 @bind-Format="_format"
+			                 ShowContrast="@_contrast" ContrastBackground="@ContrastBackground" ShowFormats="@_formats"
+			                 ShowAlpha="@_alpha" ShowAlphaPreview="@_alphaPreview" LabelledEyeDropper="@_labelledEye"
+			                 ClearableRecentColors="@_clearable" ShowThemeColors="@_themeColors"/>
+		</div>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-sm); min-width: 16rem;">
+			<span class="moka-micro-label">In its popup</span>
+			<MokaColorPicker Label="Accent" Layout="@_layout" @bind-Value="_panelColor" @bind-RecentColors="_recent"
+			                 @bind-Format="_format"
+			                 ShowContrast="@_contrast" ContrastBackground="@ContrastBackground" ShowFormats="@_formats"
+			                 ShowAlpha="@_alpha" ShowAlphaPreview="@_alphaPreview" LabelledEyeDropper="@_labelledEye"
+			                 ClearableRecentColors="@_clearable" ShowThemeColors="@_themeColors"/>
+		</div>
+	</div>
+</DemoSection>
+
+<DemoSection Id="extras-for-any-panel" Title="Extras for any panel">
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg) var(--moka-spacing-xl);">
+		<MokaSwitch @bind-Value="_contrast" Label="Contrast check (C3A)"/>
+		<MokaSwitch @bind-Value="_formats" Label="Format switch (C3B)"/>
+		<MokaSwitch @bind-Value="_alpha" Label="Alpha"/>
+		<MokaSwitch @bind-Value="_alphaPreview" Label="Alpha on a checkerboard (C3C)"/>
+		<MokaSwitch @bind-Value="_labelledEye" Label="Pick from screen (C3D)"/>
+		<MokaSwitch @bind-Value="_clearable" Label="Recent colors with Clear (C3E)"/>
+		<MokaSwitch @bind-Value="_themeColors" Label="Theme colors (C3F)"/>
+		<MokaSwitch @bind-Value="_onSurface" Label="Contrast on the card instead of the page"/>
+	</div>
+	<p style="margin: var(--moka-spacing-lg) 0 0;">
+		The switches drive every picker and popup on this page. Recent colors are one list shared by all of them:
+		<span style="font-family: var(--moka-font-family-mono);">@string.Join(" ", _recent)</span>
+	</p>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+
+	private string _selectedColor = "#d32f2f";
+
+	private string _selectedColor2 = "#1976d2";
+
+	private bool _alpha;
+
+	private bool _alphaPreview;
+
+	private bool _clearable = true;
+
+	private bool _contrast = true;
+
+	private MokaColorFormat _format = MokaColorFormat.Hex;
+
+	private bool _formats = true;
+
+	private bool _labelledEye;
+
+	private MokaColorPickerLayout _layout = MokaColorPickerLayout.Compact;
+
+	private bool _onSurface;
+
+	private string _panelColor = "#ef5350";
+
+	private IReadOnlyList<string> _recent = ["#42a5f5", "#ef5350", "#26a69a", "#ffb547"];
+
+	private bool _themeColors = true;
+
+	private string? ContrastBackground => _onSurface ? "var(--moka-color-surface)" : null;
+}

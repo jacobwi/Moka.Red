@@ -3243,3 +3243,27 @@ the publish run went green, NuGet serves all 12 packages and the GitHub release 
 docs pins moved to 0.5.4 afterwards, checked by building a copy of the preview host, so the Actions previews compile.
 The 0.5.3 local script's changelog check named [0.5.2], a heading that exists, so it could never fail; the 0.5.3
 heading was right regardless, and the 0.5.4 script checks its own heading. No MCP change went out.
+
+---
+
+## 2026-11-14 - 0.6.0: showcase, theming engine, tables, docks, notifications
+
+### What was done
+- BC picked every item on three boards (showcase and theming; notifications and tables; the dock layout), with defaults kept at today's looks. Built by agents in worktrees and merged as patches, then released as 0.6.0 (a minor bump: many breaking changes, listed in CHANGELOG.md).
+- The dev app became the public showcase, `samples/Moka.Red.Showcase`: one page per component with a reflected parameter table and a highlighted Code tab that includes the `@code` members an example uses; patterns and theme pages; areas as nav groups that collapse on a repeat click.
+- Theming engine: one color library (`Core/Colors`), one token table (`MokaTokens`), themes from seeds with contrast met by construction, pinned tokens, `CheckContrast()`, value caching in the provider and nested providers that write only what differs. `WithDark` after `WithAccent` and turning high contrast off no longer lose earlier changes.
+- `MokaThemeStudio` replaced the old theme editors, with a contrast report, token pins, exports and an off-by-default "Show what changed".
+- Syntax highlighting for `MokaCodeBlock` (Razor, C#, HTML, XML, CSS, JSON, shell).
+- Inputs: a parent that passes `Value` and `ValueChanged` owns the value, so a refused change goes back on screen (`MokaInputValue<T>`), for every input. Root cause: `MokaInputBase` filled in its own `ValueExpression`, which removed the parameter re-send framework inputs rely on, while keeping InputBase's write to its own `Value`. Reported by MokaArk (issue 37).
+- Notifications rebuilt: toast handles, keys, repeats, `Track`, progress looks, a CSS countdown with no .NET timers, screen reader announcements, banners, center actions, system notifications.
+- MokaTable in three phases: state, pagers, looks, densities, 16 column kinds; filter UIs, pins, column menu, header groups, nested grouping, server totals, states; editing, Excel export, ARIA grid, remote and column virtualization, streaming, cell ranges.
+- MokaDockLayout rebuilt as a tree of tab groups with drag to dock, floating, auto-hide, presets, narrow modes, popout and five looks; panel content keeps its state across moves through CSS anchor positioning.
+- MokaMenu: groups no longer cut at 500 px, a rail flyout, the current page's group opens, link plus arrow groups.
+- Transition tokens followed by a second easing made eight components' animations invalid; fixed, with `TransitionTokenTests`.
+- The local MCP server covers the new API and docs and leaves out hidden parts; `tools/Moka.Red.Mcp/install-local.ps1` (uncommitted) rebuilds it, stops running copies and registers it again.
+
+### Decisions
+- BC: everything is best practice and performant, and breaking changes are fine when that's the result (global rule and memory).
+- Boards offer more options, several picks where they coexist, and a chosen default for variants.
+- Release only once everything was done, then tell MokaGate, Mokaterm, MokaArk and the WireGuard app.
+- The MCP's source and tests went out with the release because CI builds them; the package is still not published.

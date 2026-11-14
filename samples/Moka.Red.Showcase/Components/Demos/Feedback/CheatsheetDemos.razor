@@ -1,0 +1,31 @@
+<DemoSection Id="basics" Title="Basics" Description="Keyboard-shortcut overlay: blurred backdrop, grouped shortcut grid, kbd chips.">
+	<MokaButton Variant="MokaVariant.Outlined" OnClick="@(() => _cheatsheetOpen = true)">Show Shortcuts</MokaButton>
+
+	<MokaCheatsheet @bind-Open="_cheatsheetOpen" Groups="_shortcutGroups">
+		<FooterContent>Press <MokaKbd>Esc</MokaKbd> to close</FooterContent>
+	</MokaCheatsheet>
+</DemoSection>
+
+@code {
+	private bool _cheatsheetOpen;
+
+	private static readonly IReadOnlyList<MokaCheatsheetGroup> _shortcutGroups =
+	[
+		new("General",
+		[
+			new MokaCheatsheetItem("Command palette", ["Ctrl", "K"]),
+			new MokaCheatsheetItem("Cheatsheet", ["?"]),
+			new MokaCheatsheetItem("Close overlay", ["Esc"])
+		]),
+		new("Create",
+		[
+			new MokaCheatsheetItem("New item", ["Ctrl", "N"]),
+			new MokaCheatsheetItem("New from template", ["Ctrl", "Shift", "N"])
+		]),
+		new("Navigate",
+		[
+			new MokaCheatsheetItem("Go home", ["g", "h"]),
+			new MokaCheatsheetItem("Go to settings", ["g", "s"])
+		])
+	];
+}

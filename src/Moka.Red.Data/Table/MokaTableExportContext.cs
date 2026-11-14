@@ -24,4 +24,10 @@ public sealed record MokaTableExportContext<TItem>
 	///     page size), in which case <see cref="Items" /> is a partial export.
 	/// </summary>
 	public bool IsCompleteSet { get; init; } = true;
+
+	/// <summary>The file picked: CSV, or an Excel workbook.</summary>
+	public MokaTableExportFormat Format { get; init; }
+
+	/// <summary>The name the table would save the file under, from <c>ExportFileName</c>, with its extension.</summary>
+	public string FileName { get; init; } = string.Empty;
 }

@@ -9,6 +9,7 @@ namespace Moka.Red.Feedback.Notification;
 /// </summary>
 public sealed class MokaNotificationService : IMokaNotificationService
 {
+	private readonly TimeProvider _clock;
 	private readonly object _lock = new();
 	private readonly List<MokaNotification> _notifications = [];
 
@@ -17,6 +18,10 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	// only after a mutation.
 	private ReadOnlyCollection<MokaNotification>? _snapshot;
 	private int _unreadCount;
+
+	/// <summary>A notification service.</summary>
+	/// <param name="clock">Stamps the notifications pushed from a title and message. Null takes the system clock.</param>
+	public MokaNotificationService(TimeProvider? clock = null) => _clock = clock ?? TimeProvider.System;
 
 	/// <inheritdoc />
 	public IReadOnlyList<MokaNotification> Notifications
@@ -52,7 +57,8 @@ public sealed class MokaNotificationService : IMokaNotificationService
 		{
 			Title = title,
 			Message = message,
-			Severity = severity
+			Severity = severity,
+			Timestamp = _clock.GetUtcNow().UtcDateTime
 		});
 
 	/// <inheritdoc />
@@ -63,7 +69,14 @@ public sealed class MokaNotificationService : IMokaNotificationService
 		lock (_lock)
 		{
 			// One entry per id, so MarkAsRead and Remove always mean one notification. A repeated id
-			// updates the entry, the way a status notification is usually re-pushed.
+			// updates the entry, the way a status notification is usually re-pushed. A repeated key replaces
+			// the entry it names, whatever its id.
+			if (notification.Key is not null)
+			{
+				_notifications.RemoveAll(n =>
+					n.Id != notification.Id && string.Equals(n.Key, notification.Key, StringComparison.Ordinal));
+			}
+
 			int index = _notifications.FindIndex(n => n.Id == notification.Id);
 			if (index >= 0)
 			{
@@ -92,7 +105,7 @@ public sealed class MokaNotificationService : IMokaNotificationService
 			}
 
 			// Replaced rather than mutated so snapshots already handed out stay as they were.
-			_notifications[index] = AsRead(_notifications[index]);
+			_notifications[index] = _notifications[index].AsRead();
 			Invalidate();
 		}
 
@@ -110,7 +123,7 @@ public sealed class MokaNotificationService : IMokaNotificationService
 			{
 				if (!_notifications[i].Read)
 				{
-					_notifications[i] = AsRead(_notifications[i]);
+					_notifications[i] = _notifications[i].AsRead();
 					changed = true;
 				}
 			}
@@ -158,18 +171,6 @@ public sealed class MokaNotificationService : IMokaNotificationService
 
 		OnChanged?.Invoke();
 	}
-
-	private static MokaNotification AsRead(MokaNotification source) => new()
-	{
-		Id = source.Id,
-		Title = source.Title,
-		Message = source.Message,
-		Severity = source.Severity,
-		Timestamp = source.Timestamp,
-		Icon = source.Icon,
-		OnClick = source.OnClick,
-		Read = true
-	};
 
 	private void Invalidate() => _snapshot = null;
 

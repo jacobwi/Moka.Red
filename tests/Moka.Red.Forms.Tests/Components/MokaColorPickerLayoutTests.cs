@@ -872,18 +872,27 @@ public class MokaColorPickerLayoutTests : BunitContext
 		Assert.DoesNotContain(_panel.Invocations, call => call.Identifier == "bind");
 	}
 
+	// A parent that takes every change and passes it back, as @bind-Value does.
 	private IRenderedComponent<MokaColorPicker> Picker(Action<ComponentParameterCollectionBuilder<MokaColorPicker>>? configure = null,
-		MokaTheme? theme = null) =>
-		Render<MokaColorPicker>(p =>
+		MokaTheme? theme = null)
+	{
+		IRenderedComponent<MokaColorPicker>? cut = null;
+		cut = Render<MokaColorPicker>(p =>
 		{
 			if (theme is not null)
 			{
 				p.AddCascadingValue(theme);
 			}
 
-			p.Add(x => x.ValueChanged, value => _values.Add(value));
+			p.Add(x => x.ValueChanged, value =>
+			{
+				_values.Add(value);
+				cut!.Render(q => q.Add(x => x.Value, value));
+			});
 			configure?.Invoke(p);
 		});
+		return cut;
+	}
 
 	private static Task Open(IRenderedComponent<MokaColorPicker> cut) =>
 		cut.Find(".moka-colorpicker-swatch-button").ClickAsync(new MouseEventArgs());

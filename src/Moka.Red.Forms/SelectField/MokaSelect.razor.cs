@@ -39,6 +39,10 @@ public partial class MokaSelect<TValue>
 	private static readonly TimeSpan TypingPause = TimeSpan.FromSeconds(1);
 
 	private readonly string _generatedId = $"moka-select-{Guid.NewGuid():N}";
+
+	// The values a multiple select shows, apart from SelectedValues: a parent that passes them and listens owns them, so
+	// a change it doesn't take goes back. Two lists with the same values in the same order are the same.
+	private readonly MokaInputValue<IList<TValue>> _chosen;
 	private ElementReference _backdrop;
 	private DotNetObjectReference<MokaSelect<TValue>>? _dotNetRef;
 	private int _focusedIndex = -1;
@@ -114,7 +118,13 @@ public partial class MokaSelect<TValue>
 	[Parameter]
 	public bool Multiple { get; set; }
 
-	/// <summary>The collection of selected values when <see cref="Multiple" /> is true.</summary>
+	/// <summary>Creates the select. A multiple select shows its own values until the parent passes a list.</summary>
+	public MokaSelect() => _chosen = CreateInputValue<IList<TValue>>(comparer: MokaSequenceComparer<TValue>.Default);
+
+	/// <summary>
+	///     The collection of selected values when <see cref="Multiple" /> is true. Two-way bindable. A change is
+	///     reported as a new list; the list passed in is never edited.
+	/// </summary>
 	[Parameter]
 #pragma warning disable CA2227 // Blazor two-way binding requires setter
 	public IList<TValue>? SelectedValues { get; set; }
@@ -383,9 +393,9 @@ public partial class MokaSelect<TValue>
 
 	private bool JumpsOnKeys => TypeToJump && !Multiple && !Disabled;
 
-	private bool AllSelected => Multiple && SelectedValues is not null && Items is not null
+	private bool AllSelected => Multiple && ShownValues is not null && Items is not null
 	                            && Items.All(item =>
-		                            SelectedValues.Any(v => EqualityComparer<TValue>.Default.Equals(v, item)));
+		                            ShownValues.Any(v => EqualityComparer<TValue>.Default.Equals(v, item)));
 
 	/// <inheritdoc />
 	public override Task SetParametersAsync(ParameterView parameters)
@@ -396,11 +406,21 @@ public partial class MokaSelect<TValue>
 			ValueExpression = () => Value!;
 		}
 
+		_chosen.Take(parameters, nameof(SelectedValues));
 		return base.SetParametersAsync(parameters);
 	}
 
+	private IList<TValue>? ShownValues => _chosen.Shown;
+
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_chosen.AfterRender();
+	}
 
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -472,7 +492,9 @@ public partial class MokaSelect<TValue>
 	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
+		_chosen.Stop();
 		_dotNetRef?.Dispose();
+
 		if (_watchingSide)
 		{
 			_watchingSide = false;
@@ -523,9 +545,9 @@ public partial class MokaSelect<TValue>
 
 	private bool IsSelected(TValue item)
 	{
-		if (Multiple && SelectedValues is not null)
+		if (Multiple && ShownValues is not null)
 		{
-			return SelectedValues.Any(v => EqualityComparer<TValue>.Default.Equals(v, item));
+			return ShownValues.Any(v => EqualityComparer<TValue>.Default.Equals(v, item));
 		}
 
 		return EqualityComparer<TValue>.Default.Equals(item, CurrentValue);
@@ -562,7 +584,7 @@ public partial class MokaSelect<TValue>
 
 		if (Multiple)
 		{
-			var next = SelectedValues is null ? [] : new List<TValue>(SelectedValues);
+			var next = ShownValues is null ? [] : new List<TValue>(ShownValues);
 
 			int existing = next.FindIndex(v => EqualityComparer<TValue>.Default.Equals(v, item));
 			if (existing >= 0)
@@ -574,7 +596,7 @@ public partial class MokaSelect<TValue>
 				next.Add(item);
 			}
 
-			await SelectedValuesChanged.InvokeAsync(next);
+			_chosen.Pick(next, SelectedValuesChanged);
 			// Don't close dropdown in multiple mode
 		}
 		else
@@ -585,7 +607,7 @@ public partial class MokaSelect<TValue>
 		}
 	}
 
-	private async Task HandleSelectAll()
+	private void HandleSelectAll()
 	{
 		if (Items is null)
 		{
@@ -604,30 +626,30 @@ public partial class MokaSelect<TValue>
 			}
 		}
 
-		await SelectedValuesChanged.InvokeAsync(next);
+		_chosen.Pick(next, SelectedValuesChanged);
 	}
 
-	private async Task RemoveSelectedItem(TValue item)
+	private void RemoveSelectedItem(TValue item)
 	{
-		if (SelectedValues is null)
+		if (ShownValues is null)
 		{
 			return;
 		}
 
-		var next = new List<TValue>(SelectedValues);
+		var next = new List<TValue>(ShownValues);
 		int index = next.FindIndex(v => EqualityComparer<TValue>.Default.Equals(v, item));
 		if (index >= 0)
 		{
 			next.RemoveAt(index);
-			await SelectedValuesChanged.InvokeAsync(next);
+			_chosen.Pick(next, SelectedValuesChanged);
 		}
 	}
 
-	private async Task HandleClear()
+	private void HandleClear()
 	{
 		if (Multiple)
 		{
-			await SelectedValuesChanged.InvokeAsync([]);
+			_chosen.Pick([], SelectedValuesChanged);
 		}
 		else
 		{
@@ -745,8 +767,8 @@ public partial class MokaSelect<TValue>
 				_searchText = string.Empty;
 				_focusedIndex = -1;
 				break;
-			case "Backspace" when BackspaceRemovesLast && Multiple && _searchText.Length == 0 && SelectedValues is { Count: > 0 }:
-				await RemoveSelectedItem(SelectedValues[^1]);
+			case "Backspace" when BackspaceRemovesLast && Multiple && _searchText.Length == 0 && ShownValues is { Count: > 0 }:
+				RemoveSelectedItem(ShownValues[^1]);
 				break;
 		}
 	}

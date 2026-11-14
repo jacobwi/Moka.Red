@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Icons;
@@ -35,17 +36,29 @@ public partial class MokaFormBuilder
 		new(MokaFormFieldType.Heading, "Heading", MokaIcons.File.FileText)
 	];
 #pragma warning restore CA1823
-	// The fields on screen, a copy: changes go out through FieldsChanged as new lists, never by
-	// editing the list the parent passed. _seen holds what Fields contained when it was last read,
-	// so a parent that changes its list, in place or not, is picked up, while a re-render passing
-	// the same fields again cannot undo an edit (gotcha #9).
-	private List<MokaFormField> _fields = [];
+	// The fields on screen, apart from Fields: changes go out through FieldsChanged as new lists, and an edited field
+	// as a new field, never by editing what the parent passed, so a parent that keeps its list puts it back. _seen
+	// holds what Fields contained when it was last read, so a parent that changes its list, in place or not, is picked
+	// up, while a re-render passing the same fields again cannot undo an edit (gotcha #9).
+	private readonly MokaInputValue<IList<MokaFormField>> _fields;
 	private List<MokaFormField> _seen = [];
 
-	// By reference: two fields may share an Id, and selecting one must not highlight both.
+	// By reference: two fields may share an Id, and selecting one must not highlight both. An edit replaces the
+	// selected field with a new one, so _selectedVersions holds the ones it replaced, oldest first, to find the
+	// selection again in a list the parent passes or puts back.
 	private MokaFormField? _selectedField;
+	private readonly List<MokaFormField> _selectedVersions = [];
 
-	/// <summary>The list of form fields. Two-way bindable via <see cref="FieldsChanged" />.</summary>
+	/// <summary>Creates the builder. It shows its own fields until the parent passes a list.</summary>
+	public MokaFormBuilder() => _fields = new MokaInputValue<IList<MokaFormField>>(ShowParentFields,
+		DispatchExceptionAsync, new List<MokaFormField>());
+
+	/// <summary>
+	///     The list of form fields. Two-way bindable via <see cref="FieldsChanged" />. A change is reported as a new
+	///     list, with an edited field as a new <see cref="MokaFormField" />; neither the list nor the fields passed in
+	///     are edited.
+	/// </summary>
+
 	[Parameter]
 	public IList<MokaFormField> Fields { get; set; } = new List<MokaFormField>();
 
@@ -85,26 +98,88 @@ public partial class MokaFormBuilder
 		? $"display: grid; grid-template-columns: repeat({Columns}, 1fr); gap: var(--moka-spacing-md);"
 		: "";
 
+	private IList<MokaFormField> ShownFields => _fields.Shown ?? [];
+
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
 	/// <inheritdoc />
-	protected override void OnParametersSet()
+	public override Task SetParametersAsync(ParameterView parameters)
 	{
-		base.OnParametersSet();
-
-		IList<MokaFormField> fields = Fields ?? [];
-		if (fields.SequenceEqual(_seen, ReferenceEqualityComparer.Instance))
+		if (parameters.TryGetValue(nameof(Fields), out IList<MokaFormField>? fields))
 		{
-			return;
+			IList<MokaFormField> given = fields ?? [];
+			if (!given.SequenceEqual(_seen, ReferenceEqualityComparer.Instance))
+			{
+				_seen = [.. given];
+			}
+
+			if (_fields.Take(_seen))
+			{
+				FindSelection();
+			}
 		}
 
-		_seen = [.. fields];
-		_fields = [.. fields];
-		if (_selectedField is not null && !_fields.Contains(_selectedField))
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnAfterRender(bool firstRender)
+	{
+		base.OnAfterRender(firstRender);
+		_fields.AfterRender();
+	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_fields.Stop();
+		return base.DisposeAsyncCore();
+	}
+
+	private void ShowParentFields()
+	{
+		FindSelection();
+		StateHasChanged();
+	}
+
+	// The newest version of the selected field the list holds stays selected, or nothing when it holds none.
+	private void FindSelection()
+	{
+		MokaFormField? found = null;
+		for (int i = _selectedVersions.Count - 1; i >= 0 && found is null; i--)
 		{
-			_selectedField = null;
+			if (IndexOf(_selectedVersions[i]) >= 0)
+			{
+				found = _selectedVersions[i];
+			}
 		}
+
+		Select(found);
+	}
+
+	private void Select(MokaFormField? field)
+	{
+		_selectedField = field;
+		_selectedVersions.Clear();
+		if (field is not null)
+		{
+			_selectedVersions.Add(field);
+		}
+	}
+
+	private int IndexOf(MokaFormField field)
+	{
+		IList<MokaFormField> shown = ShownFields;
+		for (int i = 0; i < shown.Count; i++)
+		{
+			if (ReferenceEquals(shown[i], field))
+			{
+				return i;
+			}
+		}
+
+		return -1;
 	}
 
 	private string FieldItemCssClass(MokaFormField field) => new CssBuilder("moka-form-builder__field-item")
@@ -115,15 +190,16 @@ public partial class MokaFormBuilder
 	// twice would. A key several rows share is dropped for all of them, so they render unkeyed.
 	private object?[] FieldKeys()
 	{
-		var keys = new object?[_fields.Count];
+		IList<MokaFormField> shown = ShownFields;
+		var keys = new object?[shown.Count];
 		var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
 		HashSet<object>? repeated = null;
-		for (int i = 0; i < _fields.Count; i++)
+		for (int i = 0; i < shown.Count; i++)
 		{
-			keys[i] = _fields[i];
-			if (!seen.Add(_fields[i]))
+			keys[i] = shown[i];
+			if (!seen.Add(shown[i]))
 			{
-				(repeated ??= new HashSet<object>(ReferenceEqualityComparer.Instance)).Add(_fields[i]);
+				(repeated ??= new HashSet<object>(ReferenceEqualityComparer.Instance)).Add(shown[i]);
 			}
 		}
 
@@ -141,13 +217,9 @@ public partial class MokaFormBuilder
 		return keys;
 	}
 
-	private async Task CommitAsync(List<MokaFormField> next)
-	{
-		_fields = next;
-		await FieldsChanged.InvokeAsync(next);
-	}
+	private void Commit(List<MokaFormField> next) => _fields.Pick(next, FieldsChanged);
 
-	private async Task AddField(MokaFormFieldType type)
+	private void AddField(MokaFormFieldType type)
 	{
 		var field = new MokaFormField
 		{
@@ -156,63 +228,71 @@ public partial class MokaFormBuilder
 			Options = HasOptions(type) ? ["Option 1", "Option 2", "Option 3"] : null
 		};
 
-		SelectField(field);
-		await CommitAsync([.. _fields, field]);
+		Select(field);
+		Commit([.. ShownFields, field]);
 	}
 
-	private void SelectField(MokaFormField field) => _selectedField = field;
+	private void SelectField(MokaFormField field) => Select(field);
 
-	private async Task RemoveField(MokaFormField field)
+	private void RemoveField(MokaFormField field)
 	{
 		if (ReferenceEquals(_selectedField, field))
 		{
-			_selectedField = null;
+			Select(null);
 		}
 
-		await CommitAsync(_fields.Where(f => !ReferenceEquals(f, field)).ToList());
+		Commit([.. ShownFields.Where(f => !ReferenceEquals(f, field))]);
 	}
 
-	private async Task MoveField(int index, int direction)
+	private void MoveField(int index, int direction)
 	{
 		int newIndex = index + direction;
-		if (newIndex < 0 || newIndex >= _fields.Count)
+		if (newIndex < 0 || newIndex >= ShownFields.Count)
 		{
 			return;
 		}
 
-		List<MokaFormField> next = [.. _fields];
+		List<MokaFormField> next = [.. ShownFields];
 		MokaFormField item = next[index];
 		next.RemoveAt(index);
 		next.Insert(newIndex, item);
-		await CommitAsync(next);
+		Commit(next);
 	}
 
-	private async Task UpdateProperty(Action update)
+	// The selected field is replaced by an edited copy, so the parent's own field is never changed.
+	private void UpdateSelected(Action<MokaFormField> update)
 	{
-		update();
-		await CommitAsync([.. _fields]);
-	}
-
-	private async Task UpdateOptions(string? text)
-	{
-		if (_selectedField is null)
+		if (_selectedField is not { } field)
 		{
 			return;
 		}
 
-		_selectedField.Options = string.IsNullOrWhiteSpace(text)
-			? null
-			: text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+		int index = IndexOf(field);
+		if (index < 0)
+		{
+			return;
+		}
 
-		await CommitAsync([.. _fields]);
+		MokaFormField edited = field.Copy();
+		update(edited);
+		List<MokaFormField> next = [.. ShownFields];
+		next[index] = edited;
+		_selectedField = edited;
+		_selectedVersions.Add(edited);
+		Commit(next);
 	}
+
+	private void UpdateOptions(string? text) => UpdateSelected(field => field.Options = string.IsNullOrWhiteSpace(text)
+		? null
+		: text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList());
 
 	private async Task HandleExport()
 	{
 		string output = ExportFormat switch
 		{
-			MokaFormExportFormat.Json => MokaFormBuilderExport.ToJson([.. _fields]),
-			MokaFormExportFormat.Razor => MokaFormBuilderExport.ToRazor([.. _fields], Columns),
+			MokaFormExportFormat.Json => MokaFormBuilderExport.ToJson([.. ShownFields]),
+			MokaFormExportFormat.Razor => MokaFormBuilderExport.ToRazor([.. ShownFields], Columns),
+
 			_ => ""
 		};
 

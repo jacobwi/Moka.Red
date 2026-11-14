@@ -1,4 +1,6 @@
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
+using Moka.Red.Data.Table;
 
 namespace Moka.Red.ThemeGen.Appearance;
 
@@ -28,6 +30,22 @@ public sealed record MokaAppearance
 
 	/// <summary>The <see cref="MokaAccent.Id" /> of the accent. Null, or an id no longer offered, is the palette's own.</summary>
 	public string? Accent { get; init; }
+
+	/// <summary>
+	///     An accent of the person's own, as a CSS color, picked with the accent row's color picker. It wins over
+	///     <see cref="Accent" />. On a palette of the new design the theme takes its hue and strength with shades that keep
+	///     their contrast (<see cref="MokaTheme.WithAccent(string)" />); with <see cref="CustomNeutral" /> set it becomes the
+	///     seed's accent, as given. Null, or a value that isn't a color, keeps the palette's or <see cref="Accent" />.
+	/// </summary>
+	public string? CustomAccent { get; init; }
+
+	/// <summary>
+	///     A neutral of the person's own, as a CSS color whose hue and strength tint the surfaces, borders and greys, picked in
+	///     the neutral row. The theme is then derived from a seed (<see cref="MokaTheme.WithSeed" />) with the accent in use and
+	///     this neutral. A palette on the original design ignores it. Null, or a value that isn't a color, keeps the palette's
+	///     surfaces.
+	/// </summary>
+	public string? CustomNeutral { get; init; }
 
 	/// <summary>How much room things take. Null keeps the palette's.</summary>
 	public MokaDensity? Density { get; init; }
@@ -79,6 +97,15 @@ public sealed record MokaAppearance
 
 	/// <summary>How status bars are drawn. Null keeps the palette's.</summary>
 	public MokaStatusBarLook? StatusBar { get; init; }
+
+	/// <summary>How dock layouts are drawn. Null keeps the palette's.</summary>
+	public MokaDockLook? Docks { get; init; }
+
+	/// <summary>How tables draw their rows. Null keeps the palette's.</summary>
+	public MokaTableLook? Tables { get; init; }
+
+	/// <summary>How tightly tables space their rows. Null keeps the palette's, or each table's look's own.</summary>
+	public MokaTableDensity? TableDensity { get; init; }
 
 	/// <summary>Whether text saying what a thing is for shows. Null keeps the palette's.</summary>
 	public bool? Descriptions { get; init; }
@@ -143,12 +170,7 @@ public sealed record MokaAppearance
 	public MokaTheme ToTheme(bool isDark, IReadOnlyList<MokaAppearancePalette>? palettes = null, IReadOnlyList<MokaAccent>? accents = null)
 	{
 		MokaAppearancePalette palette = PaletteIn(palettes ?? MokaAppearancePalette.Presets);
-		MokaTheme theme = isDark ? palette.Dark : palette.Light;
-
-		if (AccentIn(accents ?? MokaAccent.Presets) is { } accent)
-		{
-			theme = theme.WithAccent(accent);
-		}
+		MokaTheme theme = WithColors(palette, isDark, accents ?? MokaAccent.Presets);
 
 		if (Density is { } density)
 		{
@@ -193,6 +215,21 @@ public sealed record MokaAppearance
 		if (StatusBar is { } statusBar)
 		{
 			theme = theme.WithStatusBar(statusBar);
+		}
+
+		if (Docks is { } docks)
+		{
+			theme = theme.WithDocks(docks);
+		}
+
+		if (Tables is { } tables)
+		{
+			theme = theme.WithTables(tables);
+		}
+
+		if (TableDensity is { } tableDensity)
+		{
+			theme = theme.WithTableDensity(tableDensity);
 		}
 
 		if (Descriptions is { } descriptions)
@@ -368,10 +405,83 @@ public sealed record MokaAppearance
 		return new MokaAppearanceThemes(dark, dark, ToTheme(false, palettes, accents));
 	}
 
+	// The palette's theme with the accent and neutral applied, which every other choice then builds on.
+	internal MokaTheme WithColors(MokaAppearancePalette palette, bool isDark, IReadOnlyList<MokaAccent> accents)
+	{
+		MokaTheme theme = isDark ? palette.Dark : palette.Light;
+		MokaAccent? preset = AccentIn(accents);
+		string? custom = SolidHex(CustomAccent);
+
+		if (palette.TakesStyleChoices && theme.Look == MokaLook.Gate && MokaCssColor.TryParse(CustomNeutral, out _) &&
+		    SolidHex(custom ?? preset?.For(isDark).Color ?? theme.Seed?.Accent ?? theme.Palette.Primary) is { } accent)
+		{
+			MokaThemeSeed seed = theme.Seed is { } own ? own with { Accent = accent, Neutral = CustomNeutral } : new MokaThemeSeed { Accent = accent, Neutral = CustomNeutral };
+			return theme.WithSeed(seed);
+		}
+
+		if (custom is not null)
+		{
+			return theme.WithAccent(custom);
+		}
+
+		return preset is not null ? theme.WithAccent(preset) : theme;
+	}
+
+	// A seed's accent has to be solid, and an accent on a theme without a seed has to be hex.
+	private static string? SolidHex(string? color) =>
+		MokaCssColor.TryParse(color, out MokaSrgb parsed) && parsed.IsOpaque ? parsed.ToHex(uppercase: true) : null;
+
 	internal MokaAppearancePalette PaletteIn(IReadOnlyList<MokaAppearancePalette> palettes) =>
 		palettes.FirstOrDefault(palette => string.Equals(palette.Id, Palette, StringComparison.Ordinal))
 		?? (palettes.Count > 0 ? palettes[0] : MokaAppearancePalette.Red);
 
 	internal MokaAccent? AccentIn(IReadOnlyList<MokaAccent> accents) =>
 		accents.FirstOrDefault(accent => string.Equals(accent.Id, Accent, StringComparison.Ordinal));
+
+	// Each style row and the choice it holds. Texture and print are one row in the panel, so both count as that row.
+	private static readonly (MokaAppearanceRows Row, Func<MokaAppearance, object?> Read)[] StyleChoices =
+	[
+		(MokaAppearanceRows.Density, value => value.Density),
+		(MokaAppearanceRows.TextSize, value => value.TextSize),
+		(MokaAppearanceRows.Corners, value => value.Corners),
+		(MokaAppearanceRows.MainButton, value => value.MainButton),
+		(MokaAppearanceRows.LetterCase, value => value.LetterCase),
+		(MokaAppearanceRows.TitleFont, value => value.TitleFont),
+		(MokaAppearanceRows.TitleSize, value => value.TitleSize),
+		(MokaAppearanceRows.NumberFont, value => value.NumberFont),
+		(MokaAppearanceRows.Elevation, value => value.Elevation),
+		(MokaAppearanceRows.TextButtons, value => value.TextButtons),
+		(MokaAppearanceRows.Callouts, value => value.Callouts),
+		(MokaAppearanceRows.Switches, value => value.Switches),
+		(MokaAppearanceRows.SettingsHeaders, value => value.SettingsHeaders),
+		(MokaAppearanceRows.DisabledButtons, value => value.DisabledButtons),
+		(MokaAppearanceRows.Selection, value => value.Selection),
+		(MokaAppearanceRows.CurrentPlace, value => value.CurrentPlace),
+		(MokaAppearanceRows.StatusBar, value => value.StatusBar),
+		(MokaAppearanceRows.Docks, value => value.Docks),
+		(MokaAppearanceRows.Tables, value => value.Tables),
+		(MokaAppearanceRows.TableDensity, value => value.TableDensity),
+		(MokaAppearanceRows.Descriptions, value => value.Descriptions),
+		(MokaAppearanceRows.LabelTone, value => value.LabelTone),
+		(MokaAppearanceRows.Toasts, value => value.Toasts),
+		(MokaAppearanceRows.ToastStacking, value => value.ToastStacking),
+		(MokaAppearanceRows.Notifications, value => value.Notifications),
+		(MokaAppearanceRows.Popups, value => value.Popups),
+		(MokaAppearanceRows.Lists, value => value.Lists),
+		(MokaAppearanceRows.Dialogs, value => value.Dialogs),
+		(MokaAppearanceRows.Buttons, value => value.Buttons),
+		(MokaAppearanceRows.Tooltips, value => value.Tooltips),
+		(MokaAppearanceRows.TooltipArrows, value => value.TooltipArrows),
+		(MokaAppearanceRows.TooltipMotion, value => value.TooltipMotion),
+		(MokaAppearanceRows.TooltipSize, value => value.TooltipSize),
+		(MokaAppearanceRows.Charts, value => value.Charts),
+		(MokaAppearanceRows.ChartPalette, value => value.ChartPalette),
+		(MokaAppearanceRows.ChartTexture, value => value.ChartTexture),
+		(MokaAppearanceRows.ChartTexture, value => value.ChartPrint)
+	];
+
+	// The style rows whose choice differs from before, so MokaThemeStudio can name what a pick changed.
+	internal MokaAppearanceRows StyleRowsChangedFrom(MokaAppearance before) => StyleChoices
+		.Where(choice => !Equals(choice.Read(this), choice.Read(before)))
+		.Aggregate(MokaAppearanceRows.None, (rows, choice) => rows | choice.Row);
 }

@@ -1,0 +1,23 @@
+<DemoSection Id="basics" Title="Basics" Description="Several lines of text.">
+	<EditForm Model="@_model" style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaTextArea @bind-Value="_model.Bio" Label="Bio" Placeholder="Tell us about yourself..." HelperText="Max 500 characters" Rows="4" MaxLength="500"/>
+		<MokaTextArea @bind-Value="_model.Bio" Label="With Error" Placeholder="Required field" ErrorText="Bio is required." Rows="3"/>
+		<MokaTextArea @bind-Value="_model.Bio" Label="Disabled" Placeholder="Cannot edit" Disabled="true" Rows="2"/>
+	</EditForm>
+</DemoSection>
+
+@code {
+	private readonly FormModel _model = new();
+
+	private sealed class FormModel
+	{
+		public string Name { get; set; } = "";
+		public string Email { get; set; } = "";
+		public string Password { get; set; } = "";
+		public int Age { get; set; }
+		public string Bio { get; set; } = "";
+		public bool AgreeTerms { get; set; }
+		public bool DarkMode { get; set; }
+		public string Country { get; set; } = "";
+	}
+}

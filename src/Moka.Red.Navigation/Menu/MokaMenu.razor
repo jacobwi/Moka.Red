@@ -1,7 +1,7 @@
 @namespace Moka.Red.Navigation.Menu
 @inherits MokaVisualComponentBase
 
-<nav class="@CssClass" style="@CssStyle" id="@Id" role="navigation" @attributes="AdditionalAttributes">
+<nav class="@CssClass" style="@CssStyle" id="@Id" role="navigation" @attributes="AdditionalAttributes" @ref="_nav">
 	<CascadingValue Value="this" IsFixed="true">
 		<CascadingValue Value="Collapsed" Name="MenuCollapsed">
 			<CascadingValue Value="Adaptive" Name="MenuAdaptive">

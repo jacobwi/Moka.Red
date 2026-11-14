@@ -554,3 +554,22 @@ public enum MokaChartPrint
 	/// <summary>No color at all: ink hatching on the page.</summary>
 	Ink
 }
+
+/// <summary>How a <c>MokaDockLayout</c> is drawn. See <see cref="MokaTheme.WithDocks" /> and <c>MokaDockLayout.Look</c>.</summary>
+public enum MokaDockLook
+{
+	/// <summary>Panels on the surface with a line between them and a title over each, the original look.</summary>
+	Classic,
+
+	/// <summary>Tab strips for headers, an activity bar of icons for hidden and auto-hidden panels, and hairline splitters.</summary>
+	Ide,
+
+	/// <summary>Each group a raised card, with a gap of page background between them.</summary>
+	Cards,
+
+	/// <summary>Headers only while a group is hovered or focused, hairline splitters and tinted panes.</summary>
+	Minimal,
+
+	/// <summary>Monospace titles in brackets, square corners, and the accent along the active group's edge.</summary>
+	Terminal
+}

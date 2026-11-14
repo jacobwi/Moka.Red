@@ -154,10 +154,23 @@ public partial class MokaPhoneInput
 			_country = Country;
 		}
 
+		ShowNumber();
+	}
+
+	/// <inheritdoc />
+	protected override void OnCurrentValueRestored() => ShowNumber();
+
+	private void ShowNumber()
+	{
+		if (_isFocused)
+		{
+			return;
+		}
+
 		if (UsesPicker)
 		{
 			// Only a value from outside replaces what's on screen, so the grouping typed survives a commit.
-			if (!_isFocused && !string.Equals(CurrentValueAsString, _committed, StringComparison.Ordinal))
+			if (!string.Equals(CurrentValueAsString, _committed, StringComparison.Ordinal))
 			{
 				_committed = CurrentValueAsString;
 				string national = NationalDigits(CurrentValueAsString);
@@ -167,18 +180,15 @@ public partial class MokaPhoneInput
 			return;
 		}
 
-		if (!_isFocused && !string.IsNullOrEmpty(CurrentValueAsString))
+		string digits = StripNonDigits(CurrentValueAsString);
+		// Remove country code prefix if present
+		string codeDigits = StripNonDigits(CountryCode);
+		if (digits.StartsWith(codeDigits, StringComparison.Ordinal))
 		{
-			string digits = StripNonDigits(CurrentValueAsString);
-			// Remove country code prefix if present
-			string codeDigits = StripNonDigits(CountryCode);
-			if (digits.StartsWith(codeDigits, StringComparison.Ordinal))
-			{
-				digits = digits[codeDigits.Length..];
-			}
-
-			_displayValue = AutoFormat ? FormatUS(digits) : digits;
+			digits = digits[codeDigits.Length..];
 		}
+
+		_displayValue = AutoFormat ? FormatUS(digits) : digits;
 	}
 
 	/// <inheritdoc />
@@ -258,11 +268,18 @@ public partial class MokaPhoneInput
 
 		if (digits.Length > 0)
 		{
-			CurrentValueAsString = _displayValue;
-			_committed = CurrentValueAsString;
+			Commit(_displayValue);
 		}
 
 		await CountryChanged.InvokeAsync(code);
+	}
+
+	// The text a commit leaves is known before the value goes out, so a parent that renders while it takes the value
+	// isn't mistaken for a value from outside.
+	private void Commit(string text)
+	{
+		_committed = TryParseValueFromString(text, out string parsed, out _) ? parsed : text;
+		CurrentValueAsString = text;
 	}
 
 	private static string StripNonDigits(string? input)
@@ -336,11 +353,7 @@ public partial class MokaPhoneInput
 		_isFocused = false;
 		// Commit value
 		string digits = StripNonDigits(_displayValue);
-		CurrentValueAsString = UsesPicker ? _displayValue : digits;
-		if (UsesPicker)
-		{
-			_committed = CurrentValueAsString;
-		}
+		Commit(UsesPicker ? _displayValue : digits);
 
 		if (AutoFormat && NorthAmerican)
 		{

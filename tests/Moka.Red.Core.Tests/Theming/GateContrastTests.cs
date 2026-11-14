@@ -1,10 +1,10 @@
 using System.Globalization;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
 
-// Real contrast math, so a new token or accent cannot quietly fail WCAG AA. Written apart from the library's own
-// luminance code.
+// Real contrast math, so a new token or accent cannot quietly fail WCAG AA.
 public class GateContrastTests
 {
 	private const double Text = 4.5;
@@ -210,23 +210,12 @@ public class GateContrastTests
 		Assert.True(contrast >= target, $"{what}: {a} on {b} is {contrast:0.00}, needs {target}.");
 	}
 
-	private static double Contrast(string a, string b)
-	{
-		(double la, double lb) = (Luminance(a), Luminance(b));
-		return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
-	}
+	private static double Contrast(string a, string b) => MokaContrast.Ratio(Luminance(a), Luminance(b));
 
 	private static double Luminance(string hex)
 	{
 		Assert.Matches("^#[0-9A-Fa-f]{6}$", hex);
-
-		double Channel(int i)
-		{
-			double c = int.Parse(hex.AsSpan(1 + (i * 2), 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture) / 255.0;
-			return c <= 0.03928 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
-		}
-
-		return (0.2126 * Channel(0)) + (0.7152 * Channel(1)) + (0.0722 * Channel(2));
+		return MokaCssColor.Parse(hex).RelativeLuminance;
 	}
 
 	private readonly record struct Meaning(string Name, string Strong, string Bg, string Ink, string Text);

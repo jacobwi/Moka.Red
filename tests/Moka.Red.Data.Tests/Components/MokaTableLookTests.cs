@@ -254,8 +254,7 @@ public class MokaTableLookTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
 			.Add(t => t.Loading, true)
-			.Add(t => t.ShowMore, true)
-			.Add(t => t.PageSize, 2));
+			.Add(t => t.PageSize, 2), pager: LoadMore);
 
 		Assert.Empty(cut.FindAll(".moka-table-foot"));
 	}
@@ -353,7 +352,7 @@ public class MokaTableLookTests : BunitContext
 	{
 		Col[] columns = [Name with { Filterable = true }, Age with { Class = "hide-narrow", Aggregate = MokaAggregateType.Sum }];
 
-		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.ShowFilters, true), columns);
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row), columns);
 
 		Assert.Contains("hide-narrow", cut.FindAll("thead tr:first-child th")[1].ClassList);
 		Assert.Contains("hide-narrow", cut.Find(".moka-table-filter-row").Children[1].ClassList);
@@ -454,9 +453,8 @@ public class MokaTableLookTests : BunitContext
 	public void FootContent_ComesAfterTheShowMoreFoot()
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p
-			.Add(t => t.ShowMore, true)
 			.Add(t => t.PageSize, 2)
-			.Add(t => t.FootContent, (RenderFragment)(b => b.AddContent(0, "All people"))));
+			.Add(t => t.FootContent, (RenderFragment)(b => b.AddContent(0, "All people"))), pager: LoadMore);
 
 		IElement foot = cut.Find(".moka-table-foot-content");
 		Assert.Contains("moka-table-foot", foot.PreviousElementSibling!.ClassList);
@@ -528,11 +526,13 @@ public class MokaTableLookTests : BunitContext
 
 	private IRenderedComponent<MokaTable<Person>> Table(
 		Action<ComponentParameterCollectionBuilder<MokaTable<Person>>>? extra = null,
-		Col[]? columns = null) =>
+		Col[]? columns = null,
+		Pager? pager = null) =>
 		Render<MokaTable<Person>>(p =>
 		{
 			p.Add(t => t.Items, People);
-			p.Add(t => t.ChildContent, columns is null ? DefaultColumns : Columns(columns));
+			p.Add(t => t.ChildContent, pager is not null ? ColumnsWithPager(pager, columns ?? new[] { Name, Team, Age, City })
+				: columns is null ? DefaultColumns : Columns(columns));
 			extra?.Invoke(p);
 		});
 }

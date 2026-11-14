@@ -1,0 +1,16 @@
+.moka-icon-text-cell {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	min-width: 0;
+}
+
+.moka-icon-text-cell ::deep .moka-icon-text-cell__icon {
+	flex: none;
+	color: var(--moka-color-on-surface-variant);
+}
+
+.moka-icon-text-cell__text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

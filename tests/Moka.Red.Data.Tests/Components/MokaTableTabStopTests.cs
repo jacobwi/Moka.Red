@@ -65,7 +65,7 @@ public class MokaTableTabStopTests : BunitContext
 	[Fact]
 	public async Task FilterLeavingFewerRows_KeepsATabStop()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowFilters, true));
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row));
 		await cut.InvokeAsync(() => cut.Instance.OnCellFocused(9, 0));
 
 		await cut.Find("input[aria-label='Filter by Name']").InputAsync(new ChangeEventArgs { Value = "Person 0" });
@@ -84,7 +84,7 @@ public class MokaTableTabStopTests : BunitContext
 		await cut.FindAll(".moka-table-column-menu-item")
 			.First(item => string.Equals(item.TextContent.Trim(), "City", StringComparison.Ordinal))
 			.QuerySelector("input")!
-			.ChangeAsync(new ChangeEventArgs());
+			.ChangeAsync(new ChangeEventArgs { Value = false });
 
 		IElement stop = Assert.Single(TabStops(cut));
 		Assert.Equal("2", stop.GetAttribute("data-col-index"));

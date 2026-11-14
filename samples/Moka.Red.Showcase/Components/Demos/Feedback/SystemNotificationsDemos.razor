@@ -1,0 +1,75 @@
+@inject IMokaSystemNotifier Notifier
+@inject IMokaToastService Toast
+
+<DemoSection Id="basics" Title="Basics" Description="Notifications outside the page through the browser's Notification API, for news worth hearing while the app isn't in sight. Nothing asks for permission until you press Allow." Tip="Ask from something the person pressed. Browsers refuse to ask otherwise, and Safari only asks while the click is recent.">
+	<ChildContent>
+		<div class="button-row" style="align-items: center;">
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="AllowAsync" Disabled="@(_consent is not MokaSystemNotificationConsent.NotAsked)">Allow notifications</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="NotifyNowAsync">Notify now</MokaButton>
+			<MokaButton Variant="MokaVariant.Outlined" OnClick="NotifyWhenHiddenAsync" Loading="_waiting">Notify in 5 s, if hidden</MokaButton>
+		</div>
+		<MokaDataList Items="Facts" Dense/>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="GetPermissionAsync">Unsupported, NotAsked, Granted or Denied, without asking</DemoParam>
+		<DemoParam Name="RequestPermissionAsync">Asks, unless the person already answered</DemoParam>
+		<DemoParam Name="NotifyAsync">Shown, PageVisible, NotAllowed or Unsupported</DemoParam>
+		<DemoParam Name="Tag, OnlyWhenHidden, OnClick">Replace by tag, show only while hidden, act on a click</DemoParam>
+		<DemoParam Name="AddMokaSystemNotifier">Registers it; AddMokaRed leaves it out</DemoParam>
+	</Notes>
+</DemoSection>
+
+@code {
+	private MokaSystemNotificationConsent? _consent;
+
+	private MokaSystemNotificationResult? _lastResult;
+
+	private bool _waiting;
+
+	private IReadOnlyList<MokaDataListItem> Facts =>
+	[
+		new("Permission", _consent?.ToString() ?? "Checking"),
+		new("Last notification", _lastResult?.ToString() ?? "None sent")
+	];
+
+	// The notifier talks to the browser, so it is asked once the page is interactive.
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_consent = await Notifier.GetPermissionAsync();
+			StateHasChanged();
+		}
+	}
+
+	private async Task AllowAsync() => _consent = await Notifier.RequestPermissionAsync();
+
+	private async Task NotifyNowAsync() => _lastResult = await Notifier.NotifyAsync(new MokaSystemNotification
+	{
+		Title = "Export finished",
+		Body = "report.pdf is ready.",
+		Tag = "export",
+		OnClick = CameBackAsync
+	});
+
+	private async Task NotifyWhenHiddenAsync()
+	{
+		_waiting = true;
+		await Task.Delay(TimeSpan.FromSeconds(5));
+		_lastResult = await Notifier.NotifyAsync(new MokaSystemNotification
+		{
+			Title = "A message arrived",
+			Body = "Switch back to read it.",
+			Tag = "message",
+			OnlyWhenHidden = true,
+			OnClick = CameBackAsync
+		});
+		_waiting = false;
+	}
+
+	private Task CameBackAsync()
+	{
+		Toast.ShowInfo("You came back from the notification.");
+		return Task.CompletedTask;
+	}
+}

@@ -33,12 +33,13 @@
 	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
-		<None Include="..\..\src\Moka.Red.ThemeGen\MokaThemeEditor.razor.css" Link="Css\MokaThemeEditor.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.ThemeGen\Appearance\MokaAppearancePanel.razor.css" Link="Css\MokaAppearancePanel.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.ThemeGen\Preview\MokaThemePreview.razor.css" Link="Css\MokaThemePreview.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
 	</ItemGroup>
 
 </Project>

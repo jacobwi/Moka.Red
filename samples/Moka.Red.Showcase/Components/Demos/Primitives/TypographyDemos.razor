@@ -1,0 +1,74 @@
+<DemoSection Id="headings" Title="Headings" Component="MokaHeading" Description="Headings, text, labels, code, links, captions, paragraphs, quotes, key caps and marks, all on the theme's type scale.">
+	<MokaHeading Level="1">Heading Level 1</MokaHeading>
+	<MokaHeading Level="2">Heading Level 2</MokaHeading>
+	<MokaHeading Level="3">Heading Level 3</MokaHeading>
+	<MokaHeading Level="4">Heading Level 4</MokaHeading>
+	<MokaHeading Level="5">Heading Level 5</MokaHeading>
+	<MokaHeading Level="6">Heading Level 6</MokaHeading>
+	<MokaHeading Level="2" Color="MokaColor.Primary">Colored Heading</MokaHeading>
+</DemoSection>
+
+<DemoSection Id="text" Title="Text" Component="MokaText">
+	<MokaText>Default paragraph text at the base font size (13px dense).</MokaText>
+	<MokaText Size="MokaSize.Lg" Weight="MokaFontWeight.Semibold">Large semibold text.</MokaText>
+	<MokaText Element="span" Color="MokaColor.Primary" Weight="MokaFontWeight.Bold">Bold primary span. </MokaText>
+	<MokaText Element="span" Color="MokaColor.Error">Error colored text. </MokaText>
+	<MokaText Element="span" Italic="true">Italic text.</MokaText>
+	<MokaText Mono="true" Size="MokaSize.Sm">Monospace text for technical content.</MokaText>
+	<MokaText Truncate="true" Style="max-width: 300px;">This is a very long text that will be truncated with an ellipsis because it exceeds the max-width of its container.</MokaText>
+	<MokaText Transform="MokaTextTransform.Uppercase" Size="MokaSize.Xs" Weight="MokaFontWeight.Semibold">uppercase label style</MokaText>
+</DemoSection>
+
+<DemoSection Id="label" Title="Label" Component="MokaLabel">
+	<MokaLabel>Regular Label</MokaLabel>
+	<MokaLabel Required="true">Required Label</MokaLabel>
+	<MokaLabel Required="true" Color="MokaColor.Primary">Primary Required</MokaLabel>
+</DemoSection>
+
+<DemoSection Id="code" Title="Code" Component="MokaCode">
+	<MokaText>Use <MokaCode>MokaButton</MokaCode> for clickable actions and <MokaCode>MokaLink</MokaCode> for navigation.</MokaText>
+	<MokaCode Block="true">
+		public class MyComponent : MokaVisualComponentBase
+		{
+		protected override string RootClass => "my-component";
+		}
+	</MokaCode>
+</DemoSection>
+
+<DemoSection Id="link" Title="Link" Component="MokaLink">
+	<MokaLink Href="components/typography">Default link</MokaLink> |
+	<MokaLink Href="components/typography" Underline="MokaLinkUnderline.Always">Always underlined</MokaLink> |
+	<MokaLink Href="components/typography" Underline="MokaLinkUnderline.None">No underline</MokaLink> |
+	<MokaLink Href="https://github.com" External="true">External link</MokaLink>
+</DemoSection>
+
+<DemoSection Id="caption" Title="Caption" Component="MokaCaption">
+	<MokaCaption>Secondary text for descriptions, timestamps, and hints.</MokaCaption>
+	<MokaCaption Color="MokaColor.Error">Error caption text.</MokaCaption>
+</DemoSection>
+
+<DemoSection Id="paragraph" Title="Paragraph" Component="MokaParagraph">
+	<MokaParagraph>This is a standard paragraph with relaxed line height and auto bottom-margin. When multiple paragraphs appear consecutively, they space themselves naturally.</MokaParagraph>
+	<MokaParagraph>Second paragraph - notice the consistent spacing. This is the component you use for body content, articles, and documentation text.</MokaParagraph>
+	<MokaParagraph Indent="true">This paragraph has a first-line indent, useful for traditional book-style or article formatting where visual breaks aren't needed between paragraphs.</MokaParagraph>
+	<MokaParagraph Align="MokaTextAlign.Center" Color="MokaColor.Secondary">Centered secondary paragraph.</MokaParagraph>
+</DemoSection>
+
+<DemoSection Id="blockquote" Title="Blockquote" Component="MokaBlockquote">
+	<MokaBlockquote Citation="Moka.Red Design Philosophy">
+		Every component you write must reflect a deep understanding of how Blazor actually works under the hood - not surface-level usage.
+	</MokaBlockquote>
+	<MokaBlockquote Filled="true" Citation="Performance Principle" Color="MokaColor.Success">
+		Is this the most memory-efficient and performant way to do this in Blazor?
+	</MokaBlockquote>
+</DemoSection>
+
+<DemoSection Id="kbd" Title="Kbd" Component="MokaKbd">
+	<MokaText>Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>Shift</MokaKbd> + <MokaKbd>D</MokaKbd> to toggle diagnostics.</MokaText>
+	<MokaText>Save with <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>S</MokaKbd>, undo with <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>Z</MokaKbd>.</MokaText>
+</DemoSection>
+
+<DemoSection Id="mark" Title="Mark" Component="MokaMark">
+	<MokaText>You can <MokaMark>highlight important text</MokaMark> with the default yellow tint.</MokaText>
+	<MokaText>Or use semantic colors: <MokaMark Color="MokaColor.Primary">primary</MokaMark>, <MokaMark Color="MokaColor.Success">success</MokaMark>, <MokaMark Color="MokaColor.Error">error</MokaMark>, <MokaMark Color="MokaColor.Info">info</MokaMark>.</MokaText>
+</DemoSection>

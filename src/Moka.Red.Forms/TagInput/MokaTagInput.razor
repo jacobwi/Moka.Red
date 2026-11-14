@@ -12,10 +12,10 @@
                   Style="@WrapperStyle">
 	<div class="@ComputedCssClass" style="@CssStyle" @ref="_root">
 		<div class="moka-taginput-container" style="@ContainerStyle">
-			@for (var i = 0; i < _tags.Count; i++)
+			@for (var i = 0; i < Tags.Count; i++)
 			{
 				var index = i;
-				var tag = _tags[i];
+				var tag = Tags[i];
 				<span class="moka-taginput-tag">
 					<span class="moka-taginput-tag-text">@tag</span>
 					@if (!Disabled)
@@ -44,14 +44,14 @@
 				       @onkeydown:stopPropagation="SuggestionsShown"
 				       @onfocus="HandleFocus"
 				       @onblur="HandleBlur"
-				       placeholder="@(_tags.Count == 0 ? Placeholder : "")"
+				       placeholder="@(Tags.Count == 0 ? Placeholder : "")"
 				       disabled="@Disabled"
 				       id="@InputId"
 				       aria-describedby="@DescribedBy"
 				       @attributes="ControlAttributes"/>
 			}
 		</div>
-		@if (Clearable && _tags.Count > 0 && !Disabled)
+		@if (Clearable && Tags.Count > 0 && !Disabled)
 		{
 			@* No tooltip while suggestions show: it would cover the first of them. *@
 			<MokaTooltip Text="@(SuggestionsShown ? null : "Clear all tags")" Position="MokaTooltipPosition.BottomEnd"

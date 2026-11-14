@@ -29,7 +29,7 @@
 	font-family: var(--moka-font-family);
 	font-size: var(--moka-font-size-sm);
 	line-height: var(--moka-line-height-base);
-	animation: moka-hover-card-enter var(--moka-transition-fast) ease-out;
+	animation: moka-hover-card-enter var(--moka-transition-fast);
 }
 
 @keyframes moka-hover-card-enter {

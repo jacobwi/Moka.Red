@@ -54,15 +54,15 @@ public class MokaTableTests : BunitContext
 	public void FilterRow_Renders_WhenShowFiltersIsOn()
 	{
 		// ApplyColumnFilters ran but nothing could ever populate the filter dictionary.
-		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.ShowFilters, true));
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.FilterControls, MokaTableFilterControls.Row));
 
 		Assert.NotEmpty(cut.FindAll(".moka-table-filter-row"));
 	}
 
 	[Fact]
-	public void FilterRow_IsAbsent_ByDefault()
+	public void FilterRow_IsAbsent_WithoutTheRowControl()
 	{
-		IRenderedComponent<MokaTable<Person>> cut = RenderTable();
+		IRenderedComponent<MokaTable<Person>> cut = RenderTable(p => p.Add(t => t.FilterControls, MokaTableFilterControls.None));
 
 		Assert.Empty(cut.FindAll(".moka-table-filter-row"));
 	}
@@ -175,9 +175,9 @@ public class MokaTableTests : BunitContext
 	[Fact]
 	public async Task ServerData_ReceivesTheRequestedPage()
 	{
-		MokaTableState? seen = null;
+		MokaTableRequest? seen = null;
 
-		Render<MokaTable<Person>>(p => p
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
 			.Add(t => t.ServerData, state =>
 			{
 				seen = state;
@@ -192,19 +192,19 @@ public class MokaTableTests : BunitContext
 
 		await Task.Yield();
 
-		Assert.NotNull(seen);
-		Assert.Equal(1, seen.Page);
+		cut.WaitForAssertion(() => Assert.NotNull(seen));
+		Assert.Equal(1, seen!.Page);
 		Assert.Equal(25, seen.PageSize);
 	}
 
 	[Fact]
-	public void ServerDataState_CarriesColumnFilters()
+	public void ServerDataRequest_CarriesColumnFilters()
 	{
-		// MokaTableState had no filter field, so server-side filtering was impossible.
-		var state = new MokaTableState();
+		// The request had no filter field, so server-side filtering was impossible.
+		var request = new MokaTableRequest();
 
-		Assert.NotNull(state.ColumnFilters);
-		Assert.Empty(state.ColumnFilters);
+		Assert.NotNull(request.Filters);
+		Assert.Empty(request.Filters);
 	}
 
 	[Fact]

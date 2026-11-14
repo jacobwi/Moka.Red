@@ -13,7 +13,7 @@ public sealed partial record MokaPalette
 	{
 		Primary = MokaAccent.Blue.Dark.Color,
 		PrimaryLight = MokaAccent.Blue.Dark.Soft,
-		PrimaryDark = MokaColorMath.MixHex(MokaAccent.Blue.Dark.Color, GateDarkInk, 0.78),
+		PrimaryDark = MokaColorMath.PressedShade(MokaAccent.Blue.Dark.Color, GateDarkInk),
 		OnPrimary = GateDarkInk,
 
 		Secondary = "#96A1B6",
@@ -65,19 +65,11 @@ public sealed partial record MokaPalette
 		Paper = "#FFFFFF",
 		PaperEdge = "transparent",
 
-		PrimaryBg = MokaAccent.Blue.Dark.Background,
 		PrimaryRow = "color-mix(in srgb, var(--moka-color-primary) 12%, var(--moka-color-background))",
 		PrimaryRing = "color-mix(in srgb, var(--moka-color-primary) 35%, var(--moka-color-background))",
 		PrimaryPill = "color-mix(in srgb, var(--moka-color-primary) 25%, var(--moka-color-background))",
 		PrimaryFocus = "color-mix(in srgb, var(--moka-color-primary) 22%, transparent)",
 		PrimaryText = "color-mix(in srgb, var(--moka-color-primary) 40%, white)",
-
-		PrimaryGlow = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.08),
-		PrimaryGlowMd = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.15),
-		PrimaryGlowStrong = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.25),
-		PrimaryGlowFaint = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.04),
-		PrimaryBorder = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.30),
-		PrimaryBorderDim = MokaColorMath.Rgba(MokaAccent.Blue.Dark.Color, 0.12),
 
 		SuccessBg = "#13281F",
 		SuccessInk = "#9FE6C0",
@@ -99,7 +91,7 @@ public sealed partial record MokaPalette
 		InfoInk = "#A9C8FF",
 		InfoText = "#C9DDFF",
 		InfoLine = "#22406B"
-	};
+	}.WithGateAccent(MokaAccent.Blue.Dark, true);
 
 	/// <summary>
 	///     The light palette of the <see cref="MokaLook.Gate" /> look. Designed rather than inverted: the same
@@ -109,7 +101,7 @@ public sealed partial record MokaPalette
 	{
 		Primary = MokaAccent.Blue.Light.Color,
 		PrimaryLight = MokaAccent.Blue.Light.Soft,
-		PrimaryDark = MokaColorMath.MixHex(MokaAccent.Blue.Light.Color, GateLightInk, 0.78),
+		PrimaryDark = MokaColorMath.PressedShade(MokaAccent.Blue.Light.Color, GateLightInk),
 		OnPrimary = "#FFFFFF",
 
 		Secondary = "#525D71",
@@ -161,19 +153,11 @@ public sealed partial record MokaPalette
 		Paper = "#FFFFFF",
 		PaperEdge = "var(--moka-color-outline-strong)",
 
-		PrimaryBg = MokaAccent.Blue.Light.Background,
 		PrimaryRow = "color-mix(in srgb, var(--moka-color-primary) 9%, var(--moka-color-surface))",
 		PrimaryRing = "color-mix(in srgb, var(--moka-color-primary) 38%, var(--moka-color-surface))",
 		PrimaryPill = "color-mix(in srgb, var(--moka-color-primary) 15%, var(--moka-color-surface))",
 		PrimaryFocus = "color-mix(in srgb, var(--moka-color-primary) 24%, transparent)",
 		PrimaryText = "color-mix(in srgb, var(--moka-color-primary-light) 82%, black)",
-
-		PrimaryGlow = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.10),
-		PrimaryGlowMd = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.16),
-		PrimaryGlowStrong = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.26),
-		PrimaryGlowFaint = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.05),
-		PrimaryBorder = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.36),
-		PrimaryBorderDim = MokaColorMath.Rgba(MokaAccent.Blue.Light.Color, 0.16),
 
 		SuccessBg = "#E3F4EA",
 		SuccessInk = "#0B6A40",
@@ -195,7 +179,7 @@ public sealed partial record MokaPalette
 		InfoInk = "#1A55B5",
 		InfoText = "#154391",
 		InfoLine = "#B3CBF4"
-	};
+	}.WithGateAccent(MokaAccent.Blue.Light, false);
 
 	/// <summary>
 	///     The dark palette of <see cref="MokaTheme.Red" />: the <see cref="MokaLook.Gate" /> meanings on neutral
@@ -324,112 +308,87 @@ public sealed partial record MokaPalette
 	// PrimaryRow, PrimaryRing and the other mixes read --moka-color-primary, so they follow on their own.
 	internal MokaPalette WithGateAccent(MokaAccentShades accent, bool isDark)
 	{
-		MokaPalette tiers = isDark
-			? this with
-			{
-				OnPrimary = GateDarkInk,
-				PrimaryDark = MokaColorMath.MixHex(accent.Color, GateDarkInk, 0.78),
-				PrimaryGlow = MokaColorMath.Rgba(accent.Color, 0.08),
-				PrimaryGlowMd = MokaColorMath.Rgba(accent.Color, 0.15),
-				PrimaryGlowStrong = MokaColorMath.Rgba(accent.Color, 0.25),
-				PrimaryGlowFaint = MokaColorMath.Rgba(accent.Color, 0.04),
-				PrimaryBorder = MokaColorMath.Rgba(accent.Color, 0.30),
-				PrimaryBorderDim = MokaColorMath.Rgba(accent.Color, 0.12)
-			}
-			: this with
-			{
-				OnPrimary = "#FFFFFF",
-				PrimaryDark = MokaColorMath.MixHex(accent.Color, GateLightInk, 0.78),
-				PrimaryGlow = MokaColorMath.Rgba(accent.Color, 0.10),
-				PrimaryGlowMd = MokaColorMath.Rgba(accent.Color, 0.16),
-				PrimaryGlowStrong = MokaColorMath.Rgba(accent.Color, 0.26),
-				PrimaryGlowFaint = MokaColorMath.Rgba(accent.Color, 0.05),
-				PrimaryBorder = MokaColorMath.Rgba(accent.Color, 0.36),
-				PrimaryBorderDim = MokaColorMath.Rgba(accent.Color, 0.16)
-			};
-
+		MokaPalette tiers = (isDark ? MokaAccentTiers.GateDark : MokaAccentTiers.GateLight).ApplyTo(this, accent.Color);
 		return tiers with
 		{
 			Primary = accent.Color,
 			PrimaryLight = accent.Soft,
-			PrimaryBg = accent.Background
+			PrimaryBg = accent.Background,
+			OnPrimary = isDark ? GateDarkInk : "#FFFFFF",
+			PrimaryDark = MokaColorMath.PressedShade(accent.Color, isDark ? GateDarkInk : GateLightInk)
 		};
 	}
 
-	internal MokaPalette WithGateContrast(bool high, bool isDark, MokaSurfaces surfaces = MokaSurfaces.BlueGrey)
+	// The colors high contrast changes, taken from another palette: what turning it off puts back.
+	internal MokaPalette WithContrastOf(MokaPalette normal) => this with
 	{
-		if (!high)
-		{
-			MokaPalette normal = ForSurfaces(surfaces, isDark);
-			return this with
-			{
-				OnSurface = normal.OnSurface,
-				OnBackground = normal.OnBackground,
-				OnSurface2 = normal.OnSurface2,
-				OnSurfaceVariant = normal.OnSurfaceVariant,
-				Secondary = normal.Secondary,
-				Icon = normal.Icon,
-				OnSurfaceTertiary = normal.OnSurfaceTertiary,
-				Outline = normal.Outline,
-				OutlineStrong = normal.OutlineStrong,
-				OutlineVariant = normal.OutlineVariant
-			};
-		}
+		OnSurface = normal.OnSurface,
+		OnBackground = normal.OnBackground,
+		OnSurface2 = normal.OnSurface2,
+		OnSurfaceVariant = normal.OnSurfaceVariant,
+		Secondary = normal.Secondary,
+		Icon = normal.Icon,
+		OnSurfaceTertiary = normal.OnSurfaceTertiary,
+		Outline = normal.Outline,
+		OutlineStrong = normal.OutlineStrong,
+		OutlineVariant = normal.OutlineVariant
+	};
 
-		return (surfaces, isDark) switch
+	// The high contrast text and borders of each surface family.
+	internal MokaPalette WithHighContrast(bool isDark, MokaSurfaces surfaces) =>
+		(surfaces, isDark) switch
 		{
-			(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, true) => this with
-			{
-				OnSurface = "#F4F4F6",
-				OnBackground = "#F4F4F6",
-				OnSurface2 = "#DEDEE3",
-				OnSurfaceVariant = "#BFBFC8",
-				Secondary = "#BFBFC8",
-				Icon = "#A8A8B2",
-				OnSurfaceTertiary = "#9C9CA6",
-				Outline = "#44444C",
-				OutlineStrong = "#56565F",
-				OutlineVariant = "#33333A"
-			},
-			(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, false) => this with
-			{
-				OnSurface = "#0C0C10",
-				OnBackground = "#0C0C10",
-				OnSurface2 = "#25252B",
-				OnSurfaceVariant = "#44444C",
-				Secondary = "#44444C",
-				Icon = "#52525B",
-				OnSurfaceTertiary = "#52525B",
-				Outline = "#BCBCC4",
-				OutlineStrong = "#A0A0A9",
-				OutlineVariant = "#D0D0D6"
-			},
-			(_, true) => this with
-			{
-				OnSurface = "#F4F6FA",
-				OnBackground = "#F4F6FA",
-				OnSurface2 = "#DCE1EA",
-				OnSurfaceVariant = "#BAC3D4",
-				Secondary = "#BAC3D4",
-				Icon = "#A3ADBF",
-				OnSurfaceTertiary = "#97A2B6",
-				Outline = "#3A4762",
-				OutlineStrong = "#48577A",
-				OutlineVariant = "#2C374C"
-			},
-			(_, false) => this with
-			{
-				OnSurface = "#0B0F18",
-				OnBackground = "#0B0F18",
-				OnSurface2 = "#222B3A",
-				OnSurfaceVariant = "#3E4859",
-				Secondary = "#3E4859",
-				Icon = "#4C566A",
-				OnSurfaceTertiary = "#4C566A",
-				Outline = "#B9C3D3",
-				OutlineStrong = "#9DA9BC",
-				OutlineVariant = "#CDD4DF"
-			}
+		(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, true) => this with
+		{
+			OnSurface = "#F4F4F6",
+			OnBackground = "#F4F4F6",
+			OnSurface2 = "#DEDEE3",
+			OnSurfaceVariant = "#BFBFC8",
+			Secondary = "#BFBFC8",
+			Icon = "#A8A8B2",
+			OnSurfaceTertiary = "#9C9CA6",
+			Outline = "#44444C",
+			OutlineStrong = "#56565F",
+			OutlineVariant = "#33333A"
+		},
+		(MokaSurfaces.Graphite or MokaSurfaces.NearBlack, false) => this with
+		{
+			OnSurface = "#0C0C10",
+			OnBackground = "#0C0C10",
+			OnSurface2 = "#25252B",
+			OnSurfaceVariant = "#44444C",
+			Secondary = "#44444C",
+			Icon = "#52525B",
+			OnSurfaceTertiary = "#52525B",
+			Outline = "#BCBCC4",
+			OutlineStrong = "#A0A0A9",
+			OutlineVariant = "#D0D0D6"
+		},
+		(_, true) => this with
+		{
+			OnSurface = "#F4F6FA",
+			OnBackground = "#F4F6FA",
+			OnSurface2 = "#DCE1EA",
+			OnSurfaceVariant = "#BAC3D4",
+			Secondary = "#BAC3D4",
+			Icon = "#A3ADBF",
+			OnSurfaceTertiary = "#97A2B6",
+			Outline = "#3A4762",
+			OutlineStrong = "#48577A",
+			OutlineVariant = "#2C374C"
+		},
+		(_, false) => this with
+		{
+			OnSurface = "#0B0F18",
+			OnBackground = "#0B0F18",
+			OnSurface2 = "#222B3A",
+			OnSurfaceVariant = "#3E4859",
+			Secondary = "#3E4859",
+			Icon = "#4C566A",
+			OnSurfaceTertiary = "#4C566A",
+			Outline = "#B9C3D3",
+			OutlineStrong = "#9DA9BC",
+			OutlineVariant = "#CDD4DF"
+		}
 		};
-	}
 }

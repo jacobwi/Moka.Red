@@ -1,0 +1,37 @@
+<DemoSection Id="linear-determinate" Title="Linear - determinate" Description="How far along something is, as a bar or a ring." Tip="Leave Value unset until you know how far along it is: an indeterminate bar promises less.">
+	<ChildContent>
+		<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+			<MokaProgress Value="25"/>
+			<MokaProgress Value="60" ShowValue="true"/>
+			<MokaProgress Value="85" ShowValue="true" Striped="true"/>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Value">0 to 100. Leave it out while you do not know</DemoParam>
+		<DemoParam Name="ProgressType">Linear or Circular</DemoParam>
+		<DemoParam Name="ShowValue">The percent beside or inside it</DemoParam>
+		<DemoParam Name="Striped, Thin">Stripes, and a 6 px bar</DemoParam>
+		<DemoParam Name="Segments">Several colored parts in one bar</DemoParam>
+	</Notes>
+	<Playground>
+		<ProgressPlayground/>
+	</Playground>
+</DemoSection>
+
+<DemoSection Id="linear-indeterminate" Title="Linear - indeterminate">
+	<div style="max-width: 400px;">
+		<MokaProgress/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="circular-determinate" Title="Circular - determinate">
+	<div class="button-row">
+		<MokaProgress Value="25" ProgressType="MokaProgressType.Circular"/>
+		<MokaProgress Value="60" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+		<MokaProgress Value="100" ProgressType="MokaProgressType.Circular" ShowValue="true"/>
+	</div>
+</DemoSection>
+
+<DemoSection Id="circular-indeterminate" Title="Circular - indeterminate">
+	<MokaProgress ProgressType="MokaProgressType.Circular"/>
+</DemoSection>

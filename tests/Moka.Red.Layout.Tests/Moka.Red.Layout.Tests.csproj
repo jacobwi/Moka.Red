@@ -43,7 +43,7 @@
 		<None Include="..\..\src\Moka.Red.Layout\Card\MokaCard.razor.css" Link="Css\MokaCard.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\StatusBar\MokaStatusBar.razor.css" Link="Css\MokaStatusBar.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\Toolbar\MokaToolbar.razor.css" Link="Css\MokaToolbar.razor.css" CopyToOutputDirectory="PreserveNewest" />
-		<None Include="..\..\src\Moka.Red.Layout\DockLayout\MokaDockPanel.razor.css" Link="Css\MokaDockPanel.razor.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Layout\DockLayout\*.razor.css" Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\Paper\MokaPaper.razor.css" Link="Css\MokaPaper.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\PageHeader\MokaPageHeader.razor.css" Link="Css\MokaPageHeader.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Layout\SplitPane\MokaSplitPane.razor.css" Link="Css\MokaSplitPane.razor.css" CopyToOutputDirectory="PreserveNewest" />

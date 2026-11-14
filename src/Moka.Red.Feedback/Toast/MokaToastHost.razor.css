@@ -55,8 +55,11 @@
 	align-items: center;
 }
 
+/* pan-y leaves vertical scrolling to the browser and hands a sideways touch to the host's script, which swipes the
+   toast away. */
 .moka-toast {
 	pointer-events: auto;
+	touch-action: pan-y;
 	display: flex;
 	align-items: flex-start;
 	gap: var(--moka-spacing-sm);
@@ -109,7 +112,23 @@
 	margin-top: 4px;
 }
 
-.moka-toast-progress {
+.moka-toast--clickable { cursor: pointer; }
+
+.moka-toast-count {
+	display: inline-block;
+	margin-inline-start: var(--moka-spacing-xs);
+	padding-inline: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+/* The countdown. Its animation is the toast's whole lifetime: when it ends, the host's script tells .NET, and the
+   toast goes. Pausing the animation pauses the toast, so it waits while the pointer is over the toasts, focus is in
+   them, a finger is swiping one, or the tab is hidden (the script marks the host). */
+.moka-toast-timer {
 	position: absolute;
 	bottom: 0;
 	left: 0;
@@ -117,13 +136,73 @@
 	height: 2px;
 	opacity: 0.3;
 	transform-origin: left;
-	animation: moka-toast-timer linear forwards;
+	animation: moka-toast-timer var(--_toast-duration) linear forwards;
 }
 
-.moka-toast-progress--info { background: var(--moka-color-info); }
-.moka-toast-progress--success { background: var(--moka-color-success); }
-.moka-toast-progress--warning { background: var(--moka-color-warning); }
-.moka-toast-progress--error { background: var(--moka-color-error); }
+.moka-toast-timer--info { background: var(--moka-color-info); }
+.moka-toast-timer--success { background: var(--moka-color-success); }
+.moka-toast-timer--warning { background: var(--moka-color-warning); }
+.moka-toast-timer--error { background: var(--moka-color-error); }
+
+.moka-toast-host:hover .moka-toast-timer,
+.moka-toast-host:focus-within .moka-toast-timer,
+.moka-toast-host[data-moka-hidden] .moka-toast-timer,
+.moka-toast[data-moka-swiping] .moka-toast-timer {
+	animation-play-state: paused;
+}
+
+/* Reduced motion keeps the timing and hides the movement. moka.css cuts every animation to 0.01ms with !important
+   under reduced motion, which here would end every toast at once, so the countdown takes its duration back with an
+   !important of its own and draws nothing. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-toast-timer {
+		animation-duration: var(--_toast-duration) !important;
+		visibility: hidden;
+	}
+}
+
+/* Progress along the bottom edge: the default look, and the only one the original design draws. */
+.moka-toast-edge {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: calc(var(--moka-border-width) * 2);
+	overflow: hidden;
+}
+
+.moka-toast-edge__fill {
+	display: block;
+	height: 100%;
+	transform: scaleX(var(--_toast-progress, 0));
+	transform-origin: left;
+	transition: transform var(--moka-transition-normal);
+}
+
+.moka-toast-edge--info .moka-toast-edge__fill { background: var(--moka-color-info); }
+.moka-toast-edge--success .moka-toast-edge__fill { background: var(--moka-color-success); }
+.moka-toast-edge--warning .moka-toast-edge__fill { background: var(--moka-color-warning); }
+.moka-toast-edge--error .moka-toast-edge__fill { background: var(--moka-color-error); }
+
+.moka-toast-edge__fill--indeterminate {
+	width: 40%;
+	transform: none;
+	animation: moka-toast-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes moka-toast-sweep {
+	from { translate: -100% 0; }
+	to { translate: 250% 0; }
+}
+
+/* The blanket rule in moka.css would run a sweep once and leave a still 40% bar, which reads as real progress. A
+   faint full bar says "working" without moving. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-toast-edge__fill--indeterminate {
+		width: 100%;
+		opacity: 0.45;
+		animation: none;
+	}
+}
 
 @keyframes moka-toast-slide-in {
 	from { transform: translateX(100%); opacity: 0; }
@@ -195,7 +274,7 @@
 }
 
 .moka-gate .moka-toast-host--tinted .moka-toast-title { color: var(--_toast-ink); }
-.moka-gate .moka-toast-host--tinted .moka-toast-progress { opacity: 0.55; }
+.moka-gate .moka-toast-host--tinted .moka-toast-timer { opacity: 0.55; }
 
 .moka-gate .moka-toast-host--icon-tile .moka-toast {
 	gap: var(--moka-spacing-lg);
@@ -288,9 +367,10 @@
 	outline-color: var(--_toast-accent);
 }
 
-.moka-gate .moka-toast-host--snackbar .moka-toast-progress,
-.moka-gate .moka-toast-host--pill .moka-toast-progress {
-	display: none;
+/* Hidden, not left out: the countdown still has to run for the toast to go. */
+.moka-gate .moka-toast-host--snackbar .moka-toast-timer,
+.moka-gate .moka-toast-host--pill .moka-toast-timer {
+	visibility: hidden;
 }
 
 /* Pill: centred on the host's edge whatever side Position names, with auto margins as the centred positions are,
@@ -353,9 +433,14 @@
 	text-transform: uppercase;
 }
 
-.moka-gate .moka-toast-host--terminal .moka-toast-progress {
+.moka-gate .moka-toast-host--terminal .moka-toast-timer {
 	height: 1px;
 	opacity: 0.9;
+	box-shadow: 0 0 var(--moka-spacing-sm) var(--_toast-tone);
+}
+
+.moka-gate .moka-toast-host--terminal .moka-toast-edge {
+	height: var(--moka-border-width);
 	box-shadow: 0 0 var(--moka-spacing-sm) var(--_toast-tone);
 }
 
@@ -444,4 +529,109 @@
 .moka-gate .moka-toast-host--pile-bottom:not(:hover):not(:focus-within) .moka-toast:nth-last-child(n+2) ::deep > * {
 	opacity: 0;
 	pointer-events: none;
+}
+
+/* Progress looks. The host writes them only on the new design; the original design draws the spinner and the edge. */
+
+.moka-gate .moka-toast-edge__fill { background: var(--_toast-tone); }
+
+.moka-gate .moka-toast-ring {
+	position: relative;
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	inline-size: calc(var(--moka-spacing-xl) * 2);
+	block-size: calc(var(--moka-spacing-xl) * 2);
+	font-size: var(--moka-font-size-xxs);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+	color: var(--_toast-ink);
+}
+
+/* The ring is its own layer, so the mask that hollows it leaves the percent alone. */
+.moka-gate .moka-toast-ring__track {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--moka-radius-full);
+	background: conic-gradient(var(--_toast-tone) calc(var(--_toast-progress, 0) * 1turn), var(--moka-color-outline) 0);
+	mask: radial-gradient(farthest-side, transparent calc(100% - var(--moka-spacing-xs)), currentColor calc(100% - var(--moka-spacing-xs)));
+	transition: background var(--moka-transition-normal);
+}
+
+.moka-gate .moka-toast-ring--indeterminate .moka-toast-ring__track {
+	background: conic-gradient(var(--_toast-tone) 0.25turn, var(--moka-color-outline) 0);
+}
+
+.moka-gate .moka-toast-ring__value { position: relative; }
+
+.moka-gate .moka-toast-detail {
+	display: flex;
+	flex-direction: column;
+	gap: var(--moka-spacing-xs);
+	margin-top: var(--moka-spacing-sm);
+}
+
+.moka-gate .moka-toast-track {
+	display: block;
+	block-size: var(--moka-spacing-xs);
+	border-radius: var(--moka-radius-full);
+	background: var(--moka-color-outline);
+	overflow: hidden;
+}
+
+.moka-gate .moka-toast-track__fill {
+	display: block;
+	block-size: 100%;
+	background: var(--_toast-tone);
+	transform: scaleX(var(--_toast-progress, 0));
+	transform-origin: left;
+	transition: transform var(--moka-transition-normal);
+}
+
+.moka-gate .moka-toast-track__fill--indeterminate {
+	inline-size: 40%;
+	transform: none;
+	animation: moka-toast-sweep 1.4s ease-in-out infinite;
+}
+
+.moka-gate .moka-toast-detail__facts {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--moka-spacing-md);
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-xs);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-gate .moka-toast-pill {
+	display: inline-block;
+	flex: none;
+	margin-top: var(--moka-spacing-xs);
+	padding-inline: var(--moka-spacing-sm);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-full);
+	background: linear-gradient(to right, var(--_toast-bg) calc(var(--_toast-progress, 0) * 100%), transparent 0);
+	color: var(--_toast-ink);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-pill,
+.moka-gate .moka-toast-host--pill .moka-toast-pill {
+	margin-top: 0;
+}
+
+.moka-gate .moka-toast-host--snackbar .moka-toast-pill {
+	border-color: var(--_toast-muted);
+	color: inherit;
+}
+
+/* As for the edge bar above. */
+@media (prefers-reduced-motion: reduce) {
+	.moka-gate .moka-toast-track__fill--indeterminate {
+		inline-size: 100%;
+		opacity: 0.45;
+		animation: none;
+	}
 }

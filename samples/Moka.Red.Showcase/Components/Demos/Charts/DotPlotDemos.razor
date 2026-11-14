@@ -1,0 +1,160 @@
+@using System.Globalization
+@using Moka.Red.Core.Charts
+
+<DemoSection Id="basics" Title="Basics">
+	<MokaDotPlot Title="Uptime by service" Subtitle="Last 30 days. The axis starts near 99%" Rows="@Uptime"
+	             Sort="MokaChartSort.Descending" XAxis="PercentAxis" Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="lollipop" Title="Lollipop" Description="Stems draws a line from the axis to each dot.">
+	<MokaDotPlot Title="Free space by volume" Subtitle="Gigabytes" Rows="@Volumes" Stems ZeroBased
+	             Unit="Gb" Controls="Tools"
+	             Annotations="@VolumeLines"/>
+</DemoSection>
+
+<DemoSection Id="dumbbell" Title="Dumbbell">
+	<MokaDotPlot Title="p95 response time before and after the cache" Subtitle="By endpoint" Rows="@Cache"
+	             UpIsGood="false" MarkWorse Unit="MokaChartUnit.Milliseconds" ZeroBased Controls="Tools"/>
+</DemoSection>
+
+<DemoSection Id="many-rows" Title="Many rows" Description="Rows draw only as they scroll into view, past 200 rows.">
+	<MokaSegmentedControl Value="@_rows.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetRows" AriaLabel="Rows">
+		<MokaSegment Value="10" Text="10 rows"/>
+		<MokaSegment Value="1000" Text="1,000"/>
+		<MokaSegment Value="10000" Text="10,000"/>
+	</MokaSegmentedControl>
+	<MokaDotPlot Title="Latency by device" Rows="@_longDots" Unit="MokaChartUnit.Milliseconds" MaxHeight="420px"
+	             Sort="MokaChartSort.Descending" DataVersion="@_rows" Controls="Tools"/>
+</DemoSection>
+
+@code {
+	private const MokaChartControls Tools = MokaChartControls.View | MokaChartControls.Export | MokaChartControls.ResetZoom;
+
+	private static readonly MokaChartAxis PercentAxis = new() { Formatter = Percent };
+
+	private static readonly MokaDotPlotRow[] Uptime =
+	[
+		new("Router", 99.99), new("DNS", 99.97) { Detail = "13 min down" }, new("Mail relay", 99.93), new("VPN", 99.82),
+		new("NAS", 99.64) { Detail = "2 h 35 min down" }, new("Media server", 99.21) { Detail = "5 h 41 min down" }
+	];
+
+	private static string Percent(double value) => value.ToString("0.##", CultureInfo.CurrentCulture) + "%";
+
+	private static readonly MokaChartUnit Gb = MokaChartUnit.Of("GB");
+
+	private static readonly MokaDotPlotRow[] Volumes =
+	[
+		new("nas-01 /media", 412), new("nas-01 /backups", 236), new("nas-02 /work", 121), new("router /var", 3.2),
+		new("laptop-anna /home", 88)
+	];
+
+	private static readonly MokaChartAnnotation[] VolumeLines = [new MokaChartThreshold(50) { Label = "Low space" }];
+
+	private static readonly MokaDotPlotRow[] Cache =
+	[
+		new("/api/feed", 260) { Before = 520 }, new("/api/search", 180) { Before = 420 },
+		new("/api/files", 240) { Before = 310 }, new("/api/thumbs", 90) { Before = 260 },
+		new("/api/login", 150) { Before = 140, Detail = "Login skips the cache" }
+	];
+
+	private static readonly DateTimeOffset Midnight = new(2026, 11, 11, 0, 0, 0, TimeSpan.Zero);
+
+	private static readonly DateTimeOffset Night = Midnight.AddMinutes(310);
+
+	private string _preset = "Red";
+
+	private bool _dark = true;
+
+	private MokaChartLook _look = MokaChartLook.Quiet;
+
+	private MokaChartPalette _palette = MokaChartPalette.Reference;
+
+	private MokaChartTexture _texture = MokaChartTexture.None;
+
+	private int _rows = 1000;
+
+	private int _points = 100_000;
+
+	private MokaTheme _theme = MokaTheme.Red;
+
+	private MokaGanttRow[] _longJobs = [];
+
+	private MokaDotPlotRow[] _longDots = [];
+
+	private MokaScatterSeries[] _bigScatter = [];
+
+	protected override void OnInitialized()
+	{
+		BuildTheme();
+		BuildRows();
+		BuildPoints();
+	}
+
+	private void SetRows(string value)
+	{
+		_rows = int.Parse(value, CultureInfo.InvariantCulture);
+		BuildRows();
+	}
+
+	private void BuildTheme()
+	{
+		MokaTheme theme = _preset switch
+		{
+			"Gate" => _dark ? MokaTheme.Gate : MokaTheme.GateLight,
+			"Crisp" => _dark ? MokaTheme.Crisp : MokaTheme.CrispLight,
+			"Matrix" => _dark ? MokaTheme.Matrix : MokaTheme.MatrixLight,
+			"Original" => _dark ? MokaTheme.Dark : MokaTheme.Light,
+			_ => _dark ? MokaTheme.Red : MokaTheme.RedLight
+		};
+		_theme = theme.WithCharts(_look).WithChartPalette(_palette).WithChartTexture(_texture);
+	}
+
+	private void BuildRows()
+	{
+		Random random = new(7);
+		string[] kinds = ["backup", "sync", "scan", "thumbs", "report", "index"];
+		_longJobs =
+		[
+			.. Enumerable.Range(0, _rows).Select(i =>
+			{
+				DateTimeOffset start = Midnight.AddMinutes(i * (14d * 60 / _rows) + random.NextDouble() * 30);
+				double minutes = 3 + random.NextDouble() * 80;
+				double roll = random.NextDouble();
+				MokaGanttStatus status = roll < 0.06 ? MokaGanttStatus.Failed : roll < 0.1 ? MokaGanttStatus.Skipped : MokaGanttStatus.Done;
+				bool running = start.AddMinutes(minutes) > Night.AddHours(14);
+				return new MokaGanttRow($"{kinds[i % kinds.Length]}-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}", start)
+				{
+					End = running ? null : start.AddMinutes(minutes),
+					Status = running ? MokaGanttStatus.Running : status
+				};
+			})
+		];
+		_longDots =
+		[
+			.. Enumerable.Range(0, _rows).Select(i => new MokaDotPlotRow(
+				$"device-{(i + 1).ToString("00000", CultureInfo.InvariantCulture)}.lan", Math.Round(4 + Math.Exp(random.NextDouble() * 5), 1)))
+		];
+	}
+
+	private void BuildPoints()
+	{
+		Random random = new(11);
+		MokaScatterPoint[] Cluster(int count, double size, double sizeSpread, double time, double timeSpread) =>
+		[
+			.. Enumerable.Range(0, count).Select(_ => new MokaScatterPoint(
+				Math.Max(0.1, size * Math.Exp(sizeSpread * Gauss(random))), Math.Max(1, time + timeSpread * Gauss(random))))
+		];
+		_bigScatter =
+		[
+			new MokaScatterSeries("Cached", Cluster(_points * 3 / 4, 40, 0.8, 30, 10)),
+			new MokaScatterSeries("Origin", Cluster(_points / 4, 160, 0.6, 180, 60))
+		];
+	}
+
+	private static double Gauss(Random random)
+	{
+		double u = 1 - random.NextDouble();
+		double v = random.NextDouble();
+		return Math.Sqrt(-2 * Math.Log(u)) * Math.Cos(2 * Math.PI * v);
+	}
+}

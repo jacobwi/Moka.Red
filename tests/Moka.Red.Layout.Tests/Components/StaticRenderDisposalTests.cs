@@ -29,6 +29,27 @@ public sealed class StaticRenderDisposalTests
 		await renderer.DisposeAsync();
 	}
 
+	// Prerendered or static, the layout draws its whole tree, with every showing panel's host already over its slot.
+	[Fact]
+	public async Task ADockLayoutDrawnStatically_DrawsItsTree_AndDisposesWithoutJs()
+	{
+		await using ServiceProvider services = new ServiceCollection()
+			.AddLogging()
+			.AddSingleton<IJSRuntime>(new NoModulesJs())
+			.BuildServiceProvider();
+		HtmlRenderer renderer = new(services, NullLoggerFactory.Instance);
+
+		string html = await renderer.Dispatcher.InvokeAsync(async () =>
+			(await renderer.RenderComponentAsync<Moka.Red.Layout.DockLayout.MokaDockLayout>(ParameterView.FromDictionary(
+				new Dictionary<string, object?> { ["ChildContent"] = DockKit.Ide() }))).ToHtmlString());
+
+		Assert.Contains("data-moka-dock-split=\"row\"", html, StringComparison.Ordinal);
+		Assert.Contains("data-moka-dock-group=\"bottom\"", html, StringComparison.Ordinal);
+		Assert.Contains("position-anchor: --moka-dock-", html, StringComparison.Ordinal);
+		Assert.Contains("data-probe=\"explorer\"", html, StringComparison.Ordinal);
+		await renderer.DisposeAsync();
+	}
+
 	private sealed class NoModulesJs : IJSRuntime
 	{
 		public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => new(default(TValue)!);

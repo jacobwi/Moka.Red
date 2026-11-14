@@ -32,6 +32,43 @@ public class MokaNavEntryTests
 	public void Find_GivesNull_ForAPathTheMenuDoesNotList(string path) =>
 		Assert.Null(MokaNavEntry.Find(Entries, path));
 
+	private static readonly MokaNavEntry[] Nested =
+	[
+		new(string.Empty, "Home", "/", MokaIcons.Navigation.Home),
+		new("Components", "Feedback", "/feedback", MokaIcons.Status.Bell)
+		{
+			Children =
+			[
+				new(string.Empty, "Action bar", "/feedback/action-bar", MokaIcons.Action.Save)
+				{
+					Children = [new(string.Empty, "Countdown", "/feedback/action-bar/countdown", MokaIcons.Status.Info)]
+				},
+				new(string.Empty, "Same page", "/feedback", MokaIcons.Status.Info)
+			]
+		},
+		new("Components", "Data", "/data", MokaIcons.File.Database)
+	];
+
+	[Theory]
+	[InlineData("feedback", "Feedback")]
+	[InlineData("feedback/action-bar", "Action bar")]
+	[InlineData("feedback/action-bar/tab", "Action bar")]
+	[InlineData("feedback/action-bar/countdown", "Countdown")]
+	[InlineData("feedback/other", "Feedback")]
+	[InlineData("data", "Data")]
+	public void Find_LooksThroughChildren_AndAParentWinsATie(string path, string expected) =>
+		Assert.Equal(expected, MokaNavEntry.Find(Nested, path)?.Label);
+
+	[Fact]
+	public void Flatten_GivesEveryEntry_EachBeforeItsChildren() =>
+		Assert.Equal(
+			["Home", "Feedback", "Action bar", "Countdown", "Same page", "Data"],
+			MokaNavEntry.Flatten(Nested).Select(entry => entry.Label));
+
+	[Fact]
+	public void AnEntry_HasNoChildren_ByDefault() =>
+		Assert.Empty(new MokaNavEntry(string.Empty, "Screen", "/", MokaIcons.Navigation.Home).Children);
+
 	[Theory]
 	[InlineData("/", "./")]
 	[InlineData("/devices", "devices")]

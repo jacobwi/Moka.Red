@@ -1,0 +1,70 @@
+@using Moka.Red.Primitives.ChainCheck
+
+<DemoSection Id="where-the-chain-breaks" Title="Where the chain breaks">
+	<MokaChainCheck Steps="Chain" Label="From your phone to the internet"/>
+	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Broken">Blocked</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Checking">Checking</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Fixed">All clear</MokaButton>
+	</div>
+	<p style="margin: 0; color: var(--moka-color-on-surface-variant);">
+		Narrow the window under 720 px: the marks shrink and the word under each name goes.
+	</p>
+</DemoSection>
+
+<DemoSection Id="a-step-after-the-break-that-was-judged" Title="A step after the break that was judged">
+	<MokaChainCheck Steps="AfterTheBreak" Label="From the printer to the office network"/>
+</DemoSection>
+
+@code {
+	private enum ChainState
+	{
+		Broken,
+		Checking,
+		Fixed
+	}
+
+	private ChainState _chain = ChainState.Broken;
+
+	private RenderFragment OpenTheRule =>
+		@<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="() => _chain = ChainState.Fixed">Open the rule</MokaButton>;
+
+	private MokaChainStep[] Chain => _chain switch
+	{
+		ChainState.Checking =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Wait, "Checking", "Measuring the signal."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Wait, "Checking", "Looking at the rules for this phone."),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Wait, "Waiting", ""),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Off, "Not checked", "")
+		],
+		ChainState.Fixed =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Warn, "Weak", "The signal is weak here, which may slow it down.",
+				"Moving closer to the router helps."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Ok, "Allowed", "Nothing stops this phone."),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Ok, "Up", "The router answers."),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Ok, "Online", "The connection out works, 4 ms to your provider.")
+		],
+		_ =>
+		[
+			new(MokaIcons.Status.CheckCircle, "Your phone", MokaChainTone.Ok, "Connected", "Your phone is connected over Wi-Fi."),
+			new(MokaIcons.Status.Info, "Wi-Fi", MokaChainTone.Warn, "Weak", "The signal is weak here, which may slow it down."),
+			new(MokaIcons.Toggle.Lock, "Firewall", MokaChainTone.Fail, "Blocked",
+				"A rule on the guest network stops this phone reaching the internet.", "Rule 4, made on 2 November.", OpenTheRule),
+			new(MokaIcons.Navigation.Home, "Router", MokaChainTone.Wait, "Can't tell yet", "We can't check past the firewall until that's fixed."),
+			new(MokaIcons.Content.Link, "Internet", MokaChainTone.Wait, "Can't tell yet", "The same goes for the connection out.")
+		]
+	};
+
+	private static readonly MokaChainStep[] AfterTheBreak =
+	[
+		new(MokaIcons.File.Document, "Printer", MokaChainTone.Ok, "On", "The printer is on and has paper."),
+		new(MokaIcons.Content.Link, "Cable", MokaChainTone.Fail, "Unplugged", "Its network cable isn't plugged in.",
+			"The light on the back of the printer is off."),
+		new(MokaIcons.Navigation.Home, "Switch", MokaChainTone.Ok, "Up", "The switch answered an hour ago, so this may be out of date."),
+		new(MokaIcons.Action.Settings, "Office network", MokaChainTone.Off, "Off", "")
+	];
+}

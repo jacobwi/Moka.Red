@@ -14,14 +14,7 @@ internal static class MokaCsv
 	public static string Escape(string value)
 	{
 		ArgumentNullException.ThrowIfNull(value);
-
-		// A spreadsheet runs a cell that starts with one of these as a formula, so data such as
-		// =HYPERLINK(...) would execute when the export is opened (CSV injection, per OWASP). The
-		// leading quote makes it text. A number such as -5 holds no formula, so it stays a number.
-		if (value.Length > 0 && value[0] is '=' or '+' or '-' or '@' or '\t' or '\r' && !IsNumber(value))
-		{
-			value = "'" + value;
-		}
+		value = Defuse(value);
 
 		if (value.Contains(',', StringComparison.Ordinal) || value.Contains('"', StringComparison.Ordinal) ||
 		    value.Contains('\n', StringComparison.Ordinal) || value.Contains('\r', StringComparison.Ordinal))
@@ -30,6 +23,19 @@ internal static class MokaCsv
 		}
 
 		return value;
+	}
+
+	/// <summary>A cell that a spreadsheet would run as a formula, made text with a leading quote.</summary>
+	/// <param name="value">The cell's text.</param>
+	/// <returns>The text, safe to open in a spreadsheet.</returns>
+	public static string Defuse(string value)
+	{
+		// A spreadsheet runs a cell that starts with one of these as a formula, so data such as
+		// =HYPERLINK(...) would execute when the export is opened (CSV injection, per OWASP). The
+		// leading quote makes it text. A number such as -5 holds no formula, so it stays a number.
+		return value.Length > 0 && value[0] is '=' or '+' or '-' or '@' or '\t' or '\r' && !IsNumber(value)
+			? "'" + value
+			: value;
 	}
 
 	// The cell text went through the column's Format in the current culture, so that culture is

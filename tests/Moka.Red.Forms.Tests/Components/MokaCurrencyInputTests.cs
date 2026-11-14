@@ -17,10 +17,7 @@ public class MokaCurrencyInputTests : BunitContext
 	public async Task AnAmountAboveMax_IsReportedClamped()
 	{
 		List<decimal?> changes = [];
-		IRenderedComponent<MokaCurrencyInput> cut = Render<MokaCurrencyInput>(p => p
-			.Add(x => x.Value, 50m)
-			.Add(x => x.Max, 100m)
-			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		IRenderedComponent<MokaCurrencyInput> cut = Bound(changes, p => p.Add(x => x.Max, 100m));
 
 		await TypeAsync(cut, "150");
 
@@ -32,10 +29,7 @@ public class MokaCurrencyInputTests : BunitContext
 	public async Task AnAmountBelowMin_IsReportedClamped()
 	{
 		List<decimal?> changes = [];
-		IRenderedComponent<MokaCurrencyInput> cut = Render<MokaCurrencyInput>(p => p
-			.Add(x => x.Value, 50m)
-			.Add(x => x.Min, 10m)
-			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		IRenderedComponent<MokaCurrencyInput> cut = Bound(changes, p => p.Add(x => x.Min, 10m));
 
 		await TypeAsync(cut, "-5");
 
@@ -64,11 +58,7 @@ public class MokaCurrencyInputTests : BunitContext
 	public async Task AnAmountInRange_IsReportedOnce()
 	{
 		List<decimal?> changes = [];
-		IRenderedComponent<MokaCurrencyInput> cut = Render<MokaCurrencyInput>(p => p
-			.Add(x => x.Value, 50m)
-			.Add(x => x.Min, 0m)
-			.Add(x => x.Max, 100m)
-			.Add(x => x.ValueChanged, v => changes.Add(v)));
+		IRenderedComponent<MokaCurrencyInput> cut = Bound(changes, p => p.Add(x => x.Min, 0m).Add(x => x.Max, 100m));
 
 		await TypeAsync(cut, "75.5");
 
@@ -116,6 +106,23 @@ public class MokaCurrencyInputTests : BunitContext
 	}
 
 	private static IElement Input(IRenderedComponent<MokaCurrencyInput> cut) => cut.Find("input");
+
+	// A parent bound to the amount, starting at 50: it takes every change and passes it back.
+	private IRenderedComponent<MokaCurrencyInput> Bound(List<decimal?> changes,
+		Action<ComponentParameterCollectionBuilder<MokaCurrencyInput>> extra)
+	{
+		IRenderedComponent<MokaCurrencyInput>? cut = null;
+		cut = Render<MokaCurrencyInput>(p =>
+		{
+			p.Add(x => x.Value, 50m).Add(x => x.ValueChanged, v =>
+			{
+				changes.Add(v);
+				cut!.Render(q => q.Add(x => x.Value, v));
+			});
+			extra(p);
+		});
+		return cut;
+	}
 
 	private sealed class Invoice
 	{

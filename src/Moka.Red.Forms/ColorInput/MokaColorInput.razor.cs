@@ -408,7 +408,9 @@ public partial class MokaColorInput
 		await base.DisposeAsyncCore();
 	}
 
-	private void HandleNativeInput(ChangeEventArgs e) => CurrentValueAsString = e.Value?.ToString();
+	private string NativeColor => CurrentValueAsString ?? "#000000";
+
+	private void HandleNativeInput(string? value) => CurrentValueAsString = value;
 
 	// Leaving the field, or Enter, takes the text as it is: a color, or the error.
 	private void HandleLookChange(ChangeEventArgs e)

@@ -1,0 +1,59 @@
+.moka-actions-cell {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+}
+
+/* Shown while the row is hovered or holds focus, by CSS alone: no listener per row. A touch screen has no hover, so
+   there they always show. */
+.moka-actions-cell--on-hover {
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast);
+}
+
+tr:hover .moka-actions-cell--on-hover,
+tr:focus-within .moka-actions-cell--on-hover {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.moka-actions-cell--on-hover {
+		opacity: 1;
+	}
+}
+
+/* A quiet icon button, as MokaButton draws Quiet, without a component or a click handler per row. */
+.moka-actions-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: var(--moka-button-height-sm);
+	min-height: var(--moka-button-height-sm);
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background-color: transparent;
+	color: var(--moka-color-on-surface-tertiary);
+	cursor: pointer;
+	transition: background-color var(--moka-transition-fast), color var(--moka-transition-fast);
+}
+
+.moka-actions-btn:hover:not(:disabled),
+.moka-actions-btn:focus-visible {
+	background-color: var(--moka-color-surface-hover);
+	color: var(--moka-color-on-surface);
+}
+
+.moka-actions-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--moka-focus-ring);
+}
+
+.moka-actions-btn:disabled {
+	cursor: default;
+	opacity: var(--moka-opacity-disabled);
+}
+
+.moka-actions-btn--error:hover:not(:disabled) {
+	color: var(--moka-color-error-soft);
+}

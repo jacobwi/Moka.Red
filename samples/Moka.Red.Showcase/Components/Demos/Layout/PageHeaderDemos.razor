@@ -1,0 +1,48 @@
+<DemoSection Id="title-whats-so-now-what-the-page-is-for" Title="Title, what's so now, what the page is for, actions" Description="The top of a page: the title, what's true now, what the page is for, and its actions.">
+	<MokaPageHeader Eyebrow="Network" Title="Devices" Said="14 known, 9 online, 1 needs you." Lead="Everything that has joined your network, and what each one may reach.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Scan now</MokaButton>
+			<MokaButton Color="MokaColor.Primary">Add device</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+</DemoSection>
+
+<DemoSection Id="a-way-back-a-picture-tags-under-it" Title="A way back, a picture, tags under it">
+	<MokaPageHeader Eyebrow="Devices" EyebrowHref="layout" Title="Office desktop" Said="Online for 3 days, on the home network.">
+		<Media>
+			<MokaAvatar Icon="MokaIcons.Navigation.Home" Tile/>
+		</Media>
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary">Pause</MokaButton>
+		</Actions>
+		<ChildContent>
+			<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Wrap>
+				<MokaTag Text="Allowed" Color="MokaColor.Success" Size="MokaSize.Md"/>
+				<MokaTag Text="Windows" Size="MokaSize.Md"/>
+				<MokaTag Text="Yours" Color="MokaColor.Info" Size="MokaSize.Md"/>
+			</MokaFlexbox>
+		</ChildContent>
+	</MokaPageHeader>
+</DemoSection>
+
+<DemoSection Id="a-title-with-a-control-beside-it" Title="A title with a control beside it">
+	<MokaPageHeader Said="6 installed, 1 update ready.">
+		<TitleContent>
+			<h1>Plugins</h1>
+			<MokaBadge Tone="MokaBadgeTone.Ready" Content="1"/>
+		</TitleContent>
+	</MokaPageHeader>
+</DemoSection>
+
+<DemoSection Id="counts-and-sizes-in-mono" Title="Counts and sizes in mono">
+	<MokaPageHeader Eyebrow="Library" Title="Photos" Said="@($"{_photoCount:N0} files, 38.2 GB, 3 shared")" SaidMono
+	                Lead="Everything in the library, newest first. The counts keep their width as they change.">
+		<Actions>
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" OnClick="@(() => _photoCount += 7)">Add 7</MokaButton>
+		</Actions>
+	</MokaPageHeader>
+</DemoSection>
+
+@code {
+	private int _photoCount = 1204;
+}
