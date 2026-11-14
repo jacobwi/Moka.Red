@@ -131,9 +131,9 @@ const activeCell = page => page.evaluate(() => {
 
 	await step('table: Enter edits through the JS callback', async () => {
 		await page.keyboard.press('Enter');
-		await page.waitForSelector('#table .moka-table-edit-input');
+		await page.waitForSelector('#table td[data-editing] input:focus');
 		await page.keyboard.press('Escape');
-		await page.waitForSelector('#table .moka-table-edit-input', { state: 'detached' });
+		await page.waitForSelector('#table td[data-editing]', { state: 'detached' });
 	});
 
 	await step('table: Space selects through the JS callback', async () => {

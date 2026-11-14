@@ -12,6 +12,9 @@ namespace Moka.Red.Feedback.Tests.Components;
 
 public class MokaToastHostBehaviorTests : BunitContext
 {
+	// The default words format percentages in the current culture, which differs between machines.
+	private static readonly MokaToastText Words = new();
+
 	private const string Css = "MokaToastHost.razor.css";
 	private const string Module = "./_content/Moka.Red.Feedback/Toast/MokaToastHost.razor.js";
 
@@ -327,7 +330,7 @@ public class MokaToastHostBehaviorTests : BunitContext
 
 		IElement ring = Assert.Single(cut.FindAll("[role=progressbar]"));
 		Assert.Contains("moka-toast-ring", ring.ClassList);
-		Assert.Equal("40%", cut.Find(".moka-toast-ring__value").TextContent);
+		Assert.Equal(Words.Percent(0.4), cut.Find(".moka-toast-ring__value").TextContent);
 		Assert.Equal(cut.Find(".moka-toast-message").Id, ring.GetAttribute("aria-labelledby"));
 	}
 
@@ -341,7 +344,7 @@ public class MokaToastHostBehaviorTests : BunitContext
 			o.ProgressLook = MokaToastProgressLook.Detailed;
 		});
 
-		Assert.Equal(["25%", "About 2 min left"],
+		Assert.Equal([Words.Percent(0.25), "About 2 min left"],
 			cut.FindAll(".moka-toast-detail__facts > span").Select(s => s.TextContent));
 		Assert.Contains("moka-toast-track", Assert.Single(cut.FindAll("[role=progressbar]")).ClassList);
 	}
@@ -366,7 +369,7 @@ public class MokaToastHostBehaviorTests : BunitContext
 		IRenderedComponent<CascadingValue<MokaTheme>> cut = RenderIn(MokaTheme.Red, h => h.Add(x => x.Look, look));
 		Toasts.ShowInfo("Exporting", o => o.Progress = 0.5);
 
-		Assert.Equal("50%", Assert.Single(cut.FindAll("[role=progressbar]")).TextContent);
+		Assert.Equal(Words.Percent(0.5), Assert.Single(cut.FindAll("[role=progressbar]")).TextContent);
 		Assert.Contains("moka-toast-pill", cut.Find("[role=progressbar]").ClassList);
 	}
 
