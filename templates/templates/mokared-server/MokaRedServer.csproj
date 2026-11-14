@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moka.Red" Version="0.5.2" />
+    <PackageReference Include="Moka.Red" Version="0.5.3" />
     <!--#if ((interactivity == "WebAssembly" || interactivity == "Auto") && Framework == "net9.0") -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.23" />
     <!--#elif (interactivity == "WebAssembly" || interactivity == "Auto") -->

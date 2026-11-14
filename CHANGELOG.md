@@ -5,7 +5,7 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.3] - 2026-11-13
 
 ### Fixed
 - Reloading the page of a BlazorWebView app (MAUI, WPF, Windows Forms) no longer throws from component disposal. The
