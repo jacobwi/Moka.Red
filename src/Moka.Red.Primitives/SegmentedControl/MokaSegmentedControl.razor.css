@@ -157,15 +157,25 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+/* A track with a height of its own (MatchControlHeight, or MokaTheme.WithControlHeights(Matched)) sets --_segmented-height,
+   and its segments fill what its padding and border leave. Without one the variables are invalid, the track grows to
+   its segments and the segments keep --moka-segment-height. */
 .moka-gate .moka-segmented {
+	--_segmented-height: var(--moka-matched-height);
+	--_segment-height: calc(var(--_segmented-height) - 2 * (var(--moka-spacing-xs) + var(--moka-border-width)));
+	min-height: var(--_segmented-height, auto);
 	padding: var(--moka-spacing-xs);
 	gap: var(--moka-spacing-xs);
 	border-radius: var(--moka-radius-md);
 	background-color: var(--moka-color-surface);
 }
 
+.moka-gate .moka-segmented--xs { --_segmented-height: var(--moka-matched-height-xs); }
+.moka-gate .moka-segmented--sm { --_segmented-height: var(--moka-matched-height-sm); }
+.moka-gate .moka-segmented--lg { --_segmented-height: var(--moka-matched-height-lg); }
+
 .moka-gate .moka-segmented ::deep .moka-segment {
-	min-height: var(--moka-segment-height);
+	min-height: var(--_segment-height, var(--moka-segment-height));
 	padding: 0 var(--moka-button-padding);
 	border-radius: calc(var(--moka-radius-md) - 2px);
 	color: var(--moka-color-on-surface-variant);
@@ -179,7 +189,7 @@
 
 .moka-gate .moka-segmented--xs ::deep .moka-segment,
 .moka-gate .moka-segmented--sm ::deep .moka-segment {
-	min-height: calc(var(--moka-segment-height) - var(--moka-spacing-md));
+	min-height: var(--_segment-height, calc(var(--moka-segment-height) - var(--moka-spacing-md)));
 	padding: 0 var(--moka-button-padding-sm);
 	font-size: var(--moka-font-size-sm);
 }
@@ -196,17 +206,8 @@
 }
 
 /* MatchControlHeight: the track is as tall as a text field or select of the same Size, which take their height from
-   --moka-control-height in the same steps, so a row of small controls lines up. The segments fill what the track's
-   padding and border leave. */
-.moka-gate .moka-segmented--control-height {
-	--_segmented-height: var(--moka-control-height);
-	min-height: var(--_segmented-height);
-}
-
-.moka-gate .moka-segmented--control-height.moka-segmented--xs { --_segmented-height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); }
-.moka-gate .moka-segmented--control-height.moka-segmented--sm { --_segmented-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
-.moka-gate .moka-segmented--control-height.moka-segmented--lg { --_segmented-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); }
-
-.moka-gate .moka-segmented.moka-segmented--control-height ::deep .moka-segment {
-	min-height: calc(var(--_segmented-height) - 2 * (var(--moka-spacing-xs) + var(--moka-border-width)));
-}
+   --moka-control-height in the same steps, so a row of small controls lines up. */
+.moka-gate .moka-segmented--control-height { --_segmented-height: var(--moka-control-height); }
+.moka-gate .moka-segmented--control-height.moka-segmented--xs { --_segmented-height: var(--moka-control-height-xs); }
+.moka-gate .moka-segmented--control-height.moka-segmented--sm { --_segmented-height: var(--moka-control-height-sm); }
+.moka-gate .moka-segmented--control-height.moka-segmented--lg { --_segmented-height: var(--moka-control-height-lg); }

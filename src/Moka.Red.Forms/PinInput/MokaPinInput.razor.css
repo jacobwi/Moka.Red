@@ -131,10 +131,10 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-pin-digit--xs { width: calc(var(--moka-control-height) - var(--moka-spacing-xl)); height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); font-size: var(--moka-font-size-sm); }
-.moka-gate .moka-pin-digit--sm { width: calc(var(--moka-control-height) - var(--moka-spacing-md)); height: calc(var(--moka-control-height) - var(--moka-spacing-md)); font-size: var(--moka-font-size-base); }
+.moka-gate .moka-pin-digit--xs { width: var(--moka-control-height-xs); height: var(--moka-control-height-xs); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-pin-digit--sm { width: var(--moka-control-height-sm); height: var(--moka-control-height-sm); font-size: var(--moka-font-size-base); }
 .moka-gate .moka-pin-digit--md { width: var(--moka-control-height); height: var(--moka-control-height); font-size: var(--moka-font-size-lg); }
-.moka-gate .moka-pin-digit--lg { width: calc(var(--moka-control-height) + var(--moka-spacing-md)); height: calc(var(--moka-control-height) + var(--moka-spacing-md)); font-size: var(--moka-font-size-xl); }
+.moka-gate .moka-pin-digit--lg { width: var(--moka-control-height-lg); height: var(--moka-control-height-lg); font-size: var(--moka-font-size-xl); }
 
 .moka-gate .moka-pin-digit:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
 

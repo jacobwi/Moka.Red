@@ -189,15 +189,6 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	public MokaContextMenuItemStyle ItemStyle { get; set; }
 
 	/// <summary>
-	///     Whether the menu that holds keyboard focus also draws the page's focus ring around itself, as it does by
-	///     default on the new design. The lit row already shows where the keyboard is, so with false a menu and its
-	///     sub-menu look alike whichever of them has focus. A menu passes it on to its sub-menus. The original design
-	///     draws no ring either way.
-	/// </summary>
-	[Parameter]
-	public bool FocusRing { get; set; } = true;
-
-	/// <summary>
 	///     The component that redraws after an item runs. Each item's <see cref="MokaContextMenuItem.OnClick" /> runs
 	///     through it the way an <see cref="EventCallback" /> runs through its receiver, so what the item changed shows
 	///     without a <c>StateHasChanged</c>. Null runs items from the menu, which redraws only the menu. A menu passes it on
@@ -366,7 +357,6 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		.AddClass("moka-ctx-menu--measuring", !_positionResolved)
 		.AddClass(Look is { } look ? $"moka-popups-{MokaEnumHelpers.ToCssClass(look)}" : null)
 		.AddClass("moka-ctx-menu--quiet", ItemStyle == MokaContextMenuItemStyle.Quiet)
-		.AddClass("moka-ctx-menu--row-focus", !FocusRing)
 		.Build();
 
 	private string MenuStyle => new StyleBuilder()

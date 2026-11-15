@@ -5,6 +5,45 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaBreadcrumbItem.OnClick`, for a trail whose levels are picked through the app's own state rather than an
+  address. A level with `OnClick` and no `Href` is a button styled as the link; a link with `OnClick` raises it too, and
+  the current page stays text. Such a level can be picked from the menu of folded levels, and the back link a narrow
+  trail shows is a button when the parent has no address.
+- `MokaTheme.WithControlHeights(MokaControlHeights)`. `Matched` makes buttons, toggle groups and segmented controls as
+  tall as a text field or select of the same `Size`, so a toolbar or form row of mixed controls lines up; `Standard`,
+  the default, keeps each kind's own height. New design only. Every provider sets it for what it holds, so a nested
+  provider can choose otherwise. The appearance panel has a Control heights row (`MokaAppearanceRows.ControlHeights`,
+  in `Components` and `All`), `MokaAppearance.ControlHeights` holds it, and the theme export writes it.
+- Tokens `--moka-control-height-xs`, `--moka-control-height-sm` and `--moka-control-height-lg`: the medium control
+  height less `--moka-spacing-xl`, less `--moka-spacing-md`, and plus `--moka-spacing-md`. Fields, selects and pickers
+  wrote these steps out by hand in 64 places; they read the tokens now, at the same heights.
+
+### Fixed
+- `MokaThemeProvider` reads `AutoDetectColorScheme` on every render. Turning it on after the first render starts
+  watching the system color scheme, and turning it off stops watching and shows `Theme`.
+- `MokaTree`: Arrow Right on an open item whose children haven't arrived yet stays on the item, as the tree pattern
+  says. It moved to the next item.
+- A `MokaDonutChart` on the chart frame (any newer parameter, the Bar and Waffle shapes) no longer stands several times
+  taller than what it draws. Its root was a flex column that measured the frame at its narrowest; it's a block now, as
+  every other chart root is.
+- On the new design the page-wide keyboard focus ring no longer draws over a component that turns its outline off. It
+  weighed two classes and came after the components' styles; it weighs nothing now. Menus, lists and grids whose lit
+  item shows the keyboard (context menu, radial menu, file browser, emoji panel, country grid), dialogs, drawers,
+  sheets and the lightbox when focused as a whole, and the select, cascader and tree select boxes draw no second ring
+  round themselves. Links and controls with no ring of their own keep the page ring.
+- Rules aimed at an icon or row a component hands to a child component now reach it: `MokaValidationSummary`'s icon is
+  in the error color and lines up with the first line of text, `MokaTable`'s failed-load icon is in the error color,
+  `MokaSplitButton`'s arrow turns over while its menu is open, and on a phone the rows of a table's `FooterContent`
+  lay out like its totals row. Rules that could only repeat what `MokaIcon` already does were removed.
+
+### Removed
+- `MokaContextMenu.FocusRing` and `MokaContextMenuHost.FocusRing` (breaking). The menu draws no ring round itself on
+  either design now, which is what `FocusRing="false"` did. Remove the parameter: Blazor throws when a component is
+  given a parameter it doesn't have.
+
 ## [0.6.2] - 2026-11-14
 
 ### Added

@@ -30,6 +30,11 @@ internal static class ThemeRootClasses
 			yield return $"moka-disabled-buttons-{MokaEnumHelpers.ToCssClass(theme.DisabledButtons)}";
 		}
 
+		if (theme.ControlHeights == MokaControlHeights.Matched)
+		{
+			yield return "moka-control-heights-matched";
+		}
+
 		if (theme.Tooltips != MokaTooltipLook.Standard)
 		{
 			yield return $"moka-tooltips-{MokaEnumHelpers.ToCssClass(theme.Tooltips)}";

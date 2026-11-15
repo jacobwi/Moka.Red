@@ -36,8 +36,7 @@ public class MokaSegmentedControlLabelWidthTests
 			".moka-segmented--stack ::deep .moka-segment",
 			".moka-gate .moka-segmented ::deep .moka-segment",
 			".moka-gate .moka-segmented--xs ::deep .moka-segment",
-			".moka-gate .moka-segmented--sm ::deep .moka-segment",
-			".moka-gate .moka-segmented.moka-segmented--control-height ::deep .moka-segment"
+			".moka-gate .moka-segmented--sm ::deep .moka-segment"
 		];
 
 		Assert.All(others, selector => Assert.DoesNotContain("min-width", ScopedCss.Declarations(Css, selector).Keys));

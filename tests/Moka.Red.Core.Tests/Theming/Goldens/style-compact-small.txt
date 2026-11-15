@@ -1,7 +1,7 @@
 class: moka-root moka-dark moka-gate moka-popups-standard moka-buttons-standard
 nested-class: moka-root moka-root--nested moka-dark moka-gate moka-popups-standard
 page: background: var(--moka-color-background); color-scheme: dark;
-root-declares: 296
+root-declares: 299
 nested-root-declares: 0
 
 --moka-color-primary: #EF5350
@@ -229,6 +229,9 @@ nested-root-declares: 0
 --moka-row-padding: 5px 10px
 --moka-item-padding: 4px 10px
 --moka-control-height: 34px
+--moka-control-height-xs: calc(var(--moka-control-height) - var(--moka-spacing-xl))
+--moka-control-height-sm: calc(var(--moka-control-height) - var(--moka-spacing-md))
+--moka-control-height-lg: calc(var(--moka-control-height) + var(--moka-spacing-md))
 --moka-main-padding: 18px 22px 110px
 --moka-main-padding-top: 18px
 --moka-main-padding-bottom: 110px

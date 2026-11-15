@@ -41,8 +41,7 @@ internal static partial class ScopedCss
 
 		foreach (Match rule in Rule().Matches(css))
 		{
-			IEnumerable<string> selectors = rule.Groups["selectors"].Value.Split(',').Select(s => s.Trim());
-			if (!selectors.Contains(selector, StringComparer.Ordinal))
+			if (!SelectorList(rule.Groups["selectors"].Value).Contains(selector, StringComparer.Ordinal))
 			{
 				continue;
 			}
@@ -56,6 +55,31 @@ internal static partial class ScopedCss
 				}
 			}
 		}
+	}
+
+	// Split at the list's own commas only, so :is(a, b) and :where(a, b) stay whole.
+	private static IEnumerable<string> SelectorList(string list)
+	{
+		int depth = 0;
+		int start = 0;
+		for (int i = 0; i < list.Length; i++)
+		{
+			switch (list[i])
+			{
+				case '(':
+					depth++;
+					break;
+				case ')':
+					depth--;
+					break;
+				case ',' when depth == 0:
+					yield return list[start..i].Trim();
+					start = i + 1;
+					break;
+			}
+		}
+
+		yield return list[start..].Trim();
 	}
 
 	[GeneratedRegex(@"/\*.*?\*/", RegexOptions.Singleline)]

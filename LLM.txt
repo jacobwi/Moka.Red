@@ -3331,3 +3331,40 @@ Show). BC approved the proposed shape, a delegate over typed properties.
   MokaToastHost parameters (Blazored.Toast), since the host draws toasts and the service makes them.
 - MokaFeedbackOptionsTests (17), Feedback 1,322 pass. Docs: toast.md "App-wide Defaults", notification.md "Keeping the
   List Short", installation.md.
+
+## 2026-11-15 - The 0.6.2 known issues, and the three look calls
+
+BC asked to fix the known bugs, then said to decide the three look items (control heights, the focus ring, the rules
+missing ::deep) on best practice. Unreleased; CHANGELOG [Unreleased] lists it all.
+- MokaThemeProvider reads AutoDetectColorScheme on every render: on starts the watch once (_watchStarted), off unwatches
+  (StopWatchingAsync) and shows Theme. Two provider tests.
+- MokaTree.razor.js: Arrow Right on an open item focuses the next item only when it is the item's own child, so a
+  loading item stays put (WAI-ARIA tree pattern). Checked with real keys on /components/tree.
+- The newer donuts: the root was a flex column, and a flex column measures an inline-size container (the frame) at its
+  narrowest, so the frame stood 525 px tall round a 191 px ring. The root is a block, as every chart root is (ring 191,
+  bar 117, waffle 215 px in the browser).
+- MokaBreadcrumbItem.OnClick: a level without an address is a button carrying the link's class (zero-specificity reset),
+  the fold menu and the narrow back link take it (MokaBreadcrumbFoldedLevel.OnClick, PickAsync, CanPick). Five tests;
+  docs "Levels Without Addresses".
+- Focus ring: the moka.css rule weighed (0,2,0) and came after the scoped styles, so it beat any component outline:none
+  at that weight or less. An audit (74 rules) showed every focusable control that turns its outline off draws its own
+  indicator (buttons, chips and the like already won with :focus-visible rules of their own), and the rest are
+  containers showing focus on a lit item, dialogs focused as a whole, and field boxes. So the rule sits wholly in
+  :where and weighs nothing; plain links keep it (2px solid, checked). I first kept the weight and added 14 opt-out rules,
+  then measured that buttons never showed the page ring, and went back to the one-line fix. MokaContextMenu.FocusRing and
+  the host's existed only to undo the ring; removed (breaking, no app sets it). PageFocusRingTests.
+- Rules missing ::deep: six only repeated MokaIcon's own flex-shrink: 0 (or a width its SizeValue sets), deleted; the
+  dialog icon color would have repainted the new design's icon tiles, and the table group chevron color was taste only,
+  both deleted (no render change). Applied: validation summary and table failure icons in the error color, the split
+  button arrow turning while open (as MokaSelect's chevron), and the phone tfoot rules reaching FooterContent rows.
+  ChildComponentClassRulesTests guards it and found the table failure icon, which the old list missed.
+- Control heights: today's new-design heights are four values at Md (toggle group 36, button 38, field 40, segmented 44),
+  taken on purpose from the router app's design (doc 10), so the default stays and the aligned scale is opt-in:
+  MokaTheme.WithControlHeights(MokaControlHeights.Matched). Tokens --moka-control-height-xs/-sm/-lg (299 tokens) replace
+  64 hand-written formulas in 25 stylesheets at the same heights; the class writes --moka-matched-height-* variables on
+  every new-design root (nested providers work, like the tooltip classes), and buttons, toggle groups and segmented
+  controls read them with today's height as the var() fallback. Measured: Standard unchanged, Matched 24/32/40/48.
+  ThemeGen: MokaAppearance.ControlHeights, MokaAppearanceRows.ControlHeights (bit 41, in Components), the panel row,
+  ThemeChoice and ThemeRootClasses. Goldens re-recorded: only the three tokens.
+- tests/Shared/ScopedCss split selector lists at every comma, so a selector with :is(a, b) could never be found (one
+  toolbar test looked a rule up by "textarea)"). It splits at top-level commas now.

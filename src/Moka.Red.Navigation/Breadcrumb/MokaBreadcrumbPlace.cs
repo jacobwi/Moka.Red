@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Icons;
 
 namespace Moka.Red.Navigation.Breadcrumb;
@@ -20,4 +22,9 @@ internal readonly record struct MokaBreadcrumbPlace(int Index, bool Current, Mok
 }
 
 // Read when the fold is drawn: the menu renders later, when the set may have moved on.
-internal sealed record MokaBreadcrumbFoldedLevel(string? Text, string? Href, MokaIconDefinition Icon, int Depth);
+internal sealed record MokaBreadcrumbFoldedLevel(
+	string? Text,
+	string? Href,
+	MokaIconDefinition Icon,
+	int Depth,
+	EventCallback<MouseEventArgs> OnClick);

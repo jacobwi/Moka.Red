@@ -11,7 +11,6 @@ namespace Moka.Red.Primitives.Tests.Components;
 public partial class MokaSegmentedControlHeightTests : BunitContext
 {
 	private const string Css = "MokaSegmentedControl.razor.css";
-	private const string SmallField = "calc(var(--moka-control-height) - var(--moka-spacing-md))";
 
 	private IRenderedComponent<MokaSegmentedControl> Control(bool match, MokaSize size = MokaSize.Sm) =>
 		Render<MokaSegmentedControl>(p => p
@@ -39,20 +38,37 @@ public partial class MokaSegmentedControlHeightTests : BunitContext
 
 	[Theory]
 	[InlineData(".moka-gate .moka-segmented--control-height", "var(--moka-control-height)")]
-	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--xs", "calc(var(--moka-control-height) - var(--moka-spacing-xl))")]
-	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--sm", SmallField)]
-	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--lg", "calc(var(--moka-control-height) + var(--moka-spacing-md))")]
+	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--xs", "var(--moka-control-height-xs)")]
+	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--sm", "var(--moka-control-height-sm)")]
+	[InlineData(".moka-gate .moka-segmented--control-height.moka-segmented--lg", "var(--moka-control-height-lg)")]
 	public void EachSize_TakesTheHeightAFieldOfThatSizeHas(string selector, string height) =>
+		Assert.Equal(height, ScopedCss.Declarations(Css, selector)["--_segmented-height"]);
+
+	// MokaTheme.WithControlHeights(Matched) sets these variables on the provider's root; elsewhere they are invalid.
+	[Theory]
+	[InlineData(".moka-gate .moka-segmented", "var(--moka-matched-height)")]
+	[InlineData(".moka-gate .moka-segmented--xs", "var(--moka-matched-height-xs)")]
+	[InlineData(".moka-gate .moka-segmented--sm", "var(--moka-matched-height-sm)")]
+	[InlineData(".moka-gate .moka-segmented--lg", "var(--moka-matched-height-lg)")]
+	public void UnderMatchedControlHeights_EachSize_TakesAFieldsHeight(string selector, string height) =>
 		Assert.Equal(height, ScopedCss.Declarations(Css, selector)["--_segmented-height"]);
 
 	[Fact]
 	public void TheTrack_IsThatTall_AndTheSegmentsFillWhatItsPaddingAndBorderLeave()
 	{
-		Assert.Equal("var(--_segmented-height)", ScopedCss.Declarations(Css, ".moka-gate .moka-segmented--control-height")["min-height"]);
-		Assert.Equal(
-			"calc(var(--_segmented-height) - 2 * (var(--moka-spacing-xs) + var(--moka-border-width)))",
-			ScopedCss.Declarations(Css, ".moka-gate .moka-segmented.moka-segmented--control-height ::deep .moka-segment")["min-height"]);
+		IReadOnlyDictionary<string, string> track = ScopedCss.Declarations(Css, ".moka-gate .moka-segmented");
+
+		Assert.Equal("var(--_segmented-height, auto)", track["min-height"]);
+		Assert.Equal("calc(var(--_segmented-height) - 2 * (var(--moka-spacing-xs) + var(--moka-border-width)))", track["--_segment-height"]);
+		Assert.Equal("var(--_segment-height, var(--moka-segment-height))",
+			ScopedCss.Declarations(Css, ".moka-gate .moka-segmented ::deep .moka-segment")["min-height"]);
 	}
+
+	// Without a height of its own the variables are invalid, so the fallbacks keep today's segment heights.
+	[Fact]
+	public void SmallSegments_KeepTodaysHeight_WithoutOne() =>
+		Assert.Equal("var(--_segment-height, calc(var(--moka-segment-height) - var(--moka-spacing-md)))",
+			ScopedCss.Declarations(Css, ".moka-gate .moka-segmented--sm ::deep .moka-segment")["min-height"]);
 
 	// The fields read these steps; the same text keeps the two in step.
 	[Fact]

@@ -135,9 +135,9 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-ip--xs .moka-ip-octet { height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); font-size: var(--moka-font-size-mono); }
-.moka-gate .moka-ip--sm .moka-ip-octet { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
-.moka-gate .moka-ip--lg .moka-ip-octet { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-ip--xs .moka-ip-octet { height: var(--moka-control-height-xs); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-ip--sm .moka-ip-octet { height: var(--moka-control-height-sm); }
+.moka-gate .moka-ip--lg .moka-ip-octet { height: var(--moka-control-height-lg); font-size: var(--moka-font-size-mono); }
 
 .moka-gate .moka-ip-octet:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
 

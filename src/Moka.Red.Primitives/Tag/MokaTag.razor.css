@@ -200,10 +200,6 @@
    Inner elements
    ============================================================ */
 
-.moka-tag-icon {
-	flex-shrink: 0;
-}
-
 .moka-tag-text {
 	overflow: hidden;
 	text-overflow: ellipsis;

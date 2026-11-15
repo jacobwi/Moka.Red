@@ -306,7 +306,8 @@ public class MokaToolbarFitTests : BunitContext
 	// The selector holds commas inside :not(), so ScopedCss finds the rule by its last piece.
 	[Fact]
 	public void AField_StopsAtTheBarsMinimum_AndAt8remUnlessToldOtherwise() =>
-		Assert.Equal("var(--moka-toolbar-field-min, 8rem)", ScopedCss.Declarations(Css, "textarea)")["min-width"]);
+		Assert.Equal("var(--moka-toolbar-field-min, 8rem)", ScopedCss.Declarations(Css,
+			""".moka-toolbar__items ::deep > :has(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]), textarea)""")["min-width"]);
 
 	[Theory]
 	[InlineData("12rem", "12rem")]

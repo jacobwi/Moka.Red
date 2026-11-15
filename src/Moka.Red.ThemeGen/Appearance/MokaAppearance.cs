@@ -6,9 +6,8 @@ namespace Moka.Red.ThemeGen.Appearance;
 
 /// <summary>
 ///     The themes a <see cref="MokaAppearance" /> needs, in the shape <see cref="MokaThemeProvider" /> takes them. Keep
-///     <c>AutoDetectColorScheme</c> on whatever the mode is: the provider starts watching the device only on its first
-///     render, so turning it on later would do nothing. For a fixed mode <see cref="DarkTheme" /> and
-///     <see cref="LightTheme" /> are the same theme, so the device has no say.
+///     <c>AutoDetectColorScheme</c> on whatever the mode is, so nothing else changes when someone picks System. For a
+///     fixed mode <see cref="DarkTheme" /> and <see cref="LightTheme" /> are the same theme, so the device has no say.
 /// </summary>
 /// <param name="Theme">What shows before the device's setting is known, such as during a prerender.</param>
 /// <param name="DarkTheme">What shows on a device set to dark.</param>
@@ -88,6 +87,9 @@ public sealed record MokaAppearance
 
 	/// <summary>How a disabled button is drawn. Null keeps the palette's.</summary>
 	public MokaDisabledButtonLook? DisabledButtons { get; init; }
+
+	/// <summary>Whether buttons, toggle groups and segmented controls take a field's height. Null keeps the palette's.</summary>
+	public MokaControlHeights? ControlHeights { get; init; }
 
 	/// <summary>How selected and focused things are marked. Null keeps the palette's.</summary>
 	public MokaSelection? Selection { get; init; }
@@ -282,7 +284,12 @@ public sealed record MokaAppearance
 			theme = theme.WithSettingsHeaders(settingsHeaders);
 		}
 
-		return DisabledButtons is { } disabledButtons ? theme.WithDisabledButtons(disabledButtons) : theme;
+		if (DisabledButtons is { } disabledButtons)
+		{
+			theme = theme.WithDisabledButtons(disabledButtons);
+		}
+
+		return ControlHeights is { } controlHeights ? theme.WithControlHeights(controlHeights) : theme;
 	}
 
 	/// <summary>
@@ -455,6 +462,7 @@ public sealed record MokaAppearance
 		(MokaAppearanceRows.Switches, value => value.Switches),
 		(MokaAppearanceRows.SettingsHeaders, value => value.SettingsHeaders),
 		(MokaAppearanceRows.DisabledButtons, value => value.DisabledButtons),
+		(MokaAppearanceRows.ControlHeights, value => value.ControlHeights),
 		(MokaAppearanceRows.Selection, value => value.Selection),
 		(MokaAppearanceRows.CurrentPlace, value => value.CurrentPlace),
 		(MokaAppearanceRows.StatusBar, value => value.StatusBar),

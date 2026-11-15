@@ -170,11 +170,6 @@
 	min-width: 0;
 }
 
-.moka-dialog-icon {
-	flex-shrink: 0;
-	color: var(--moka-color-on-surface);
-}
-
 /* Header controls never shrink, and a drag on the header must not start from one of them. */
 .moka-dialog-header-actions {
 	display: flex;

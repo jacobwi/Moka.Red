@@ -330,6 +330,36 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.DoesNotContain("moka-dark", cut.Find(".moka-root").ClassName ?? string.Empty, StringComparison.Ordinal);
 	}
 
+	// The watch used to start on the first render only, so turning detection on later did nothing.
+	[Fact]
+	public void TurningAutoDetectOnLater_StartsWatchingTheOs()
+	{
+		BunitJSModuleInterop module = SetupThemeModule(prefersDark: true);
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.Theme, MokaTheme.Light));
+		Assert.DoesNotContain(module.Invocations, i => i.Identifier == "watchColorScheme");
+
+		cut.Render(p => p.Add(x => x.Theme, MokaTheme.Light).Add(x => x.AutoDetectColorScheme, true));
+
+		cut.WaitForAssertion(() => Assert.Contains("moka-dark", cut.Find(".moka-root").ClassName, StringComparison.Ordinal));
+		module.VerifyInvoke("watchColorScheme");
+	}
+
+	[Fact]
+	public void TurningAutoDetectOff_StopsTheWatch_AndShowsTheTheme()
+	{
+		BunitJSModuleInterop module = SetupThemeModule(prefersDark: true);
+		module.SetupVoid("unwatchColorScheme", _ => true).SetVoidResult();
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.Theme, MokaTheme.Light)
+			.Add(x => x.AutoDetectColorScheme, true));
+		cut.WaitForAssertion(() => Assert.Contains("moka-dark", cut.Find(".moka-root").ClassName, StringComparison.Ordinal));
+
+		cut.Render(p => p.Add(x => x.Theme, MokaTheme.Light).Add(x => x.AutoDetectColorScheme, false));
+
+		cut.WaitForAssertion(() => Assert.Equal(1, module.VerifyInvoke("unwatchColorScheme").Arguments[0]));
+		Assert.DoesNotContain("moka-dark", cut.Find(".moka-root").ClassName ?? string.Empty, StringComparison.Ordinal);
+	}
+
 	// The :root tokens are written into a <style> element, so a theme value with a brace ended the rule
 	// and styled the whole page.
 	[Fact]

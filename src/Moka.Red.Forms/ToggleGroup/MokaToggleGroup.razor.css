@@ -95,6 +95,13 @@
 .moka-gate .moka-toggle-group--md { font-size: var(--moka-font-size-base); }
 .moka-gate .moka-toggle-group--lg { font-size: var(--moka-font-size-md); }
 
+/* Under MokaTheme.WithControlHeights(Matched) the group is as tall as a field of its size: the items fill what its
+   border leaves. Otherwise the variable is invalid and the items keep --moka-segment-height at every size. */
+.moka-gate .moka-toggle-group--xs { --_toggle-height: calc(var(--moka-matched-height-xs) - 2 * var(--moka-border-width)); }
+.moka-gate .moka-toggle-group--sm { --_toggle-height: calc(var(--moka-matched-height-sm) - 2 * var(--moka-border-width)); }
+.moka-gate .moka-toggle-group--md { --_toggle-height: calc(var(--moka-matched-height) - 2 * var(--moka-border-width)); }
+.moka-gate .moka-toggle-group--lg { --_toggle-height: calc(var(--moka-matched-height-lg) - 2 * var(--moka-border-width)); }
+
 .moka-gate .moka-toggle-group--primary ::deep .moka-toggle-group-item--selected {
 	background-color: var(--moka-color-primary-bg);
 	color: var(--moka-color-primary-light);

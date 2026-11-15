@@ -1,6 +1,7 @@
 using Bunit;
 using Moka.Red.Data.Chart;
 using Moka.Red.Data.Heatmap;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Charts;
 
@@ -18,6 +19,17 @@ public sealed class ChartFillTests : BunitContext
 			.Add(x => x.BucketSize, 25));
 
 		Assert.Contains("moka-fill-width", cut.Find(".moka-histogram").ClassList);
+	}
+
+	// As a flex column the root measured its frame, a query container with no width of its own, at its narrowest: the
+	// title broke word by word and a 144 px ring stood in a 525 px chart. Every chart root is a block.
+	[Fact]
+	public void TheModernDonutRoot_IsABlock_NotAFlexColumn()
+	{
+		IReadOnlyDictionary<string, string> root = ScopedCss.Declarations("MokaDonutChart.razor.css", ".moka-donutchart.moka-chart");
+
+		Assert.Equal("block", root["display"]);
+		Assert.DoesNotContain("flex-direction", root.Keys);
 	}
 
 	[Fact]

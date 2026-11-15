@@ -136,8 +136,10 @@ export function bindTree(tree) {
 				if (expanded === 'false') {
 					toggleOf(item)?.click();
 				} else if (expanded === 'true') {
-					// An expanded item's first child comes straight after it.
-					focusItem(tree, items[index + 1]);
+					// An expanded item's first child comes straight after it. One whose children haven't arrived
+					// has none yet, and the next item is someone else's, so focus stays.
+					const next = items[index + 1];
+					if (next?.parentElement?.closest(ITEM) === item) focusItem(tree, next);
 				}
 				break;
 			case 'ArrowLeft':

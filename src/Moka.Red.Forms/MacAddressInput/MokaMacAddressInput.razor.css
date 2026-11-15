@@ -142,10 +142,10 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-mac-octet--xs { width: calc(var(--moka-control-height) - var(--moka-spacing-xl)); height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); font-size: var(--moka-font-size-mono); }
-.moka-gate .moka-mac-octet--sm { width: calc(var(--moka-control-height) - var(--moka-spacing-md)); height: calc(var(--moka-control-height) - var(--moka-spacing-md)); font-size: var(--moka-font-size-mono); }
-.moka-gate .moka-mac-octet--md { width: calc(var(--moka-control-height) + var(--moka-spacing-md)); height: var(--moka-control-height); font-size: var(--moka-font-size-mono); }
-.moka-gate .moka-mac-octet--lg { width: calc(var(--moka-control-height) + var(--moka-spacing-xl)); height: calc(var(--moka-control-height) + var(--moka-spacing-md)); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-mac-octet--xs { width: var(--moka-control-height-xs); height: var(--moka-control-height-xs); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-mac-octet--sm { width: var(--moka-control-height-sm); height: var(--moka-control-height-sm); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-mac-octet--md { width: var(--moka-control-height-lg); height: var(--moka-control-height); font-size: var(--moka-font-size-mono); }
+.moka-gate .moka-mac-octet--lg { width: calc(var(--moka-control-height) + var(--moka-spacing-xl)); height: var(--moka-control-height-lg); font-size: var(--moka-font-size-mono); }
 
 .moka-gate .moka-mac-octet:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
 

@@ -27,8 +27,8 @@ public sealed partial class MokaAppearancePanelTests
 	}
 
 	[Fact]
-	public void Components_IsTheFifteenLookRows() =>
-		Assert.Equal(15, BitOperations.PopCount((ulong)MokaAppearanceRows.Components));
+	public void Components_IsTheSixteenLookRows() =>
+		Assert.Equal(16, BitOperations.PopCount((ulong)MokaAppearanceRows.Components));
 
 	[Fact]
 	public void TheComponentRows_HaveAHeadingOfTheirOwn()

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Icons;
@@ -204,7 +205,7 @@ public partial class MokaBreadcrumb
 			}
 
 			MokaBreadcrumbItem parent = _items[^2];
-			return UrlValues.SafeHref(parent.Href) is not null && !string.IsNullOrWhiteSpace(parent.Text) ? parent : null;
+			return parent.CanPick && !string.IsNullOrWhiteSpace(parent.Text) ? parent : null;
 		}
 	}
 
@@ -420,7 +421,8 @@ public partial class MokaBreadcrumb
 				level.Text ?? level.Segment,
 				UrlValues.SafeHref(level.Href),
 				level.Icon ?? MokaIcons.File.Folder,
-				i - range.First));
+				i - range.First,
+				level.OnClick));
 		}
 
 		return levels;
@@ -438,11 +440,13 @@ public partial class MokaBreadcrumb
 		}
 	}
 
-	private void GoTo(string? href)
+	// As a link does: the level's click handler first, then its address.
+	private async Task PickAsync(MokaBreadcrumbFoldedLevel level)
 	{
-		if (href is not null)
+		await level.OnClick.InvokeAsync(new MouseEventArgs());
+		if (level.Href is not null)
 		{
-			Navigation.NavigateTo(href);
+			Navigation.NavigateTo(level.Href);
 		}
 	}
 }

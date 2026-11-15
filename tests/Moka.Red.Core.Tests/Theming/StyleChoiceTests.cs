@@ -185,6 +185,7 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithDialogs(MokaDialogLook.Bands));
 			Assert.Same(original, original.WithButtons(MokaButtonLook.Pill));
 			Assert.Same(original, original.WithDisabledButtons(MokaDisabledButtonLook.Muted));
+			Assert.Same(original, original.WithControlHeights(MokaControlHeights.Matched));
 			Assert.Same(original, original.WithComponentStyle(MokaComponentStyle.Terminal));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
 		}

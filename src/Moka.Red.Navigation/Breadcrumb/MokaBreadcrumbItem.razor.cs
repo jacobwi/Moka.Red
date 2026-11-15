@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Tooltip;
@@ -11,7 +12,7 @@ namespace Moka.Red.Navigation.Breadcrumb;
 /// </summary>
 public partial class MokaBreadcrumbItem
 {
-	private (string? Text, string? Href, string? Icon, string? Segment, bool IconOnly, bool HasContent) _lastReported;
+	private (string? Text, string? Href, string? Icon, string? Segment, bool IconOnly, bool HasContent, bool Clickable) _lastReported;
 	private MokaBreadcrumbPlace _place = MokaBreadcrumbPlace.Alone;
 	private bool _reported;
 
@@ -26,6 +27,15 @@ public partial class MokaBreadcrumbItem
 	/// <summary>Navigation link. When set, renders as a clickable link.</summary>
 	[Parameter]
 	public string? Href { get; set; }
+
+	/// <summary>
+	///     Raised when the level is picked: from the trail, from the menu of folded levels, or from the back link a narrow
+	///     trail shows. Without an <see cref="Href" /> the level is a button styled as a link, for a trail that moves
+	///     through the app's own state rather than through addresses; with one the link also raises it. The current page
+	///     raises nothing.
+	/// </summary>
+	[Parameter]
+	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
 	/// <summary>Icon displayed before the text.</summary>
 	[Parameter]
@@ -53,6 +63,11 @@ public partial class MokaBreadcrumbItem
 	private string? LinkHref => UrlValues.SafeHref(Href);
 
 	private bool IsLink => !string.IsNullOrEmpty(LinkHref) && !_place.Current;
+
+	private bool IsButton => !IsLink && OnClick.HasDelegate && !_place.Current;
+
+	/// <summary>Whether picking this level does something: it has an address or a click handler.</summary>
+	internal bool CanPick => LinkHref is not null || OnClick.HasDelegate;
 
 	private bool ShowsOnlyIcon => IconOnly && Icon is not null && !string.IsNullOrWhiteSpace(Text);
 
@@ -86,7 +101,8 @@ public partial class MokaBreadcrumbItem
 		base.OnParametersSet();
 
 		// The trail draws the folded menu, the back link and the copied path from these, so it has to hear of a change.
-		(string?, string?, string?, string?, bool, bool) now = (Text, Href, Icon?.SvgPath, Segment, IconOnly, ChildContent is not null);
+		(string?, string?, string?, string?, bool, bool, bool) now =
+			(Text, Href, Icon?.SvgPath, Segment, IconOnly, ChildContent is not null, OnClick.HasDelegate);
 		if (_reported && now != _lastReported)
 		{
 			ParentBreadcrumb?.ItemChanged(this);

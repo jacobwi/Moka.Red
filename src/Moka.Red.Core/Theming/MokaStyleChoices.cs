@@ -463,6 +463,25 @@ public enum MokaDisabledButtonLook
 }
 
 /// <summary>
+///     How tall buttons, toggle groups and segmented controls are beside text fields and selects. See
+///     <see cref="MokaTheme.WithControlHeights" />.
+/// </summary>
+public enum MokaControlHeights
+{
+	/// <summary>
+	///     Each kind keeps its own height: at the medium size a button is a little shorter than a field, a toggle group
+	///     shorter still, and a segmented control taller.
+	/// </summary>
+	Standard,
+
+	/// <summary>
+	///     Buttons, toggle groups and segmented controls take the height of a field of the same size, from
+	///     <c>--moka-control-height</c> and its <c>-xs</c>, <c>-sm</c> and <c>-lg</c> steps, so a row of controls lines up.
+	/// </summary>
+	Matched
+}
+
+/// <summary>
 ///     How strong the label colors are: the hues of <see cref="Moka.Red.Core.Enums.MokaLabelColor" /> on tags, chips,
 ///     colored folders and swatches. See <see cref="MokaTheme.WithLabelTone" />.
 /// </summary>

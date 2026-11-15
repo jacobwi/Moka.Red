@@ -226,9 +226,9 @@
 .moka-gate .moka-cascader--error .moka-cascader-trigger { border-color: var(--moka-color-error); }
 .moka-gate .moka-cascader--disabled .moka-cascader-trigger { opacity: var(--moka-opacity-disabled); }
 
-.moka-gate .moka-cascader-trigger--sm { min-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-cascader-trigger--sm { min-height: var(--moka-control-height-sm); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
 .moka-gate .moka-cascader-trigger--md { min-height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
-.moka-gate .moka-cascader-trigger--lg { min-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-cascader-trigger--lg { min-height: var(--moka-control-height-lg); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-cascader-path--placeholder {
 	color: var(--moka-color-on-surface-tertiary);

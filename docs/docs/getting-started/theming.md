@@ -134,6 +134,7 @@ MokaTheme theme = styled.WithSurfaces(MokaSurfaces.NearBlack).WithAccent(MokaAcc
 | Dialogs | `WithDialogs(MokaDialogLook)` | `Standard`, `Bands`, `IconLead`, `Centered`, `Terminal` |
 | Buttons | `WithButtons(MokaButtonLook)` | `Standard`, `Raised`, `Soft`, `Pill`, `Glow`, `Offset`, `Gradient`, `Ghost`. The main button, corners and letter case still apply on top |
 | Disabled buttons | `WithDisabledButtons(MokaDisabledButtonLook)` | `Faded` (the default), `Muted`, `Outline`. Muted and Outline draw every disabled button in neutral colors whatever its look. See [Button](/components/button#disabled-looks) |
+| Control heights | `WithControlHeights(MokaControlHeights)` | `Standard` (the default: a medium button is 38 px beside a 40 px field), `Matched` (buttons, toggle groups and segmented controls take a field's height at every `Size`, from `--moka-control-height` and its steps, so a row of mixed controls lines up). Every provider sets it for what it holds |
 | Tooltips | `WithTooltips(MokaTooltipLook)` | `Standard`, `Flat`, `Elevated`, `Glass`, `AccentTint`, `Contrast`, `Terminal`, the popup looks sized for a tooltip. Chart tooltips take the look's colors, border, corners, shadow, blur and font too. See [Tooltip](/components/tooltip#looks-and-styles) |
 | Tooltip arrows | `WithTooltipArrows(bool)` | Off, on. An arrow at the trigger, which follows the tooltip when the browser moves it to another side for room |
 | Tooltip motion | `WithTooltipMotion(MokaTooltipMotion)` | `Fade`, `Slide` (a few pixels away from the trigger), `Grow` (from the trigger's side), `Instant`. With reduced motion asked for, `Slide` and `Grow` fade |
@@ -480,6 +481,7 @@ Highlighted code has ten colors of its own: `--moka-code-text`, `-tag`, `-attrib
 | `--moka-inner-padding` | Padding of an inner card |
 | `--moka-row-padding`, `--moka-item-padding` | Padding of a list row and of a small item |
 | `--moka-control-height` | Height of a medium control |
+| `--moka-control-height-xs`, `--moka-control-height-sm`, `--moka-control-height-lg` | Height of a control at the other sizes: the medium height less `--moka-spacing-xl`, less `--moka-spacing-md`, plus `--moka-spacing-md`. Fields, selects and pickers read them |
 | `--moka-main-padding` | Padding of the main area of a page |
 | `--moka-main-padding-top`, `--moka-main-padding-bottom` | Its top and bottom, read from it the way CSS reads a padding shorthand, for a `calc()` |
 | `--moka-menu-row` | Height of a row in a side menu |

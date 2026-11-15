@@ -14,7 +14,7 @@
 	</MokaContextMenuTrigger>
 </DemoSection>
 
-<DemoSection Id="quiet-rows-focus-on-the-row-only" Title="Quiet rows, focus on the row only" Description="ItemStyle Quiet draws rows in regular weight; FocusRing off shows focus on the lit row only, as its sub-menu does.">
+<DemoSection Id="quiet-rows" Title="Quiet rows" Description="ItemStyle Quiet draws rows in regular weight and the softer ink until a row is lit.">
 	<p class="page-desc">
 		Open a menu with a right click, or from the keyboard with the button, then move to Color with the arrows or the mouse.
 	</p>
@@ -35,12 +35,12 @@
 				</div>
 				<MokaContextMenu Items="_menuItems" Visible="variant.Open" X="variant.X" Y="variant.Y"
 				                 OpenedFromKeyboard="variant.FromKeyboard" AnchorToFocus="variant.UnderFocus"
-				                 ItemStyle="variant.ItemStyle" FocusRing="variant.FocusRing"
+				                 ItemStyle="variant.ItemStyle"
 				                 OnClose="() => variant.Open = false"/>
 			</div>
 		}
 	</div>
-	<pre style="margin: var(--moka-spacing-md) 0 0; white-space: pre-wrap; overflow-wrap: anywhere;"><code>&lt;MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet" FocusRing="false"/&gt;</code></pre>
+	<pre style="margin: var(--moka-spacing-md) 0 0; white-space: pre-wrap; overflow-wrap: anywhere;"><code>&lt;MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet"/&gt;</code></pre>
 </DemoSection>
 
 <DemoSection Id="items-redraw-their-owner" Title="Items redraw their owner">
@@ -165,7 +165,7 @@
 
 	private readonly MenuVariant[] _menuVariants =
 	[
-		new("ctx-quiet", "ItemStyle=\"Quiet\", FocusRing=\"false\"", MokaContextMenuItemStyle.Quiet, false)
+		new("ctx-quiet", "ItemStyle=\"Quiet\"", MokaContextMenuItemStyle.Quiet)
 	];
 
 	private void OpenAtPointer(MenuVariant variant, MouseEventArgs e)
@@ -195,15 +195,13 @@
 		}
 	}
 
-	private sealed class MenuVariant(string key, string name, MokaContextMenuItemStyle itemStyle, bool focusRing)
+	private sealed class MenuVariant(string key, string name, MokaContextMenuItemStyle itemStyle)
 	{
 		public string Key { get; } = key;
 
 		public string Name { get; } = name;
 
 		public MokaContextMenuItemStyle ItemStyle { get; } = itemStyle;
-
-		public bool FocusRing { get; } = focusRing;
 
 		public bool Open { get; set; }
 

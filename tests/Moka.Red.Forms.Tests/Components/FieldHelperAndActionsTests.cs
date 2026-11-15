@@ -205,9 +205,9 @@ public class FieldHelperAndActionsTests : BunitContext
 		IReadOnlyDictionary<string, string> actions =
 			ScopedCss.Declarations("MokaFieldWrapper.razor.css", ".moka-gate .moka-field-actions");
 
-		Assert.Equal("calc(var(--moka-control-height) - var(--moka-spacing-md))", actions["--moka-button-height-sm"]);
+		Assert.Equal("var(--moka-control-height-sm)", actions["--moka-button-height-sm"]);
 		Assert.Equal("var(--moka-control-height)", actions["--moka-button-height"]);
-		Assert.Equal("calc(var(--moka-control-height) + var(--moka-spacing-md))", actions["--moka-button-height-lg"]);
+		Assert.Equal("var(--moka-control-height-lg)", actions["--moka-button-height-lg"]);
 		Assert.Equal("center", ScopedCss.Declarations("MokaFieldWrapper.razor.css", ".moka-field-input-wrapper--actions")["align-items"]);
 	}
 

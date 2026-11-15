@@ -29,8 +29,10 @@
 @code {
 
 	private RenderFragment Part => IsLink
-		? @<a href="@LinkHref" class="@LinkClass" aria-label="@(ShowsOnlyIcon ? Text : null)">@Inner</a>
-		: @<span class="moka-breadcrumb-item__text" aria-current="@(_place.Current ? "page" : null)">@Inner</span>;
+		? @<a href="@LinkHref" class="@LinkClass" aria-label="@(ShowsOnlyIcon ? Text : null)" @onclick="OnClick">@Inner</a>
+		: IsButton
+			? @<button type="button" class="@LinkClass" aria-label="@(ShowsOnlyIcon ? Text : null)" @onclick="OnClick">@Inner</button>
+			: @<span class="moka-breadcrumb-item__text" aria-current="@(_place.Current ? "page" : null)">@Inner</span>;
 
 	private RenderFragment Inner => @<text>
 		@if (Icon is { } icon)
@@ -39,7 +41,7 @@
 		}
 		@if (ShowsOnlyIcon)
 		{
-			@if (!IsLink)
+			@if (!IsLink && !IsButton)
 			{
 				<span class="moka-visually-hidden">@Text</span>
 			}

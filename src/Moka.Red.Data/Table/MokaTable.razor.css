@@ -907,11 +907,6 @@ th:hover .moka-table-sort-icon,
 	box-shadow: var(--moka-focus-ring);
 }
 
-.moka-table-group-chevron {
-	flex-shrink: 0;
-	color: var(--moka-color-on-surface-tertiary);
-}
-
 /* The count reads as a detail beside the key rather than part of it. */
 .moka-table-group-count {
 	color: var(--moka-color-on-surface-tertiary);
@@ -1515,13 +1510,14 @@ th:hover .moka-table-sort-icon,
 		min-width: 3rem !important;
 	}
 
-	.moka-table-container > .moka-table--phone > tfoot > tr {
+	/* Through ::deep, so the rows a FooterContent template writes, which carry the app's scope, are laid out too. */
+	.moka-table-container > .moka-table--phone > tfoot ::deep > tr {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
 	}
 
-	.moka-table-container > .moka-table--phone > tfoot > tr > td:empty {
+	.moka-table-container > .moka-table--phone > tfoot ::deep > tr > td:empty {
 		display: none;
 	}
 
@@ -2060,7 +2056,8 @@ th:focus-within .moka-table-menu-btn,
 	text-align: start;
 }
 
-.moka-table-failure-icon {
+/* The icon is a MokaIcon, so the rule reaches it through ::deep. */
+.moka-table-failure ::deep .moka-table-failure-icon {
 	color: var(--moka-color-error);
 }
 
@@ -2540,4 +2537,4 @@ th:focus-within .moka-table-menu-btn,
 .moka-gate .moka-table-filter-choices:hover { border-color: var(--moka-color-outline-strong); }
 .moka-gate .moka-table-row--pinned > td { background-color: var(--moka-color-surface-2); }
 .moka-gate .moka-table-mark { background: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
-.moka-gate .moka-table-failure-icon { color: var(--moka-color-error-soft); }
+.moka-gate .moka-table-failure ::deep .moka-table-failure-icon { color: var(--moka-color-error-soft); }

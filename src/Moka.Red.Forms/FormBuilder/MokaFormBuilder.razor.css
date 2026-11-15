@@ -524,7 +524,7 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-form-builder__property-input { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+.moka-gate .moka-form-builder__property-input { height: var(--moka-control-height-sm); }
 
 .moka-gate .moka-form-builder__property-textarea { padding: var(--moka-spacing-md) var(--moka-button-padding-sm); }
 

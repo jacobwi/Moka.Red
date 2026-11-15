@@ -31,7 +31,7 @@ public sealed partial class MokaAppearancePanelTests
 		MokaAppearanceRows[] single = [.. Enum.GetValues<MokaAppearanceRows>().Where(row => BitOperations.PopCount((ulong)row) == 1)];
 
 		Assert.Equal(single.Length, single.Distinct().Count());
-		Assert.Equal(41, single.Length);
+		Assert.Equal(42, single.Length);
 		Assert.Equal((ulong)MokaAppearanceRows.All, single.Aggregate(0UL, (all, row) => all | (ulong)row));
 	}
 

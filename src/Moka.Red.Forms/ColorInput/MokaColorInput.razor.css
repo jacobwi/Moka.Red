@@ -506,10 +506,10 @@
 	box-shadow: var(--moka-focus-ring);
 }
 
-.moka-gate .moka-color-input--xs { height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); font-size: var(--moka-font-size-sm); }
-.moka-gate .moka-color-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-color-input--xs { height: var(--moka-control-height-xs); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-color-input--sm { height: var(--moka-control-height-sm); font-size: var(--moka-font-size-sm); }
 .moka-gate .moka-color-input--md { height: var(--moka-control-height); font-size: var(--moka-font-size-md); }
-.moka-gate .moka-color-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-color-input--lg { height: var(--moka-control-height-lg); font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-color-input.moka-color-input--error { border-color: var(--moka-color-error); }
 .moka-gate .moka-color-input.moka-color-input--error:focus-within { box-shadow: var(--moka-focus-ring-error); }

@@ -82,12 +82,12 @@
    Arrow icon rotation
    ============================================================ */
 
-.moka-split-btn__arrow {
-	flex-shrink: 0;
+/* The arrow is a MokaIcon, so the rules reach it through ::deep. It turns over while the menu is open. */
+.moka-split-btn ::deep .moka-split-btn__arrow {
 	transition: transform var(--moka-transition-fast);
 }
 
-.moka-split-btn--open .moka-split-btn__arrow {
+.moka-split-btn--open ::deep .moka-split-btn__arrow {
 	transform: rotate(180deg);
 }
 

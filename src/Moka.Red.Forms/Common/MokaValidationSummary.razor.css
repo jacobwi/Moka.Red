@@ -13,10 +13,10 @@
 	font-size: var(--moka-font-size-sm);
 }
 
-.moka-validation-summary__icon {
-	flex-shrink: 0;
+/* The icon is a MokaIcon, so the rule reaches it through ::deep. It lines up with the first line of text rather than the
+   middle of the whole box. */
+.moka-validation-summary ::deep .moka-validation-summary__icon {
 	color: var(--moka-color-error);
-	/* The icon lines up with the first line of text rather than the middle of the whole box. */
 	margin-top: 0.1em;
 }
 
@@ -55,5 +55,4 @@
 	font-size: var(--moka-font-size-base);
 }
 
-.moka-gate .moka-validation-summary__icon { color: var(--moka-color-error); }
 .moka-gate .moka-validation-summary__title { color: var(--moka-color-error-ink); }

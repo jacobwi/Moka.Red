@@ -154,9 +154,9 @@
 
 .moka-gate .moka-autocomplete-input:disabled { opacity: var(--moka-opacity-disabled); }
 
-.moka-gate .moka-autocomplete-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-autocomplete-input--sm { height: var(--moka-control-height-sm); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
 .moka-gate .moka-autocomplete-input--md { height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
-.moka-gate .moka-autocomplete-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-autocomplete-input--lg { height: var(--moka-control-height-lg); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-autocomplete-input.moka-autocomplete-input--has-clear { padding-right: calc(var(--moka-input-padding) * 3); }
 

@@ -555,6 +555,15 @@ public sealed record MokaAppearanceText
 	/// <summary>Disabled buttons drawn as an outline.</summary>
 	public string DisabledButtonsOutline { get; init; } = "Outline";
 
+	/// <summary>Label of the control heights row.</summary>
+	public string ControlHeights { get; init; } = "Control heights";
+
+	/// <summary>Each kind of control keeps its own height.</summary>
+	public string ControlHeightsStandard { get; init; } = "Standard";
+
+	/// <summary>Buttons, toggle groups and segmented controls as tall as a field of their size.</summary>
+	public string ControlHeightsMatched { get; init; } = "Match fields";
+
 	/// <summary>Label of the switches row.</summary>
 	public string Switches { get; init; } = "Switches";
 
@@ -662,6 +671,7 @@ public sealed record MokaAppearanceText
 		MokaAppearanceRows.TooltipMotion => TooltipMotion,
 		MokaAppearanceRows.TooltipSize => TooltipSize,
 		MokaAppearanceRows.DisabledButtons => DisabledButtons,
+		MokaAppearanceRows.ControlHeights => ControlHeights,
 		MokaAppearanceRows.Callouts => Callouts,
 		MokaAppearanceRows.Switches => Switches,
 		MokaAppearanceRows.SettingsHeaders => SettingsHeaders,

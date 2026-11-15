@@ -134,6 +134,12 @@ public sealed record MokaTheme
 	public MokaDisabledButtonLook DisabledButtons { get; init; } = MokaDisabledButtonLook.Faded;
 
 	/// <summary>
+	///     Whether buttons, toggle groups and segmented controls take a field's height at each size. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaControlHeights ControlHeights { get; init; } = MokaControlHeights.Standard;
+
+	/// <summary>
 	///     How tooltips are drawn, unless a tooltip sets a look of its own. Only the <see cref="MokaLook.Gate" /> look
 	///     reads it.
 	/// </summary>
@@ -689,6 +695,18 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithDisabledButtons(MokaDisabledButtonLook look) =>
 		Look == MokaLook.Gate ? this with { DisabledButtons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose buttons, toggle groups and segmented controls are as tall as a text field or select of
+	///     the same size, so a toolbar or a form row of mixed controls lines up. <see cref="MokaControlHeights.Standard" />
+	///     keeps each kind's own height. Every provider sets it for what it holds, so a nested provider can choose
+	///     otherwise. A segmented control's <c>MatchControlHeight</c> does the same for one control. No effect on the
+	///     <see cref="MokaLook.Matrix" /> look.
+	/// </summary>
+	/// <param name="heights">Whether controls take a field's height.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithControlHeights(MokaControlHeights heights) =>
+		Look == MokaLook.Gate ? this with { ControlHeights = heights } : this;
 
 	/// <summary>
 	///     Creates a new theme whose tooltips are drawn this way, unless a tooltip sets its own look. Chart tooltips take

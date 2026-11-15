@@ -22,10 +22,20 @@
 		}
 		@if (BackLevel is { } back)
 		{
-			<a class="moka-breadcrumb__back" href="@UrlValues.SafeHref(back.Href)">
-				<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="15px"/>
-				<span class="moka-breadcrumb__back-text">@back.Text</span>
-			</a>
+			@if (UrlValues.SafeHref(back.Href) is { } backHref)
+			{
+				<a class="moka-breadcrumb__back" href="@backHref" @onclick="back.OnClick">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="15px"/>
+					<span class="moka-breadcrumb__back-text">@back.Text</span>
+				</a>
+			}
+			else
+			{
+				<button type="button" class="moka-breadcrumb__back" @onclick="back.OnClick">
+					<MokaIcon Icon="MokaIcons.Navigation.ChevronLeft" SizeValue="15px"/>
+					<span class="moka-breadcrumb__back-text">@back.Text</span>
+				</button>
+			}
 		}
 	}
 	else
@@ -84,9 +94,9 @@
 					<Items>
 						@foreach (MokaBreadcrumbFoldedLevel level in levels)
 						{
-							<MokaDropdownItem Text="@level.Text" Icon="level.Icon" Disabled="@(level.Href is null)"
+							<MokaDropdownItem Text="@level.Text" Icon="level.Icon" Disabled="@(level.Href is null && !level.OnClick.HasDelegate)"
 							                  Class="moka-breadcrumb__fold-item" Style="@DepthStyle(level.Depth)"
-							                  OnClick="() => GoTo(level.Href)"/>
+							                  OnClick="() => PickAsync(level)"/>
 						}
 					</Items>
 				</MokaDropdown>

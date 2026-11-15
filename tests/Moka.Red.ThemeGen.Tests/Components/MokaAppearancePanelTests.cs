@@ -25,7 +25,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	private static readonly string[] ComponentGroups =
 	[
 		"Component style", "Toasts", "Toast stack", "Notifications", "Popups", "Lists", "Dialogs", "Buttons", "Tooltips", "Tooltip arrows", "Tooltip motion",
-		"Tooltip size", "Disabled buttons", "Callouts", "Switches", "Settings headers"
+		"Tooltip size", "Disabled buttons", "Control heights", "Callouts", "Switches", "Settings headers"
 	];
 
 	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
@@ -55,6 +55,7 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		{ MokaAppearanceRows.Dialogs, "Dialogs", "Icon lead", new MokaAppearance { Dialogs = MokaDialogLook.IconLead } },
 		{ MokaAppearanceRows.Buttons, "Buttons", "Ghost", new MokaAppearance { Buttons = MokaButtonLook.Ghost } },
 		{ MokaAppearanceRows.DisabledButtons, "Disabled buttons", "Muted", new MokaAppearance { DisabledButtons = MokaDisabledButtonLook.Muted } },
+		{ MokaAppearanceRows.ControlHeights, "Control heights", "Match fields", new MokaAppearance { ControlHeights = MokaControlHeights.Matched } },
 		{ MokaAppearanceRows.Tooltips, "Tooltips", "Glass", new MokaAppearance { Tooltips = MokaTooltipLook.Glass } },
 		{ MokaAppearanceRows.TooltipArrows, "Tooltip arrows", "Shown", new MokaAppearance { TooltipArrows = true } },
 		{ MokaAppearanceRows.TooltipMotion, "Tooltip motion", "Slide", new MokaAppearance { TooltipMotion = MokaTooltipMotion.Slide } },

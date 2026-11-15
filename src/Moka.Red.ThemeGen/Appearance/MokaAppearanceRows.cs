@@ -137,6 +137,9 @@ public enum MokaAppearanceRows : long
 	/// <summary>How tightly tables space their rows: compact, standard or comfortable.</summary>
 	TableDensity = 1L << 40,
 
+	/// <summary>Whether buttons, toggle groups and segmented controls keep their own heights or take a field's.</summary>
+	ControlHeights = 1L << 41,
+
 	/// <summary>The rows shown unless an app chooses: color mode, palette, accent, status bar, density and text size.</summary>
 	Default = ColorMode | Palette | Accent | StatusBar | Density | TextSize,
 
@@ -150,11 +153,11 @@ public enum MokaAppearanceRows : long
 
 	/// <summary>
 	///     The component look rows, under their own heading after the style rows: toasts, toast stacking, notifications,
-	///     popups, lists, dialogs, buttons, disabled buttons, the four tooltip rows (look, arrows, motion and size), callouts,
-	///     switches and settings headers. Not in <see cref="Default" /> or <see cref="Style" />.
+	///     popups, lists, dialogs, buttons, disabled buttons, control heights, the four tooltip rows (look, arrows, motion and
+	///     size), callouts, switches and settings headers. Not in <see cref="Default" /> or <see cref="Style" />.
 	/// </summary>
-	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons | DisabledButtons | Tooltips | TooltipArrows | TooltipMotion | TooltipSize
-		| Callouts | Switches | SettingsHeaders,
+	Components = Toasts | ToastStacking | Notifications | Popups | Lists | Dialogs | Buttons | DisabledButtons | ControlHeights | Tooltips | TooltipArrows
+		| TooltipMotion | TooltipSize | Callouts | Switches | SettingsHeaders,
 
 	/// <summary>
 	///     The three chart rows, under their own heading after the component rows: the look, the colors, and texture and

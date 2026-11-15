@@ -30,6 +30,8 @@ internal abstract class ThemeChoice(string property, string withMethod)
 			(theme, value) => theme with { SettingsHeaders = value }, (theme, value) => theme.WithSettingsHeaders(value)),
 		Of(nameof(MokaTheme.DisabledButtons), nameof(MokaTheme.WithDisabledButtons), theme => theme.DisabledButtons,
 			(theme, value) => theme with { DisabledButtons = value }, (theme, value) => theme.WithDisabledButtons(value)),
+		Of(nameof(MokaTheme.ControlHeights), nameof(MokaTheme.WithControlHeights), theme => theme.ControlHeights,
+			(theme, value) => theme with { ControlHeights = value }, (theme, value) => theme.WithControlHeights(value)),
 		Of(nameof(MokaTheme.StatusBar), nameof(MokaTheme.WithStatusBar), theme => theme.StatusBar,
 			(theme, value) => theme with { StatusBar = value }, (theme, value) => theme.WithStatusBar(value)),
 		Of(nameof(MokaTheme.Docks), nameof(MokaTheme.WithDocks), theme => theme.Docks,

@@ -188,6 +188,9 @@ p {
 	--moka-row-padding: var(--moka-spacing-sm) var(--moka-spacing-md);
 	--moka-item-padding: var(--moka-spacing-xs) var(--moka-spacing-md);
 	--moka-control-height: 2rem;
+	--moka-control-height-xs: calc(var(--moka-control-height) - var(--moka-spacing-xl));
+	--moka-control-height-sm: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	--moka-control-height-lg: calc(var(--moka-control-height) + var(--moka-spacing-md));
 	--moka-main-padding: var(--moka-spacing-xl);
 	--moka-main-padding-top: var(--moka-spacing-xl);
 	--moka-main-padding-bottom: var(--moka-spacing-xl);
@@ -581,8 +584,9 @@ p {
 	color-scheme: dark;
 }
 
-/* Keyboard focus everywhere. :where adds no specificity, so a component that draws its own ring keeps it. */
-.moka-gate :where(a, button, summary, [tabindex]):focus-visible {
+/* Keyboard focus everywhere. The whole selector sits in :where, so it weighs nothing: a component that draws its own
+   ring, or turns the outline off because something else shows focus (a lit row, a field's border), keeps its rule. */
+:where(.moka-gate :is(a, button, summary, [tabindex]):focus-visible) {
 	outline: var(--moka-focus-width) solid var(--moka-color-primary);
 	outline-offset: 2px;
 }
@@ -902,6 +906,25 @@ p {
 	--moka-popup-row-radius: calc(var(--moka-radius-sm) / 3);
 	--moka-popup-row-hover: var(--moka-color-primary-glow);
 	--moka-popup-row-hover-shadow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
+}
+
+/* ===== Matched Control Heights =====
+   MokaTheme.WithControlHeights(Matched): buttons, toggle groups and segmented controls take a field's height at each
+   size. Like the tooltip looks, the class only sets variables, each component reads them with its own height as the
+   fallback, and the reset on every new-design root lets an inner provider at Standard undo an outer one's choice. */
+
+:where(.moka-root.moka-gate) {
+	--moka-matched-height-xs: initial;
+	--moka-matched-height-sm: initial;
+	--moka-matched-height: initial;
+	--moka-matched-height-lg: initial;
+}
+
+.moka-control-heights-matched {
+	--moka-matched-height-xs: var(--moka-control-height-xs);
+	--moka-matched-height-sm: var(--moka-control-height-sm);
+	--moka-matched-height: var(--moka-control-height);
+	--moka-matched-height-lg: var(--moka-control-height-lg);
 }
 
 /* ===== Tooltip Looks =====

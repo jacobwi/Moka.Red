@@ -143,9 +143,9 @@
 
 .moka-gate .moka-phone-input:disabled { opacity: var(--moka-opacity-disabled); }
 
-.moka-gate .moka-phone-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-phone-input--sm { height: var(--moka-control-height-sm); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-sm); }
 .moka-gate .moka-phone-input--md { height: var(--moka-control-height); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-md); }
-.moka-gate .moka-phone-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-md); }
+.moka-gate .moka-phone-input--lg { height: var(--moka-control-height-lg); padding-top: 0; padding-bottom: 0; font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-phone-input::placeholder {
 	color: var(--moka-color-on-surface-tertiary);

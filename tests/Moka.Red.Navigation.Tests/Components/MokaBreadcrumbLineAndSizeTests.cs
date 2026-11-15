@@ -13,7 +13,7 @@ namespace Moka.Red.Navigation.Tests.Components;
 public class MokaBreadcrumbLineAndSizeTests : BunitContext
 {
 	private const string Css = "MokaBreadcrumb.razor.css";
-	private const string SmallField = "calc(var(--moka-control-height) - var(--moka-spacing-md))";
+	private const string SmallField = "var(--moka-control-height-sm)";
 
 	public MokaBreadcrumbLineAndSizeTests() => JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -109,7 +109,7 @@ public class MokaBreadcrumbLineAndSizeTests : BunitContext
 		Assert.Equal(SmallField, small["min-height"]);
 		Assert.Equal("var(--moka-line-height-tight)", small["line-height"]);
 		Assert.Equal("0", ScopedCss.Declarations(Css, ".moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm ::deep .moka-breadcrumb-item__link")["padding-block"]);
-		Assert.Equal("calc(var(--moka-control-height) + var(--moka-spacing-md))",
+		Assert.Equal("var(--moka-control-height-lg)",
 			ScopedCss.Declarations(Css, ".moka-gate .moka-breadcrumb--path.moka-breadcrumb--lg")["min-height"]);
 	}
 

@@ -1,7 +1,7 @@
 class: moka-root moka-dark
 nested-class: moka-root moka-root--nested moka-dark
 page: 
-root-declares: 296
+root-declares: 299
 nested-root-declares: 0
 
 --moka-color-primary: #ef5350
@@ -229,6 +229,9 @@ nested-root-declares: 0
 --moka-row-padding: var(--moka-spacing-sm) var(--moka-spacing-md)
 --moka-item-padding: var(--moka-spacing-xs) var(--moka-spacing-md)
 --moka-control-height: 2rem
+--moka-control-height-xs: calc(var(--moka-control-height) - var(--moka-spacing-xl))
+--moka-control-height-sm: calc(var(--moka-control-height) - var(--moka-spacing-md))
+--moka-control-height-lg: calc(var(--moka-control-height) + var(--moka-spacing-md))
 --moka-main-padding: var(--moka-spacing-xl)
 --moka-main-padding-top: var(--moka-spacing-xl)
 --moka-main-padding-bottom: var(--moka-spacing-xl)

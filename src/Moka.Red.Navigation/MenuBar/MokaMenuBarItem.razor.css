@@ -34,7 +34,7 @@
 	cursor: not-allowed;
 }
 
-.moka-menubar-item__icon,
+/* Holds an icon's place on a row without one, so the text lines up with the rows that have one. */
 .moka-menubar-item__icon-gap {
 	flex-shrink: 0;
 	width: 14px;

@@ -53,10 +53,6 @@
 	padding: var(--moka-spacing-sm) var(--moka-spacing-lg);
 }
 
-.moka-notice__icon {
-	flex-shrink: 0;
-}
-
 .moka-notice__content {
 	flex: 1;
 	min-width: 0;

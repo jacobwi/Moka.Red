@@ -38,12 +38,12 @@
 }
 
 .moka-native-select-input--sm {
-	height: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	height: var(--moka-control-height-sm);
 	font-size: var(--moka-font-size-sm);
 }
 
 .moka-native-select-input--lg {
-	height: calc(var(--moka-control-height) + var(--moka-spacing-md));
+	height: var(--moka-control-height-lg);
 	font-size: var(--moka-font-size-md);
 }
 

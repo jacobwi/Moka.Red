@@ -19,6 +19,19 @@
 	align-items: center;
 }
 
+/* A level or back link with a click handler and no address is a button; this only clears the button's own look, at a
+   weight every link rule below outranks. */
+:where(.moka-breadcrumb) ::deep :where(button.moka-breadcrumb-item__link),
+:where(button.moka-breadcrumb__back) {
+	font: inherit;
+	text-align: inherit;
+	background: none;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	cursor: pointer;
+}
+
 ::deep .moka-breadcrumb-item__link {
 	display: inline-flex;
 	align-items: center;
@@ -462,7 +475,7 @@
 
 /* A path's height follows Size, in the steps a text field or select takes from --moka-control-height, so it lines up
    in a row of controls of that size. Md keeps the height it has always had. */
-.moka-gate .moka-breadcrumb--path.moka-breadcrumb--lg { min-height: calc(var(--moka-control-height) + var(--moka-spacing-md)); }
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--lg { min-height: var(--moka-control-height-lg); }
 
 /* A small well's text takes no more height than it needs, or it would hold the well open past a small field. */
 .moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs,
@@ -470,8 +483,8 @@
 	line-height: var(--moka-line-height-tight);
 }
 
-.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs { min-height: calc(var(--moka-control-height) - var(--moka-spacing-xl)); }
-.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm { min-height: calc(var(--moka-control-height) - var(--moka-spacing-md)); }
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs { min-height: var(--moka-control-height-xs); }
+.moka-gate .moka-breadcrumb--path.moka-breadcrumb--sm { min-height: var(--moka-control-height-sm); }
 
 .moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs ::deep .moka-breadcrumb-item__link,
 .moka-gate .moka-breadcrumb--path.moka-breadcrumb--xs ::deep .moka-breadcrumb-item__text,

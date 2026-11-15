@@ -67,9 +67,9 @@
 .moka-gate .moka-numericfield-input:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
 .moka-gate .moka-numericfield-input:focus { border-color: var(--moka-color-primary); }
 
-.moka-gate .moka-numericfield-input--sm { height: calc(var(--moka-control-height) - var(--moka-spacing-md)); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-numericfield-input--sm { height: var(--moka-control-height-sm); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
 .moka-gate .moka-numericfield-input--md { height: var(--moka-control-height); padding: 0 var(--moka-input-padding); font-size: var(--moka-font-size-md); }
-.moka-gate .moka-numericfield-input--lg { height: calc(var(--moka-control-height) + var(--moka-spacing-md)); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
+.moka-gate .moka-numericfield-input--lg { height: var(--moka-control-height-lg); padding: 0 var(--moka-spacing-xl); font-size: var(--moka-font-size-md); }
 
 .moka-gate .moka-numericfield-input::placeholder {
 	color: var(--moka-color-on-surface-tertiary);

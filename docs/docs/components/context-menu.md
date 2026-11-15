@@ -393,8 +393,7 @@ The host and the trigger both render `MokaContextMenu`. Render it yourself when 
 | `AnchorTop` | `double?` | `null` | Top edge of the element the menu opens under. A menu that does not fit below `Y` opens above this line. Null means a pointer: it opens above `Y` |
 | `OnClose` | `EventCallback` | - | Fired on Escape in the top-level menu, Tab, a click outside, or when an item is chosen. Set `Visible` to `false` here |
 | `Look` | `MokaPopupLook?` | `null` | How the menu is drawn. Null takes the theme's popup look. A menu passes it on to its submenus. See [Looks](#looks) |
-| `ItemStyle` | `MokaContextMenuItemStyle` | `Standard` | How the rows' text is drawn. `Quiet` is regular weight in a softer ink until a row is lit. A menu passes it on to its submenus. See [Quiet rows and the focus ring](#quiet-rows-and-the-focus-ring) |
-| `FocusRing` | `bool` | `true` | Whether the menu that holds keyboard focus also draws the page's focus ring around itself. A menu passes it on to its submenus |
+| `ItemStyle` | `MokaContextMenuItemStyle` | `Standard` | How the rows' text is drawn. `Quiet` is regular weight in a softer ink until a row is lit. A menu passes it on to its submenus. See [Quiet rows](#quiet-rows) |
 | `Owner` | `IHandleEvent?` | `null` | The component that redraws after an item runs. A menu passes it on to its submenus. See [Redrawing the page](#redrawing-the-page) |
 
 `IsSubmenu` and `ParentLeft` are set by a menu on its own submenus. Leave them unset.
@@ -417,16 +416,15 @@ The menu follows the theme's popup look, `MokaTheme.WithPopups(MokaPopupLook)`, 
 
 The looks are drawn only on the new design. On `MokaTheme.Dark` and `Light` the menu looks the same whatever the theme or `Look` says.
 
-## Quiet rows and the focus ring
+## Quiet rows
 
-Two options on the host, and on `MokaContextMenu`, change how the menu reads on the new design. Both are off by default, so a menu looks as it always has until an app asks.
+`ItemStyle` on the host, and on `MokaContextMenu`, changes how the rows read on the new design. It is `Standard` by default, so a menu looks as it always has until an app asks.
 
 ```razor
-<MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet" FocusRing="false" />
+<MokaContextMenuHost ItemStyle="MokaContextMenuItemStyle.Quiet" />
 ```
 
-- `ItemStyle="MokaContextMenuItemStyle.Quiet"` draws the rows in regular weight and the second, softer ink, at the menu's font size. The lit row, under the mouse or the keyboard's, takes full ink, so it still stands out. A popup look that sets its own text color keeps it.
-- `FocusRing="false"` leaves only the lit row showing where the keyboard is. The menu keeps focus while the arrows move the highlight (`aria-activedescendant`), so on the new design the page's keyboard focus ring goes around the whole menu once a key is pressed. That ring follows focus: with a submenu open by hover the parent menu has it and the submenu doesn't, which reads as two different borders. Without the ring a menu and its submenu look alike whichever of them has focus.
+`Quiet` draws the rows in regular weight and the second, softer ink, at the menu's font size. The lit row, under the mouse or the keyboard's, takes full ink, so it still stands out. A popup look that sets its own text color keeps it. A menu passes it on to its submenus. The original design keeps its rows as they are, whatever it says.
 
-Both pass from a menu to its submenus. The original design draws no ring and keeps its rows as they are, whatever these say.
+The menu keeps focus while the arrows move the highlight (`aria-activedescendant`), so the lit row is what shows where the keyboard is. The menu draws no focus ring around itself on either design.
 

@@ -175,6 +175,10 @@ internal static class ThemeReflection
 			{
 				value = MokaDisabledButtonLook.Outline;
 			}
+			else if (type == typeof(MokaControlHeights))
+			{
+				value = MokaControlHeights.Matched;
+			}
 			else if (type == typeof(MokaTooltipLook))
 			{
 				value = MokaTooltipLook.Contrast;

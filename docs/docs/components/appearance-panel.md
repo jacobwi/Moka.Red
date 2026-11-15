@@ -43,7 +43,7 @@ Hold the value and the themes it makes. Work the themes out when the value chang
 }
 ```
 
-Keep `AutoDetectColorScheme` on for every mode. The provider starts watching the device on its first render only, so turning it on when someone picks System would do nothing. For Light and Dark, `ToThemes` hands over the same theme for both, so the device has no say.
+Keep `AutoDetectColorScheme` on for every mode, so nothing else changes when someone picks System. For Light and Dark, `ToThemes` hands over the same theme for both, so the device has no say. (Before 0.6.3 the provider started watching only on its first render, so turning it on later did nothing.)
 
 For a scheme you already know, `ToTheme(isDark)` gives one theme.
 
@@ -120,6 +120,7 @@ A record of ids and plain choices, so it serializes as it is. A choice left null
 | `TooltipMotion` | `MokaTooltipMotion?` | `null` | How tooltips come into view: Fade, Slide, Grow or Instant |
 | `TooltipSize` | `MokaTooltipSize?` | `null` | How much room a tooltip's text takes: Compact, Standard or Roomy |
 | `DisabledButtons` | `MokaDisabledButtonLook?` | `null` | How a disabled button is drawn: faded, a muted neutral fill, or an outline |
+| `ControlHeights` | `MokaControlHeights?` | `null` | Whether buttons, toggle groups and segmented controls keep their own heights or take a field's |
 | `Callouts` | `MokaCalloutLook?` | `null` | Callouts and alerts filled, or an edge over a faint tint |
 | `Switches` | `MokaSwitchLook?` | `null` | A switch that is on: a solid track or a tinted one |
 | `SettingsHeaders` | `MokaSettingsHeaderLook?` | `null` | A settings form's header: a solid icon tile, or a tinted one with what's set now in a line |
@@ -232,11 +233,12 @@ Fourteen rows pick how components are drawn, under a Components heading after th
 | Tooltip motion | `TooltipMotion` | `MokaTooltipMotion` | Fade, Slide, Grow, Instant |
 | Tooltip size | `TooltipSize` | `MokaTooltipSize` | Compact, Standard, Roomy |
 | Disabled buttons | `DisabledButtons` | `MokaDisabledButtonLook` | Faded, Muted, Outline |
+| Control heights | `ControlHeights` | `MokaControlHeights` | Standard, Match fields |
 | Callouts | `Callouts` | `MokaCalloutLook` | Filled, Edge |
 | Switches | `Switches` | `MokaSwitchLook` | Solid, Tinted |
 | Settings headers | `SettingsHeaders` | `MokaSettingsHeaderLook` | Solid, Tinted |
 
-Each look is a small picture card drawn in the theme around the panel: a toast, a notification list, a menu, a select list, a dialog or a row of buttons. The popup pictures carry the same `moka-popups-*` classes the real panels read, so they show what a menu will look like, and the tooltip pictures carry the real `moka-tooltips-*` classes. Tooltip arrows, motion and size are plain segments, since a picture can't show a motion, and so are disabled buttons, callouts, switches and settings headers. With `Compact` every row is plain segments.
+Each look is a small picture card drawn in the theme around the panel: a toast, a notification list, a menu, a select list, a dialog or a row of buttons. The popup pictures carry the same `moka-popups-*` classes the real panels read, so they show what a menu will look like, and the tooltip pictures carry the real `moka-tooltips-*` classes. Tooltip arrows, motion and size are plain segments, since a picture can't show a motion, and so are disabled buttons, control heights, callouts, switches and settings headers. With `Compact` every row is plain segments.
 
 The Component style row sets toasts, notifications, popups, lists, dialogs and buttons in one pick, through `MokaTheme.WithComponentStyle`: Standard, Soft or Terminal. It writes those six fields into the value, so the rows below it show what it picked and can still change any one of them. Its card is current while the six match a style, and none is once someone fine-tunes one away from it. It leaves the toast stack and the four tooltip rows alone.
 

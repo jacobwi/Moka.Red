@@ -139,7 +139,9 @@ A segment without text has no accessible name, because its icon is hidden from a
 The segments have a height of their own, and the track adds its padding to it, so on the new design a small segmented
 control is 36 px tall beside 32 px small fields, selects and search boxes. `MatchControlHeight` makes the whole control
 as tall as a field of its `Size`: it takes the same steps from `--moka-control-height` the fields do, at every density.
-It's off by default. The original design gives its controls no shared height, so there it changes nothing.
+It's off by default. The original design gives its controls no shared height, so there it changes nothing. To line up
+every segmented control, button and toggle group with the fields, set
+`MokaTheme.WithControlHeights(MokaControlHeights.Matched)` instead.
 
 ```razor
 <MokaToolbar Dense>

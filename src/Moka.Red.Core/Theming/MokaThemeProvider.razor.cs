@@ -29,6 +29,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private string? _rootStyle;
 	private string? _themeStyle;
 	private int _watchHandle;
+	private bool _watchStarted;
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
@@ -46,7 +47,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	///     When true, automatically detects the OS color scheme preference
 	///     and applies <see cref="DarkTheme" /> or <see cref="LightTheme" /> accordingly.
 	///     Listens for changes in real time (e.g., when the user switches OS dark mode).
-	///     Defaults to false.
+	///     It can be turned on or off at any time. Defaults to false.
 	/// </summary>
 	[Parameter]
 	public bool AutoDetectColorScheme { get; set; }
@@ -172,6 +173,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			.AddClass(ButtonsClass(activeTheme), gate && IsOutermost)
 			.AddClass(DisabledButtonsClass(activeTheme),
 				gate && IsOutermost && activeTheme.DisabledButtons != MokaDisabledButtonLook.Faded)
+			.AddClass("moka-control-heights-matched", gate && activeTheme.ControlHeights == MokaControlHeights.Matched)
 			.AddClass(TooltipsClass(activeTheme), gate && activeTheme.Tooltips != MokaTooltipLook.Standard)
 			.AddClass("moka-tooltips-arrow", gate && activeTheme.TooltipArrows)
 			.AddClass(TooltipMotionClass(activeTheme), gate && activeTheme.TooltipMotion != MokaTooltipMotion.Fade)
@@ -198,6 +200,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private static string DisabledButtonsClass(MokaTheme theme) =>
 		$"moka-disabled-buttons-{MokaEnumHelpers.ToCssClass(theme.DisabledButtons)}";
 
+	// The matched control heights class also only sets variables, so every provider writes it and the nearest wins.
+
 	// Tooltip classes also only set variables, and a page holds hundreds of tooltips, so the same reasoning as popups.
 	// They're left off at their defaults, so a root looks as it always has; moka.css resets the variables on every
 	// new-design root, which is how an inner provider at the defaults undoes an outer one's choices.
@@ -208,11 +212,21 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private static string TooltipSizeClass(MokaTheme theme) => $"moka-tooltips-size-{MokaEnumHelpers.ToCssClass(theme.TooltipSize)}";
 
 	/// <inheritdoc />
+	/// <remarks>
+	///     Starts watching the OS color scheme whenever <see cref="AutoDetectColorScheme" /> is on and nothing watches yet,
+	///     not only after the first render, so turning it on later works; turning it off stops the watch.
+	/// </remarks>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && AutoDetectColorScheme)
+		if (AutoDetectColorScheme && !_watchStarted)
 		{
+			_watchStarted = true;
 			await DetectColorSchemeAsync();
+		}
+		else if (!AutoDetectColorScheme && _watchStarted)
+		{
+			_watchStarted = false;
+			await StopWatchingAsync();
 		}
 	}
 
@@ -222,10 +236,18 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	{
 		try
 		{
-			_module = await JsRuntime.InvokeAsync<IJSObjectReference>("import", ThemeModule);
+			_module ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", ThemeModule);
 			_prefersDark = await _module.InvokeAsync<bool>("prefersDarkColorScheme");
-			_dotNetRef = DotNetObjectReference.Create(this);
+			_dotNetRef ??= DotNetObjectReference.Create(this);
 			_watchHandle = await _module.InvokeAsync<int>("watchColorScheme", _dotNetRef);
+
+			// Turned off while the module answered: the watch it just started goes again.
+			if (!AutoDetectColorScheme)
+			{
+				_watchStarted = false;
+				await StopWatchingAsync();
+				return;
+			}
 
 			ApplyTheme();
 			StateHasChanged();
@@ -237,5 +259,16 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		{
 			// JS interop not available
 		}
+	}
+
+	private async Task StopWatchingAsync()
+	{
+		if (_watchHandle != 0)
+		{
+			await _module.SafeInvokeVoidAsync("unwatchColorScheme", _watchHandle);
+			_watchHandle = 0;
+		}
+
+		_prefersDark = null;
 	}
 }

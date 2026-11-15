@@ -251,6 +251,7 @@ A trail of where the person is, with links back up. The last level is the curren
 | `ChildContent` | `RenderFragment?` | -- | Custom content |
 | `Text` | `string?` | -- | Display text |
 | `Href` | `string?` | -- | Navigation link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the item shows as text |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when the level is picked: from the trail, from the menu of folded levels, or from the back link a narrow trail shows. Without `Href` the level is a button styled as a link, for a trail that moves through the app's own state rather than through addresses; with `Href` the link also raises it. The current page raises nothing |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before text |
 | `IconOnly` | `bool` | `false` | Shows only the icon, named by `Text` through `aria-label` and a tooltip. Made for Home. Needs both an icon and text |
 | `Segment` | `string?` | -- | What the level adds to the copied path when it differs from the text, such as a slug or an id. An empty string leaves the level out |
@@ -403,6 +404,24 @@ page, the separators and the folded menu follow:
 
 Up to 0.2.2 each level decided for itself whether it was last, and a level with only text never rendered again: a level
 added later left the old last one bold and current beside it, and a removed one left a link with a separator after it.
+
+### Levels Without Addresses
+
+A trail that moves through the app's own state, such as folders in a file view, gives each level an `OnClick` instead of an `Href`. The level draws as the link does, and folding and the back link work the same way.
+
+```blazor-preview
+<MokaBreadcrumb>
+    @foreach ((string name, int depth) in _path.Select((name, depth) => (name, depth)))
+    {
+        <MokaBreadcrumbItem Text="@name" OnClick="() => GoUp(depth)" />
+    }
+</MokaBreadcrumb>
+
+@code {
+    List<string> _path = ["Files", "Reports", "2026", "November"];
+    void GoUp(int depth) => _path = _path.Take(depth + 1).ToList();
+}
+```
 
 ### Custom Separator
 

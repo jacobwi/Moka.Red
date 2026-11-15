@@ -547,6 +547,10 @@ public partial class MokaAppearancePanel
 			],
 			choice => _value with { DisabledButtons = choice });
 
+		AddRow(rows, MokaAppearanceRows.ControlHeights, theme.ControlHeights,
+			[(MokaControlHeights.Standard, Text.ControlHeightsStandard), (MokaControlHeights.Matched, Text.ControlHeightsMatched)],
+			choice => _value with { ControlHeights = choice });
+
 		AddRow(rows, MokaAppearanceRows.Callouts, theme.Callouts,
 			[(MokaCalloutLook.Standard, Text.CalloutsStandard), (MokaCalloutLook.Edge, Text.CalloutsEdge)],
 			choice => _value with { Callouts = choice });

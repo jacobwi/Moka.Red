@@ -155,7 +155,7 @@
 
 /* A button beside the box is as tall as the box: the button heights take the field's own steps for each size. */
 .moka-gate .moka-field-actions {
-	--moka-button-height-sm: calc(var(--moka-control-height) - var(--moka-spacing-md));
+	--moka-button-height-sm: var(--moka-control-height-sm);
 	--moka-button-height: var(--moka-control-height);
-	--moka-button-height-lg: calc(var(--moka-control-height) + var(--moka-spacing-md));
+	--moka-button-height-lg: var(--moka-control-height-lg);
 }
