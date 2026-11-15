@@ -30,7 +30,7 @@ public class MokaTableEditingTests : BunitContext
 
 	[Theory]
 	[InlineData("Name", "input[type='text']:not([inputmode])")]
-	[InlineData("Price", "input[inputmode='numeric']")]
+	[InlineData("Price", "input[inputmode='decimal']")]
 	[InlineData("Made", ".moka-datepicker-input-wrapper")]
 	[InlineData("Stock", "input[type='checkbox']:not([role])")]
 	[InlineData("Status", "select")]

@@ -26,6 +26,11 @@ internal static class TableValues
 	                                              || plain == typeof(byte) || plain == typeof(uint) || plain == typeof(ulong)
 	                                              || plain == typeof(ushort) || plain == typeof(sbyte));
 
+	public static bool IsWholeNumber(Type type) => Plain(type) is var plain
+	                                               && (plain == typeof(int) || plain == typeof(long) || plain == typeof(short)
+	                                                   || plain == typeof(byte) || plain == typeof(uint) || plain == typeof(ulong)
+	                                                   || plain == typeof(ushort) || plain == typeof(sbyte));
+
 	public static bool IsDate(Type type) => Plain(type) is var plain
 	                                        && (plain == typeof(DateTime) || plain == typeof(DateTimeOffset) || plain == typeof(DateOnly));
 

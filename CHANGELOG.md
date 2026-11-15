@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   else, from a tab or a docked group's header, is refused, and a docked group's header no longer shows a grab cursor.
 - `MokaNumericField` over a type with fractions (`double`, `float`, `decimal`, `Half`) asks for the decimal keypad
   (`inputmode="decimal"`), since the numeric keypad has no decimal point on some phones. Whole-number types keep the
-  numeric one.
+  numeric one. `MokaTable`'s number editor asks for the keypad its column's type fits.
 
 ## [0.6.0] - 2026-11-14
 

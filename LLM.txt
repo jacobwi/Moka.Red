@@ -3304,3 +3304,7 @@ in CHANGELOG.md. Not committed or released: BC's call.
   Half (MokaNumberText.HasFraction), whole-number types keep "numeric"; and a docked group's grip id is empty while
   AllowDragging is off (a floating window keeps its id), so the existing :not([data-moka-dock-grip=""]) rule drops the
   grab cursor and the script starts no drag. Forms 2,066 and Layout 688 pass.
+- The release commit's CI failed on three Data tests: MokaTable edits every number column through
+  MokaNumericField<double?>, so the keypad change gave whole-number columns the decimal keypad. The cell editor now
+  passes inputmode from the column's type (TableValues.IsWholeNumber), which the field's splatted attributes win
+  over. Forms and Layout had been run after the keypad change, Data hadn't; the full suite (12,278) passes now.

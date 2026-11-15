@@ -206,7 +206,7 @@ public class MokaTableReleaseFixTests : BunitContext
 		IRenderedComponent<MokaTable<Part>> cut = RenderParts(parts);
 
 		await cut.InvokeAsync(() => cut.Instance.StartEditAsync(parts[0], "Price"));
-		Assert.NotNull(cut.Find("td[data-editing] input[inputmode='numeric']"));
+		Assert.NotNull(cut.Find("td[data-editing] input[inputmode='decimal']"));
 		await cut.Find("td[data-editing] input").InputAsync(new ChangeEventArgs { Value = "2.5" });
 		await cut.InvokeAsync(() => cut.Instance.OnEditorKey("Enter"));
 

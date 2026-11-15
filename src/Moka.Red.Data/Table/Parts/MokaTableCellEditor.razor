@@ -31,7 +31,7 @@
 					case MokaColumnEditor.Number:
 						<MokaNumericField TValue="double?" Value="@TableValues.ToDouble(value)" ValueChanged="_number"
 						                  Size="MokaSize.Sm" ErrorText="@error" Disabled="@edit.Saving"
-						                  AdditionalAttributes="_attributes"/>
+						                  AdditionalAttributes="_numberAttributes"/>
 						break;
 					case MokaColumnEditor.Date:
 						<MokaDatePicker Value="@TableValues.ToDate(value)" ValueChanged="_date" Size="MokaSize.Sm" ErrorText="@error"
@@ -79,7 +79,9 @@
 	private EventCallback<int> _stars;
 	private EventCallback<string?> _text;
 	private Dictionary<string, object> _attributes = [];
+	private Dictionary<string, object> _numberAttributes = [];
 	private string? _label;
+	private string? _keypad;
 
 	/// <summary>The table.</summary>
 	[Parameter]
@@ -110,11 +112,16 @@
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
+		// Every number column is edited as a double, so the field would ask for the decimal keypad; a whole-number
+		// column asks for the numeric one, which the field takes from its attributes.
 		string label = Table.EditorLabel(Column);
-		if (label != _label)
+		string keypad = TableValues.IsWholeNumber(TypeOfColumn()) ? "numeric" : "decimal";
+		if (label != _label || keypad != _keypad)
 		{
 			_label = label;
+			_keypad = keypad;
 			_attributes = new Dictionary<string, object> { ["aria-label"] = label };
+			_numberAttributes = new Dictionary<string, object> { ["aria-label"] = label, ["inputmode"] = keypad };
 		}
 	}
 
