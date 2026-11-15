@@ -366,10 +366,24 @@ The field reads and writes numbers in the invariant culture, with a dot before t
 
 Before 0.6.0 `TValue` had to be a non-nullable `INumber<TValue>`. The field now checks the type when it is made, as Blazor's `InputNumber` does, so a number type of your own that implements `INumber<TValue>` throws an `InvalidOperationException` there.
 
+### Limits and steps
+
+`Min` and `Max` keep the value in range. A number typed outside it is reported as the nearer limit at once, so the value is never out of range, even when Enter submits the form. The box keeps what was typed while it has focus, as it keeps "1." on the way to "1.5", and shows the limit once focus leaves. An empty box of a type that can't be null is reported as `Min` when zero is below it; a nullable field's empty box stays null. A limit applies only when you pass it, so a field of `int` without `Min` still takes negative numbers.
+
+`Step` makes the input a spin button (`role="spinbutton"` with `aria-valuenow`, and `aria-valuemin` and `aria-valuemax` for the limits you pass). Arrow Up and Arrow Down add or take away the step from the number in the box, within the limits; an empty box steps from zero, and a step past the end of the type leaves the value where it is. A small script hears just those two keys, so typing sends .NET nothing more than before. Without a `Step`, or with one that isn't above zero, the arrow keys move the caret as in any text box and no script loads.
+
+```blazor-preview
+@code { decimal _rate = 1.5m; }
+<MokaNumericField TValue="decimal" @bind-Value="_rate" Label="Rate" Min="0m" Max="5m" Step="0.25m" Suffix="%" />
+```
+
 ### MokaNumericField Parameters (extras)
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
+| `Min` | `TValue?` | - | The smallest value reported. A smaller number is reported as `Min`, and shown once focus leaves. Applies only when passed |
+| `Max` | `TValue?` | - | The largest value reported. A larger number is reported as `Max`, and shown once focus leaves. Applies only when passed |
+| `Step` | `TValue?` | - | What Arrow Up and Arrow Down add or take away, within `Min` and `Max`. Makes the input a spin button. Not above zero, it does nothing |
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Mono` | `bool` | `false` | Writes the value in the monospace font |
 | `Suffix` | `string?` | - | A unit inside the box at the right, tied to the input with `aria-describedby` |

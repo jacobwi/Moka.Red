@@ -197,6 +197,8 @@ internal static class TableKit
 
 		public string? AggregateFormat { get; init; }
 
+		public Func<Person, string>? GroupKey { get; init; }
+
 		internal void Write(RenderTreeBuilder builder)
 		{
 			builder.OpenComponent<MokaColumn<Person>>(0);
@@ -229,6 +231,7 @@ internal static class TableKit
 			builder.AddComponentParameter(27, nameof(MokaColumn<Person>.Editor), Editor);
 			builder.AddComponentParameter(28, nameof(MokaColumn<Person>.EditOptions), EditOptions);
 			builder.AddComponentParameter(29, nameof(MokaColumn<Person>.Property), Property);
+			builder.AddComponentParameter(30, nameof(MokaColumn<Person>.GroupKey), GroupKey);
 			builder.CloseComponent();
 		}
 	}

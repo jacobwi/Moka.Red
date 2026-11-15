@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Forms.NumericField;
 
 namespace Moka.Red.Showcase.Components.Library;
 
@@ -41,6 +42,13 @@ internal static class ComponentParameters
 	};
 
 	private static readonly Type[] StandIns = [typeof(string), typeof(int), typeof(double)];
+
+	// Components that check their type argument when they are made, which no constraint can show: the number field takes
+	// only the base library's number types and throws for string.
+	private static readonly Dictionary<Type, Type> CheckedWhenMade = new()
+	{
+		[typeof(MokaNumericField<>)] = typeof(int)
+	};
 
 	public static IReadOnlyList<ComponentParameter> Of(Type component) => Cache.GetOrAdd(component, Read);
 
@@ -94,6 +102,11 @@ internal static class ComponentParameters
 		if (!component.IsGenericTypeDefinition)
 		{
 			return component;
+		}
+
+		if (CheckedWhenMade.TryGetValue(component, out Type? standIn))
+		{
+			return component.MakeGenericType(standIn);
 		}
 
 		Type[] parameters = component.GetGenericArguments();

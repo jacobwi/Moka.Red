@@ -373,6 +373,43 @@ const results = {};
 	results.measure = { empty, main: dock.measureMain(root) };
 }
 
+// With dragging off a floating window still moves by its header; only docking elsewhere, from a tab or a docked group's
+// header, is refused.
+{
+	const root = new FakeElement('div', { 'data-moka-dock-layout': '' });
+	Object.assign(root, { clientWidth: 800, clientHeight: 600 });
+	const header = new FakeElement('div', { class: 'moka-dock-panel-header', 'data-moka-dock-grip': 'g1' });
+	const win = new FakeElement('div', { 'data-moka-dock-float': 'g1' }).append(header);
+	Object.assign(win, { offsetLeft: 100, offsetTop: 50, offsetWidth: 300, offsetHeight: 200 });
+	const dockedHeader = new FakeElement('div', { class: 'moka-dock-panel-header', 'data-moka-dock-grip': 'g2' });
+	const docked = new FakeElement('section', { class: 'moka-dock-group' }).append(dockedHeader);
+	const tab = new FakeElement('div', { 'data-moka-dock-tab': 'p1' });
+	root.append(win, docked, tab);
+	const ref = recorder();
+	dock.bind(root, ref, { drag: false });
+	ref.calls.length = 0;
+
+	const added = [];
+	const { addEventListener, removeEventListener } = document;
+	document.addEventListener = (type, handler) => added.push([type, handler]);
+	document.removeEventListener = () => {};
+	const press = target => root.dispatch('pointerdown', { button: 0, target, clientX: 10, clientY: 10, pointerId: 1, preventDefault() {} });
+	const fire = (type, x, y) => added.filter(([t]) => t === type).forEach(([, handler]) => handler({ clientX: x, clientY: y, pointerId: 1 }));
+
+	press(tab);
+	press(dockedHeader);
+	const listenersFromRefusedPresses = added.length;
+
+	press(header);
+	fire('pointermove', 110, 40);
+	fire('pointerup', 110, 40);
+	Object.assign(document, { addEventListener, removeEventListener });
+
+	results.noDrag = {
+		listenersFromRefusedPresses, left: win.style.left ?? null, top: win.style.top ?? null, calls: ref.calls.map(c => c[0])
+	};
+}
+
 rmSync(folder, { recursive: true, force: true });
 process.stdout.write(JSON.stringify(results));
 process.exit(0);

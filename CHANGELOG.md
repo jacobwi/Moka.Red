@@ -5,6 +5,23 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `MokaNumericField` applies `Min`, `Max` and `Step`, as the 0.6.0 notes said it did; they were declared and never
+  read. A number typed outside the range is reported as the nearer limit at once, the box keeps the typing while it has
+  focus and shows the limit once focus leaves, and an empty box of a type that can't be null is reported as `Min`. A
+  limit applies only when passed, so a field of `int` without `Min` still takes negative numbers. With a `Step` above
+  zero the input is a spin button: Arrow Up and Arrow Down step the value within the limits, through a small script
+  that sends .NET only those two keys, and a step past the end of the type leaves the value.
+- `MokaTable` groups by a column that has a `GroupKey` and no `Field`, so a hidden column can hold just the key. Such a
+  column used to be skipped, leaving the rows flat. Its column menu offers "Group by this column" too.
+- `MokaDockLayout` with `AllowDragging="false"` moves a floating window by its header again. Only docking somewhere
+  else, from a tab or a docked group's header, is refused, and a docked group's header no longer shows a grab cursor.
+- `MokaNumericField` over a type with fractions (`double`, `float`, `decimal`, `Half`) asks for the decimal keypad
+  (`inputmode="decimal"`), since the numeric keypad has no decimal point on some phones. Whole-number types keep the
+  numeric one.
+
 ## [0.6.0] - 2026-11-14
 
 ### Breaking

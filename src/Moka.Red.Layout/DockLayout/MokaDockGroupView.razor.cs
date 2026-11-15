@@ -78,7 +78,11 @@ public sealed partial class MokaDockGroupView : ComponentBase
 		? Layout.HostIdOf(shown)
 		: Group.Content || Mode == MokaDockGroupMode.Narrow ? Layout.HostIdOf(MokaDockLayout.ContentPanelId) : null;
 
-	private string GripId => Mode == MokaDockGroupMode.Narrow ? "" : Group.Id;
+	// An empty grip starts no drag and shows no grab cursor. A floating window keeps its grip, since moving it docks
+	// nothing, so AllowDragging leaves it alone.
+	private string GripId => Mode == MokaDockGroupMode.Narrow || (Mode != MokaDockGroupMode.Floating && !Layout.AllowDragging)
+		? ""
+		: Group.Id;
 
 	private string ModeName => Mode switch
 	{

@@ -1,5 +1,6 @@
 using System.Numerics;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
@@ -18,7 +19,15 @@ namespace Moka.Red.Forms.NumericField;
 /// </typeparam>
 public partial class MokaNumericField<TValue>
 {
+	private const string ModulePath = "./_content/Moka.Red.Forms/NumericField/MokaNumericField.razor.js";
+
 	private readonly string _generatedId = $"moka-numericfield-{Guid.NewGuid():N}";
+	private ElementReference _input;
+	private DotNetObjectReference<MokaNumericField<TValue>>? _dotNetRef;
+	private bool _hasMin;
+	private bool _hasMax;
+	private bool _hasStep;
+	private bool _stepKeysBound;
 
 	/// <summary>Checks the type once, as Blazor's own number input does, rather than failing on the first edit.</summary>
 	/// <exception cref="InvalidOperationException">The type isn't a number type the field reads.</exception>
@@ -72,15 +81,26 @@ public partial class MokaNumericField<TValue>
 	[Parameter]
 	public MokaIconDefinition? StartIcon { get; set; }
 
-	/// <summary>Minimum allowed value.</summary>
+	/// <summary>
+	///     The smallest value the field reports. A smaller number is reported as this one while it is typed, and the box
+	///     shows it once the field loses focus. Applies only when passed, so a field of <c>int</c> without it takes
+	///     negative numbers.
+	/// </summary>
 	[Parameter]
 	public TValue? Min { get; set; }
 
-	/// <summary>Maximum allowed value.</summary>
+	/// <summary>
+	///     The largest value the field reports. A larger number is reported as this one while it is typed, and the box
+	///     shows it once the field loses focus. Applies only when passed.
+	/// </summary>
 	[Parameter]
 	public TValue? Max { get; set; }
 
-	/// <summary>Increment step value.</summary>
+	/// <summary>
+	///     How much Arrow Up and Arrow Down add to or take from the value, within <see cref="Min" /> and
+	///     <see cref="Max" />. With a step the input is a spin button. Without one, or with a step that isn't above zero,
+	///     the arrow keys move the caret as in any text box.
+	/// </summary>
 	[Parameter]
 	public TValue? Step { get; set; }
 
@@ -134,6 +154,19 @@ public partial class MokaNumericField<TValue>
 
 	private IReadOnlyDictionary<string, object>? InputAttributes => MokaAttributes.WithoutDescribedBy(AdditionalAttributes);
 
+	// The numeric keypad has no decimal point on some phones, so a type with fractions asks for the decimal one.
+	private static string InputMode => MokaNumberText<TValue>.HasFraction ? "decimal" : "numeric";
+
+	private bool Steps => _hasStep && Comparer<TValue>.Default.Compare(Step!, MokaNumberText<TValue>.Zero) > 0;
+
+	private string? InputRole => Steps ? "spinbutton" : null;
+
+	private string? ValueNow => Steps ? MokaNumberText<TValue>.Format(CurrentValue) : null;
+
+	private string? ValueMin => Steps && _hasMin ? MokaNumberText<TValue>.Format(Min) : null;
+
+	private string? ValueMax => Steps && _hasMax ? MokaNumberText<TValue>.Format(Max) : null;
+
 	/// <inheritdoc />
 	/// <remarks>
 	///     Written in the invariant culture, the one the text is read back in. InputBase would write the
@@ -142,23 +175,138 @@ public partial class MokaNumericField<TValue>
 	protected override string? FormatValueAsString(TValue? value) => MokaNumberText<TValue>.Format(value);
 
 	/// <inheritdoc />
-	/// <remarks>An empty box is null for a nullable type, and zero for any other.</remarks>
+	/// <remarks>
+	///     Notes which of <see cref="Min" />, <see cref="Max" /> and <see cref="Step" /> the parent passes. Without the
+	///     struct constraint <c>TValue?</c> is <c>TValue</c> itself for a value type, so an unset <see cref="Min" /> on a
+	///     field of <c>int</c> reads as 0 and only the parameters say whether it was set.
+	/// </remarks>
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_hasMin = IsPassed(parameters, nameof(Min));
+		_hasMax = IsPassed(parameters, nameof(Max));
+		_hasStep = IsPassed(parameters, nameof(Step));
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <summary>
+	///     Steps the value from the text in the box. Called from the field's script on Arrow Up (+1) and Arrow Down (-1)
+	///     while it has a <see cref="Step" />. An empty box steps from zero, and text that isn't a number stays as it is.
+	/// </summary>
+	/// <param name="direction">Above zero steps up, otherwise down.</param>
+	[JSInvokable]
+	public void StepBy(int direction)
+	{
+		if (!Steps || Disabled || ReadOnly)
+		{
+			return;
+		}
+
+		TValue from;
+		if (string.IsNullOrWhiteSpace(InputText))
+		{
+			from = MokaNumberText<TValue>.Zero;
+		}
+		else if (!MokaNumberText<TValue>.TryParse(InputText, out from))
+		{
+			return;
+		}
+
+		TValue to = Clamp(MokaNumberText<TValue>.Step(from, Step!, direction > 0));
+		HandleInputWithDebounce(MokaNumberText<TValue>.Format(to));
+		StateHasChanged();
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+		if (Steps == _stepKeysBound)
+		{
+			return;
+		}
+
+		_stepKeysBound = Steps;
+		if (Steps)
+		{
+			_dotNetRef ??= DotNetObjectReference.Create(this);
+			await SafeModuleInvokeVoidAsync(ModulePath, "bindSteps", _input, _dotNetRef);
+		}
+		else
+		{
+			await SafeModuleInvokeVoidAsync(ModulePath, "unbindSteps", _input);
+		}
+	}
+
+	/// <inheritdoc />
+	/// <remarks>
+	///     An empty box is null for a nullable type, and zero for any other. A number outside <see cref="Min" /> and
+	///     <see cref="Max" /> is reported as the nearer one, so the value is never out of range, even when Enter submits
+	///     the form before the field loses focus.
+	/// </remarks>
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)
 	{
 		if (string.IsNullOrWhiteSpace(value))
 		{
-			result = default!;
+			result = Clamp(default!);
 			validationErrorMessage = string.Empty;
 			return true;
 		}
 
-		if (MokaNumberText<TValue>.TryParse(value, out result))
+		if (MokaNumberText<TValue>.TryParse(value, out TValue typed))
 		{
+			result = Clamp(typed);
 			validationErrorMessage = string.Empty;
 			return true;
 		}
 
+		result = default!;
 		validationErrorMessage = $"'{value}' is not a valid number.";
 		return false;
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		_dotNetRef?.Dispose();
+		await base.DisposeAsyncCore();
+	}
+
+	private static bool IsPassed(ParameterView parameters, string name) =>
+		parameters.TryGetValue(name, out TValue? value) && value is not null;
+
+	private TValue Clamp(TValue value)
+	{
+		if (value is null)
+		{
+			return value;
+		}
+
+		if (_hasMin && Comparer<TValue>.Default.Compare(value, Min!) < 0)
+		{
+			return Min!;
+		}
+
+		return _hasMax && Comparer<TValue>.Default.Compare(value, Max!) > 0 ? Max! : value;
+	}
+
+	// While focused the box keeps what was typed, as it keeps "1." on the way to "1.5". Once focus leaves, a number that
+	// was reported as Min or Max, or an empty box reported as Min, shows what the field reported instead.
+	private async Task HandleNumberBlurAsync()
+	{
+		if (BoxShowsAnotherValue())
+		{
+			ShowValueText();
+		}
+
+		await HandleBlurAsync();
+	}
+
+	private bool BoxShowsAnotherValue()
+	{
+		string? text = InputText;
+		TValue? shown = string.IsNullOrWhiteSpace(text) ? default
+			: MokaNumberText<TValue>.TryParse(text, out TValue typed) ? typed
+			: CurrentValue;
+		return !EqualityComparer<TValue?>.Default.Equals(shown, CurrentValue);
 	}
 }

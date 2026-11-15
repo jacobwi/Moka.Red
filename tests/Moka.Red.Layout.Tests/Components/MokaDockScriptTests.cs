@@ -69,6 +69,17 @@ public sealed class MokaDockScriptTests
 	}
 
 	[Fact]
+	public void WithDraggingOff_AFloatingWindowStillMovesByItsHeader_AndNothingDocksElsewhere()
+	{
+		JsonElement noDrag = Results().GetProperty("noDrag");
+
+		Assert.Equal(0, noDrag.GetProperty("listenersFromRefusedPresses").GetInt32());
+		Assert.Equal("200px", noDrag.GetProperty("left").GetString());
+		Assert.Equal("80px", noDrag.GetProperty("top").GetString());
+		Assert.Equal(["OnFloatMoved"], noDrag.GetProperty("calls").EnumerateArray().Select(e => e.GetString()));
+	}
+
+	[Fact]
 	public void MeasureMain_GivesTheAreaWindowsFloatOver()
 	{
 		JsonElement measure = Results().GetProperty("measure");

@@ -412,7 +412,7 @@ public partial class MokaTable<TItem>
 
 	internal bool CanFilterFromMenu(MokaColumn<TItem> col) => col is { Filterable: true, Title: not null, HasValue: true } || (ServerData is not null && col is { Filterable: true, Title: not null });
 
-	internal static bool CanGroupBy(MokaColumn<TItem> col) => col is { HasValue: true, Title: not null };
+	internal static bool CanGroupBy(MokaColumn<TItem> col) => col.Title is not null && (col.HasValue || col.GroupKey is not null);
 
 	internal bool IsGroupedBy(MokaColumn<TItem> col) => col.Title is not null && _groups.Contains(col.Title);
 

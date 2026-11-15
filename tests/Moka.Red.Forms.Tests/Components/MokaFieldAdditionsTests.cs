@@ -334,7 +334,7 @@ public class MokaFieldAdditionsTests : BunitContext
 		},
 		{
 			"NumericField",
-			"class=moka-numericfield-input moka-numericfield-input--md type=text inputmode=numeric blazor:onfocus blazor:onblur id=f value=3 blazor:oninput"
+			"class=moka-numericfield-input moka-numericfield-input--md type=text inputmode=numeric blazor:onfocus blazor:onblur id=f value=3 blazor:oninput blazor:elementreference"
 		},
 		{
 			"PasswordField",

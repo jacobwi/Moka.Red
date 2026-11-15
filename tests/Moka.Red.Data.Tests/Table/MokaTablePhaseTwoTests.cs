@@ -394,6 +394,18 @@ public sealed class MokaTablePhaseTwoTests : BunitContext
 		Assert.Equal("2", cut.Find(".moka-table-group-cell").GetAttribute("colspan"));
 	}
 
+	// The key alone is enough: a hidden column with no Field can hold what the rows are grouped by.
+	[Fact]
+	public void AHiddenColumnWithOnlyAGroupKey_GroupsTheRows()
+	{
+		Col region = new("Region", null) { Visible = false, GroupKey = static x => x.City == "London" ? "UK" : "EU" };
+
+		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.GroupBy, "Region"), Name, Team, region);
+
+		Assert.Equal(["UK", "EU"], cut.FindAll(".moka-table-group-key").Select(e => e.TextContent));
+		Assert.Equal(["1", "3"], cut.FindAll(".moka-table-group-count").Select(e => e.TextContent));
+	}
+
 	[Fact]
 	public async Task EveryGroup_CollapsesAndExpandsAtOnce()
 	{

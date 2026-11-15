@@ -19,7 +19,7 @@ public partial class MokaTable<TItem>
 		List<MokaColumn<TItem>> columns = [];
 		foreach (string title in _groups)
 		{
-			if (_columns.Find(col => col.HasValue && col.Title == title) is { } col && !columns.Contains(col))
+			if (_columns.Find(col => CanGroupBy(col) && col.Title == title) is { } col && !columns.Contains(col))
 			{
 				columns.Add(col);
 			}
@@ -280,7 +280,7 @@ public partial class MokaTable<TItem>
 	// Grouping by a column adds a level inside the others; grouping by it again takes it away.
 	internal async Task ToggleGroupByAsync(MokaColumn<TItem> col)
 	{
-		if (col.Title is not { } title || !col.HasValue)
+		if (!CanGroupBy(col) || col.Title is not { } title)
 		{
 			return;
 		}

@@ -258,6 +258,28 @@ public class MokaDockFeatureTests : BunitContext
 		Assert.Single(cut.FindAll("[data-moka-dock-float]"));
 	}
 
+	// An empty grip starts no drag and draws no grab cursor; a floating window keeps its grip, since moving it docks nothing.
+	[Fact]
+	public async Task DraggingOff_EmptiesTheDockedGrips_AndKeepsTheFloatingWindowsGrip()
+	{
+		IRenderedComponent<MokaDockLayout> cut = Render<MokaDockLayout>(p => p
+			.Add(x => x.AllowDragging, false)
+			.AddChildContent(DockKit.Ide()));
+
+		await cut.InvokeAsync(() => cut.Instance.FloatPanelAsync("search"));
+
+		IElement window = cut.Find("[data-moka-dock-float]");
+		Assert.Equal(window.GetAttribute("data-moka-dock-float"),
+			window.QuerySelector("[data-moka-dock-grip]")!.GetAttribute("data-moka-dock-grip"));
+		IElement[] docked = [.. cut.FindAll("[data-moka-dock-grip]").Where(grip => grip.Closest("[data-moka-dock-float]") is null)];
+		Assert.NotEmpty(docked);
+		Assert.All(docked, grip => Assert.Equal(string.Empty, grip.GetAttribute("data-moka-dock-grip")));
+
+		cut.Render(p => p.Add(x => x.AllowDragging, true).AddChildContent(DockKit.Ide()));
+
+		Assert.All(cut.FindAll("[data-moka-dock-grip]"), grip => Assert.NotEqual(string.Empty, grip.GetAttribute("data-moka-dock-grip")));
+	}
+
 	[Fact]
 	public async Task FloatingOff_RefusesToFloat()
 	{

@@ -6,8 +6,18 @@
 	</EditForm>
 </DemoSection>
 
+<DemoSection Id="limits" Title="Limits and steps" Description="Min and Max keep the value in range, and Step makes Arrow Up and Arrow Down step it.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaNumericField @bind-Value="_width" Label="Width" Min="640" Max="8192" Step="16" Suffix="px" TValue="int"
+		                  HelperText="@($"Reported: {_width}. Type 99999, then leave the field.")"/>
+		<MokaNumericField @bind-Value="_rate" Label="Rate" Min="0m" Max="5m" Step="0.25m" Suffix="%" TValue="decimal"/>
+	</div>
+</DemoSection>
+
 @code {
 	private readonly FormModel _model = new();
+	private int _width = 1920;
+	private decimal _rate = 1.5m;
 
 	private sealed class FormModel
 	{

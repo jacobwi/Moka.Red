@@ -113,7 +113,8 @@ public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>
 
 	/// <summary>
 	///     The heading a row goes under when the table is grouped by this column. Default the cell's text, so rows that
-	///     show the same text share a heading.
+	///     show the same text share a heading. A column with a key groups without a <see cref="Field" />, so a hidden
+	///     column can hold just the key.
 	/// </summary>
 	[Parameter]
 	public Func<TItem, string>? GroupKey { get; set; }

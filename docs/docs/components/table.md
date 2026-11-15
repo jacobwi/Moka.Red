@@ -320,7 +320,7 @@ The [column kinds](/components/table-columns) (`MokaPersonColumn`, `MokaNumberCo
 | `Filterable` | `bool` | `false` | The table's filter controls offer this column: an input in the filter row, a filter button in its heading, a choice in the builder, and a list in the facet panel for list and yes or no filters. Needs a `Title`. See [Table Filters](/components/table-filters) |
 | `FilterType` | `MokaColumnFilterType` | `Auto` | What the column's filter takes: `Auto` (from its values), `Text`, `Number`, `Date`, `Select`, `MultiSelect` or `YesNo`. See [What a column's filter takes](/components/table-filters#what-a-columns-filter-takes) |
 | `FilterOptions` | `IReadOnlyList<MokaFilterOption>?` | -- | The choices a list filter offers, in place of the values the table finds in its rows. Each is `MokaFilterOption(Value, Text)` |
-| `GroupKey` | `Func<TItem, string>?` | -- | The heading a row goes under when the table is grouped by this column. Null takes the cell's text |
+| `GroupKey` | `Func<TItem, string>?` | -- | The heading a row goes under when the table is grouped by this column. Null takes the cell's text. A column with a key groups without a `Field` |
 
 ### Layout
 
@@ -840,7 +840,7 @@ Pins are part of the state, as `Pin` on each `MokaTableColumnState`. The column 
 | Filter… | The column is `Filterable`. It opens the column's [filter popup](/components/table-filters#heading-menus), under the heading's filter button with the `Menus` control, else under the heading, so the menu filters without that control too |
 | Pin to start, Pin to end | The column isn't `Fixed`. The current pin is checked |
 | Unpin | The column is pinned |
-| Group by this column | The column has a value and a title. Checked while the rows are grouped by it. A pick adds a grouping level inside the others, or takes it away |
+| Group by this column | The column has a title, and a value or a `GroupKey`. Checked while the rows are grouped by it. A pick adds a grouping level inside the others, or takes it away |
 | Hide column | The column isn't `Fixed` and has a title |
 | Fit to content | Always. The column takes the width that shows every value on one line, the widest of its heading and the cells on screen, kept in the state like a dragged width |
 
@@ -1437,7 +1437,7 @@ Keep the stream in a field rather than calling the method in the markup when the
 
 ## Grouped rows
 
-`GroupBy` names a column by its `Title`. Rows that show the same text in that column, or the same `GroupKey` when the column has one, are shown together under a collapsible heading that spans the table. The column can be hidden, so a table can group by something it doesn't show as a column.
+`GroupBy` names a column by its `Title`. Rows that show the same text in that column, or the same `GroupKey` when the column has one, are shown together under a collapsible heading that spans the table. The column can be hidden, so a table can group by something it doesn't show as a column, and a column with a `GroupKey` needs no `Field`: the key alone is enough.
 
 ```razor
 <MokaTable Items="_tasks" GroupBy="Status">

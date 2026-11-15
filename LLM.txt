@@ -3272,3 +3272,35 @@ heading was right regardless, and the 0.5.4 script checks its own heading. No MC
 - CI failed three times after the release commit, each on a test, not the library: toast percent checks wrote "40%" where the runner's culture writes "40 %" (they read the default formatter now), the WebAssembly smoke test looked for the old cell editor's class (it waits for the focused input in the editing cell now), and the highlighter linearity test compared two runs that did different work (it compares a doubled input with best of three for both halves now). Fourth run green on de1b077, tagged v0.6.0, Publish green, NuGet served all 12 packages.
 - Docs pins moved to 0.6.0 with the usings Moka.Red.Core.Code, Moka.Red.Core.Colors and Moka.Red.ThemeGen.Studio; a clean copy of the preview host built against the published package with every docs using as a global using.
 - MokaGate, Mokaterm, MokaArk and the WireGuard app were each sent their own migration notes from a scan of their source.
+
+## 2026-11-14 - Three fixes after 0.6.0, from Mokaterm's move to it
+
+Mokaterm reported three defects while moving to 0.6.0; each checked against tag v0.6.0 and fixed under [Unreleased]
+in CHANGELOG.md. Not committed or released: BC's call.
+
+- MokaNumericField declared Min, Max and Step and never read them, though the 0.6.0 notes said they apply. Since
+  0.6.0 dropped the struct constraint, TValue? is TValue for a value type, so an unset Min on an int field reads as 0;
+  a limit now counts only when the parent passes it, read in SetParametersAsync (blazor/components/lifecycle.md, "When
+  parameters are set"). A number outside the range is reported as the nearer limit at once, inside
+  TryParseValueFromString, so the value is never out of range even when Enter submits before blur; the box keeps the
+  typing while focused (as it keeps "1.") and shows the limit on blur. Clamping while typing was rejected for the text
+  because Min would snap "5" on the way to "50". Step makes the input role="spinbutton" with aria-valuenow, -min and
+  -max, and MokaNumericField.razor.js sends .NET only Arrow Up and Down (StepBy), so typing costs no extra round
+  trip; the element is captured with @ref (javascript-interoperability/call-javascript-from-dotnet.md, element
+  references). Steps go through MokaNumberText<TValue>.Step, generic math per type picked by name like the parser; a
+  step past the end of the type leaves the value (wrap caught by comparison, no exception). Without Step the arrows
+  stay the caret's and no script loads. NumericFieldRangeTests (17); the golden for the default markup gained
+  blazor:elementreference. Checked in the showcase: 99999 reports 8192 and shows it on blur, arrows step 1.5 to 2.00 and
+  stop at 5, Shift+Arrow still selects.
+- MokaTable grouped only by a column with a Field; a column with only a GroupKey was skipped and the rows stayed flat.
+  CanGroupBy (title, and a value or a GroupKey) now decides the group columns, the toggle and the column menu.
+- MokaDockLayout with AllowDragging off returned before the floating window's grip check, so a floated panel couldn't
+  move. The drag option now refuses only docking elsewhere; a Node case in MokaDockScriptTests fails on the 0.6.0
+  script and passes on the fix.
+- Found while checking: the showcase's numeric field page threw (its parameter table closes generics over string, and
+  the field's constructor refuses string). ComponentParameters.CheckedWhenMade closes MokaNumericField<> over int.
+- Full suite: 12,276 run, one golden updated, then Forms 2,065 of 2,065.
+- Then, at BC's word, the two seen in passing: the field asks for inputmode="decimal" for double, float, decimal and
+  Half (MokaNumberText.HasFraction), whole-number types keep "numeric"; and a docked group's grip id is empty while
+  AllowDragging is off (a floating window keeps its id), so the existing :not([data-moka-dock-grip=""]) rule drops the
+  grab cursor and the script starts no drag. Forms 2,066 and Layout 688 pass.

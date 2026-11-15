@@ -255,11 +255,12 @@ function onPointerDown(state, e) {
 		return;
 	}
 
-	if (state.narrow || !state.options.drag) return;
+	if (state.narrow) return;
 
+	// options.drag only refuses docking somewhere else: a floating window still moves by its header.
 	const tab = target.closest('[data-moka-dock-tab]');
 	if (tab && !target.closest('.moka-dock-tab__close')) {
-		armDrag(state, e, 'panel', tab.dataset.mokaDockTab, tab);
+		if (state.options.drag) armDrag(state, e, 'panel', tab.dataset.mokaDockTab, tab);
 		return;
 	}
 
@@ -272,7 +273,7 @@ function onPointerDown(state, e) {
 		return;
 	}
 
-	armDrag(state, e, 'group', grip.dataset.mokaDockGrip, grip);
+	if (state.options.drag) armDrag(state, e, 'group', grip.dataset.mokaDockGrip, grip);
 }
 
 function splitterOptions(split, gutter) {
