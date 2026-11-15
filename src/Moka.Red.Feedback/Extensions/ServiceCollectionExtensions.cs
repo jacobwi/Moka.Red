@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
 	/// <returns>The service collection for chaining.</returns>
 	public static IServiceCollection AddMokaFeedback(this IServiceCollection services)
 	{
+		services.AddOptions();
 		services.AddMokaAnnouncer();
 		services.AddScoped<IMokaToastService, MokaToastService>();
 		services.AddScoped<IMokaDialogService, MokaDialogService>();
@@ -31,6 +32,22 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IMokaCommandPaletteService, MokaCommandPaletteService>();
 		services.AddScoped<IMokaBannerService, MokaBannerService>();
 		services.TryAddScoped<IMokaBannerStorage, MokaBrowserBannerStorage>();
+		return services;
+	}
+
+	/// <summary>
+	///     Registers the Moka.Red Feedback services, as <see cref="AddMokaFeedback(IServiceCollection)" /> does, with
+	///     app-wide settings: toast defaults and a limit on stored notifications. It adds to any other
+	///     <c>services.Configure&lt;MokaFeedbackOptions&gt;</c>.
+	/// </summary>
+	/// <param name="services">The service collection.</param>
+	/// <param name="configure">Sets the <see cref="MokaFeedbackOptions" />.</param>
+	/// <returns>The service collection for chaining.</returns>
+	public static IServiceCollection AddMokaFeedback(this IServiceCollection services, Action<MokaFeedbackOptions> configure)
+	{
+		ArgumentNullException.ThrowIfNull(configure);
+		services.AddMokaFeedback();
+		services.Configure(configure);
 		return services;
 	}
 

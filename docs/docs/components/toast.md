@@ -274,6 +274,27 @@ and message. `Repeats` says what happens:
 }
 ```
 
+## App-wide Defaults
+
+`MokaFeedbackOptions.ToastDefaults` runs on every toast the app shows, after its message and severity are set and before
+the call's own `configure`, so a call still sets what it wants. Set it once at startup:
+
+```csharp
+builder.Services.AddMokaRed(o => o.Feedback = f => f.ToastDefaults = toast =>
+{
+    toast.Repeats = MokaToastRepeats.Count;
+    if (toast.Severity == MokaToastSeverity.Error)
+    {
+        toast.Duration = null; // errors stay until closed
+    }
+});
+```
+
+`AddMokaFeedback(f => ...)` and `services.Configure<MokaFeedbackOptions>(f => ...)` set the same thing, and several of
+them add up. The defaults reach `Show`, the `ShowSuccess`-style helpers, the loading toast of `Track` and `MokaToast` in
+markup, where a parameter the page passes wins over them. A toast that changes later, through `Update` or a `Track`
+toast settling, keeps what it had. Without defaults every toast is what `MokaToastOptions` makes it.
+
 ## A Toast in Markup
 
 `MokaToast` ties a toast to page state. It renders nothing where it stands: it hands the toast to the service, so the

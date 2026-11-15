@@ -147,6 +147,17 @@ loading entry turns into its result. Its action button comes along as an action.
 </MokaButton>
 ```
 
+## Keeping the List Short
+
+The service keeps every notification pushed unless the app sets a limit. With `MokaFeedbackOptions.NotificationLimit`,
+a push that takes the list past it removes the oldest read notifications first, then the oldest unread ones, and never
+the one just pushed. A push that replaces an entry by its `Id` or `Key` removes nothing.
+
+```csharp
+builder.Services.AddMokaRed(o => o.Feedback = f => f.NotificationLimit = 100);
+// or: builder.Services.AddMokaFeedback(f => f.NotificationLimit = 100);
+```
+
 ## Looks
 
 On the new design the list can take one of seven looks (`MokaNotificationLook`). Set one for the whole app on the theme, or give one center its own with `Look`, which wins over the theme. `MokaTheme.Dark` and `MokaTheme.Light` keep their one look whatever either says.

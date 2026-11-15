@@ -32,7 +32,14 @@ public static class ServiceCollectionExtensions
 		services.AddMokaAnnouncer();
 
 		// Feedback: toast, dialog, notification, command palette, banners
-		services.AddMokaFeedback();
+		if (options.Feedback is { } feedback)
+		{
+			services.AddMokaFeedback(feedback);
+		}
+		else
+		{
+			services.AddMokaFeedback();
+		}
 
 		// Context menu: shared service-driven menu (needs a MokaContextMenuHost in the layout)
 		services.AddMokaContextMenu();
@@ -55,4 +62,10 @@ public sealed class MokaRedOptions
 {
 	/// <summary>Theme used for the cascading value. Defaults to <see cref="MokaTheme.Default" />.</summary>
 	public MokaTheme Theme { get; set; } = MokaTheme.Default;
+
+	/// <summary>
+	///     App-wide settings for the Feedback services: toast defaults and a limit on stored notifications. The same as
+	///     <c>services.Configure&lt;MokaFeedbackOptions&gt;</c>. Null, the default, leaves them as they are.
+	/// </summary>
+	public Action<MokaFeedbackOptions>? Feedback { get; set; }
 }

@@ -3308,3 +3308,26 @@ in CHANGELOG.md. Not committed or released: BC's call.
   MokaNumericField<double?>, so the keypad change gave whole-number columns the decimal keypad. The cell editor now
   passes inputmode from the column's type (TableValues.IsWholeNumber), which the field's splatted attributes win
   over. Forms and Layout had been run after the keypad change, Data hadn't; the full suite (12,278) passes now.
+
+## 2026-11-14 - Notification limit and app-wide toast defaults (unreleased)
+
+Mokaterm suggested both after moving to 0.6.0 (it trims notifications to 100 after each push and sets Repeats on every
+Show). BC approved the proposed shape, a delegate over typed properties.
+
+- MokaFeedbackOptions (Feedback/Extensions) with ToastDefaults (Action<MokaToastOptions>?) and NotificationLimit (int?,
+  below 1 refused). Registered by the options pattern (fundamentals/configuration/options.md: IOptions<T> is a
+  singleton any lifetime can take): AddMokaFeedback() calls AddOptions, a new AddMokaFeedback(Action) overload adds
+  Configure, so services.Configure<MokaFeedbackOptions> adds up; MokaRedOptions.Feedback passes through. An overload
+  rather than an optional parameter keeps AddMokaFeedback binary-compatible. Both services take
+  IOptions<MokaFeedbackOptions>? as an optional last constructor parameter (source-compatible, binary break, in the
+  CHANGELOG).
+- Defaults run when a toast is made (Show, the helpers, Track's loading toast), after message and severity and before
+  the call's configure; Update and a settling Track toast keep what the toast had, since re-running them would fight
+  what the call set. MokaToast used to copy every parameter, so its declared defaults would have wiped the app's; it
+  now writes only parameters present in its last ParameterView. Without defaults nothing changes (tested).
+- The limit trims inside the push's lock: oldest read first by Timestamp, then oldest unread, never the pushed id;
+  replacing by id or key never grows the list, so it never trims. OnChanged once.
+- Considered and left: typed default properties (MudBlazor's shared configuration base) for appsettings binding, and
+  MokaToastHost parameters (Blazored.Toast), since the host draws toasts and the service makes them.
+- MokaFeedbackOptionsTests (17), Feedback 1,322 pass. Docs: toast.md "App-wide Defaults", notification.md "Keeping the
+  List Short", installation.md.

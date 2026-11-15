@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.Options;
+using Moka.Red.Feedback.Extensions;
 using Moka.Red.Feedback.Toast;
 
 namespace Moka.Red.Feedback.Notification;
@@ -10,6 +12,7 @@ namespace Moka.Red.Feedback.Notification;
 public sealed class MokaNotificationService : IMokaNotificationService
 {
 	private readonly TimeProvider _clock;
+	private readonly int? _limit;
 	private readonly object _lock = new();
 	private readonly List<MokaNotification> _notifications = [];
 
@@ -21,7 +24,12 @@ public sealed class MokaNotificationService : IMokaNotificationService
 
 	/// <summary>A notification service.</summary>
 	/// <param name="clock">Stamps the notifications pushed from a title and message. Null takes the system clock.</param>
-	public MokaNotificationService(TimeProvider? clock = null) => _clock = clock ?? TimeProvider.System;
+	/// <param name="options">The app's <see cref="MokaFeedbackOptions.NotificationLimit" />. Null keeps every notification.</param>
+	public MokaNotificationService(TimeProvider? clock = null, IOptions<MokaFeedbackOptions>? options = null)
+	{
+		_clock = clock ?? TimeProvider.System;
+		_limit = options?.Value.NotificationLimit;
+	}
 
 	/// <inheritdoc />
 	public IReadOnlyList<MokaNotification> Notifications
@@ -85,6 +93,10 @@ public sealed class MokaNotificationService : IMokaNotificationService
 			else
 			{
 				_notifications.Add(notification);
+				if (_limit is { } limit)
+				{
+					TrimTo(limit, notification.Id);
+				}
 			}
 
 			Invalidate();
@@ -173,6 +185,37 @@ public sealed class MokaNotificationService : IMokaNotificationService
 	}
 
 	private void Invalidate() => _snapshot = null;
+
+	// Read notifications go first, oldest first, then the oldest unread ones. The one just pushed always stays, so a
+	// push never removes itself, and with a limit of at least 1 there is always another to take.
+	private void TrimTo(int limit, Guid pushed)
+	{
+		while (_notifications.Count > limit)
+		{
+			int oldest = OldestIndex(readOnly: true, pushed);
+			_notifications.RemoveAt(oldest >= 0 ? oldest : OldestIndex(readOnly: false, pushed));
+		}
+	}
+
+	private int OldestIndex(bool readOnly, Guid keep)
+	{
+		int oldest = -1;
+		for (int i = 0; i < _notifications.Count; i++)
+		{
+			MokaNotification candidate = _notifications[i];
+			if (candidate.Id == keep || (readOnly && !candidate.Read))
+			{
+				continue;
+			}
+
+			if (oldest < 0 || candidate.Timestamp < _notifications[oldest].Timestamp)
+			{
+				oldest = i;
+			}
+		}
+
+		return oldest;
+	}
 
 	private ReadOnlyCollection<MokaNotification> EnsureSnapshot()
 	{

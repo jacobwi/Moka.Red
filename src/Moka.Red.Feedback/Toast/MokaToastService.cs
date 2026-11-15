@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Options;
+using Moka.Red.Feedback.Extensions;
 using Moka.Red.Feedback.Notification;
 
 namespace Moka.Red.Feedback.Toast;
@@ -15,6 +17,7 @@ public sealed class MokaToastService : IMokaToastService
 
 	private readonly IMokaNotificationService? _center;
 	private readonly TimeProvider _clock;
+	private readonly Action<MokaToastOptions>? _defaults;
 	private readonly Lock _lock = new();
 	private ReadOnlyCollection<MokaToastMessage> _snapshot = ReadOnlyCollection<MokaToastMessage>.Empty;
 	private MokaToastMessage[] _toasts = [];
@@ -24,10 +27,13 @@ public sealed class MokaToastService : IMokaToastService
 	///     Where <see cref="MokaToastOptions.AlsoInCenter" /> toasts go too. Null leaves that option without effect.
 	/// </param>
 	/// <param name="clock">Gives toasts their times. Null takes the system clock.</param>
-	public MokaToastService(IMokaNotificationService? notifications = null, TimeProvider? clock = null)
+	/// <param name="options">The app's <see cref="MokaFeedbackOptions.ToastDefaults" />. Null leaves toasts as they come.</param>
+	public MokaToastService(IMokaNotificationService? notifications = null, TimeProvider? clock = null,
+		IOptions<MokaFeedbackOptions>? options = null)
 	{
 		_center = notifications;
 		_clock = clock ?? TimeProvider.System;
+		_defaults = options?.Value.ToastDefaults;
 	}
 
 	/// <inheritdoc />
@@ -43,6 +49,7 @@ public sealed class MokaToastService : IMokaToastService
 		ArgumentNullException.ThrowIfNull(message);
 
 		MokaToastOptions options = new() { Message = message, Severity = severity };
+		_defaults?.Invoke(options);
 		configure?.Invoke(options);
 		return ShowCore(options);
 	}
@@ -212,7 +219,8 @@ public sealed class MokaToastService : IMokaToastService
 	{
 		ArgumentNullException.ThrowIfNull(loading);
 
-		MokaToastOptions options = new();
+		MokaToastOptions options = new() { Message = loading };
+		_defaults?.Invoke(options);
 		configure?.Invoke(options);
 		options.Message = loading;
 		options.Progress ??= MokaToastProgress.Indeterminate;

@@ -89,6 +89,10 @@ using Moka.Red.Feedback.Extensions;
 builder.Services.AddMokaFeedback();
 ```
 
+`AddMokaFeedback(f => ...)`, or `MokaRedOptions.Feedback` with the meta-package, sets app-wide toast defaults and a
+limit on stored notifications (`MokaFeedbackOptions`, see [Toast](/components/toast) and
+[Notification](/components/notification)).
+
 ### File picker (Blazor Hybrid)
 
 `MokaFileUpload`, `MokaFileBrowser`'s Upload and `MokaQRScanner`'s image button open the browser's file dialog. A MAUI app on Windows should register its own picker instead, because WebView2's file dialog can end the app. `AddMokaRed()` doesn't do this; with no picker the browser's dialog is used.

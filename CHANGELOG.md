@@ -5,6 +5,26 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaFeedbackOptions`, app-wide settings for the Feedback services, set through `AddMokaFeedback(f => ...)`,
+  `MokaRedOptions.Feedback` or `services.Configure<MokaFeedbackOptions>(...)` (the options pattern; several calls add
+  up). Both settings are off by default, so nothing changes until an app sets them.
+  - `ToastDefaults` (`Action<MokaToastOptions>?`) runs on every toast after its message and severity are set and
+    before the call's own `configure`, so defaults can depend on severity and a call still wins. It reaches `Show`, the
+    `ShowSuccess`-style helpers, `Track`'s loading toast and `MokaToast` in markup. A later `Update` keeps what the
+    toast had.
+  - `NotificationLimit` (`int?`) caps the notifications `IMokaNotificationService` keeps: past it, the oldest read go
+    first, then the oldest unread, never the one just pushed; replacing an entry by id or key removes nothing.
+
+### Changed
+- `MokaToast` writes only the parameters the page passes, so the app's toast defaults keep the rest. Without defaults
+  every toast is the same as before.
+- `MokaToastService` and `MokaNotificationService` take an optional `IOptions<MokaFeedbackOptions>` as their last
+  constructor parameter. Code that calls these constructors compiles as before, but must be rebuilt against this
+  version.
+
 ## [0.6.1] - 2026-11-14
 
 ### Fixed

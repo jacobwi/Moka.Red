@@ -12,6 +12,7 @@ namespace Moka.Red.Feedback.Toast;
 /// </summary>
 public sealed class MokaToast : ComponentBase, IDisposable
 {
+	private readonly HashSet<string> _passed = new(StringComparer.Ordinal);
 	private bool _disposed;
 	private MokaToastHandle? _handle;
 	private bool _lastOpenParameter;
@@ -110,6 +111,19 @@ public sealed class MokaToast : ComponentBase, IDisposable
 	}
 
 	/// <inheritdoc />
+	/// <remarks>Notes which parameters the page passes, so only those are written over the app's toast defaults.</remarks>
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_passed.Clear();
+		foreach (ParameterValue parameter in parameters)
+		{
+			_passed.Add(parameter.Name);
+		}
+
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		bool openChanged = Open != _lastOpenParameter;
@@ -140,25 +154,77 @@ public sealed class MokaToast : ComponentBase, IDisposable
 		handle?.Dismiss();
 	}
 
+	// Only what the page passes is written, so the app's MokaFeedbackOptions.ToastDefaults keep the rest; a parameter
+	// left at its declared default would overwrite them.
 	private void Configure(MokaToastOptions options)
 	{
 		options.Message = Message;
 		options.Severity = Severity;
-		options.Title = Title;
-		options.Duration = Duration;
-		options.ShowCloseButton = ShowCloseButton;
-		options.ShowIcon = ShowIcon;
-		options.Icon = Icon;
-		options.ActionText = ActionText;
-		options.OnActionAsync = OnAction.HasDelegate ? () => OnAction.InvokeAsync() : null;
-		options.CloseOnAction = CloseOnAction;
-		options.Progress = Progress;
-		options.ProgressLook = ProgressLook;
-		options.AlsoInCenter = AlsoInCenter;
-		options.Content = ChildContent;
+		if (Passed(nameof(Title)))
+		{
+			options.Title = Title;
+		}
+
+		if (Passed(nameof(Duration)))
+		{
+			options.Duration = Duration;
+		}
+
+		if (Passed(nameof(ShowCloseButton)))
+		{
+			options.ShowCloseButton = ShowCloseButton;
+		}
+
+		if (Passed(nameof(ShowIcon)))
+		{
+			options.ShowIcon = ShowIcon;
+		}
+
+		if (Passed(nameof(Icon)))
+		{
+			options.Icon = Icon;
+		}
+
+		if (Passed(nameof(ActionText)))
+		{
+			options.ActionText = ActionText;
+		}
+
+		if (Passed(nameof(OnAction)))
+		{
+			options.OnActionAsync = OnAction.HasDelegate ? () => OnAction.InvokeAsync() : null;
+		}
+
+		if (Passed(nameof(CloseOnAction)))
+		{
+			options.CloseOnAction = CloseOnAction;
+		}
+
+		if (Passed(nameof(Progress)))
+		{
+			options.Progress = Progress;
+		}
+
+		if (Passed(nameof(ProgressLook)))
+		{
+			options.ProgressLook = ProgressLook;
+		}
+
+		if (Passed(nameof(AlsoInCenter)))
+		{
+			options.AlsoInCenter = AlsoInCenter;
+		}
+
+		if (Passed(nameof(ChildContent)))
+		{
+			options.Content = ChildContent;
+		}
+
 		object? shown = _shown;
 		options.OnDismissed = reason => HandleDismissed(shown, reason);
 	}
+
+	private bool Passed(string parameter) => _passed.Contains(parameter);
 
 	private void HandleDismissed(object? shown, MokaToastDismissReason reason)
 	{
