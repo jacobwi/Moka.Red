@@ -5,6 +5,13 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- A `MokaWizardStep` that comes back takes its place in the markup again; it joined at the end. The wizard rebuilds its
+  step list on every render in the order its steps render, the way ASP.NET Core's QuickGrid collects its columns, and
+  the step on screen stays on screen when one comes back before it, with a bound `ActiveStep` hearing the new number.
+
 ## [0.8.0] - 2026-11-15
 
 ### Added

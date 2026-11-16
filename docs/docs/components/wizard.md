@@ -93,7 +93,12 @@ Under 900 px a thin progress bar with "Step 3 of 5" and the step's title replace
 A step can sit inside an `@if`, for a step only some people need. When the page stops rendering it, it leaves the
 indicator and the count, the steps after it move up, and the step on screen stays on screen. If the removed step came
 before the one showing, the wizard's position moves back by one and a bound `ActiveStep` hears the new number. A step
-that comes back joins at the end.
+that comes back takes its place in the markup again, and the step on screen stays on screen there too.
+
+The wizard rebuilds its step list on every render, in the order its steps render. A step written inside another
+component of yours renders after the steps written straight in the wizard, so it joins the list after them the first
+time and keeps that place; write steps straight in the wizard's content (an `@if` around one is fine) when their order
+matters.
 
 ## Linear Validation
 

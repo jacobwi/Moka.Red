@@ -106,7 +106,9 @@
 	@* Step content area *@
 	<div class="moka-wizard-content">
 		<CascadingValue Value="this" IsFixed="false">
+			@{ StartCollecting(); }
 			@ChildContent
+			@MokaWizardStepOrder.For(this)
 		</CascadingValue>
 	</div>
 

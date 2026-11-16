@@ -12,6 +12,9 @@ namespace Moka.Red.Feedback.Wizard;
 public partial class MokaWizard : MokaComponentBase
 {
 	private readonly List<MokaWizardStep> _steps = [];
+	private readonly List<MokaWizardStep> _seen = [];
+	private bool _collecting;
+	private bool _stepsChanged;
 	private int _activeStep;
 	private int? _lastActiveStep;
 	private int _reached;
@@ -155,14 +158,94 @@ public partial class MokaWizard : MokaComponentBase
 	/// <summary>Whether the step at <paramref name="index" /> is the one showing.</summary>
 	internal bool IsActiveStep(int index) => index == _activeStep;
 
-	/// <summary>Registers a child step. Called by <see cref="MokaWizardStep.OnInitialized" />.</summary>
+	// The step list is rebuilt on every render in the order the steps take their parameters, which is their order in
+	// this wizard's content, so a step that comes back takes its place again. This is how QuickGrid collects its columns
+	// (StartCollectingColumns, AddColumn, and a Defer component after the child content).
+	private void StartCollecting()
+	{
+		_seen.Clear();
+		_collecting = true;
+	}
+
+	internal void SawStep(MokaWizardStep step)
+	{
+		if (_collecting && !_seen.Contains(step))
+		{
+			_seen.Add(step);
+		}
+	}
+
+	/// <summary>
+	///     Adds a step that started outside a render of this wizard's content, such as one inside another component that
+	///     rendered later. It goes last; the steps collected on later renders keep it in its place.
+	/// </summary>
 	internal void RegisterStep(MokaWizardStep step)
 	{
-		if (!_steps.Contains(step))
+		if (_collecting || _steps.Contains(step))
 		{
-			step.Index = _steps.Count;
-			_steps.Add(step);
+			return;
+		}
+
+		step.Index = _steps.Count;
+		_steps.Add(step);
+		Refresh();
+	}
+
+	// A step the render didn't reach (one inside a component that didn't render again) stays after the step it followed.
+	internal void FinishCollecting()
+	{
+		if (!_collecting)
+		{
+			return;
+		}
+
+		_collecting = false;
+		List<MokaWizardStep> order = [.. _seen];
+		MokaWizardStep? previous = null;
+		foreach (MokaWizardStep step in _steps)
+		{
+			if (!_seen.Contains(step))
+			{
+				order.Insert(previous is null ? 0 : order.IndexOf(previous) + 1, step);
+			}
+
+			previous = step;
+		}
+
+		if (!order.SequenceEqual(_steps))
+		{
+			ApplyOrder(order);
+		}
+		else if (_stepsChanged)
+		{
+			_stepsChanged = false;
 			StateHasChanged();
+		}
+	}
+
+	// The step showing stays showing wherever it moved to, and a bound parent hears its new position.
+	private void ApplyOrder(List<MokaWizardStep> order)
+	{
+		MokaWizardStep? showing = _activeStep < _steps.Count ? _steps[_activeStep] : null;
+		MokaWizardStep? furthest = _reached < _steps.Count ? _steps[_reached] : null;
+
+		_steps.Clear();
+		_steps.AddRange(order);
+		for (int i = 0; i < _steps.Count; i++)
+		{
+			_steps[i].Index = i;
+		}
+
+		int active = showing is null ? _activeStep : _steps.IndexOf(showing);
+		_reached = Math.Max(furthest is null ? _reached : _steps.IndexOf(furthest), active);
+		bool moved = active != _activeStep;
+		_activeStep = active;
+		_stepsChanged = false;
+		StateHasChanged();
+
+		if (moved && ActiveStepChanged.HasDelegate)
+		{
+			RunDetached(() => ActiveStepChanged.InvokeAsync(active));
 		}
 	}
 
@@ -188,7 +271,7 @@ public partial class MokaWizard : MokaComponentBase
 		_reached = Math.Max(index < _reached ? _reached - 1 : _reached, active);
 		bool moved = active != _activeStep;
 		_activeStep = active;
-		StateHasChanged();
+		Refresh();
 
 		if (moved && ActiveStepChanged.HasDelegate)
 		{
@@ -206,7 +289,19 @@ public partial class MokaWizard : MokaComponentBase
 	// The steps take their parameters only after this component has rendered, so whatever it drew from a step (the
 	// indicator, the rail, whether Next and Finish are enabled) was what the step said before. A step whose state
 	// changed asks for another render, which Blazor runs in the same batch.
-	internal void StepChanged() => StateHasChanged();
+	internal void StepChanged() => Refresh();
+
+	// While the content renders, the render that ends the collection draws once for every change.
+	private void Refresh()
+	{
+		if (_collecting)
+		{
+			_stepsChanged = true;
+			return;
+		}
+
+		StateHasChanged();
+	}
 
 	private async Task GoToStep(int index)
 	{

@@ -73,6 +73,7 @@ public partial class MokaWizardStep : MokaComponentBase
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		Wizard?.SawStep(this);
 
 		(string, MokaIconDefinition?, string?, bool, bool) current = (Title, Icon, Decided, HasProblem, IsValid);
 		if (current != _reported)
