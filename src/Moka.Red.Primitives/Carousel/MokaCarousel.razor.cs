@@ -11,10 +11,16 @@ namespace Moka.Red.Primitives.Carousel;
 /// </summary>
 public partial class MokaCarousel : MokaVisualComponentBase
 {
-	private readonly List<MokaCarouselSlide> _slides = [];
+	private readonly MokaChildList<MokaCarouselSlide> _slides;
 	private int _activeIndex;
 	private Timer? _autoPlayTimer;
 	private int? _lastActiveIndex;
+
+	/// <summary>Creates the carousel.</summary>
+	public MokaCarousel()
+	{
+		_slides = new MokaChildList<MokaCarouselSlide>(StateHasChanged, SlidesChanged);
+	}
 
 	/// <summary>Carousel slide content (MokaCarouselSlide children or any content).</summary>
 	[Parameter]
@@ -70,27 +76,28 @@ public partial class MokaCarousel : MokaVisualComponentBase
 
 	private static string SlideName(int index) => string.Create(CultureInfo.CurrentCulture, $"Go to slide {index + 1}");
 
-	/// <summary>Registers a slide with the carousel. Called by child slides.</summary>
-	internal void RegisterSlide(MokaCarouselSlide slide)
+	// The slides keep the order they stand in the markup, as QuickGrid collects its columns, so a slide inside an @if
+	// that comes back takes its place again.
+	internal void RegisterSlide(MokaCarouselSlide slide) => _slides.Add(slide);
+
+	internal void UnregisterSlide(MokaCarouselSlide slide) => _slides.Remove(slide);
+
+	internal void SawSlide(MokaCarouselSlide slide) => _slides.Saw(slide);
+
+	// The slide showing stays showing wherever it moved to, and a bound parent hears its new position. When it left,
+	// the slide that takes its place shows.
+	private void SlidesChanged(IReadOnlyList<MokaCarouselSlide> before)
 	{
-		if (!_slides.Contains(slide))
+		int active = _slides.IndexNow(before, _activeIndex);
+		if (active == _activeIndex)
 		{
-			_slides.Add(slide);
-			StateHasChanged();
+			return;
 		}
-	}
 
-	/// <summary>Unregisters a slide from the carousel. Called by child slides on dispose.</summary>
-	internal void UnregisterSlide(MokaCarouselSlide slide)
-	{
-		if (_slides.Remove(slide))
+		_activeIndex = active;
+		if (ActiveIndexChanged.HasDelegate)
 		{
-			if (_activeIndex >= _slides.Count && _slides.Count > 0)
-			{
-				_activeIndex = _slides.Count - 1;
-			}
-
-			StateHasChanged();
+			RunDetached(() => ActiveIndexChanged.InvokeAsync(active));
 		}
 	}
 

@@ -520,6 +520,17 @@ When `Linear` is set, users cannot skip ahead to incomplete steps.
 </MokaStepper>
 ```
 
+### Steps That Come and Go
+
+A step can sit inside an `@if`. When the page stops rendering it, the steps after it move up and the active step stays
+active: if the removed step came before it, the stepper's position moves back by one and a bound `ActiveStep` hears the
+new number. A step that comes back takes its place in the markup again, with its number and connector.
+
+A step with content of its own keeps the active step active when one comes back before it, too. Steps without content
+take only plain values, which Blazor doesn't hand them again when the page renders, so they can't say where they stand:
+when one comes back among them, the stepper creates its steps again in markup order and keeps the active position. Up to
+0.8.0 a step that came back went last, with the last number.
+
 ### Keyboard and Screen Readers
 
 The stepper is a list of steps, and each step's header is a button. Tab moves between the steps and Enter or Space activates one. A step that cannot be activated, because it is `Disabled` or lies beyond the next step of a `Linear` stepper, is a disabled button that Tab skips.

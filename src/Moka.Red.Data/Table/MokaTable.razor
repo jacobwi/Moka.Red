@@ -1630,11 +1630,10 @@
 	};
 }
 
-@* The columns, the pager part and the column groups find the table through the one cascade. It is handed the table's
-   own ChildContent, so it and the parts draw again only when the parent passes new ones, not on every render of the
-   table. *@
+@* The columns, the pager part and the column groups find the table through the one cascade. The columns and groups
+   report where they stand while it renders, and the order settles at its end. *@
 <div style="display:none">
-	<CascadingValue TValue="IMokaTablePartHost" Value="this" IsFixed="true" ChildContent="ChildContent"/>
+	<CascadingValue TValue="IMokaTablePartHost" Value="this" IsFixed="true" ChildContent="_parts.Collect(ChildContent)"/>
 </div>
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_wrapperRef" @attributes="AdditionalAttributes">

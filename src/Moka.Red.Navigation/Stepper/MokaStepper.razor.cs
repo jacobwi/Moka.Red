@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Navigation.Stepper;
@@ -9,13 +10,20 @@ namespace Moka.Red.Navigation.Stepper;
 /// </summary>
 public partial class MokaStepper
 {
-	private readonly List<MokaStep> _steps = [];
+	private readonly MokaChildList<MokaStep> _steps;
 	private MokaStepperContent? _contentHost;
+	private int _generation;
 
 	// The rendered state. The ActiveStep parameter only seeds it when the parent passes a new
 	// value, so a parent re-render with the same one-way value does not undo the user's choice.
 	private int _activeStep;
 	private int _lastActiveStepParameter;
+
+	/// <summary>Creates the stepper.</summary>
+	public MokaStepper()
+	{
+		_steps = new MokaChildList<MokaStep>(StateHasChanged, StepsChanged);
+	}
 
 	/// <summary>Child step elements.</summary>
 	[Parameter]
@@ -89,24 +97,40 @@ public partial class MokaStepper
 		}
 	}
 
-	internal void RegisterStep(MokaStep step)
-	{
-		if (!_steps.Contains(step))
-		{
-			_steps.Add(step);
-			StateHasChanged();
-		}
-	}
+	// The steps keep the order they stand in the markup, as QuickGrid collects its columns, so a step inside an @if that
+	// comes back takes its place again.
+	internal void RegisterStep(MokaStep step) => _steps.Add(step);
 
-	internal void UnregisterStep(MokaStep step)
-	{
-		if (_steps.Remove(step))
-		{
-			StateHasChanged();
-		}
-	}
+	internal void UnregisterStep(MokaStep step) => _steps.Remove(step);
+
+	internal void SawStep(MokaStep step) => _steps.Saw(step);
 
 	internal int GetStepIndex(MokaStep step) => _steps.IndexOf(step);
+
+	// The active step stays active wherever it moved to, and a bound parent hears its new position. Steps that show no
+	// content of their own take only plain values, which Blazor doesn't hand them again, so they don't say where they
+	// stand: when one comes back among them, the steps are created again and report in markup order.
+	private void StepsChanged(IReadOnlyList<MokaStep> before)
+	{
+		if (_steps.Guessed)
+		{
+			_steps.Clear();
+			_generation++;
+			return;
+		}
+
+		int active = _steps.IndexNow(before, _activeStep);
+		if (active == _activeStep)
+		{
+			return;
+		}
+
+		_activeStep = active;
+		if (ActiveStepChanged.HasDelegate)
+		{
+			RunDetached(() => ActiveStepChanged.InvokeAsync(active));
+		}
+	}
 
 	internal void AttachContentHost(MokaStepperContent host) => _contentHost = host;
 

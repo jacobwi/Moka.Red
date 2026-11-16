@@ -471,6 +471,7 @@ public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
+		ParentTable?.SawColumn(this);
 		RenderedSettings settings = CurrentSettings();
 		if (_lastSettings is not { } previous)
 		{

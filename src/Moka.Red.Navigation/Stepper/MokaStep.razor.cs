@@ -87,6 +87,7 @@ public partial class MokaStep
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+		ParentStepper?.SawStep(this);
 
 		// A horizontal stepper shows this step's content outside the step, from parameters it may
 		// have read before these arrived.

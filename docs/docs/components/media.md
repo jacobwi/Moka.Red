@@ -56,6 +56,13 @@ and dots are placed with auto margins rather than a transform, which would hold 
 </MokaCarousel>
 ```
 
+### Slides That Come and Go
+
+A slide can sit inside an `@if`. A slide that comes back takes its place in the markup again, and the slide showing stays
+showing when slides before it come or go: the carousel's position moves with it and a bound `ActiveIndex` hears the new
+one. When the slide showing goes, the one that takes its place shows. Up to 0.8.0 the position stayed, so the carousel
+showed whichever slide then held it.
+
 ### Auto-Play
 
 ```blazor-preview

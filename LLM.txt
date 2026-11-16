@@ -3462,3 +3462,41 @@ merged here by patch; I did the focus contrast.
   keeps its 214 px height after a drag, inset "0 auto auto 38px".
 - Then: full suite, commit, release 0.8.0 (breaking changes in Diagnostics, MokaWatermark and MokaKanbanBoard, so a
   minor bump as with 0.5.0 and 0.6.0), docs pins, and notices to the four sessions BC named.
+
+## 2026-11-15 - 0.8.0 released
+
+On BC's "commit, merge, bump and auto release" (BC asleep): f35a8de (the round above), b830cc2 chore: release 0.8.0
+(minor: breaking changes in Diagnostics, MokaWatermark and MokaKanbanBoard), CI green, tag v0.8.0, publish green, all
+12 packages on NuGet, then 437a16d docs pins (preview host built in a scratch copy). Local checks first: debug build
+with warnings as errors, release builds, 13 packs, the docs check, the server, wasm and rcl templates built from the
+local pack in an isolated hive and cache (no leak into the shared cache). 12,597 tests passed before the commit.
+Notices sent to Mokagate, MokaTerm, MokaArk architecture proposal and WireGuard desktop client design, each with what
+it uses: MokaGate's HourAxis TickTemplate now redraws per parent render, MokaArk's TabStripCssClass is unchanged without
+ShowTabList, the WireGuard client builds on Dark and Light so focus there is the visible change, Mokaterm's own 12
+stylesheets read --moka-focus-ring. None of the four uses a breaking change.
+
+## 2026-11-16 - Children that register with a parent keep their markup order
+
+BC challenged my claim that a wizard step that comes back can't return to its markup place ("Blazor gives no way to
+know"). Wrong: the docs' TabSet sample (cascading-values-and-parameters.md) only appends, but QuickGrid in
+dotnet/aspnetcore rebuilds its column list on every render in render order (StartCollectingColumns inside its
+CascadingValue, ColumnBase calling AddColumn as it renders, a Defer component after ChildContent for what needs the
+whole list). BC asked for a rule: global rules/best-practices.md gained two lines (always the recommended way, found in
+docs then the platform's own source; never an unchecked "can't"), and Moka.Red CLAUDE.md gained rule 26.
+- 1aeaa81: MokaWizard collects its steps the QuickGrid way. Steps report in OnParametersSet (not render: MokaComponentBase
+  can skip a step's render), StartCollecting runs inside the CascadingValue's fragment, so the cascade notifications
+  that reach every step first (IsFixed=false, kept so wrapped steps still redraw) arrive before collection starts and
+  don't set the order. MokaWizardStepOrder (internal, opened through a static For fragment like ChartGate, since Razor
+  can't find an internal component by its tag) settles the order after the content. Membership still comes from
+  register and unregister, so a step in a wrapper that didn't render again stays after the step it followed; a step in
+  another component renders a level later and joins after the wizard's own steps (documented). Changes during
+  collection draw once. 3 new tests (comes back in place; comes back before the one showing; wrapped step stays).
+- Agent (merged): one public helper, MokaChildList<TChild> in Core/Base with an internal MokaChildListEnd, since the
+  same logic would have sat in five parents across four packages; the wizard moved onto it (MokaWizardStepOrder gone,
+  and the whitespace text node my markup left in .moka-wizard-content with it). Stepper, Carousel, InfiniteCarousel and
+  the table's columns and groups use it (table: SyncDeclaredOrder keeps moves and state on top of the declared order).
+  Accordion left (order unused), Breadcrumb left (already re-creates levels in markup order). Children with only
+  unchanged primitive parameters never report; Guessed says so and the stepper re-creates its steps then. 2 to 8 us a
+  render for 50 to 200 children. 24 new tests; table, chart and meter goldens untouched.
+- BC, going to sleep: automate everything and decide on best practice. Plan: merge the agent, full suite, commit,
+  release 0.8.1 (fixes only), docs pins, notices to the four sessions as for 0.8.0.

@@ -77,6 +77,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 	{
 		_selection = new MokaInputValue<HashSet<TItem>>(ShowParentSelection, DispatchExceptionAsync,
 			comparer: ReferenceEqualityComparer.Instance);
+		_parts = new MokaChildList<object>(StateHasChanged, _ => SyncDeclaredOrder());
 	}
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
@@ -510,12 +511,15 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 			return;
 		}
 
-		if (column.Group is null || !_partOrder.Contains(column.Group))
+		if (GroupHolding(column) is { } group)
 		{
-			_partOrder.Add(column);
+			group.AddColumn(column);
+		}
+		else
+		{
+			_parts.Add(column);
 		}
 
-		// A column joins at the end, as the markup goes, unless its group holds an earlier place.
 		int at = RegistrationIndex(column);
 		if (at >= _registeredColumns.Count)
 		{
@@ -566,7 +570,20 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 			}
 		}
 
-		StateHasChanged();
+		_parts.Render();
+	}
+
+	/// <summary>Reports where a column stands, from its <c>OnParametersSet</c>.</summary>
+	internal void SawColumn(MokaColumn<TItem> column)
+	{
+		if (GroupHolding(column) is { } group)
+		{
+			group.SawColumn(column);
+		}
+		else
+		{
+			_parts.Saw(column);
+		}
 	}
 
 	/// <summary>Removes a column definition when a MokaColumn is disposed.</summary>
@@ -578,7 +595,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 		}
 
 		_registeredColumns.Remove(column);
-		_partOrder.Remove(column);
+		column.Group?.RemoveColumn(column);
+		_parts.Remove(column);
 		_columnVisibility.Remove(column);
 		_columnWidths.Remove(column);
 		_columnPins.Remove(column);
@@ -605,7 +623,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 
 		_layoutVersion++;
 		ClampFocusedCell();
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	/// <summary>
@@ -646,7 +664,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 
 		_layoutVersion++;
 		ClampFocusedCell();
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	/// <summary>Draws the table again for a column whose overlay changed.</summary>

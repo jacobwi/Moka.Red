@@ -160,6 +160,28 @@ the message. Each box draws its own border, so the radius from `Rounded` is in
 `SegmentStyle` instead. A segmented input of your own puts `style="@SegmentStyle"` on
 every box.
 
+## MokaChildList\<TChild\>
+
+A parent whose children register with it, such as a stepper's steps or a table's columns, keeps them in a
+`MokaChildList<TChild>`, which holds them in the order they stand in its content, as QuickGrid collects its columns. A
+child inside an `@if` that comes back takes its place again rather than joining at the end.
+
+```razor
+<CascadingValue Value="this" IsFixed="true">
+    @_steps.Collect(ChildContent)
+</CascadingValue>
+```
+
+The parent creates it with its `StateHasChanged` and, to follow one child such as the active step, a callback that gets
+the children as they stood before each change (`IndexNow(before, index)` says where one went). Each child calls `Add`
+from `OnInitialized`, `Saw` from `OnParametersSet` and `Remove` when it's disposed. Changes made while the content renders
+reach the parent once, when the children have reported, and so does a render asked for through `Render`.
+
+Blazor hands a child its parameters again only when one may have changed: a render fragment or a delegate always may, plain
+strings, numbers and enums that kept their values never do. A child that didn't report keeps its place after the child it
+followed. When a new child lands next to such children, its side of them is a guess and `Guessed` says so; a parent whose
+children hold no state can `Clear` and render them again under a new `@key`, and they all report in markup order.
+
 ---
 
 ## CssBuilder

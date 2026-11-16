@@ -295,6 +295,8 @@ A `MokaColumn` renders nothing itself: it registers with the table around it. So
 
 A new value the parent passes to a column, such as a new `Title`, `Width` or `Align`, shows in the same render.
 
+Columns and heading groups keep the order they stand in the markup. A column or a group inside an `@if` that comes back takes its place again, inside its group too, and **Put the columns back** puts it there. An arrangement in force, from someone moving the columns or from the state, still decides where a column it names goes. A column written inside another component of yours renders after the columns written straight in the table, so it joins after them the first time and keeps that place; write columns straight in the table's content, or in a `MokaColumnGroup`, when their order matters. A column kind that overrides `OnParametersSet` calls the base, which is where the column says where it stands. Up to 0.8.0 a column or group that came back went after all the others.
+
 The [column kinds](/components/table-columns) (`MokaPersonColumn`, `MokaNumberColumn`, `MokaStatusColumn` and the rest) derive from `MokaColumn` and take every parameter below, plus their own. Wrap columns in a `MokaColumnGroup` for a heading over several of them (see [Column groups](#column-groups)).
 
 ### Content

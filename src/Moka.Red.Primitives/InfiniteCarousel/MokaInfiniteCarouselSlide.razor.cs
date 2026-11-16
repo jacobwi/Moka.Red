@@ -24,6 +24,13 @@ public partial class MokaInfiniteCarouselSlide : MokaComponentBase
 	protected override void OnInitialized() => Parent?.RegisterSlide(this);
 
 	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+		Parent?.SawSlide(this);
+	}
+
+	/// <inheritdoc />
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		Parent?.UnregisterSlide(this);

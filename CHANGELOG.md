@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `MokaChildList<TChild>` (Core): keeps the child components that register with a parent in the order they stand in
+  the parent's content, the way ASP.NET Core's QuickGrid collects its columns, so a child inside an `@if` that comes
+  back takes its place again. `MokaWizard`, `MokaStepper`, `MokaCarousel`, `MokaInfiniteCarousel` and `MokaTable` use
+  it, and a library of your own can too.
+
 ### Fixed
+- `MokaStepper`: a step inside an `@if` that comes back takes its place in the markup again, with its number and
+  connector. The active step stays active when steps before it come or go, and a bound `ActiveStep` hears the new
+  position.
+- `MokaCarousel`: the slide showing stays showing when slides before it come or go, and a bound `ActiveIndex` hears the
+  new position.
+- `MokaInfiniteCarousel`: a slide that comes back takes its place again, so the copies at the wrap-around ends show the
+  right slides; the slide showing stays showing, and a bound `ActiveIndex` hears its new position.
+- `MokaTable`: a column, a column in a `MokaColumnGroup`, or a whole group that comes back takes its place in the markup
+  again, and "Put the columns back" puts it there. An arrangement in force still decides where a column it names goes.
 - A `MokaWizardStep` that comes back takes its place in the markup again; it joined at the end. The wizard rebuilds its
   step list on every render in the order its steps render, the way ASP.NET Core's QuickGrid collects its columns, and
   the step on screen stays on screen when one comes back before it, with a bound `ActiveStep` hearing the new number.

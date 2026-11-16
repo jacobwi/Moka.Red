@@ -6,8 +6,8 @@
 		<CascadingValue Value="this" IsFixed="true">
 			@* The steps read the active step from here: a step whose own parameters did not change
 			   would otherwise keep showing the old active step. *@
-			<CascadingValue Value="State" Name="MokaStepperState">
-				@ChildContent
+			<CascadingValue Value="State" Name="MokaStepperState" @key="_generation">
+				@_steps.Collect(ChildContent)
 			</CascadingValue>
 		</CascadingValue>
 	</div>

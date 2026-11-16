@@ -5,7 +5,7 @@
 	<div class="moka-carousel-viewport">
 		<div class="moka-carousel-track" style="@TrackStyle">
 			<CascadingValue Value="this" IsFixed="true">
-				@ChildContent
+				@_slides.Collect(ChildContent)
 			</CascadingValue>
 		</div>
 	</div>

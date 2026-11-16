@@ -13,7 +13,7 @@ namespace Moka.Red.Primitives.InfiniteCarousel;
 /// </summary>
 public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 {
-	private readonly List<MokaInfiniteCarouselSlide> _slides = [];
+	private readonly MokaChildList<MokaInfiniteCarouselSlide> _slides;
 
 	// The real slide index last reported through ActiveIndexChanged or taken from the parent.
 	// _currentIndex is the track position, which passes through the clones at either end.
@@ -23,6 +23,12 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	private bool _isTransitioning;
 	private int? _lastActiveIndex;
 	private bool _pausedByHover;
+
+	/// <summary>Creates the carousel.</summary>
+	public MokaInfiniteCarousel()
+	{
+		_slides = new MokaChildList<MokaInfiniteCarouselSlide>(StateHasChanged, SlidesChanged);
+	}
 
 	/// <summary>Carousel slide content (MokaInfiniteCarouselSlide children).</summary>
 	[Parameter]
@@ -106,27 +112,34 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override bool ShouldRender() => true;
 
-	/// <summary>Registers a slide with the carousel. Called by child slides.</summary>
-	internal void RegisterSlide(MokaInfiniteCarouselSlide slide)
+	// The slides keep the order they stand in the markup, as QuickGrid collects its columns, so a slide inside an @if
+	// that comes back takes its place again, and the copies at the wrap-around ends are the right ones.
+	internal void RegisterSlide(MokaInfiniteCarouselSlide slide) => _slides.Add(slide);
+
+	internal void UnregisterSlide(MokaInfiniteCarouselSlide slide) => _slides.Remove(slide);
+
+	internal void SawSlide(MokaInfiniteCarouselSlide slide) => _slides.Saw(slide);
+
+	// The slide showing stays showing wherever it moved to, and a bound parent hears its new position. When it left,
+	// the slide that takes its place shows.
+	private void SlidesChanged(IReadOnlyList<MokaInfiniteCarouselSlide> before)
 	{
-		if (!_slides.Contains(slide))
+		_currentIndex = _slides.IndexNow(before, _currentIndex);
+		if (_slides.Count < before.Count && _currentIndex >= _slides.Count && _slides.Count > 0)
 		{
-			_slides.Add(slide);
-			StateHasChanged();
+			_currentIndex = _slides.Count - 1;
 		}
-	}
 
-	/// <summary>Unregisters a slide from the carousel. Called by child slides on dispose.</summary>
-	internal void UnregisterSlide(MokaInfiniteCarouselSlide slide)
-	{
-		if (_slides.Remove(slide))
+		int real = RealIndex;
+		if (real == _activeIndex || _slides.Count == 0)
 		{
-			if (_currentIndex >= _slides.Count && _slides.Count > 0)
-			{
-				_currentIndex = _slides.Count - 1;
-			}
+			return;
+		}
 
-			StateHasChanged();
+		_activeIndex = real;
+		if (ActiveIndexChanged.HasDelegate)
+		{
+			RunDetached(() => ActiveIndexChanged.InvokeAsync(real));
 		}
 	}
 

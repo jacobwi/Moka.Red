@@ -16,7 +16,7 @@
 
 			@* Render child slides via cascading value *@
 			<CascadingValue Value="this" IsFixed="true">
-				@ChildContent
+				@_slides.Collect(ChildContent)
 			</CascadingValue>
 
 			@if (SlideCount > 0)

@@ -125,4 +125,8 @@ internal interface IMokaTablePartHost
 	void AddGroup(MokaColumnGroup group);
 
 	void RemoveGroup(MokaColumnGroup group);
+
+	void SawGroup(MokaColumnGroup group);
+
+	void OnGroupColumnsChanged();
 }

@@ -56,6 +56,13 @@ order: 73
 </MokaInfiniteCarousel>
 ```
 
+## Slides That Come and Go
+
+A slide can sit inside an `@if`. A slide that comes back takes its place in the markup again, so the copies of the first
+and last slides that make the wrap seamless are the right ones. The slide showing stays showing when slides before it
+come or go, and a bound `ActiveIndex` hears its new position. Up to 0.8.0 a slide that came back went last, and the copies
+at the ends showed the wrong slides.
+
 ## With Controls
 
 The arrows ("Previous slide", "Next slide") and dots ("Go to slide *n*") show only a glyph, so each is named by

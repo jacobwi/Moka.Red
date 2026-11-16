@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Data.Table;
@@ -226,43 +227,48 @@ public partial class MokaTable<TItem>
 	internal void OnGroupChanged()
 	{
 		_layoutVersion++;
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	void IMokaTablePartHost.OnGroupChanged() => OnGroupChanged();
 
-	// The columns and groups in the order they stand in the markup. A group's columns join after their siblings, so each
-	// takes the place its group holds here.
-	private readonly List<object> _partOrder = [];
+	// The columns and heading groups in the order they stand in the markup, as QuickGrid collects its columns, so a part
+	// that comes back takes its place again. A group keeps the order of its own columns the same way, and they take the
+	// place it holds here.
+	private readonly MokaChildList<object> _parts;
 
-	void IMokaTablePartHost.AddGroup(MokaColumnGroup group)
-	{
-		if (!_partOrder.Contains(group))
-		{
-			_partOrder.Add(group);
-		}
-	}
+	void IMokaTablePartHost.AddGroup(MokaColumnGroup group) => _parts.Add(group);
 
-	void IMokaTablePartHost.RemoveGroup(MokaColumnGroup group) => _partOrder.Remove(group);
+	void IMokaTablePartHost.RemoveGroup(MokaColumnGroup group) => _parts.Remove(group);
+
+	void IMokaTablePartHost.SawGroup(MokaColumnGroup group) => _parts.Saw(group);
+
+	void IMokaTablePartHost.OnGroupColumnsChanged() => SyncDeclaredOrder();
+
+	private MokaColumnGroup? GroupHolding(MokaColumn<TItem> column) =>
+		column.Group is { } group && _parts.Contains(group) ? group : null;
 
 	// Where a column stands among the registered ones: after the columns before it in the markup, its group's earlier
-	// columns included.
+	// columns included. Every column held before it has registered.
 	private int RegistrationIndex(MokaColumn<TItem> column)
 	{
 		int index = 0;
-		foreach (object part in _partOrder)
+		for (int i = 0; i < _parts.Count; i++)
 		{
-			if (part is MokaColumnGroup group)
+			if (_parts[i] is MokaColumnGroup group)
 			{
-				int members = _registeredColumns.Count(col => ReferenceEquals(col.Group, group));
-				if (ReferenceEquals(column.Group, group))
+				IReadOnlyList<object> members = group.Columns;
+				for (int j = 0; j < members.Count; j++)
 				{
-					return index + members;
-				}
+					if (ReferenceEquals(members[j], column))
+					{
+						return index;
+					}
 
-				index += members;
+					index++;
+				}
 			}
-			else if (ReferenceEquals(part, column))
+			else if (ReferenceEquals(_parts[i], column))
 			{
 				return index;
 			}
@@ -273,6 +279,78 @@ public partial class MokaTable<TItem>
 		}
 
 		return _registeredColumns.Count;
+	}
+
+	// The registered columns in the order the markup gives them, from the parts and their groups' columns.
+	private List<MokaColumn<TItem>> DeclaredOrder()
+	{
+		List<MokaColumn<TItem>> order = new(_registeredColumns.Count);
+		for (int i = 0; i < _parts.Count; i++)
+		{
+			if (_parts[i] is MokaColumnGroup group)
+			{
+				foreach (object member in group.Columns)
+				{
+					if (member is MokaColumn<TItem> col)
+					{
+						order.Add(col);
+					}
+				}
+			}
+			else if (_parts[i] is MokaColumn<TItem> col)
+			{
+				order.Add(col);
+			}
+		}
+
+		return order;
+	}
+
+	// A column takes the place the markup gives it once the parts have settled, unless an arrangement in force places it.
+	// Columns nobody arranged follow the markup; among arranged ones, a column whose neighbour in the markup changed goes
+	// after the column now before it. While a column is still joining or leaving the counts differ, and that column's own
+	// registration places it.
+	private void SyncDeclaredOrder()
+	{
+		List<MokaColumn<TItem>> declared = DeclaredOrder();
+		if (declared.Count != _registeredColumns.Count || declared.SequenceEqual(_registeredColumns))
+		{
+			return;
+		}
+
+		bool arranged = !_columns.SequenceEqual(_registeredColumns);
+		List<MokaColumn<TItem>> previous = [.. _registeredColumns];
+		_registeredColumns.Clear();
+		_registeredColumns.AddRange(declared);
+		if (!arranged)
+		{
+			_columns.Clear();
+			_columns.AddRange(declared);
+		}
+		else
+		{
+			for (int i = 0; i < declared.Count; i++)
+			{
+				MokaColumn<TItem>? before = i > 0 ? declared[i - 1] : null;
+				int was = previous.IndexOf(declared[i]);
+				if (ReferenceEquals(before, was > 0 ? previous[was - 1] : null))
+				{
+					continue;
+				}
+
+				_columns.Remove(declared[i]);
+				_columns.Insert(before is null ? 0 : _columns.IndexOf(before) + 1, declared[i]);
+			}
+		}
+
+		if (_arrangementInForce is { Count: > 0 } arrangement)
+		{
+			ApplyOrder(arrangement);
+		}
+
+		_layoutVersion++;
+		ClampFocusedCell();
+		_parts.Render();
 	}
 
 	// A group that keeps its columns together takes no column from outside, and gives none away.
