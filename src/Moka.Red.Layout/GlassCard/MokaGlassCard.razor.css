@@ -46,7 +46,7 @@
 
 /* Keyboard focus on a clickable card. After the glow rules so the ring wins while focused. */
 .moka-glass-card--clickable:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }

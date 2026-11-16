@@ -21,6 +21,7 @@ public abstract class DiagnosticComponentBase : MokaComponentBase
 	private readonly string _componentId = $"diag-{Interlocked.Increment(ref _nextId)}";
 	private readonly Stopwatch _renderStopwatch = new();
 	private bool _diagnosticsServiceLookedUp;
+	private bool _hasRendered;
 
 	// [Inject] on the service itself would throw when AddMokaDiagnostics() was not called, even on a
 	// nullable property, so the service is looked up through the provider instead.
@@ -44,6 +45,13 @@ public abstract class DiagnosticComponentBase : MokaComponentBase
 		{
 			DiagnosticsService = Services.GetService<IMokaDiagnosticsService>();
 			_diagnosticsServiceLookedUp = true;
+		}
+
+		// Blazor doesn't ask ShouldRender before the first render, so that one is timed from here: the time to the
+		// component's first paint, initialization included up to its first await.
+		if (!_hasRendered && !_renderStopwatch.IsRunning)
+		{
+			_renderStopwatch.Restart();
 		}
 
 		return base.SetParametersAsync(parameters);
@@ -70,8 +78,11 @@ public abstract class DiagnosticComponentBase : MokaComponentBase
 	/// <inheritdoc />
 	protected override void OnAfterRender(bool firstRender)
 	{
-		_renderStopwatch.Stop();
-		TimeSpan duration = _renderStopwatch.Elapsed;
+		_hasRendered = true;
+
+		// A render nothing timed (a ShouldRender override that skips the base) counts as 0 ms, not as the last one.
+		TimeSpan duration = _renderStopwatch.IsRunning ? _renderStopwatch.Elapsed : TimeSpan.Zero;
+		_renderStopwatch.Reset();
 
 		DiagnosticsService?.RecordRender(ShortTypeName, _componentId, duration);
 

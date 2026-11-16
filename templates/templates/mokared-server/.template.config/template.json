@@ -7,7 +7,7 @@
   "precedence": 100,
   "name": "Moka.Red Blazor Server App",
   "shortName": "mokared-server",
-  "description": "A Blazor Server app pre-configured with the Moka.Red UI component library - matrix dark theme, sidebar layout, grid background hero, and sample pages.",
+  "description": "A Blazor Server app pre-configured with the Moka.Red UI component library - dark Red theme, sidebar layout, grid background hero, and sample pages.",
   "defaultName": "MokaRedApp",
   "sourceName": "MokaRedServer",
   "preferNameDirectory": true,
@@ -55,7 +55,7 @@
     "DarkMode": {
       "type": "parameter",
       "datatype": "bool",
-      "description": "Start with the matrix dark theme. When false, starts in light mode.",
+      "description": "Start in dark mode. When false, starts in light mode.",
       "defaultValue": "true",
       "displayName": "Dark Mode (Matrix Theme)"
     },

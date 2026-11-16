@@ -536,7 +536,7 @@
 .moka-emoji-panel__tone-pick:focus-visible,
 .moka-emoji-panel__quick:focus-visible,
 .moka-emoji-panel__more:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

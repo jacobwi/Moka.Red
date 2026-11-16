@@ -11,7 +11,7 @@ namespace Moka.Red.Feedback.Wizard;
 /// </summary>
 public partial class MokaWizardStep : MokaComponentBase
 {
-	private (string Title, string? Decided, bool HasProblem, bool IsValid) _reported;
+	private (string Title, MokaIconDefinition? Icon, string? Decided, bool HasProblem, bool IsValid) _reported;
 
 	/// <summary>The step title displayed in the step indicator.</summary>
 	[Parameter]
@@ -63,15 +63,22 @@ public partial class MokaWizardStep : MokaComponentBase
 	protected override void OnInitialized() => Wizard?.RegisterStep(this);
 
 	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		Wizard?.UnregisterStep(this);
+		return base.DisposeAsyncCore();
+	}
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
 
-		(string, string?, bool, bool) current = (Title, Decided, HasProblem, IsValid);
+		(string, MokaIconDefinition?, string?, bool, bool) current = (Title, Icon, Decided, HasProblem, IsValid);
 		if (current != _reported)
 		{
 			_reported = current;
-			Wizard?.RefreshRail();
+			Wizard?.StepChanged();
 		}
 	}
 }

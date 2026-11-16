@@ -12,7 +12,7 @@
 /* The edge handles take keyboard focus. The ring shows on a hidden handle too, and the grip turns
    to the accent color as it does on hover. */
 .moka-resizable__handle:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

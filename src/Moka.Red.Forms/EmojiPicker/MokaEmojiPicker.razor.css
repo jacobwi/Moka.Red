@@ -63,7 +63,7 @@
 
 .moka-emoji-picker__button:focus-visible,
 .moka-emoji-picker__clear:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

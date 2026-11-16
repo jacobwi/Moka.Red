@@ -24,6 +24,8 @@ order: 64
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+`MokaFormBuilder` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on its root, around the palette, canvas and property panels. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ### MokaFormField
 
 | Name | Type | Default | Description |

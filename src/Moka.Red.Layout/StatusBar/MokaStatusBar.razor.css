@@ -112,7 +112,7 @@
 }
 
 .moka-statusbar-more:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary), var(--moka-focus-ring);
 }
 

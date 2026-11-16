@@ -23,6 +23,8 @@ order: 80
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+`MokaLogViewer` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the bordered frame, which clips its toolbar and list to the corners `Rounded` gives it. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ### MokaLogEntry
 
 | Property | Type | Description |

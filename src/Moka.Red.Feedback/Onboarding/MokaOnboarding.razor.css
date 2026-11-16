@@ -62,7 +62,7 @@
 }
 
 .moka-onboarding-tooltip:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-shadow-popup-lg), var(--moka-focus-ring);
 }
 

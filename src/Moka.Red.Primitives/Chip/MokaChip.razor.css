@@ -175,7 +175,7 @@
 /* Focus visible - red-glow ring, on the chip whether the chip is the button or holds it */
 .moka-chip:focus-visible,
 .moka-chip:has(> .moka-chip__action:focus-visible) {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -231,7 +231,7 @@
 
 /* A tab stop of its own, with the chip's ring at its own size */
 .moka-chip__close:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	opacity: 1;
 	box-shadow: var(--moka-focus-ring);
 }

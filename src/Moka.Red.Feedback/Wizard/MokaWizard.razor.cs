@@ -15,6 +15,7 @@ public partial class MokaWizard : MokaComponentBase
 	private int _activeStep;
 	private int? _lastActiveStep;
 	private int _reached;
+	private bool _disposed;
 
 	/// <summary>The wizard step content (must contain <see cref="MokaWizardStep" /> children).</summary>
 	[Parameter]
@@ -165,15 +166,47 @@ public partial class MokaWizard : MokaComponentBase
 		}
 	}
 
-	// The steps get their new parameters after this component has rendered, so the rail and the bar drew what the step
-	// said before. A step that changed asks for another render in the same batch.
-	internal void RefreshRail()
+	/// <summary>
+	///     Forgets a step the page no longer renders. The steps after it move up, and the step on screen stays on screen:
+	///     when the removed one came before it, the wizard's position moves back by one and a bound parent hears it.
+	/// </summary>
+	internal void UnregisterStep(MokaWizardStep step)
 	{
-		if (Rail)
+		int index = _steps.IndexOf(step);
+		if (index < 0 || _disposed)
 		{
-			StateHasChanged();
+			return;
+		}
+
+		_steps.RemoveAt(index);
+		for (int i = index; i < _steps.Count; i++)
+		{
+			_steps[i].Index = i;
+		}
+
+		int active = index < _activeStep ? _activeStep - 1 : Math.Min(_activeStep, Math.Max(_steps.Count - 1, 0));
+		_reached = Math.Max(index < _reached ? _reached - 1 : _reached, active);
+		bool moved = active != _activeStep;
+		_activeStep = active;
+		StateHasChanged();
+
+		if (moved && ActiveStepChanged.HasDelegate)
+		{
+			RunDetached(() => ActiveStepChanged.InvokeAsync(active));
 		}
 	}
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		_disposed = true;
+		return base.DisposeAsyncCore();
+	}
+
+	// The steps take their parameters only after this component has rendered, so whatever it drew from a step (the
+	// indicator, the rail, whether Next and Finish are enabled) was what the step said before. A step whose state
+	// changed asks for another render, which Blazor runs in the same batch.
+	internal void StepChanged() => StateHasChanged();
 
 	private async Task GoToStep(int index)
 	{

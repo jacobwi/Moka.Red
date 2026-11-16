@@ -44,7 +44,7 @@ Shared by every chart (they live on the chart base, so every chart takes them):
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Tooltip` | `MokaChartTooltip?` | the look's | `Crosshair`, `Nearest`, `Readout`, `Column`, `Native`, `None`, or `Auto` (crosshair on lines, column on bars and rows, nearest on scatter) |
-| `TooltipTemplate` | `RenderFragment<MokaChartTooltipContext>?` | -- | Your own tooltip. Rendered only when the point under the pointer changes |
+| `TooltipTemplate` | `RenderFragment<MokaChartTooltipContext>?` | -- | Your own tooltip. Rendered when the point under the pointer changes, and again when the parent renders while it shows |
 | `Formatter` | `Func<double, string>?` | -- | Writes the values in the tooltip, the readout and the keyboard cell |
 | `Pinnable` | `bool?` | the look's | Whether a click or Enter pins the point, showing the change since it |
 | `Keyboard` | `bool?` | the look's | One tab stop, and the arrow keys read the values |
@@ -90,9 +90,10 @@ away. A second tap on the same point pins it.
 
 `TooltipTemplate` gets a `MokaChartTooltipContext`: the position, the heading the chart would write, one
 `MokaChartPoint` per visible series, the point the keyboard is on, the pinned position and any notes (thresholds,
-target bands, and the events and windows at the point's place). It is rendered by .NET only when the point changes,
-never on a pointer move. On the Standard look, whose tooltips are the browser's, a template turns the chart's own
-tooltip on (`Auto`); an explicit `Tooltip="MokaChartTooltip.Native"` keeps the browser's.
+target bands, and the events and windows at the point's place). It is rendered by .NET when the point changes, never
+on a pointer move, and again when the parent renders while a tooltip or pin card shows it, so a template that reads
+the page's fields shows them as they are now. On the Standard look, whose tooltips are the browser's, a template turns
+the chart's own tooltip on (`Auto`); an explicit `Tooltip="MokaChartTooltip.Native"` keeps the browser's.
 
 ```razor
 <MokaLineChart Series="_series" Labels="_times" Tooltip="MokaChartTooltip.Crosshair" TooltipTemplate="Together"/>
@@ -106,8 +107,8 @@ tooltip on (`Auto`); an explicit `Tooltip="MokaChartTooltip.Native"` keeps the b
 }
 ```
 
-Keep the template a field or a method. A lambda written inline is a new delegate on every parent render, which makes
-the chart render again each time (the tooltip itself still waits for the point to change).
+Write the template inline or as a method. Like any fragment it can't be compared, so the chart draws its frame again
+whenever the parent renders, rebuilding nothing, and the marks don't render again.
 
 ## Pin
 

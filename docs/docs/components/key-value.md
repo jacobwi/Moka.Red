@@ -27,6 +27,8 @@ order: 38
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+`MokaKeyValue` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the element that holds the label and the value. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ## Basic
 
 ```blazor-preview

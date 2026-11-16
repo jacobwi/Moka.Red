@@ -1,14 +1,18 @@
 using Bunit;
 using Bunit.Rendering;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Layout.Accordion;
+using Moka.Red.Layout.BentoGrid;
 using Moka.Red.Layout.Container;
 using Moka.Red.Layout.Flexbox;
 using Moka.Red.Layout.Footer;
 using Moka.Red.Layout.Grid;
 using Moka.Red.Layout.PageHeader;
 using Moka.Red.Layout.Panel;
+using Moka.Red.Layout.RetroGrid;
 using Moka.Red.Layout.ScrollArea;
 using Moka.Red.Layout.Sticky;
+using Moka.Red.Layout.Watermark;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Layout.Tests.Components;
@@ -28,7 +32,21 @@ public class SpacingParameterTests : BunitContext
 		["PageHeader"] = new(typeof(MokaPageHeader), "", ("Title", "Devices")),
 		["Panel"] = new(typeof(MokaPanel), "", ("Title", "Panel")),
 		["ScrollArea"] = new(typeof(MokaScrollArea), "overflow-x: hidden; overflow-y: auto"),
-		["Sticky"] = new(typeof(MokaSticky), "position: sticky; top: 0; z-index: var(--moka-z-sticky)")
+		["Sticky"] = new(typeof(MokaSticky), "position: sticky; top: 0; z-index: var(--moka-z-sticky)"),
+		["BentoGrid"] = new(typeof(MokaBentoGrid),
+			"grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"),
+		["BentoBoard"] = new(typeof(MokaBentoGrid), "",
+			("Board", new MokaBoardCard[] { new("a") }),
+			("CardTemplate", (RenderFragment<MokaBoardCard>)(card => builder => builder.AddContent(0, card.Id)))),
+		["RetroGrid"] = new(typeof(MokaRetroGrid),
+			"min-height: 400px | --retro-color: var(--moka-color-primary-border); --retro-size: 60px; " +
+			"--retro-line-width: 1px; --retro-perspective: 300px; --retro-angle: 60deg; --retro-horizon: 65%; " +
+			"--retro-duration: 8.0s | top: 65%; --retro-glow-color: var(--moka-color-primary)"),
+		["Watermark"] = new(typeof(MokaWatermark), ""),
+		["WatermarkImage"] = new(typeof(MokaWatermark),
+			"background-image: url(\"img/logo.svg\"); background-repeat: repeat; background-position: center; " +
+			"background-size: contain; opacity: 0.08",
+			("ImageSrc", "img/logo.svg"), ("Position", MokaWatermarkPosition.Center))
 	};
 
 	public SpacingParameterTests() => JSInterop.Mode = JSRuntimeMode.Loose;

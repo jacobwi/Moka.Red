@@ -49,10 +49,12 @@ order: 11
 | `CustomContextMenuItems` | `IReadOnlyList<ContextMenuItem>?` | - | Extra items for the built-in menu, after any plugin items |
 | `PluginRegistry` | `MokaTabPluginRegistry?` | - | Plugins whose `GetContextMenuItems` add to the built-in menu |
 | `Theme` | `TabTheme?` | - | Colour overrides, applied by the strip itself (see Styling) |
-| `IconProvider` | `MokaTabIconProvider?` | - | Draws the close, pin and group toggle icons. Unset, the strip uses the provider `AddMokaTabs` registers, or its built-in icons without one. Subclass `MokaTabIconProvider` and override its properties for your own |
+| `IconProvider` | `MokaTabIconProvider?` | - | Draws the close, pin, group toggle and tab list icons. Unset, the strip uses the provider `AddMokaTabs` registers, or its built-in icons without one. Subclass `MokaTabIconProvider` and override its properties for your own |
 | `TabStripCssClass` | `string?` | - | CSS class on the strip container |
+| `ShowTabList` | `bool` | `false` | A button at the strip's end, shown while the tabs don't all fit, that lists every open tab. See [Tab List](#tab-list) |
+| `TabListLabel` | `string` | `"All tabs"` | Names the tab list button and its tooltip |
 
-`MokaTabContainer<TValue>` passes `OnTabContextMenu` and `CloseOnMiddleClick` through to its strip.
+`MokaTabContainer<TValue>` passes `OnTabContextMenu`, `CloseOnMiddleClick`, `ShowTabList` and `TabListLabel` through to its strip.
 
 ## Keyboard
 
@@ -79,6 +81,53 @@ way while the pointer is on a button inside the tab, so the two never sit one ov
 
 Every tab sits inside its tooltip's element, with or without a `Tooltip`, so that element is what the strip lays out and
 keys. A style that reaches tabs as direct children of the strip should reach `.moka-tab-header` instead.
+
+## Tab List
+
+A strip with more tabs than room scrolls, and keeps the active tab in view. Set `ShowTabList` for a way to reach the
+others without scrolling: a button at the strip's end opens a menu of every open tab, in the strip's order, under its
+group's name when tabs are grouped. Each entry shows the tab's icon, badge and pin, and the current tab is checked.
+Picking one activates it, opens its group if that is collapsed, scrolls it into view and focuses it.
+
+```blazor-preview
+<div style="max-width: 22rem">
+    <MokaTabStrip Tabs="_tabs"
+                  ActiveTabId="@_active"
+                  OnTabActivated="id => _active = id"
+                  ShowTabList="true" />
+</div>
+
+@code {
+    string _active = "readme";
+    List<TabInfo<string>> _tabs =
+    [
+        new() { Id = "readme", Title = "README.md", IsPinned = true },
+        new() { Id = "program", Title = "Program.cs" },
+        new() { Id = "app", Title = "App.razor" },
+        new() { Id = "settings", Title = "appsettings.json", Badge = new TabBadgeInfo { ShowDot = true } },
+        new() { Id = "layout", Title = "MainLayout.razor" },
+        new() { Id = "styles", Title = "site.css" },
+    ];
+}
+```
+
+The tabs never leave the strip, so every tab keeps its close and pin buttons, Delete, middle click and context menu.
+That is why the list adds a way to reach tabs rather than moving the ones that don't fit into a menu, as
+[`MokaTabs`](/components/page-tabs) does: a session tab in a menu would lose all of those, and a group would have to
+leave the strip whole.
+
+The button shows only while the tabs don't all fit. The strip's script watches the strip and its tabs with a
+`ResizeObserver` and sets `data-moka-overflow` on the strip, and the stylesheet shows the button from that, so nothing
+reaches .NET as the window or the tabs change size. Without the script, on a static page or before the circuit starts,
+the button stays hidden, since nothing could open its menu then. An open menu keeps its button whatever the width does.
+
+The button is a WAI-ARIA menu button, built on `MokaDropdown`: Enter, Space or Down open the menu on its first entry, Up
+on its last, Up, Down, Home and End move between entries, Enter picks one, and Escape closes the menu and returns focus
+to the button. The button sits after the tabs in the tab order. It shows only an icon, so it is named by `TabListLabel`
+through `aria-label` and a `MokaTooltip`. The menu opens in the browser's top layer, under the strip's end, and a long
+list scrolls inside it.
+
+Override `MokaTabIconProvider.TabListIcon` to draw your own icon on the button.
 
 ## Your Own Context Menu
 
@@ -294,6 +343,8 @@ A tab renders its `ContentComponentType` with `ContentParameters` when it has on
 | `AllowContextMenu` | `bool` | `true` | The built-in right-click menu. Ignored while `OnTabContextMenu` has a delegate |
 | `OnTabContextMenu` | `EventCallback<MokaItemContextMenuArgs<TabInfo<TValue>>>` | | Your own menu, see [Your Own Context Menu](#your-own-context-menu) |
 | `CloseOnMiddleClick` | `bool` | `true` | A middle click closes the tab. Pinned and non-closable tabs stay open |
+| `ShowTabList` | `bool` | `false` | The tab list button at the strip's end. See [Tab List](#tab-list) |
+| `TabListLabel` | `string` | `"All tabs"` | Names the tab list button and its tooltip |
 | `CustomContextMenuItems` | `IReadOnlyList<ContextMenuItem>?` | `null` | Extra items for the built-in menu |
 | `DefaultTabContent` | `RenderFragment<TabInfo<TValue>>?` | `null` | Content for tabs without a `ContentComponentType` |
 | `StorageKey` | `string?` | `null` | Saves the tabs under this key. See [Saving Tabs](#saving-tabs) |

@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,16 +16,30 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 {
 	private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 	private string _activeTab = "Console";
+	private ElementReference _badgeRef;
 	private IMokaDiagnosticsService? _diagnosticsService;
+	private bool _disposed;
 	private DotNetObjectReference<MokaDiagnosticsOverlay>? _dotNetRef;
 	private bool _dragInitialized;
 	private IJSObjectReference? _dragModule;
+	private FocusTarget _focusAfterRender;
 	private ElementReference _headerRef;
 	private bool _isExpanded;
 	private IJSObjectReference? _jsModule;
 	private ElementReference _panelRef;
-	private string? _sessionKey;
+	private MokaDiagnosticsSession? _session;
 	private MokaDiagnosticsSessions? _sessions;
+	private IJSObjectReference? _shortcut;
+	private IJSObjectReference? _tabRow;
+	private string? _tabRowBoundTo;
+	private ElementReference _tabsRowRef;
+
+	private enum FocusTarget
+	{
+		None,
+		Panel,
+		Badge
+	}
 
 	/// <summary>
 	///     The current theme to inspect. Pass this explicitly so the inspector
@@ -65,22 +78,29 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	/// </summary>
 	public async ValueTask DisposeAsync()
 	{
+		_disposed = true;
+
 		if (_diagnosticsService is not null)
 		{
 			_diagnosticsService.OnOverlayVisibilityChanged -= OnVisibilityChanged;
 		}
 
-		if (_sessionKey is not null)
+		if (_session is not null)
 		{
-			_sessions?.Remove(_sessionKey);
-			_sessionKey = null;
+			_sessions?.Remove(_session.Key);
+			_session = null;
 		}
 
 		await _dragModule.SafeInvokeVoidAsync("removeDraggable", _headerRef);
 		await _dragModule.SafeDisposeAsync();
 		_dragModule = null;
 
-		await _jsModule.SafeInvokeVoidAsync("dispose");
+		await _shortcut.SafeInvokeVoidAsync("dispose");
+		await _shortcut.SafeDisposeAsync();
+		_shortcut = null;
+
+		await ReleaseTabRowAsync();
+
 		await _jsModule.SafeDisposeAsync();
 		_jsModule = null;
 
@@ -101,6 +121,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	}
 
 	/// <inheritdoc />
+	protected override void OnParametersSet() => _session?.ShowTheme(Theme);
+
+	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender && _diagnosticsService is not null && _jsRuntime is not null)
@@ -112,7 +135,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 					"import",
 					"./_content/Moka.Red.Diagnostics/moka-diagnostics.js");
 
-				await _jsModule.InvokeVoidAsync(
+				_shortcut = await _jsModule.InvokeAsync<IJSObjectReference>(
 					"registerKeyboardShortcut",
 					_dotNetRef,
 					_diagnosticsService.Options.KeyboardShortcut);
@@ -124,53 +147,125 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 			}
 		}
 
-		// Enable drag whenever the panel is expanded and drag hasn't been initialized yet
+		// The panel is a new element each time it opens, so its header is made draggable each time.
 		if (_isExpanded && !_dragInitialized && _jsRuntime is not null)
 		{
 			try
 			{
 				_dragModule ??= await _jsRuntime.InvokeAsync<IJSObjectReference>(
 					"import", "./_content/Moka.Red.Core/moka-drag.js");
-				await _dragModule.InvokeVoidAsync("makeDraggable", null, _panelRef, _headerRef, new
-				{
-					bounds = true
-				});
+				await _dragModule.InvokeVoidAsync("makeDraggable", null, _panelRef, _headerRef,
+					new Dictionary<string, object?> { ["bounds"] = true });
 				_dragInitialized = true;
 			}
 			catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 			{
 			}
-			catch (JSException)
-			{
-				// Element references may not be ready yet; will retry on next render.
-			}
+		}
+
+		await BindTabRowAsync();
+		await MoveFocusAsync();
+	}
+
+	// The tab row is a new element each time the panel opens, so it's watched each time and let go once it's gone.
+	private async Task BindTabRowAsync()
+	{
+		string? row = _isExpanded ? _tabsRowRef.Id : null;
+		if (row == _tabRowBoundTo)
+		{
+			return;
+		}
+
+		await ReleaseTabRowAsync();
+		if (row is null || _jsModule is null)
+		{
+			return;
+		}
+
+		try
+		{
+			_tabRow = await _jsModule.InvokeAsync<IJSObjectReference>("bindTabRow", _tabsRowRef);
+			_tabRowBoundTo = row;
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
 		}
 	}
 
+	private async Task ReleaseTabRowAsync()
+	{
+		IJSObjectReference? tabRow = _tabRow;
+		_tabRow = null;
+		_tabRowBoundTo = null;
+		await tabRow.SafeInvokeVoidAsync("dispose");
+		await tabRow.SafeDisposeAsync();
+	}
+
 	/// <summary>
-	///     Called from JavaScript when the keyboard shortcut is pressed.
+	///     Called from JavaScript when the keyboard shortcut is pressed outside the panel. It opens or closes the
+	///     panel and leaves focus where it is.
 	/// </summary>
 	[JSInvokable]
 	public void ToggleFromJs()
 	{
-		_isExpanded = !_isExpanded;
-
-		if (_diagnosticsService is not null)
-		{
-			_diagnosticsService.IsOverlayVisible = _isExpanded;
-		}
-
+		SetExpanded(!_isExpanded, FocusTarget.None);
 		StateHasChanged();
 	}
 
-	private void Toggle()
+	/// <summary>
+	///     Called from JavaScript when Escape or the keyboard shortcut is pressed inside the panel. It closes the panel
+	///     and gives focus to the badge that reopens it, since the focused control goes with the panel.
+	/// </summary>
+	[JSInvokable]
+	public void CloseFromJs()
 	{
-		_isExpanded = !_isExpanded;
+		if (!_isExpanded)
+		{
+			return;
+		}
+
+		SetExpanded(false, FocusTarget.Badge);
+		StateHasChanged();
+	}
+
+	private void Toggle() => SetExpanded(!_isExpanded, _isExpanded ? FocusTarget.Badge : FocusTarget.Panel);
+
+	// The badge and the panel replace each other, so the control that was pressed is gone after the render. Focus goes
+	// to what took its place, as it would after the browser's own disclosure.
+	private void SetExpanded(bool expanded, FocusTarget focus)
+	{
+		_isExpanded = expanded;
 		_dragInitialized = false;
+		_focusAfterRender = focus;
 
 		if (_diagnosticsService is not null)
 		{
-			_diagnosticsService.IsOverlayVisible = _isExpanded;
+			_diagnosticsService.IsOverlayVisible = expanded;
+		}
+	}
+
+	private async Task MoveFocusAsync()
+	{
+		FocusTarget target = _focusAfterRender;
+		_focusAfterRender = FocusTarget.None;
+		ElementReference? element = target switch
+		{
+			FocusTarget.Panel when _isExpanded => _panelRef,
+			FocusTarget.Badge when !_isExpanded => _badgeRef,
+			_ => null
+		};
+
+		if (element is null)
+		{
+			return;
+		}
+
+		try
+		{
+			await element.Value.FocusAsync();
+		}
+		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
+		{
 		}
 	}
 
@@ -178,26 +273,23 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 
 	private string TabClass(string tab) => _activeTab == tab ? "moka-diag-tab moka-diag-tab--active" : "moka-diag-tab";
 
+	private string TabPressed(string tab) => _activeTab == tab ? "true" : "false";
+
 	private async Task OpenInNewWindow()
 	{
-		if (_jsModule is not null)
+		if (_jsModule is null)
 		{
-			// The popup gets a scope of its own. The key lets its page find this window's service,
-			// so it shows this window's renders and events rather than its own empty ones.
-			if (_sessionKey is null && _sessions is not null && _diagnosticsService is not null)
-			{
-				_sessionKey = _sessions.Add(_diagnosticsService);
-			}
-
-			try
-			{
-				await _jsModule.InvokeVoidAsync("openDiagnosticsPage", _sessionKey);
-			}
-			catch (JSException)
-			{
-				// Pop-up may be blocked; safe to ignore.
-			}
+			return;
 		}
+
+		// The popup gets a scope of its own. The key lets its page find this window's service and theme, so it
+		// shows this window's renders, events and tokens rather than its own empty ones.
+		if (_session is null && _sessions is not null && _diagnosticsService is not null)
+		{
+			_session = _sessions.Add(_diagnosticsService, Theme);
+		}
+
+		await _jsModule.SafeInvokeVoidAsync("openDiagnosticsPage", _session?.Key);
 	}
 
 	private void TogglePause()
@@ -208,6 +300,8 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		}
 	}
 
+	// Streamed as UTF-8 bytes, as the Blazor file downloads guidance does, rather than as base64 text that the browser
+	// decoded into one character per byte and the Blob encoded again.
 	private async Task ExportData()
 	{
 		if (_diagnosticsService is null || _jsModule is null)
@@ -225,29 +319,43 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 			Events = _diagnosticsService.GetRecentEvents(int.MaxValue)
 		};
 
-		string json = JsonSerializer.Serialize(data, _jsonOptions);
-
-		string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 		string filename = $"moka-diagnostics-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+		using MemoryStream json = new(JsonSerializer.SerializeToUtf8Bytes(data, _jsonOptions), writable: false);
+		using DotNetStreamReference content = new(json, leaveOpen: true);
+		await _jsModule.SafeInvokeVoidAsync("downloadJson", content, filename);
+	}
+
+	private void OnVisibilityChanged(object? sender, EventArgs e) => _ = ApplyVisibilityAsync();
+
+	// The visibility can be set from anywhere that holds the service, on any thread; the render goes to the renderer's
+	// thread, and a failure reaches Blazor's error handling rather than vanishing with a discarded task.
+	private async Task ApplyVisibilityAsync()
+	{
+		if (_disposed)
+		{
+			return;
+		}
 
 		try
 		{
-			await _jsModule.InvokeVoidAsync("downloadJson", base64, filename);
-		}
-		catch (JSException)
-		{
-			// Download may fail in certain contexts; safe to ignore.
-		}
-	}
+			await InvokeAsync(() =>
+			{
+				if (_disposed || _diagnosticsService is null || _diagnosticsService.IsOverlayVisible == _isExpanded)
+				{
+					return;
+				}
 
-	private void OnVisibilityChanged(object? sender, EventArgs e)
-	{
-		if (_diagnosticsService is not null)
-		{
-			_isExpanded = _diagnosticsService.IsOverlayVisible;
+				SetExpanded(_diagnosticsService.IsOverlayVisible, FocusTarget.None);
+				StateHasChanged();
+			});
 		}
-
-		_dragInitialized = false;
-		InvokeAsync(StateHasChanged);
+		catch (ObjectDisposedException)
+		{
+			// The renderer went away between the change and the dispatch.
+		}
+		catch (Exception ex) when (!_disposed)
+		{
+			await DispatchExceptionAsync(ex);
+		}
 	}
 }

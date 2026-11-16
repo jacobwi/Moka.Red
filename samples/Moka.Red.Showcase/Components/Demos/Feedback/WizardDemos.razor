@@ -19,6 +19,18 @@
 	<MokaText Size="MokaSize.Sm" Style="margin-top: var(--moka-spacing-sm); opacity: 0.6;">@_wizardStatus</MokaText>
 </DemoSection>
 
+<DemoSection Id="a-step-that-must-be-valid" Title="A step that must be valid" Description="Next stays disabled while the step's IsValid is false, and follows the checkbox in the same render.">
+	<MokaWizard Linear OnFinish="@(() => _termsStatus = "Finished.")">
+		<MokaWizardStep Title="Terms" IsValid="_termsAccepted">
+			<MokaCheckbox @bind-Value="_termsAccepted" Label="I accept the terms"/>
+		</MokaWizardStep>
+		<MokaWizardStep Title="Details">
+			<MokaTextField Label="Full name" Placeholder="Jane Doe"/>
+		</MokaWizardStep>
+	</MokaWizard>
+	<MokaText Size="MokaSize.Sm" Style="margin-top: var(--moka-spacing-sm); opacity: 0.6;">@_termsStatus</MokaText>
+</DemoSection>
+
 <DemoSection Id="a-rail-down-the-side" Title="A rail down the side" Description="Rail puts the steps down the side with what each decided and a problem mark, and the buttons in a bar along the bottom. Under 900 px a progress bar replaces the rail.">
 @* Clip, not hidden: an element that hides overflow would become what the rail and the bar stick to. *@
 <div style="overflow: clip; border: 1px solid var(--moka-color-outline); border-radius: var(--moka-radius-card); background: var(--moka-color-surface);">
@@ -53,6 +65,10 @@
 
 @code {
 	private string _wizardStatus = "";
+
+	private bool _termsAccepted;
+
+	private string _termsStatus = "";
 
 	private bool _finished;
 

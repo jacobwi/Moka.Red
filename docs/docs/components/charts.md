@@ -81,7 +81,10 @@ sees no change until it asks.
 ## Large and live data
 
 A chart compares what it is given with what it last drew, so a parent that renders every second with the same data
-costs the chart no render at all. Past about 100,000 values, pass `DataVersion` and bump it whenever the data changes:
+costs the chart no render at all. A fragment (`TitleContent`, `Actions`, `EmptyContent`, `ErrorContent`,
+`ToolbarControl`, `TooltipTemplate`, a donut's center, a dot plot's `NameTemplate`) can't be compared, so a chart given
+one draws again with its parent and shows what the fragment reads now; it rebuilds nothing, and the marks don't render
+again. Past about 100,000 values, pass `DataVersion` and bump it whenever the data changes:
 the chart then compares the version instead of copying and comparing every value.
 
 A line never draws more than about twice the plot's width in points. Past that it keeps each pixel's lowest and highest

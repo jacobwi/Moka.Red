@@ -318,7 +318,7 @@ public sealed class ChartSurfaceTests : BunitContext
 	}
 
 	[Fact]
-	public async Task TheTemplate_GetsTheContext_AndRendersOnlyWhenThePointChanges()
+	public async Task TheTemplate_GetsTheContext_AndRendersWhenThePointChanges_NotWhileNothingShows()
 	{
 		this.Interactive();
 		int drawn = 0;
@@ -328,14 +328,14 @@ public sealed class ChartSurfaceTests : BunitContext
 			builder.AddMarkupContent(0, $"<b class=\"mine\">{context.Heading} {context.Points.Count} {context.Focus?.SeriesKey}</b>");
 		};
 		IRenderedComponent<ChartSurfaceTestChart> cut = Chart(p => p.Add(x => x.TooltipTemplate, template).Add(x => x.Title, "Before"));
+		cut.Render(p => Defaults(p).Add(x => x.TooltipTemplate, template).Add(x => x.Title, "Changed"));
+		Assert.Equal(0, drawn);
 
 		await cut.InvokeAsync(() => cut.Instance.OnActive(0, 1, 0, false));
-		int afterPoint = drawn;
-		cut.Render(p => Defaults(p).Add(x => x.TooltipTemplate, template).Add(x => x.Title, "Changed"));
 
 		Assert.Equal("00:00 2 WAN", cut.Find(".moka-chart-tip .mine").TextContent);
 		Assert.Empty(cut.FindAll(".moka-chart-tip__row"));
-		Assert.Equal(afterPoint, drawn);
+		Assert.Equal(1, drawn);
 	}
 
 	[Fact]

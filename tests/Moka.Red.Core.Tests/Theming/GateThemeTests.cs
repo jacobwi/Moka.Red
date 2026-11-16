@@ -56,7 +56,8 @@ public class GateThemeTests
 	[InlineData("--moka-main-padding: 28px 32px 120px")]
 	[InlineData("--moka-shadow-1: none")]
 	[InlineData("--moka-shadow-popup: 0 18px 40px rgba(0, 0, 0, 0.45)")]
-	[InlineData("--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-focus)")]
+	[InlineData("--moka-focus-ring: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)")]
+	[InlineData("--moka-focus-glow: 0 0 0 3px var(--moka-color-primary-focus)")]
 	[InlineData("--moka-transition-normal: 150ms ease-out")]
 	[InlineData("--moka-opacity-disabled: 0.55")]
 	public void Gate_WritesTheDesignsValues(string declaration) =>

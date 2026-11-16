@@ -193,7 +193,7 @@
 
 /* A tab stop of its own, with the library's focus ring at its own size */
 .moka-attr-dismiss:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	opacity: 1;
 	box-shadow: var(--moka-focus-ring);
 }

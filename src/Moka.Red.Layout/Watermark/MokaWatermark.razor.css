@@ -13,7 +13,7 @@
 }
 
 /* Text is an SVG tile used as a mask, so the layer's own background is the text's color and a
-   token works here, where it could not inside the image. An inline Color overrides it. */
+   token works here, where it could not inside the image. An inline ColorValue or Color overrides it. */
 .moka-watermark__overlay--text {
 	background-color: var(--moka-color-on-surface);
 	-webkit-mask-image: var(--_watermark-tile);

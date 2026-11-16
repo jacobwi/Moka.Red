@@ -26,7 +26,7 @@
 							<span class="moka-diag-token-preview" aria-hidden="true">
 								@if (token.Kind == ThemeTokenKind.Color)
 								{
-									<span class="moka-diag-color-swatch" style="@SwatchStyle(token.Value)"></span>
+									<span class="moka-diag-color-swatch" style="@SwatchStyle(token.ResolvedColor ?? token.Value)"></span>
 								}
 								else if (token.Kind == ThemeTokenKind.Spacing || token.Kind == ThemeTokenKind.BorderRadius)
 								{

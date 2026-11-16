@@ -1,5 +1,6 @@
 using System.Runtime;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
 
@@ -21,7 +22,9 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 	private DateTime _lastUpdated;
 	private string _latencyMode = "";
 	private int _maxCollections;
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
+
+	[Inject] private IServiceProvider Services { get; set; } = default!;
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -32,7 +35,7 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -42,35 +45,11 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 	protected override void OnInitialized()
 	{
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(2),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		_gen0 = GC.CollectionCount(0);
 		_gen1 = GC.CollectionCount(1);
@@ -85,6 +64,7 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 		GCMemoryInfo memoryInfo = GC.GetGCMemoryInfo();
 		_heapSizeBytes = memoryInfo.HeapSizeBytes;
 		_finalizationPending = memoryInfo.FinalizationPendingCount;
+		return true;
 	}
 
 	private void ForceGc()

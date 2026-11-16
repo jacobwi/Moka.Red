@@ -10,7 +10,7 @@ else
 	@* The dropdown's script moves focus between items, so an enabled item takes focus without
 	   joining the tab order. A disabled item is skipped and swallows its click, so it cannot
 	   close the menu either. *@
-	<div class="@CssClass" style="@CssStyle" role="menuitem"
+	<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
 	     tabindex="@(Disabled ? null : "-1")"
 	     aria-disabled="@(Disabled ? "true" : null)"
 	     @onclick="HandleClick"

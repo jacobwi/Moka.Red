@@ -28,9 +28,18 @@
 		<ProjectReference Include="..\..\src\Moka.Red.Core\Moka.Red.Core.csproj" />
 	</ItemGroup>
 
+	<!-- Scoped stylesheets whose rules the tests read as text, since bUnit applies no CSS. -->
+	<ItemGroup>
+		<None Include="..\..\src\Moka.Red.Diagnostics\**\*.razor.css"
+		      Exclude="..\..\src\Moka.Red.Diagnostics\bin\**;..\..\src\Moka.Red.Diagnostics\obj\**"
+		      Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
+		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 		<Compile Include="..\Shared\BindingGoldens.cs" Link="Shared\BindingGoldens.cs" />
+		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
 	</ItemGroup>
 
 </Project>

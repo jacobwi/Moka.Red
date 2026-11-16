@@ -496,11 +496,11 @@ public class ListLookTests : BunitContext
 
 		Assert.Equal("0", openField["border-bottom-left-radius"]);
 		Assert.Equal("0", openField["border-bottom-right-radius"]);
-		Assert.Equal("var(--moka-focus-ring)", openField["box-shadow"]);
+		Assert.Equal("var(--moka-focus-glow)", openField["box-shadow"]);
 		Assert.Equal("0", list["margin-top"]);
 		Assert.Equal("0", list["border-top-width"]);
 		Assert.Equal("var(--moka-color-primary)", list["border-color"]);
-		Assert.StartsWith("var(--moka-focus-ring), ", list["box-shadow"], StringComparison.Ordinal);
+		Assert.StartsWith("var(--moka-focus-glow), ", list["box-shadow"], StringComparison.Ordinal);
 		Assert.Equal("0 0 var(--moka-radius-md) var(--moka-radius-md)", fieldAbove["border-radius"]);
 		Assert.Equal("0", listAbove["border-bottom-width"]);
 		Assert.Equal("var(--moka-radius-md) var(--moka-radius-md) 0 0", listAbove["border-radius"]);

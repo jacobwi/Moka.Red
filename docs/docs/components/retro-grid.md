@@ -27,6 +27,8 @@ order: 82
 | `MinHeight` | `string` | `"400px"` | Minimum height of the container |
 | `FullScreen` | `bool` | `false` | Fill the entire viewport height |
 
+`MokaRetroGrid` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Class`, `Style`, `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the container, which clips the grid to its corners. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ## Default Retro Grid
 
 ```blazor-preview

@@ -10,7 +10,7 @@ namespace Moka.Red.Navigation.CommandBar;
 ///     center (search), and right (actions). Inspired by VS Code's top bar layout.
 ///     Unlike <c>MokaCommandPalette</c>, this is a visible, always-present bar, not a popup overlay.
 /// </summary>
-public partial class MokaCommandBar : MokaComponentBase
+public partial class MokaCommandBar : MokaVisualComponentBase
 {
 	private string? _lastSearchValue;
 	private string? _searchValue;

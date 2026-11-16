@@ -31,7 +31,7 @@
 }
 
 .moka-theme-switcher__trigger:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -94,7 +94,7 @@
 
 /* The item the arrow keys are on */
 .moka-theme-switcher__item:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	background-color: var(--moka-color-surface-variant);
 	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }

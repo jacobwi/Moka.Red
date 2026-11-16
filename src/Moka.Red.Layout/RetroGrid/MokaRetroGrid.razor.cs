@@ -10,7 +10,7 @@ namespace Moka.Red.Layout.RetroGrid;
 ///     retro/cyberpunk effect. Features a glowing horizon line, animated grid scroll,
 ///     and radial glow. Pure CSS, zero JS.
 /// </summary>
-public partial class MokaRetroGrid : MokaComponentBase
+public partial class MokaRetroGrid : MokaVisualComponentBase
 {
 	/// <summary>Content rendered above the grid.</summary>
 	[Parameter]
@@ -79,7 +79,7 @@ public partial class MokaRetroGrid : MokaComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("min-height", MinHeight, !FullScreen)
 		.AddStyle("background-color", BackgroundColor, !string.IsNullOrEmpty(BackgroundColor))
 		.AddStyle(Style)

@@ -1,42 +1,32 @@
 @namespace Moka.Red.Navigation.Tabs
 @typeparam TValue
+@using Moka.Red.Feedback.Dropdown
+@using Moka.Red.Feedback.Popover
 
-<div class="@StripCssClass" style="@Theme?.ToContainerStyle()" role="tablist" @ref="_stripRef">
-	@foreach (var group in GetGroupedTabs())
-	{
-		if (group.GroupInfo is not null)
-		{
-			<div class="moka-tab-group @group.GroupInfo.CssClass" style="@GetGroupBorderStyle(group.GroupInfo)">
-				<button class="moka-tab-group-header"
-				        @onclick="() => OnGroupCollapseToggled.InvokeAsync(group.GroupInfo.Name)"
-				        aria-expanded="@(group.GroupInfo.IsCollapsed ? "false" : "true")"
-				        type="button">
-					<span class="moka-tab-group-toggle">
-						@if (group.GroupInfo.IsCollapsed)
-						{
-							@(Icons.GroupCollapsedIcon)
-						}
-						else
-						{
-							@(Icons.GroupExpandedIcon)
-						}
-					</span>
-					<span class="moka-tab-group-title">@(group.GroupInfo.DisplayTitle ?? group.GroupInfo.Name)</span>
-					<span class="moka-tab-group-count">(@group.Tabs.Count)</span>
-				</button>
-
-				@if (!group.GroupInfo.IsCollapsed)
-				{
-					@TabHeaders(group.Tabs)
-				}
-			</div>
-		}
-		else
-		{
-			@TabHeaders(group.Tabs)
-		}
-	}
-</div>
+@if (ShowTabList)
+{
+	<div class="moka-tab-strip-frame" style="@Theme?.ToContainerStyle()">
+		@Strip
+		<div class="moka-tab-strip-list">
+			<MokaDropdown @bind-Open="_tabListOpen" Position="MokaPopoverPosition.BottomEnd">
+				<ChildContent>
+					<MokaTooltip Text="@(_tabListOpen ? null : TabListLabel)" Position="MokaTooltipPosition.BottomEnd">
+						<button type="button" class="moka-tab-list-button" aria-label="@TabListLabel">
+							@(Icons.TabListIcon)
+						</button>
+					</MokaTooltip>
+				</ChildContent>
+				<Items>
+					@TabListItems
+				</Items>
+			</MokaDropdown>
+		</div>
+	</div>
+}
+else
+{
+	@Strip
+}
 
 @if (_showContextMenu && _contextMenuTab is not null)
 {
@@ -58,6 +48,111 @@
 }
 
 @code {
+
+	// Drawn on its own, or in the frame beside the tab list button, so the tabs' markup is written once.
+	private RenderFragment Strip =>
+		@<div class="@StripCssClass" style="@Theme?.ToContainerStyle()" role="tablist" @ref="_stripRef">
+			@foreach (var group in GetGroupedTabs())
+			{
+				if (group.GroupInfo is not null)
+				{
+					<div class="moka-tab-group @group.GroupInfo.CssClass" style="@GetGroupBorderStyle(group.GroupInfo)">
+						<button class="moka-tab-group-header"
+						        @onclick="() => OnGroupCollapseToggled.InvokeAsync(group.GroupInfo.Name)"
+						        aria-expanded="@(group.GroupInfo.IsCollapsed ? "false" : "true")"
+						        type="button">
+							<span class="moka-tab-group-toggle">
+								@if (group.GroupInfo.IsCollapsed)
+								{
+									@(Icons.GroupCollapsedIcon)
+								}
+								else
+								{
+									@(Icons.GroupExpandedIcon)
+								}
+							</span>
+							<span class="moka-tab-group-title">@(group.GroupInfo.DisplayTitle ?? group.GroupInfo.Name)</span>
+							<span class="moka-tab-group-count">(@group.Tabs.Count)</span>
+						</button>
+
+						@if (!group.GroupInfo.IsCollapsed)
+						{
+							@TabHeaders(group.Tabs)
+						}
+					</div>
+				}
+				else
+				{
+					@TabHeaders(group.Tabs)
+				}
+			}
+		</div>;
+
+	// Every open tab in the strip's order, under its group's name when it has one. Tabs in a collapsed group are listed
+	// too, since the list is the way to reach a tab the strip doesn't show. Drawn only while the menu is open.
+	private RenderFragment TabListItems =>
+		@<div class="moka-tab-list moka-thin-scrollbar" role="none">
+			@{ bool icons = Tabs.Any(HasIcon); }
+			@foreach (var group in GetGroupedTabs())
+			{
+				if (group.GroupInfo is null)
+				{
+					@TabListEntries(group.Tabs, icons)
+				}
+				else
+				{
+					string heading = group.GroupInfo.DisplayTitle ?? group.GroupInfo.Name;
+					<div class="moka-tab-list-group" role="group" aria-label="@heading">
+						<div class="moka-tab-list-heading moka-micro-label" style="@GroupColorStyle(group.GroupInfo)" aria-hidden="true">@heading</div>
+						@TabListEntries(group.Tabs, icons)
+					</div>
+				}
+			}
+		</div>;
+
+	// Written straight into the builder, like the headers, so the entries stay keyed siblings.
+	private RenderFragment TabListEntries(IEnumerable<TabInfo<TValue>> tabs, bool icons) => builder =>
+	{
+		foreach (TabInfo<TValue> tab in tabs)
+		{
+			TabListEntry(tab, icons)(builder);
+		}
+	};
+
+	// The marks are the strip's own: the icon, the badge and the pin. The current tab is aria-current and checked.
+	private RenderFragment TabListEntry(TabInfo<TValue> tab, bool icons) =>
+		@<MokaDropdownItem @key="tab.Id"
+		                   OnClick="() => PickFromTabListAsync(tab)"
+		                   aria-current="@(IsActive(tab) ? "true" : null)">
+			@if (icons)
+			{
+				<span class="moka-icon-slot moka-tab-list-icon" aria-hidden="true">
+					@if (tab.IconContent is not null)
+					{
+						@tab.IconContent
+					}
+					else if (!string.IsNullOrEmpty(tab.IconClass))
+					{
+						<span class="@tab.IconClass"></span>
+					}
+				</span>
+			}
+			<span class="moka-tab-list-title">@tab.Title</span>
+			@if (tab.Badge is { IsVisible: true })
+			{
+				<MokaTabBadge Badge="tab.Badge"/>
+			}
+			@if (tab.IsPinned)
+			{
+				<span class="moka-tab-list-mark moka-tab-list-pinned" aria-hidden="true">@(Icons.PinnedIcon)</span>
+			}
+			@if (IsActive(tab))
+			{
+				<span class="moka-tab-list-mark moka-tab-list-current" aria-hidden="true">
+					<MokaIcon Icon="MokaIcons.Status.Check" SizeValue="14px"/>
+				</span>
+			}
+		</MokaDropdownItem>;
 
 	// Writes the headers straight into the builder it is given, so they stay keyed siblings.
 	// @TabHeader(tab) inside a loop would wrap each header in its own render-tree region, and @key

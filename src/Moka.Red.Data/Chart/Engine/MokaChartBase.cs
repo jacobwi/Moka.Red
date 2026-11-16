@@ -116,7 +116,10 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	[Parameter]
 	public MokaChartTooltip? Tooltip { get; set; }
 
-	/// <summary>Draws the tooltip in place of the chart's own. Rendered only when the point under the pointer changes.</summary>
+	/// <summary>
+	///     Draws the tooltip in place of the chart's own. Rendered when the point under the pointer changes, and again when
+	///     the parent renders while a tooltip or pin card shows it.
+	/// </summary>
 	[Parameter]
 	public RenderFragment<MokaChartTooltipContext>? TooltipTemplate { get; set; }
 
@@ -214,6 +217,9 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 
 	/// <summary>Moves on every rebuild, so the script knows when the geometry it holds is stale.</summary>
 	internal long GeometryVersion { get; private set; }
+
+	/// <summary>Moves whenever the parent hands over a <see cref="TooltipTemplate" /> again, so an open tooltip draws it again.</summary>
+	internal long TooltipTemplateVersion { get; private set; }
 
 	/// <summary>The words, English unless <see cref="Text" /> is set.</summary>
 	internal MokaChartText Words => Text ?? MokaChartText.Default;
@@ -362,6 +368,13 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// <param name="name">The parameter's name.</param>
 	internal virtual bool ComparesItems(string name) => name is nameof(Colors) or nameof(HighlightSeries);
 
+	/// <summary>
+	///     Whether the chart draws this fragment parameter as it is now. A fragment the parent hands over again draws the
+	///     chart again only then. The classic path draws none of the shared chrome.
+	/// </summary>
+	/// <param name="name">The parameter's name.</param>
+	internal virtual bool DrawsFragment(string name) => !IsClassic;
+
 	/// <summary>Draws again, rebuilding the geometry first unless only chrome changed.</summary>
 	internal void Redraw(bool geometry = true)
 	{
@@ -424,7 +437,9 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// <remarks>
 	///     A parent that renders every second hands the chart its parameters every second. They are compared with the last
 	///     set, data by value against a snapshot (or by reference and <see cref="DataVersion" />), and the chart draws again
-	///     only when something differs, so an unchanged parent render costs no render and no diff.
+	///     only when something differs, so an unchanged parent render costs no render and no diff. A
+	///     <see cref="RenderFragment" /> can't be compared, so one handed over again draws the chart again, but rebuilds
+	///     nothing: the marks stay behind the geometry version and only what draws the fragment renders.
 	/// </remarks>
 	public override Task SetParametersAsync(ParameterView parameters)
 	{
@@ -519,6 +534,12 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 				return;
 			}
 
+			if (IsFragment(value) && IsFragment(previous))
+			{
+				TakeFragmentAgain(name);
+				continue;
+			}
+
 			bool same = ComparesItems(name) ? SameItems(previous, value)
 				: versioned ? Equals(previous, value)
 				: SameValue(name, previous, value);
@@ -535,6 +556,27 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 			}
 		}
 	}
+
+	// A fragment that reads only its parent's fields is an equal delegate every render while what it draws has changed,
+	// so one handed over again always draws again, as Blazor renders any component that takes one. Whether it is there
+	// can decide the path, so that still goes through AffectsGeometry; what it draws feeds no geometry.
+	private void TakeFragmentAgain(string name)
+	{
+		if (!DrawsFragment(name))
+		{
+			return;
+		}
+
+		_dirty = true;
+		if (name == nameof(TooltipTemplate))
+		{
+			TooltipTemplateVersion++;
+		}
+	}
+
+	private static bool IsFragment(object? value) => value is RenderFragment
+		|| (value is Delegate fragment && fragment.GetType() is { IsGenericType: true } type
+			&& type.GetGenericTypeDefinition() == typeof(RenderFragment<>));
 
 	// The parameters as they came, but each list of options as a copy, which the next set is compared with.
 	private IReadOnlyDictionary<string, object?> Remember(IReadOnlyDictionary<string, object?> next)

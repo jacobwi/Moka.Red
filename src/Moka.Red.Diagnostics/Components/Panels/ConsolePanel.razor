@@ -26,21 +26,23 @@
 			{
 				@foreach (var msg in _filteredMessages)
 				{
-					<div class="moka-diag-console-entry">
+					bool expanded = _expandedExceptions.Contains(msg);
+					<div class="moka-diag-console-entry" @key="_rowKeys.For(msg)">
 						<span class="moka-diag-console-time">@msg.Timestamp.ToString("HH:mm:ss.fff")</span>
 						<span class="moka-diag-console-badge @LevelBadgeClass(msg.Level)">@LevelText(msg.Level)</span>
 						<span class="moka-diag-console-category">@msg.Category</span>
 						<span class="moka-diag-console-msg">@msg.Message</span>
 						@if (msg.Exception is not null)
 						{
-							<button type="button" class="moka-diag-console-expand" @onclick="() => ToggleException(GetExceptionKey(msg))" title="Toggle exception details">
-								@(_expandedExceptions.Contains(GetExceptionKey(msg)) ? "\u25BC" : "\u25B6")
+							<button type="button" class="moka-diag-console-expand" @onclick="() => ToggleException(msg)"
+							        title="Toggle exception details" aria-label="Exception details" aria-expanded="@(expanded ? "true" : "false")">
+								@(expanded ? "\u25BC" : "\u25B6")
 							</button>
 						}
 					</div>
-					@if (msg.Exception is not null && _expandedExceptions.Contains(GetExceptionKey(msg)))
+					@if (msg.Exception is not null && expanded)
 					{
-						<pre class="moka-diag-console-exception">@msg.Exception</pre>
+						<pre class="moka-diag-console-exception" @key="_exceptionKeys.For(msg)">@msg.Exception</pre>
 					}
 				}
 			}

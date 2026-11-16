@@ -423,7 +423,7 @@ Every token `MokaThemeProvider` emits follows a `--moka-{category}-{name}` namin
 | `--moka-color-primary-bg` | The tint behind something selected |
 | `--moka-color-primary-text` | Text on that tint |
 | `--moka-color-primary-row` | The active row |
-| `--moka-color-primary-focus` | The focus ring's colour |
+| `--moka-color-primary-focus` | The accent at a fifth of its strength, for the soft glow that joins a field to its open list |
 
 Success, warning, error and info each have a tint and three colours to use on it, here for success: `--moka-color-success-bg` (the tint), `--moka-color-success-ink` (short text), `--moka-color-success-text` (longer text) and `--moka-color-success-line` (a border). `--moka-color-error-soft` is for counts and field errors that sit directly on a surface.
 
@@ -495,6 +495,8 @@ Highlighted code has ten colors of its own: `--moka-code-text`, `-tag`, `-attrib
 | `--moka-button-text-color`, `--moka-button-text-hover-color` | A text button at the primary color, at rest and hovered, set by `WithTextButtons` |
 | `--moka-callout-fill`, `--moka-callout-edge`, `--moka-callout-edge-radius` | How much of the filled look a callout or filled alert shows (`100%` or `0%`), how wide the edge down its start side is, and the corners beside it, set by `WithCallouts`. The component mixes its own severity colors by these |
 | `--moka-switch-on-track`, `--moka-switch-on-ring`, `--moka-switch-on-knob`, `--moka-switch-on-knob-shadow` | A switch that is on, set by `WithSwitches`. They mix the switch's tone in through `currentColor`, which the track carries |
+| `--moka-focus-ring` | The ring a focused control draws (a box-shadow). On the new design it is solid accent past a hairline of surface, at least 3:1 against cards, panels and the page on every built-in theme; on `MokaTheme.Dark` and `Light` it is the original glow. Under forced colors, where box-shadows are dropped, the control's transparent `--moka-focus-width` outline shows instead |
+| `--moka-focus-glow` | The soft glow that joins a focused field to the list it has open, in the Attached list look |
 | `--moka-selected-glow`, `--moka-selected-bar` | How a selected item or table row is marked, set by `WithSelection` |
 | `--moka-current-bg`, `--moka-current-color`, `--moka-current-icon`, `--moka-current-shadow`, `--moka-current-edge`, `--moka-current-pill-ring` | How the place you are in the app is drawn, set by `WithCurrentPlace`. On the dark scheme a solid fill's text is the accent's dark ink, since white on the dark accent is about 3:1 |
 | `--moka-about-display` | `block` or `none` for text saying what a thing is for, set by `WithDescriptions` |

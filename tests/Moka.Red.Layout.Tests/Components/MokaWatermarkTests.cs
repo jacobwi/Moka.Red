@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Layout.Watermark;
 using Moka.Red.Tests.Shared;
@@ -68,7 +69,7 @@ public partial class MokaWatermarkTests : BunitContext
 	{
 		IRenderedComponent<MokaWatermark> cut = Render<MokaWatermark>(p => p
 			.Add(x => x.Text, "DRAFT")
-			.Add(x => x.Color, color));
+			.Add(x => x.ColorValue, color));
 
 		Assert.Null(TileText(cut).Attribute("fill"));
 		Assert.Equal(["--_watermark-tile", "opacity"], CssDeclarations.PropertyNames(OverlayStyle(cut)));
@@ -173,11 +174,46 @@ public partial class MokaWatermarkTests : BunitContext
 		IRenderedComponent<MokaWatermark> plain = Render<MokaWatermark>(p => p.Add(x => x.Text, "DRAFT"));
 		IRenderedComponent<MokaWatermark> tinted = Render<MokaWatermark>(p => p
 			.Add(x => x.Text, "DRAFT")
-			.Add(x => x.Color, "var(--moka-color-primary)"));
+			.Add(x => x.ColorValue, "var(--moka-color-primary)"));
 
 		Assert.Contains("moka-watermark__overlay--text", Overlay(plain).ClassName, StringComparison.Ordinal);
 		Assert.DoesNotContain("background-color", OverlayStyle(plain), StringComparison.Ordinal);
 		Assert.Contains("background-color: var(--moka-color-primary)", OverlayStyle(tinted), StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData(MokaColor.Error, "var(--moka-color-error)")]
+	[InlineData(MokaColor.Surface, "var(--moka-color-on-surface)")]
+	public void AThemeColor_TintsTheText(MokaColor color, string expected)
+	{
+		IRenderedComponent<MokaWatermark> cut = Render<MokaWatermark>(p => p
+			.Add(x => x.Text, "DRAFT")
+			.Add(x => x.Color, color));
+
+		Assert.Contains($"background-color: {expected}", OverlayStyle(cut), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void ColorValue_WinsOverAThemeColor()
+	{
+		IRenderedComponent<MokaWatermark> cut = Render<MokaWatermark>(p => p
+			.Add(x => x.Text, "DRAFT")
+			.Add(x => x.Color, MokaColor.Error)
+			.Add(x => x.ColorValue, "#336699"));
+
+		Assert.Contains("background-color: #336699", OverlayStyle(cut), StringComparison.Ordinal);
+		Assert.DoesNotContain("--moka-color-error", OverlayStyle(cut), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void AColorValueThatIsNotAColor_FallsBackToTheThemeColor()
+	{
+		IRenderedComponent<MokaWatermark> cut = Render<MokaWatermark>(p => p
+			.Add(x => x.Text, "DRAFT")
+			.Add(x => x.Color, MokaColor.Error)
+			.Add(x => x.ColorValue, "red; position: fixed"));
+
+		Assert.Contains("background-color: var(--moka-color-error)", OverlayStyle(cut), StringComparison.Ordinal);
 	}
 
 	[Theory]

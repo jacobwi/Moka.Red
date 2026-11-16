@@ -5,6 +5,87 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaTabStrip.ShowTabList` and `TabListLabel`, also on `MokaTabContainer`. While the tabs don't all fit, a button at
+  the strip's end lists every open tab, grouped, with each tab's icon, badge and pin. Picking one activates it, opens its
+  collapsed group, scrolls it into view and focuses it; tabs never leave the strip, so they keep close, pin, Delete,
+  middle click and their context menu. Off by default, with today's markup. Also `MokaTabIconProvider.TabListIcon`.
+- `--moka-focus-glow`, the soft glow that joins a focused field to its open list in the Attached list look.
+- `MokaKanbanBoard` shows where a card will land while it moves: a copy follows the pointer, the card's place dims, the
+  column it would land in lights up and a bar marks the spot. A drop goes where the bar showed, also within the card's
+  own column (it always went to the end of another column before). Cards move with a mouse, a pen, a finger (after a
+  short hold, so a swipe still scrolls) or the keyboard (Space to pick up, arrows to move, Space to drop, Escape to put
+  back, each step announced through `Text`, `MokaKanbanText`), and the board and its columns scroll near their edges.
+  All of it runs in the browser; only the drop reaches .NET. New: `MokaKanbanColumn.Limit` (a work-in-progress limit
+  shown in the header), `MokaKanbanItemMovedArgs.FromIndex` and `ToIndex`, `ItemKey`, `ItemLabel`, and `Disabled`,
+  which stops moving. A press on a control inside a card stays the control's.
+
+### Fixed
+- On the new design a focused control's ring (`--moka-focus-ring`) is solid accent past a hairline of surface. The 22%
+  glow it drew measured 1.3 to 1.5:1 against the surface on every built-in theme, short of the 3:1 a focus indicator
+  needs; the solid ring is 4.9:1 or more. `MokaTheme.Dark` and `Light` keep their ring.
+- A focus rule that draws `--moka-focus-ring` no longer turns the outline off: it sets a transparent outline as wide as
+  `--moka-focus-width`, which draws nothing until forced colors (Windows High Contrast) drops box-shadows and shows the
+  outline in the system color. 97 rules in 69 stylesheets, with no change on screen otherwise.
+- Charts draw again when their parent renders with `TitleContent`, `Actions`, `EmptyContent`, `ErrorContent`,
+  `ToolbarControl`, `TooltipTemplate`, a donut's center or a dot plot's `NameTemplate`, so a fragment that reads the
+  page's own fields no longer keeps its first text. A fragment can't be compared, so a chart given one renders its frame
+  with its parent but rebuilds nothing and leaves the marks alone. An open tooltip or pin card draws its template again,
+  and a donut's center also updates when the chart has a `DataVersion`.
+- `MokaWizard` without `Rail` drew its steps' previous `IsValid`, `Title` and `Icon`, so Next and Finish changed one
+  render after the page made a step valid or invalid. A step that changes has the wizard render again in the same batch.
+- A `MokaWizardStep` the page stops rendering leaves the wizard: the steps after it move up, the step on screen stays on
+  screen, and a bound `ActiveStep` hears the new position. It stayed in the indicator and the count before.
+- `MokaDropdownItem` renders the attributes it is given on its menu item; it dropped them.
+- The `mokared-maui` template builds. It had no `Platforms` folder, so no platform had an entry point, and it registered
+  a font it didn't ship and called `AddDebug()` without the logging package. It now follows the .NET MAUI Blazor Hybrid
+  template: entry points and manifests for Windows, Android, iOS and Mac Catalyst, the iOS and Mac Catalyst scene
+  lifecycle on .NET 10, an app icon and splash screen, unpackaged Windows builds, an `--applicationId` option, and no iOS
+  or Mac Catalyst targets on Linux. The template descriptions name the Red theme the templates start with.
+- Diagnostics: the Theme tab lists every token the theme writes (it listed 53 of 299), grouped by token group, with a
+  swatch of the resolved color for colors written as `var()` or `color-mix()`.
+- Diagnostics: panels render only when their data changed, and Console and Log rows are keyed. On Blazor Server a Log
+  refresh after a dozen new events sent about 130 KB and now sends about 9 KB, and an idle Log tab sends nothing (it
+  sent a batch every second).
+- Diagnostics: the panel's tab row scrolls when the tabs don't fit, with an arrow at each end that has tabs out of
+  view, and keeps the active tab in view. The panel is never wider than the window.
+- Diagnostics: opening the panel from the badge moves focus into it and closing it puts focus back on the badge.
+  Escape closes it, and the icon buttons and the settings tab have accessible names.
+- Diagnostics: the page opened from the overlay's new-window button shows the overlay's theme, follows it, and says
+  when the window that opened it has closed.
+- Diagnostics: calling `AddMokaDiagnostics` twice no longer captures every log message twice.
+- Diagnostics: an overlay disposed after a newer one registered no longer removes the newer one's keyboard shortcut.
+- Diagnostics: the Perf tab's Clear no longer marks disposed components active again, a component disposed while
+  tracking is paused no longer stays active, and disposed render entries are capped at 500.
+- Diagnostics: first renders are timed (they were recorded as 0 ms), and a render nothing timed records 0 rather than
+  the previous duration.
+- Diagnostics: the Log tab's type filters apply at once, expanding one console exception no longer expands another
+  logged in the same moment, the console level setting offers Trace and Critical, and the Services tab calls
+  `GC.GetTotalMemory` "Allocated".
+- Diagnostics: a failure while a panel refreshes reaches Blazor's error handling instead of being lost.
+
+### Changed
+- `MokaBentoGrid`, `MokaRetroGrid`, `MokaWatermark`, `MokaCommandBar`, `MokaFormBuilder`, `MokaKanbanBoard`,
+  `MokaKeyValue`, `MokaLogViewer` and `MokaTerminal` derive from `MokaVisualComponentBase`, so they take `Margin`,
+  `Padding` and `Rounded` on their root like every other visual component (they fell through as HTML attributes before).
+  Default markup is unchanged.
+- `MokaWatermark.Color` is a theme color (`MokaColor?`) that draws the text in that palette color; `Surface` is the
+  on-surface color.
+- Diagnostics: a second `AddMokaDiagnostics` call applies its `configure` to the options already registered. New
+  `ThemeTokenKind.Other` and `ThemeToken.ResolvedColor`; `MokaDiagnosticsPage` implements `IDisposable`; the export
+  downloads as a stream (the file is the same).
+
+### Breaking
+- Diagnostics: `IMokaDiagnosticsService.GetThemeTokens` returns groups named after `MokaTokenGroup` (Color,
+  Typography, Spacing, Radius, Layout and the rest) instead of Palette, Typography, Spacing and Border Radius.
+- `MokaKanbanBoard` raises `OnItemMoved` for a move within a column too (`FromColumnIndex` equals `ToColumnIndex`), and
+  inserts a card where it was dropped rather than at the end of the column. Its cards no longer use the browser's
+  native drag and drop.
+- `MokaWatermark`'s CSS color parameter is `ColorValue` (`string?`), since `Color` is the base class's `MokaColor?`.
+  Rename `Color="#ef5350"` to `ColorValue="#ef5350"`; it fails at build time. `ColorValue` wins over `Color`.
+
 ## [0.7.0] - 2026-11-15
 
 ### Added

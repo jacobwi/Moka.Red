@@ -7,7 +7,7 @@
   "precedence": 100,
   "name": "Moka.Red MAUI Blazor Hybrid App",
   "shortName": "mokared-maui",
-  "description": "A .NET MAUI Blazor Hybrid app pre-configured with the Moka.Red UI component library and matrix dark theme. Shares Razor components with web projects.",
+  "description": "A .NET MAUI Blazor Hybrid app pre-configured with the Moka.Red UI component library and its dark Red theme. Shares Razor components with web projects.",
   "defaultName": "MokaRedMauiApp",
   "sourceName": "MokaRedMaui",
   "preferNameDirectory": true,
@@ -22,16 +22,69 @@
       "datatype": "choice",
       "choices": [
         { "choice": "net10.0", "description": "Target .NET 10" },
-        { "choice": "net9.0", "description": "Target .NET 9" }
+        { "choice": "net9.0", "description": "Target .NET 9 (.NET MAUI 9 is out of support)" }
       ],
       "defaultValue": "net10.0",
       "replaces": "net10.0",
       "displayName": "Target Framework"
     },
+    "IsNet9": {
+      "type": "computed",
+      "value": "(Framework == \"net9.0\")"
+    },
+    "applicationId": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Overrides the $(ApplicationId) in the project. Defaults to com.companyname. followed by the project name in lower case.",
+      "displayName": "Application ID"
+    },
+    "nameToLower": {
+      "type": "generated",
+      "generator": "casing",
+      "parameters": {
+        "source": "name",
+        "toLower": true
+      }
+    },
+    "nameToAppId": {
+      "type": "generated",
+      "generator": "regex",
+      "datatype": "string",
+      "parameters": {
+        "source": "nameToLower",
+        "steps": [
+          { "regex": "[^a-z0-9_\\.]", "replacement": "" }
+        ]
+      }
+    },
+    "defaultAppId": {
+      "type": "generated",
+      "generator": "join",
+      "parameters": {
+        "symbols": [
+          { "type": "const", "value": "com.companyname." },
+          { "type": "ref", "value": "nameToAppId" }
+        ]
+      }
+    },
+    "finalAppId": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "applicationId",
+        "fallbackVariableName": "defaultAppId"
+      },
+      "replaces": "MOKARED_APPLICATION_ID"
+    },
+    "PhoneProductId": {
+      "type": "generated",
+      "generator": "guid",
+      "replaces": "$guid9$"
+    },
     "DarkMode": {
       "type": "parameter",
       "datatype": "bool",
-      "description": "Start with the matrix dark theme. When false, starts in light mode.",
+      "description": "Start in dark mode. When false, starts in light mode.",
       "defaultValue": "true",
       "displayName": "Dark Mode (Matrix Theme)"
     },
@@ -75,6 +128,9 @@
   },
   "sources": [
     {
+      "copyOnly": [
+        "**/*.svg"
+      ],
       "modifiers": [
         {
           "condition": "(empty)",
@@ -82,10 +138,35 @@
             "Components/Pages/Counter.razor",
             "Components/Pages/Home.razor"
           ]
+        },
+        {
+          "condition": "(IsNet9)",
+          "exclude": [
+            "Platforms/iOS/SceneDelegate.cs",
+            "Platforms/MacCatalyst/SceneDelegate.cs"
+          ]
         }
       ]
     }
   ],
+  "SpecialCustomOperations": {
+    "**/*.plist": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "style": "block",
+            "evaluator": "C++",
+            "startToken": "<!--",
+            "endToken": "-->",
+            "pseudoEndToken": "-- >",
+            "wholeLine": true,
+            "trimWhitespace": true
+          }
+        }
+      ]
+    }
+  },
   "primaryOutputs": [
     { "path": "MokaRedMaui.csproj" }
   ],

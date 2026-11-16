@@ -40,7 +40,7 @@ order: 60
 | `Title` | `string` | -- | Step title shown in the indicator |
 | `Icon` | `MokaIconDefinition?` | -- | Optional icon for the step indicator |
 | `ChildContent` | `RenderFragment?` | -- | Content rendered when this step is active |
-| `IsValid` | `bool` | `true` | Whether this step passes validation (used with `Linear`) |
+| `IsValid` | `bool` | `true` | Whether this step passes validation. While `false`, Next and Finish are disabled on this step, and with `Linear` the step indicator can't skip past it |
 | `Decided` | `string?` | -- | What this step decided so far, under its title in a rail |
 | `HasProblem` | `bool` | `false` | Puts a mark on this step in a rail, for a problem to come back to |
 
@@ -88,9 +88,18 @@ Under 900 px a thin progress bar with "Step 3 of 5" and the step's title replace
 </MokaWizard>
 ```
 
+## Steps That Come and Go
+
+A step can sit inside an `@if`, for a step only some people need. When the page stops rendering it, it leaves the
+indicator and the count, the steps after it move up, and the step on screen stays on screen. If the removed step came
+before the one showing, the wizard's position moves back by one and a bound `ActiveStep` hears the new number. A step
+that comes back joins at the end.
+
 ## Linear Validation
 
-When `Linear` is set, the Next button is disabled until `IsValid` is `true` on the current step.
+Next and Finish stay disabled while the current step's `IsValid` is `false`, and follow a new value in the same render
+the page passes it in. `Linear` also keeps the step indicator from skipping past a step that isn't valid. Up to 0.7.0
+a wizard without `Rail` drew what its steps said one render before, so Next changed one render after the checkbox.
 
 ```blazor-preview
 <MokaWizard Linear OnFinish="() => { }">

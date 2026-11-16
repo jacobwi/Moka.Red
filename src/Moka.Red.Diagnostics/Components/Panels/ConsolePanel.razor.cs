@@ -7,16 +7,18 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
 ///     Panel displaying captured ILogger output with level filtering, category filtering,
-///     and expandable exception stack traces. Auto-refreshes every second via a timer.
+///     and expandable exception stack traces. Checks for new messages every second and renders only when there are.
 /// </summary>
 public sealed partial class ConsolePanel : ComponentBase, IDisposable
 {
-	private readonly HashSet<string> _expandedExceptions = [];
+	private readonly RowKeys<ConsoleLogEntry> _exceptionKeys = new();
+	private readonly HashSet<ConsoleLogEntry> _expandedExceptions = new(ReferenceEqualityComparer.Instance);
+	private readonly RowKeys<ConsoleLogEntry> _rowKeys = new();
 	private string _categoryFilter = "";
 	private bool _disposed;
 	private IReadOnlyList<ConsoleLogEntry> _filteredMessages = [];
 	private IReadOnlyList<ConsoleLogEntry> _messages = [];
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private bool _showCritical = true;
 
 	private bool _showDebug = true;
@@ -39,7 +41,7 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -47,43 +49,27 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 	{
 		_buffer = Services.GetService<MokaDiagnosticsConsoleBuffer>();
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_buffer is null)
 		{
-			return;
+			return false;
 		}
 
-		_messages = _buffer.GetMessages();
+		IReadOnlyList<ConsoleLogEntry> messages = _buffer.GetMessages();
+		if (RowKeys<ConsoleLogEntry>.SameLog(_messages, messages))
+		{
+			return false;
+		}
+
+		_messages = messages;
+		_expandedExceptions.IntersectWith(messages);
 		ApplyFilter();
+		return true;
 	}
 
 	private void ApplyFilter()
@@ -129,16 +115,13 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 		RefreshData();
 	}
 
-	private void ToggleException(string key)
+	private void ToggleException(ConsoleLogEntry entry)
 	{
-		if (!_expandedExceptions.Remove(key))
+		if (!_expandedExceptions.Remove(entry))
 		{
-			_expandedExceptions.Add(key);
+			_expandedExceptions.Add(entry);
 		}
 	}
-
-	private static string GetExceptionKey(ConsoleLogEntry entry) =>
-		$"{entry.Timestamp.Ticks}-{entry.Category}";
 
 	private static string LevelBadgeClass(LogLevel level) => level switch
 	{

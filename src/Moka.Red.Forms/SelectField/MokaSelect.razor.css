@@ -538,7 +538,7 @@
 	border-color: var(--moka-color-primary);
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
-	box-shadow: var(--moka-focus-ring);
+	box-shadow: var(--moka-focus-glow);
 	clip-path: inset(calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4) 0);
 }
 
@@ -550,7 +550,7 @@
 	border-color: var(--moka-color-primary);
 	border-top-width: 0;
 	border-radius: 0 0 var(--moka-radius-md) var(--moka-radius-md);
-	box-shadow: var(--moka-focus-ring), var(--moka-popup-shadow, var(--moka-shadow-popup));
+	box-shadow: var(--moka-focus-glow), var(--moka-popup-shadow, var(--moka-shadow-popup));
 	clip-path: inset(0 calc(var(--moka-spacing-xxl) * -4) calc(var(--moka-spacing-xxl) * -4));
 }
 
@@ -575,7 +575,7 @@
 }
 
 /* A Flat popup look's shadow is none, which can't stand in a list of shadows, so the ring goes alone. */
-.moka-gate.moka-popups-flat .moka-select--list-attached .moka-select-dropdown { box-shadow: var(--moka-focus-ring); }
+.moka-gate.moka-popups-flat .moka-select--list-attached .moka-select-dropdown { box-shadow: var(--moka-focus-glow); }
 .moka-gate.moka-popups-flat .moka-select--list-attached.moka-select--error .moka-select-dropdown { box-shadow: var(--moka-focus-ring-error); }
 
 /* Radio: roomier rows that start with a circle, or a check box in a multiple select. */

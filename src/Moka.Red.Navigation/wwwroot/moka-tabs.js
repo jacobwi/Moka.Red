@@ -1,11 +1,12 @@
 /**
  * Moka.Red.Navigation - Tabs JavaScript interop module.
- * Provides browser storage, keyboard support for the tab strip and its context menu, and context
- * menu positioning.
+ * Provides browser storage, keyboard support for the tab strip and its context menu, context
+ * menu positioning, and the overflow watch and reveal behind the strip's tab list.
  */
 
 const boundStrips = new WeakSet();
 const boundMenus = new WeakSet();
+const watchedStrips = new WeakSet();
 
 const TAB = '[role="tab"]';
 
@@ -270,6 +271,61 @@ export const MokaTabs = {
             x: Math.min(Math.max(x, gap), maxX),
             y: Math.min(Math.max(y, gap), maxY)
         };
+    },
+
+    /**
+     * Keeps data-moka-overflow on the strip while its tabs don't all fit, which shows the tab list button beside it.
+     * The strip's size, and each direct child's (a tab or a group, whose size follows its titles, badges and the
+     * theme's text size), are watched, and one measure runs per frame however many of them changed. Nothing reaches
+     * .NET. The observers watch only the strip and its children, so they go with the strip. Safe to call again.
+     * @param {HTMLElement} strip - The element with role="tablist"
+     */
+    watchOverflow: function (strip) {
+        if (!strip || watchedStrips.has(strip)) {
+            return;
+        }
+
+        watchedStrips.add(strip);
+        let frame = 0;
+
+        const measure = () => {
+            frame = 0;
+            strip.toggleAttribute("data-moka-overflow", strip.scrollWidth > strip.clientWidth + 1);
+        };
+        const schedule = () => {
+            if (!frame) {
+                frame = requestAnimationFrame(measure);
+            }
+        };
+
+        const sizes = new ResizeObserver(schedule);
+        const observeAll = () => {
+            sizes.disconnect();
+            sizes.observe(strip);
+            for (const child of strip.children) {
+                sizes.observe(child);
+            }
+        };
+
+        new MutationObserver(observeAll).observe(strip, { childList: true });
+        observeAll();
+        measure();
+    },
+
+    /**
+     * Brings a tab picked from the tab list into view and focuses it, so the keys that act on a tab (Delete, the
+     * context-menu key, the arrows) work on it straight away.
+     * @param {HTMLElement} strip - The element with role="tablist"
+     * @param {string} tabId - The data-tab-id attribute value
+     */
+    revealTab: function (strip, tabId) {
+        const tab = strip?.querySelector(`${TAB}[data-tab-id="${CSS.escape(tabId)}"]`);
+        if (!tab) {
+            return;
+        }
+
+        tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+        tab.focus({ preventScroll: true });
     },
 
     /**

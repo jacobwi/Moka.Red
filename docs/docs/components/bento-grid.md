@@ -37,6 +37,8 @@ order: 86
 | `TrayLabel` | `string` | `"Hidden"` | The label over the tray of hidden cards |
 | `TrayEmptyText` | `string` | `"Nothing hidden"` | What the tray says when no card is hidden |
 
+`MokaBentoGrid` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Class`, `Style`, `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the grid, on a board too. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ## MokaBentoItem Parameters
 
 | Name | Type | Default | Description |

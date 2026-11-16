@@ -20,7 +20,10 @@ using Moka.Red.Primitives.Flag;
 using Moka.Red.Primitives.Gauge;
 using Moka.Red.Primitives.ImageCompare;
 using Moka.Red.Primitives.Icon;
+using Moka.Red.Primitives.Kanban;
+using Moka.Red.Primitives.KeyValue;
 using Moka.Red.Primitives.List;
+using Moka.Red.Primitives.LogViewer;
 using Moka.Red.Primitives.Media;
 using Moka.Red.Primitives.Meter;
 using Moka.Red.Primitives.Notice;
@@ -35,6 +38,7 @@ using Moka.Red.Primitives.SplitButton;
 using Moka.Red.Primitives.Stat;
 using Moka.Red.Primitives.StatusDot;
 using Moka.Red.Primitives.Steps;
+using Moka.Red.Primitives.Terminal;
 using Moka.Red.Primitives.ThemeSwitcher;
 using Moka.Red.Primitives.TransferList;
 using Moka.Red.Primitives.Typography;
@@ -153,7 +157,12 @@ public class SpacingParameterTests : BunitContext
 		{
 			RadiusOn = ".moka-transfer-list-panel"
 		},
-		["VideoEmbed"] = new(typeof(MokaVideoEmbed), "aspect-ratio: 16/9", ("Src", "clip.mp4"))
+		["VideoEmbed"] = new(typeof(MokaVideoEmbed), "aspect-ratio: 16/9", ("Src", "clip.mp4")),
+		["KanbanBoard"] = new(typeof(MokaKanbanBoard<string>), "max-height: 600px",
+			("Columns", new[] { new MokaKanbanColumn<string>("To do", ["Write the docs"]) })),
+		["KeyValue"] = new(typeof(MokaKeyValue), "", ("Label", "Name"), ("Value", "Disk")),
+		["LogViewer"] = new(typeof(MokaLogViewer), $"{IconStyle("14px")} | max-height: 400px"),
+		["Terminal"] = new(typeof(MokaTerminal), $"{IconStyle("16px")} | max-height: 400px")
 	};
 
 	// The components that draw several boxes and nothing around them. Each box takes the radius,

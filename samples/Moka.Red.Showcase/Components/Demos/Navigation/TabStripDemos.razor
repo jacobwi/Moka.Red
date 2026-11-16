@@ -19,6 +19,19 @@
 	<p class="page-desc" id="tab-strip-log">@_stripLog</p>
 </DemoSection>
 
+<DemoSection Id="every-tab-from-one-button" Title="Every tab from one button" Description="ShowTabList adds a button at the strip's end while the tabs don't all fit. Its menu lists every tab under its group, and picking one shows it, opening a collapsed group first. The tabs never leave the strip, so each keeps its close button, Delete and context menu.">
+	<div style="max-width: 26rem;">
+		<MokaTabStrip TValue="string"
+		              Tabs="_listTabs"
+		              Groups="_listGroups"
+		              ActiveTabId="@_listActive"
+		              OnTabActivated="id => _listActive = id"
+		              OnTabClosed="id => _listTabs.RemoveAll(t => t.Id == id)"
+		              OnGroupCollapseToggled="ToggleListGroup"
+		              ShowTabList="true"/>
+	</div>
+</DemoSection>
+
 <DemoSection Id="your-own-menu-through-ontabcontextmenu" Title="Your own menu through OnTabContextMenu">
 	<MokaTabStrip TValue="string"
 	              Tabs="_appMenuTabs"
@@ -55,6 +68,22 @@
 	];
 
 	private string? _appMenuActive = "one";
+
+	private readonly List<TabInfo<string>> _listTabs =
+	[
+		new() { Id = "readme", Title = "README.md", IsPinned = true },
+		new() { Id = "program", Title = "Program.cs" },
+		new() { Id = "app", Title = "App.razor", Badge = new TabBadgeInfo { ShowDot = true } },
+		new() { Id = "layout", Title = "MainLayout.razor" },
+		new() { Id = "settings", Title = "appsettings.json", Badge = new TabBadgeInfo { Count = 2 } },
+		new() { Id = "site", Title = "site.css", GroupName = "styles" },
+		new() { Id = "tokens", Title = "tokens.css", GroupName = "styles" }
+	];
+
+	private readonly List<TabGroupInfo> _listGroups =
+		[new() { Name = "styles", DisplayTitle = "Styles", Color = "#42a5f5", IsCollapsed = true }];
+
+	private string? _listActive = "program";
 
 	protected override void OnInitialized() =>
 		_stripMenuItems =
@@ -110,6 +139,15 @@
 	private void ToggleStripGroup(string name)
 	{
 		TabGroupInfo? group = _stripGroups.Find(g => g.Name == name);
+		if (group is not null)
+		{
+			group.IsCollapsed = !group.IsCollapsed;
+		}
+	}
+
+	private void ToggleListGroup(string name)
+	{
+		TabGroupInfo? group = _listGroups.Find(g => g.Name == name);
 		if (group is not null)
 		{
 			group.IsCollapsed = !group.IsCollapsed;

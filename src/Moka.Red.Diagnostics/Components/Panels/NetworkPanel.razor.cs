@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
@@ -6,18 +7,19 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 /// <summary>
 ///     Panel displaying JS interop call statistics with sortable columns.
 ///     Shows method name, call count, total time, average time, and max time.
-///     Auto-refreshes every second via a timer.
+///     Checks every second and renders only when a call was recorded.
 /// </summary>
 public sealed partial class NetworkPanel : ComponentBase, IDisposable
 {
 	private bool _disposed;
 	private IReadOnlyList<JsInteropEntry> _entries = [];
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private string _sortBy = "TotalDuration";
 	private bool _sortDescending = true;
 	private IReadOnlyList<JsInteropEntry> _sortedEntries = [];
 	private int _totalCalls;
 	private double _totalTime;
+	private (int Functions, int Calls, double Time) _shown = (-1, -1, -1);
 
 	private IMokaDiagnosticsService? _diagnosticsService;
 
@@ -35,7 +37,7 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -43,39 +45,15 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_diagnosticsService is null)
 		{
-			return;
+			return false;
 		}
 
 		_entries = _diagnosticsService.GetJsInteropEntries();
@@ -89,6 +67,11 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 		}
 
 		ApplySort();
+
+		(int, int, double) shown = (_entries.Count, _totalCalls, _totalTime);
+		bool changed = shown != _shown;
+		_shown = shown;
+		return changed;
 	}
 
 	private void ApplySort()

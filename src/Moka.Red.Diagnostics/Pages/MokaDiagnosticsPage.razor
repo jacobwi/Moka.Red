@@ -12,6 +12,12 @@
 			Diagnostics are not registered. Call <code>AddMokaDiagnostics()</code> in Program.cs to fill this page.
 		</p>
 	}
+	else if (_session is { Ended: true })
+	{
+		<p class="moka-diag-page-notice">
+			The window that opened this page has closed. Showing what it had recorded.
+		</p>
+	}
 	else if (_openerService is not null)
 	{
 		<p class="moka-diag-page-notice">Showing the window that opened this page.</p>
@@ -24,16 +30,16 @@
 		</p>
 	}
 	<div class="moka-diag-page-tabs">
-		<button type="button" class="@TabClass("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
-		<button type="button" class="@TabClass("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
-		<button type="button" class="@TabClass("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
-		<button type="button" class="@TabClass("Tree")" @onclick='() => _activeTab = "Tree"'>Tree</button>
-		<button type="button" class="@TabClass("Network")" @onclick='() => _activeTab = "Network"'>Network</button>
-		<button type="button" class="@TabClass("Memory")" @onclick='() => _activeTab = "Memory"'>Memory</button>
-		<button type="button" class="@TabClass("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
-		<button type="button" class="@TabClass("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
-		<button type="button" class="@TabClass("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
-		<button type="button" class="@TabClass("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
+		<button type="button" class="@TabClass("Console")" aria-pressed="@TabPressed("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
+		<button type="button" class="@TabClass("Theme")" aria-pressed="@TabPressed("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
+		<button type="button" class="@TabClass("Render")" aria-pressed="@TabPressed("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
+		<button type="button" class="@TabClass("Tree")" aria-pressed="@TabPressed("Tree")" @onclick='() => _activeTab = "Tree"'>Tree</button>
+		<button type="button" class="@TabClass("Network")" aria-pressed="@TabPressed("Network")" @onclick='() => _activeTab = "Network"'>Network</button>
+		<button type="button" class="@TabClass("Memory")" aria-pressed="@TabPressed("Memory")" @onclick='() => _activeTab = "Memory"'>Memory</button>
+		<button type="button" class="@TabClass("Perf")" aria-pressed="@TabPressed("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
+		<button type="button" class="@TabClass("Services")" aria-pressed="@TabPressed("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
+		<button type="button" class="@TabClass("Log")" aria-pressed="@TabPressed("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
+		<button type="button" class="@TabClass("Settings")" aria-pressed="@TabPressed("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
 	</div>
 	<div class="moka-diag-page-content">
 		@* Set once in OnInitialized and never replaced, so IsFixed is safe. *@

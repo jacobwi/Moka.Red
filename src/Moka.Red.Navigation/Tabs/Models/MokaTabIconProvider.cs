@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
+using Moka.Red.Icons;
+using Moka.Red.Primitives.Icon;
 
 namespace Moka.Red.Navigation.Tabs.Models;
 
 /// <summary>
-///     Provides customizable icon rendering for the tab system's built-in icons (close, pin, group toggle).
+///     Provides customizable icon rendering for the tab system's built-in icons (close, pin, group toggle, tab list).
 ///     Register as a scoped service to override default SVG icons.
 /// </summary>
 public class MokaTabIconProvider
@@ -32,6 +34,11 @@ public class MokaTabIconProvider
 	///     Gets the render fragment for the group collapse toggle icon.
 	/// </summary>
 	public virtual RenderFragment GroupCollapsedIcon => DefaultGroupCollapsedIcon;
+
+	/// <summary>
+	///     Gets the render fragment for the button that lists every open tab (<see cref="MokaTabStrip{TValue}.ShowTabList" />).
+	/// </summary>
+	public virtual RenderFragment TabListIcon => DefaultTabListIcon;
 
 	#region Default Icons
 
@@ -93,6 +100,14 @@ public class MokaTabIconProvider
 		builder.AddMarkupContent(5,
 			"<path d=\"M5.6 3.2a.6.6 0 0 1 .85.05l4 4.35a.6.6 0 0 1 0 .8l-4 4.35a.6.6 0 1 1-.9-.8L9.17 8 5.55 4.05a.6.6 0 0 1 .05-.85z\"/>");
 		builder.CloseElement();
+	};
+
+	private static readonly RenderFragment DefaultTabListIcon = builder =>
+	{
+		builder.OpenComponent<MokaIcon>(0);
+		builder.AddComponentParameter(1, nameof(MokaIcon.Icon), MokaIcons.Navigation.ChevronDown);
+		builder.AddComponentParameter(2, nameof(MokaIcon.SizeValue), "14px");
+		builder.CloseComponent();
 	};
 
 	#endregion

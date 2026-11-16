@@ -1,3 +1,4 @@
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Services;
 
@@ -14,19 +15,72 @@ public class MokaDiagnosticsServiceTests
 
 	// ── Theme Token Tests ──────────────────────────────────────────
 
-	[Fact]
-	public void GetThemeTokens_ReturnsAllGroups()
+	// The inspector listed 53 tokens it named by hand, a fifth of what a theme writes, so the new design's tokens, the
+	// label, chart and code colors and every layout and component token were missing from it.
+	[Theory]
+	[MemberData(nameof(Themes))]
+	public void GetThemeTokens_ListsEveryTokenTheThemeWrites(string name)
 	{
-		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(MokaTheme.Light);
+		MokaTheme theme = ThemeNamed(name);
+		IReadOnlyDictionary<string, string> written = theme.ToTokenMap();
 
-		Assert.Equal(4, groups.Count);
+		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(theme);
+
+		ThemeToken[] tokens = groups.SelectMany(g => g.Tokens).ToArray();
+		Assert.Equal(written.Count, tokens.Length);
+		Assert.All(tokens, token => Assert.Equal(written[token.CssVariable], token.Value));
+		Assert.Equal(
+			MokaTokens.All.Where(t => written.ContainsKey(t.Name)).Select(t => t.Group.ToString()).Distinct(),
+			groups.Select(g => g.Name));
+	}
+
+	public static TheoryData<string> Themes => ["Default", "Light", "Dark", "Crisp"];
+
+	private static MokaTheme ThemeNamed(string name) => name switch
+	{
+		"Light" => MokaTheme.Light,
+		"Dark" => MokaTheme.Dark,
+		"Crisp" => MokaTheme.Crisp,
+		_ => MokaTheme.Default
+	};
+
+	// A token written as var() or color-mix() has no color of its own to draw, and in the popup page no theme on the
+	// page to work one out from.
+	[Fact]
+	public void GetThemeTokens_ResolvesColorsWrittenAsReferences()
+	{
+		MokaTheme theme = MokaTheme.Default;
+		IReadOnlyDictionary<string, string> written = theme.ToTokenMap();
+		string referenced = written.First(pair =>
+			MokaTokens.TryFind(pair.Key, out MokaToken? token) && token.Kind == MokaTokenKind.Color
+			&& pair.Value.StartsWith("var(", StringComparison.Ordinal)
+			&& theme.TryResolveColor(pair.Value, out _)).Key;
+
+		ThemeToken shown = _service.GetThemeTokens(theme).SelectMany(g => g.Tokens).Single(t => t.CssVariable == referenced);
+
+		Assert.Equal(ThemeTokenKind.Color, shown.Kind);
+		Assert.True(theme.TryResolveColor(written[referenced], out MokaSrgb color));
+		Assert.Equal(color.ToString(), shown.ResolvedColor);
+	}
+
+	[Fact]
+	public void GetThemeTokens_KindsSayHowToPreview()
+	{
+		ThemeToken[] tokens = _service.GetThemeTokens(MokaTheme.Light).SelectMany(g => g.Tokens).ToArray();
+
+		Assert.Equal(ThemeTokenKind.Spacing, tokens.Single(t => t.CssVariable == "--moka-spacing-md").Kind);
+		Assert.Equal(ThemeTokenKind.BorderRadius, tokens.Single(t => t.CssVariable == "--moka-radius-md").Kind);
+		Assert.Equal(ThemeTokenKind.FontFamily, tokens.Single(t => t.CssVariable == "--moka-font-family").Kind);
+		Assert.Equal(ThemeTokenKind.FontSize, tokens.Single(t => t.CssVariable == "--moka-font-size-base").Kind);
+		Assert.Equal(ThemeTokenKind.Other, tokens.Single(t => t.CssVariable == "--moka-z-modal").Kind);
+		Assert.All(tokens.Where(t => t.Kind != ThemeTokenKind.Color), t => Assert.Null(t.ResolvedColor));
 	}
 
 	[Fact]
 	public void GetThemeTokens_PaletteGroup_ContainsAllColors()
 	{
 		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(MokaTheme.Light);
-		ThemeTokenGroup palette = groups.First(g => g.Name == "Palette");
+		ThemeTokenGroup palette = groups.First(g => g.Name == "Color");
 
 		Assert.Contains(palette.Tokens, t => t.CssVariable == "--moka-color-primary");
 		Assert.Contains(palette.Tokens, t => t.CssVariable == "--moka-color-secondary");
@@ -41,7 +95,7 @@ public class MokaDiagnosticsServiceTests
 	public void GetThemeTokens_LightTheme_HasCorrectPrimaryColor()
 	{
 		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(MokaTheme.Light);
-		ThemeTokenGroup palette = groups.First(g => g.Name == "Palette");
+		ThemeTokenGroup palette = groups.First(g => g.Name == "Color");
 		ThemeToken primary = palette.Tokens.First(t => t.CssVariable == "--moka-color-primary");
 
 		Assert.Equal("#d32f2f", primary.Value);
@@ -53,9 +107,9 @@ public class MokaDiagnosticsServiceTests
 		IReadOnlyList<ThemeTokenGroup> lightGroups = _service.GetThemeTokens(MokaTheme.Light);
 		IReadOnlyList<ThemeTokenGroup> darkGroups = _service.GetThemeTokens(MokaTheme.Dark);
 
-		ThemeToken lightPrimary = lightGroups.First(g => g.Name == "Palette").Tokens
+		ThemeToken lightPrimary = lightGroups.First(g => g.Name == "Color").Tokens
 			.First(t => t.CssVariable == "--moka-color-primary");
-		ThemeToken darkPrimary = darkGroups.First(g => g.Name == "Palette").Tokens
+		ThemeToken darkPrimary = darkGroups.First(g => g.Name == "Color").Tokens
 			.First(t => t.CssVariable == "--moka-color-primary");
 
 		Assert.NotEqual(lightPrimary.Value, darkPrimary.Value);
@@ -95,17 +149,19 @@ public class MokaDiagnosticsServiceTests
 		};
 
 		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(customTheme);
-		ThemeTokenGroup palette = groups.First(g => g.Name == "Palette");
+		ThemeTokenGroup palette = groups.First(g => g.Name == "Color");
 		ThemeToken primary = palette.Tokens.First(t => t.CssVariable == "--moka-color-primary");
 
 		Assert.Equal("#00ff00", primary.Value);
 	}
 
 	[Theory]
-	[InlineData("Palette")]
+	[InlineData("Color")]
 	[InlineData("Typography")]
 	[InlineData("Spacing")]
-	[InlineData("Border Radius")]
+	[InlineData("Radius")]
+	[InlineData("Layout")]
+	[InlineData("Chart")]
 	public void GetThemeTokens_HasExpectedGroup(string groupName)
 	{
 		IReadOnlyList<ThemeTokenGroup> groups = _service.GetThemeTokens(MokaTheme.Light);
@@ -344,6 +400,57 @@ public class MokaDiagnosticsServiceTests
 
 		Assert.Equal(0, _service.DisposedComponentCount);
 		Assert.Empty(_service.GetJsInteropEntries());
+	}
+
+	// Clearing the performance data marked every disposed component live again, so Active jumped by every component
+	// ever disposed and the Perf tab's trend read it as growth.
+	[Fact]
+	public void ClearPerformanceData_KeepsDisposedComponentsOutOfTheActiveCount()
+	{
+		_service.RecordRender("A", "a-1", TimeSpan.Zero);
+		_service.RecordRender("B", "b-1", TimeSpan.Zero);
+		_service.RecordDisposal("A", "a-1");
+
+		_service.ClearPerformanceData();
+
+		Assert.Equal(1, _service.ActiveComponentCount);
+		Assert.True(_service.GetRenderEntries().Single(e => e.ComponentId == "a-1").IsDisposed);
+	}
+
+	// A component disposed while tracking was paused stayed active for good.
+	[Fact]
+	public void RecordDisposal_WhilePaused_StillMarksTheComponentGone_ButRecordsNothing()
+	{
+		_service.RecordRender("A", "a-1", TimeSpan.Zero);
+		int events = _service.GetRecentEvents(int.MaxValue).Count;
+		_service.IsPaused = true;
+
+		_service.RecordDisposal("A", "a-1");
+
+		Assert.Equal(0, _service.ActiveComponentCount);
+		Assert.Equal(0, _service.DisposedComponentCount);
+		Assert.Equal(events, _service.GetRecentEvents(int.MaxValue).Count);
+	}
+
+	// Every disposed component stayed listed for as long as the circuit lived.
+	[Fact]
+	public void DisposedComponents_AreKeptUpToTheLimit_OldestDroppedFirst()
+	{
+		int made = MokaDiagnosticsService.MaxDisposedEntries + 25;
+		_service.RecordRender("Live", "live", TimeSpan.Zero);
+		for (int i = 0; i < made; i++)
+		{
+			_service.RecordRender("Row", $"row-{i}", TimeSpan.Zero);
+			_service.RecordDisposal("Row", $"row-{i}");
+		}
+
+		IReadOnlyList<ComponentRenderEntry> entries = _service.GetRenderEntries();
+		Assert.Equal(MokaDiagnosticsService.MaxDisposedEntries, entries.Count(e => e.IsDisposed));
+		Assert.Contains(entries, e => e.ComponentId == "live" && !e.IsDisposed);
+		Assert.DoesNotContain(entries, e => e.ComponentId == "row-0");
+		Assert.Contains(entries, e => e.ComponentId == $"row-{made - 1}");
+		Assert.Equal(1, _service.ActiveComponentCount);
+		Assert.Equal(made, _service.DisposedComponentCount);
 	}
 
 	[Fact]

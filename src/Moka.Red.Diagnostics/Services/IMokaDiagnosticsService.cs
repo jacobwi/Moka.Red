@@ -32,7 +32,9 @@ public interface IMokaDiagnosticsService
 	/// <summary>
 	///     Gets or sets whether diagnostics recording is paused.
 	///     When <c>true</c>, <see cref="RecordRender" />, <see cref="RecordShouldRenderSkip" />,
-	///     <see cref="RecordJsInteropCall" />, and <see cref="RecordDisposal" /> are no-ops.
+	///     <see cref="RecordJsInteropCall" />, and <see cref="RecordDisposal" /> record nothing, except that
+	///     <see cref="RecordDisposal" /> still marks a tracked component as disposed, so
+	///     <see cref="ActiveComponentCount" /> doesn't keep it once tracking resumes.
 	/// </summary>
 	bool IsPaused { get; set; }
 
@@ -42,7 +44,8 @@ public interface IMokaDiagnosticsService
 	event EventHandler? OnOverlayVisibilityChanged;
 
 	/// <summary>
-	///     Extracts all theme tokens from the given theme, grouped by category.
+	///     Every token the theme writes (<see cref="MokaTheme.ToTokenMap" />), grouped by
+	///     <see cref="MokaTokenGroup" /> in the order of <see cref="MokaTokens.All" />.
 	/// </summary>
 	IReadOnlyList<ThemeTokenGroup> GetThemeTokens(MokaTheme theme);
 

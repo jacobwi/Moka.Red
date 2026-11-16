@@ -3,22 +3,22 @@
 	<div class="moka-diag-log">
 		<div class="moka-diag-log-toolbar">
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showRender"/> Render
+				<input type="checkbox" @bind="_showRender" @bind:after="ApplyFilter"/> Render
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showSkip"/> Skip
+				<input type="checkbox" @bind="_showSkip" @bind:after="ApplyFilter"/> Skip
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showDisposal"/> Disposal
+				<input type="checkbox" @bind="_showDisposal" @bind:after="ApplyFilter"/> Disposal
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showJsInterop"/> JS
+				<input type="checkbox" @bind="_showJsInterop" @bind:after="ApplyFilter"/> JS
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showWarning"/> Warn
+				<input type="checkbox" @bind="_showWarning" @bind:after="ApplyFilter"/> Warn
 			</label>
 			<label class="moka-diag-log-filter">
-				<input type="checkbox" @bind="_showError"/> Error
+				<input type="checkbox" @bind="_showError" @bind:after="ApplyFilter"/> Error
 			</label>
 			<button type="button" class="moka-diag-log-clear" @onclick="Clear" title="Clear event log">Clear</button>
 		</div>
@@ -28,7 +28,7 @@
 			{
 				@foreach (var evt in _filteredEvents)
 				{
-					<div class="moka-diag-log-entry">
+					<div class="moka-diag-log-entry" @key="_rowKeys.For(evt)">
 						<span class="moka-diag-log-time">@evt.Timestamp.ToString("HH:mm:ss.fff")</span>
 						<span class="moka-diag-log-badge moka-diag-log-badge--@evt.Type.ToString().ToLowerInvariant()">@FormatType(evt.Type)</span>
 						<span class="moka-diag-log-msg" title="@evt.Message">@evt.Message</span>

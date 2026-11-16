@@ -29,7 +29,7 @@
 
 /* Keyboard focus stays on the list, which marks its active item. */
 .moka-virtual-list:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

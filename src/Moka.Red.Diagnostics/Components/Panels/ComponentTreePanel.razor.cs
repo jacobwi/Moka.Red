@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
@@ -7,15 +8,15 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 ///     Panel displaying registered components in a tree grouped by type,
 ///     with render count, last render time, and color-coded heat indicators.
 ///     Green for 5 renders or fewer, yellow for 6 to 20, red for more than 20.
-///     Auto-refreshes every second via a timer.
+///     Refreshes every second while it lists anything, since the time since each render moves.
 /// </summary>
 public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 {
 	private bool _disposed;
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private int _totalDisposed;
 	private int _totalInstances;
-	private IReadOnlyList<ComponentTypeGroup> _typeGroups = [];
+	private List<ComponentTypeGroup> _typeGroups = [];
 
 	private IMokaDiagnosticsService? _diagnosticsService;
 
@@ -33,7 +34,7 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -41,40 +42,18 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_diagnosticsService is null)
 		{
-			return;
+			return false;
 		}
+
+		bool wasEmpty = _typeGroups.Count == 0;
 
 		IReadOnlyList<ComponentRenderEntry> entries = _diagnosticsService.GetRenderEntries();
 		_totalInstances = entries.Count;
@@ -91,6 +70,7 @@ public sealed partial class ComponentTreePanel : ComponentBase, IDisposable
 			})
 			.OrderByDescending(g => g.TotalRenders)
 			.ToList();
+		return !wasEmpty || _typeGroups.Count > 0;
 	}
 
 	private static string HeatClass(int renderCount) =>

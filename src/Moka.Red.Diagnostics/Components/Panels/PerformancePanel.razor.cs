@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
 ///     Panel displaying JS interop call stats, component lifecycle counts,
-///     and potential memory leak indicators. Auto-refreshes every second.
+///     and potential memory leak indicators. Checks every second and renders only when a figure changed.
 /// </summary>
 public sealed partial class PerformancePanel : ComponentBase, IDisposable
 {
@@ -15,7 +16,8 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 	private int _growthStreak;
 	private IReadOnlyList<JsInteropEntry> _jsEntries = [];
 	private int _previousActiveCount;
-	private Timer? _refreshTimer;
+	private (int Active, int Disposed, string Trend, int Functions, int Calls, TimeSpan Time) _shown;
+	private PanelRefresh? _refresh;
 
 	private IMokaDiagnosticsService? _diagnosticsService;
 
@@ -43,7 +45,7 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -51,39 +53,15 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_diagnosticsService is null)
 		{
-			return;
+			return false;
 		}
 
 		_jsEntries = _diagnosticsService.GetJsInteropEntries();
@@ -101,6 +79,14 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 		}
 
 		_previousActiveCount = _activeCount;
+
+		// The entries' totals and longest calls only grow, so their sum moves whenever an average or a maximum shown does.
+		var shown = (_activeCount, _disposedCount, LeakIndicatorText, _jsEntries.Count,
+			_jsEntries.Sum(entry => entry.CallCount),
+			_jsEntries.Aggregate(TimeSpan.Zero, (sum, entry) => sum + entry.TotalDuration + entry.MaxDuration));
+		bool changed = shown != _shown;
+		_shown = shown;
+		return changed;
 	}
 
 	private void Clear()

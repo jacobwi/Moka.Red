@@ -141,8 +141,8 @@ public abstract partial class MokaChartBase
 
 	/// <summary>
 	///     What the surface reads from the chart that moves no geometry, so its host knows when to draw again. The
-	///     <see cref="TooltipTemplate" /> isn't in it: a template written in markup is a new delegate on every parent
-	///     render, and it is meant to render only when the point changes.
+	///     <see cref="TooltipTemplate" /> itself isn't in it, since a delegate can't say whether what it draws changed:
+	///     <see cref="TooltipTemplateVersion" /> moves whenever the parent hands one over again.
 	/// </summary>
 	internal object SurfaceKey => (AccessibleLabel, Words, SurfaceMode, ResolvedKeyboard, ResolvedPinnable, LiveHold,
 		TooltipTemplate is null, SurfaceRows, HitsMarks);

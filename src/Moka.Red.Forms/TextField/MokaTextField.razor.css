@@ -159,7 +159,7 @@
 }
 
 .moka-textfield-emoji:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	opacity: 1;
 	box-shadow: var(--moka-focus-ring);
 }

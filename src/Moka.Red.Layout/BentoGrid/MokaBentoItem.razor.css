@@ -27,7 +27,7 @@
 
 /* Keyboard focus on a clickable card */
 .moka-bento-item--clickable:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -129,7 +129,7 @@
 }
 
 .moka-bento-item__tool:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -206,7 +206,7 @@
 }
 
 .moka-bento-item__open:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

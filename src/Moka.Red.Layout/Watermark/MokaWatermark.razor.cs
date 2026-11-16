@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
@@ -10,7 +11,7 @@ namespace Moka.Red.Layout.Watermark;
 ///     Subtle text or image watermark overlay on content.
 ///     Uses CSS with SVG data URIs for tiled text, no JavaScript required.
 /// </summary>
-public partial class MokaWatermark : MokaComponentBase
+public partial class MokaWatermark : MokaVisualComponentBase
 {
 	private const double DefaultOpacity = 0.08;
 
@@ -57,11 +58,12 @@ public partial class MokaWatermark : MokaComponentBase
 
 	/// <summary>
 	///     Color for the watermark text: a hex value, a color keyword or a color function such as
-	///     <c>rgb()</c> or <c>var(--moka-color-primary)</c>. Unset, or not a color, uses the theme's
-	///     on-surface color.
+	///     <c>rgb()</c> or <c>var(--moka-color-primary)</c>. Wins over <see cref="MokaVisualComponentBase.Color" />,
+	///     which draws the text in a theme color. With neither, or a value that isn't a color, the text uses the
+	///     theme's on-surface color.
 	/// </summary>
 	[Parameter]
-	public string? Color { get; set; }
+	public string? ColorValue { get; set; }
 
 	/// <summary>Whether to repeat the watermark across the content. Default true.</summary>
 	[Parameter]
@@ -82,6 +84,16 @@ public partial class MokaWatermark : MokaComponentBase
 	private bool HasImage => !string.IsNullOrEmpty(ImageSrc);
 
 	private bool HasText => !HasImage && !string.IsNullOrEmpty(Text);
+
+	// The text is foreground: Surface means the text color on a surface, which is also the default.
+	private string? TextColor => CssValues.IsColor(ColorValue)
+		? ColorValue.Trim()
+		: Color switch
+		{
+			null => null,
+			MokaColor.Surface => "var(--moka-color-on-surface)",
+			MokaColor color => $"var(--moka-color-{ColorToKebab(color)})"
+		};
 
 	private string OpacityValue =>
 		(double.IsFinite(Opacity) ? Math.Clamp(Opacity, 0, 1) : DefaultOpacity)
@@ -113,7 +125,7 @@ public partial class MokaWatermark : MokaComponentBase
 				// CSS value: a token or var() resolves against the page, which it cannot inside the image.
 				return new StyleBuilder()
 					.AddStyle("--_watermark-tile", TextTile())
-					.AddStyle("background-color", CssValues.IsColor(Color) ? Color.Trim() : null)
+					.AddStyle("background-color", TextColor)
 					.AddStyle("opacity", OpacityValue)
 					.Build();
 			}

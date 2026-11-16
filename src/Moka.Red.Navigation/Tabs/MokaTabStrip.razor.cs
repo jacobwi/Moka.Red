@@ -169,6 +169,20 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	[Parameter]
 	public TabTheme? Theme { get; set; }
 
+	/// <summary>
+	///     Adds a button at the strip's end that opens a menu of every open tab, under its group's name when tabs are
+	///     grouped, with the icon, badge and pin each tab shows. Picking one activates it, opens its group when that is
+	///     collapsed, scrolls it into view and focuses it. The tabs stay in the strip, so each keeps its close and pin
+	///     buttons, Delete, middle click and context menu. The button shows only while the tabs don't all fit, which the
+	///     strip's script measures in the browser. Default false.
+	/// </summary>
+	[Parameter]
+	public bool ShowTabList { get; set; }
+
+	/// <summary>Names the tab list button and its tooltip (<see cref="ShowTabList" />). Defaults to "All tabs".</summary>
+	[Parameter]
+	public string TabListLabel { get; set; } = "All tabs";
+
 	#endregion
 
 	#region Private State
@@ -199,6 +213,9 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	private string? _lastActiveTabId;
 	private string? _pendingScrollTabId;
 	private string? _pendingFocusTabId;
+	private string? _pendingRevealTabId;
+	private bool? _boundWithTabList;
+	private bool _tabListOpen;
 	private bool _disposed;
 
 	#endregion
@@ -221,12 +238,20 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 		_lastActiveTabId = ActiveTabId;
 		_pendingScrollTabId = ActiveTabId;
+
+		// Another tab became the active one, so the tab picked from the list is no longer where the person is going.
+		if (_pendingRevealTabId != ActiveTabId)
+		{
+			_pendingRevealTabId = null;
+		}
 	}
 
 	/// <summary>
 	///     Binds the arrow keys on the first render, scrolls a newly activated tab into view (the strip
 	///     scrolls horizontally once the tabs overflow, so the active header can otherwise sit
-	///     off-screen), and hands focus back to a tab after the built-in menu closes.
+	///     off-screen), and hands focus back to a tab after the built-in menu closes. With
+	///     <see cref="ShowTabList" /> the script also watches whether the tabs fit, and a tab picked from the list is
+	///     scrolled into view and focused once the strip draws it.
 	/// </summary>
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -238,7 +263,22 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 		if (firstRender)
 		{
 			_dotNetRef = DotNetObjectReference.Create(this);
+		}
+
+		// Turning ShowTabList on or off draws the tablist in a new place, so the new element is bound again.
+		if (_boundWithTabList != ShowTabList)
+		{
+			_boundWithTabList = ShowTabList;
 			await InvokeModuleAsync("MokaTabs.bindTabStrip", _stripRef, _dotNetRef);
+			if (ShowTabList)
+			{
+				await InvokeModuleAsync("MokaTabs.watchOverflow", _stripRef);
+			}
+		}
+
+		if (_pendingRevealTabId is { } revealTabId)
+		{
+			await RevealPickedTabAsync(revealTabId);
 		}
 
 		if (_pendingScrollTabId is { } scrollTabId)
@@ -252,6 +292,30 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 			_pendingFocusTabId = null;
 			await InvokeModuleAsync("MokaTabs.restoreTabFocus", _stripRef, focusTabId);
 		}
+	}
+
+	// A tab in a collapsed group has no header until the parent opens the group, so the reveal waits for that render.
+	private async Task RevealPickedTabAsync(string tabId)
+	{
+		TabInfo<TValue>? tab = Tabs.FirstOrDefault(t => t.Id == tabId);
+		if (tab is null)
+		{
+			_pendingRevealTabId = null;
+			return;
+		}
+
+		if (GroupOf(tab) is { IsCollapsed: true })
+		{
+			return;
+		}
+
+		_pendingRevealTabId = null;
+		if (_pendingScrollTabId == tabId)
+		{
+			_pendingScrollTabId = null;
+		}
+
+		await InvokeModuleAsync("MokaTabs.revealTab", _stripRef, tabId);
 	}
 
 	private async Task InvokeModuleAsync(string identifier, params object?[] args)
@@ -441,6 +505,29 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	#endregion
 
+	#region Tab List
+
+	// The reveal is asked for first, so the render the parent's handlers cause already carries it.
+	private async Task PickFromTabListAsync(TabInfo<TValue> tab)
+	{
+		_pendingRevealTabId = tab.Id;
+
+		if (GroupOf(tab) is { IsCollapsed: true } group)
+		{
+			await OnGroupCollapseToggled.InvokeAsync(group.Name);
+		}
+
+		await OnTabActivated.InvokeAsync(tab.Id);
+	}
+
+	private static bool HasIcon(TabInfo<TValue> tab) => tab.IconContent is not null || !string.IsNullOrEmpty(tab.IconClass);
+
+	private static string? GroupColorStyle(TabGroupInfo group) => new StyleBuilder()
+		.AddStyle("--_tab-group-color", CssValues.ColorOrDefault(group.Color, ColorHelper.GetDeterministicColor(group.Name)))
+		.Build();
+
+	#endregion
+
 	#region Styling
 
 	private string StripCssClass => new CssBuilder("moka-tab-strip")
@@ -523,6 +610,9 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	#region Grouping
 
 	private record TabGroup(TabGroupInfo? GroupInfo, List<TabInfo<TValue>> Tabs);
+
+	private TabGroupInfo? GroupOf(TabInfo<TValue> tab) =>
+		tab.GroupName is null ? null : Groups.FirstOrDefault(g => g.Name == tab.GroupName);
 
 	/// <summary>
 	///     Buckets tabs by group and orders the buckets by <see cref="TabGroupInfo.Order" />. Tabs with

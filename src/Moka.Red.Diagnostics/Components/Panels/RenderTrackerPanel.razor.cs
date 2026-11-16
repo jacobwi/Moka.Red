@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
@@ -6,7 +7,7 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 /// <summary>
 ///     Panel displaying component render counts, ShouldRender skip stats, and timing data.
 ///     Supports sortable column headers and a component summary tree.
-///     Auto-refreshes every second via a timer.
+///     Refreshes every second while it lists anything, since the time since each render moves.
 /// </summary>
 public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 {
@@ -16,7 +17,7 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 	private ILookup<string, ComponentRenderEntry> _groupedEntries =
 		Enumerable.Empty<ComponentRenderEntry>().ToLookup(e => e.ComponentType);
 
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private string _sortBy = "RenderCount";
 	private bool _sortDescending = true;
 	private IReadOnlyList<ComponentRenderEntry> _sortedEntries = [];
@@ -40,7 +41,7 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -48,40 +49,18 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_diagnosticsService is null)
 		{
-			return;
+			return false;
 		}
+
+		bool wasEmpty = _entries.Count == 0;
 
 		_entries = _diagnosticsService.GetRenderEntries();
 		_totalRenders = 0;
@@ -97,6 +76,7 @@ public sealed partial class RenderTrackerPanel : ComponentBase, IDisposable
 
 		_uniqueTypes = _entries.Select(e => e.ComponentType).ToHashSet();
 		_groupedEntries = _entries.ToLookup(e => e.ComponentType);
+		return !wasEmpty || _entries.Count > 0;
 	}
 
 	private void ApplySort()

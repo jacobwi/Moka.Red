@@ -93,7 +93,7 @@
 }
 
 .moka-breadcrumb__more:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -253,7 +253,7 @@
 }
 
 .moka-breadcrumb--path ::deep .moka-breadcrumb-item__link:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	color: var(--moka-color-on-surface);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -349,7 +349,7 @@
 }
 
 .moka-gate .moka-breadcrumb--trail ::deep .moka-breadcrumb-item__link:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	color: var(--moka-color-on-surface);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -447,7 +447,7 @@
 }
 
 .moka-gate .moka-breadcrumb__back:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	color: var(--moka-color-on-surface);
 	box-shadow: var(--moka-focus-ring);
 }

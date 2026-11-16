@@ -1,30 +1,32 @@
 @namespace Moka.Red.Primitives.Kanban
 @typeparam TItem
-@inherits MokaComponentBase
+@inherits MokaVisualComponentBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+<div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root" @attributes="AdditionalAttributes">
 	@for (var i = 0; i < Columns.Count; i++)
 	{
 		var columnIndex = i;
 		var column = Columns[columnIndex];
-		<div class="moka-kanban__column"
-		     style="@ColumnStyle"
-		     @ondragover:preventDefault
-		     @ondrop="() => HandleDrop(columnIndex)">
+		var repeated = Repeated(column.Items);
+		<div class="moka-kanban__column" style="@ColumnStyle" data-column="@columnIndex">
 			<div class="@GetColumnHeaderClass(column)">
-				<span class="moka-kanban__column-title">@column.Title</span>
-				<span class="moka-kanban__column-count">@column.Items.Count</span>
+				<span class="moka-kanban__column-title" id="@TitleId(columnIndex)">@column.Title</span>
+				<span class="@CountClass(column)">@CountText(column)</span>
 			</div>
-			<div class="moka-kanban__column-body">
-				@foreach (var item in column.Items)
+			<div class="moka-kanban__column-body" role="list" aria-labelledby="@TitleId(columnIndex)">
+				@for (var j = 0; j < column.Items.Count; j++)
 				{
-					var current = item;
-					<div class="moka-kanban__card"
-					     draggable="true"
-					     @ondragstart="() => HandleDragStart(current, columnIndex)"
-					     @ondragend="HandleDragEnd"
+					var position = j;
+					var current = column.Items[position];
+					<div @key="KeyOf(current, repeated)"
+					     class="moka-kanban__card"
+					     role="listitem"
+					     tabindex="@CardTabIndex"
+					     data-index="@position"
+					     aria-label="@ItemLabel?.Invoke(current)"
+					     aria-describedby="@CardHintId"
 					     @oncontextmenu:preventDefault="OnCardContextMenu.HasDelegate"
-					     @oncontextmenu="e => HandleCardContextMenu(current, e)">
+					     @oncontextmenu="ContextMenuFor(current)">
 						@if (ItemTemplate is not null)
 						{
 							@ItemTemplate(current)
@@ -38,4 +40,6 @@
 			</div>
 		</div>
 	}
+	<span id="@HintId" class="moka-visually-hidden">@Words.Instructions</span>
+	<span class="moka-kanban__status moka-visually-hidden" role="status"></span>
 </div>

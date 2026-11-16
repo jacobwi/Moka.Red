@@ -17,7 +17,7 @@
 }
 
 .moka-numericfield-input:focus {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
 }

@@ -71,6 +71,20 @@ public class DiagnosticsSettingsTests : BunitContext
 		Assert.Contains(messages, m => m.Message == "error after the change");
 	}
 
+	// The level list stopped at Debug and Error, so an app configured for Trace or Critical saw a select that showed a
+	// level it wasn't on and couldn't be set back.
+	[Theory]
+	[InlineData(LogLevel.Trace)]
+	[InlineData(LogLevel.Critical)]
+	public void SettingsTab_OffersEveryLogLevel(LogLevel level)
+	{
+		Services.AddMokaDiagnostics(options => options.MinConsoleLogLevel = level);
+
+		IRenderedComponent<SettingsPanel> cut = Render<SettingsPanel>();
+
+		Assert.Equal(level.ToString(), cut.FindAll("select")[1].QuerySelector("option[selected]")?.GetAttribute("value"));
+	}
+
 	[Fact]
 	public void SettingsTab_ChangesTheEventLogSizeWhileRunning()
 	{

@@ -205,7 +205,7 @@
 
 /* Keyboard focus on the collapse toggle (the title area of a collapsible card) */
 .moka-card-header-content:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-radius: var(--moka-radius-sm);
 	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }

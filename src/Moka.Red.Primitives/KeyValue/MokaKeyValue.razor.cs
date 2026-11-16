@@ -12,7 +12,7 @@ namespace Moka.Red.Primitives.KeyValue;
 ///     Supports horizontal (side-by-side) and vertical (stacked) orientations,
 ///     optional copy-to-clipboard, and rich content via <see cref="ChildContent" />.
 /// </summary>
-public partial class MokaKeyValue : MokaComponentBase
+public partial class MokaKeyValue : MokaVisualComponentBase
 {
 	/// <summary>The label (key) text.</summary>
 	[Parameter]
@@ -103,7 +103,7 @@ public partial class MokaKeyValue : MokaComponentBase
 		.Build();
 
 	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
+	protected override string? CssStyle => SpacingStyle()
 		.AddStyle("--moka-kv-label-width", LabelWidth, InColumns && HasLabelWidth)
 		.AddStyle(Style)
 		.Build();

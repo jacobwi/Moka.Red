@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
@@ -17,7 +18,7 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 	private int _gen1Collections;
 	private int _gen2Collections;
 	private long _managedMemoryBytes;
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private List<ServiceCheck> _serviceChecks = [];
 	private bool _servicesCached;
 	private int _totalTracked;
@@ -38,7 +39,7 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -46,24 +47,11 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, _serviceProvider);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(_serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		InvokeAsync(() =>
-		{
-			RefreshData();
-			StateHasChanged();
-		});
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		_managedMemoryBytes = GC.GetTotalMemory(false);
 		_gen0Collections = GC.CollectionCount(0);
@@ -105,6 +93,8 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 				_avgRenderMs = 0;
 			}
 		}
+
+		return true;
 	}
 
 	private void DetectRegisteredServices()

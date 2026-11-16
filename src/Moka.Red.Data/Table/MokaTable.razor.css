@@ -350,7 +350,7 @@ th:hover .moka-table-sort-icon,
 }
 
 .moka-table-sort-button:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -363,7 +363,7 @@ th:hover .moka-table-sort-icon,
    :focus-visible only, so a plain mouse click on a cell does not light it up.
    z-index lifts the ring above the collapsed borders of the neighbouring cells. */
 .moka-table td:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	position: relative;
 	z-index: 1;
 	box-shadow: var(--moka-focus-ring);
@@ -575,7 +575,7 @@ th:hover .moka-table-sort-icon,
 }
 
 .moka-table-copy-rows:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -732,7 +732,7 @@ th:hover .moka-table-sort-icon,
 }
 
 .moka-table-more-btn:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -903,7 +903,7 @@ th:hover .moka-table-sort-icon,
 }
 
 .moka-table-group-toggle:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -1188,7 +1188,7 @@ th:hover .moka-table-sort-icon,
 .moka-table-view-pick:focus-visible,
 .moka-table-view-forget:focus-visible,
 .moka-table-view-save:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -1687,7 +1687,7 @@ th:hover .moka-table-sort-icon,
 .moka-table-pager-btn:focus-visible,
 .moka-table-pager-select:focus-visible,
 .moka-table-pager-jump-input:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -1845,7 +1845,7 @@ th:hover .moka-table-sort-icon,
 .moka-table-filter-btn:focus-visible,
 .moka-table-menu-btn:focus-visible,
 .moka-table-expand-all:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -1902,7 +1902,7 @@ th:focus-within .moka-table-menu-btn,
 }
 
 .moka-table-filter-choices:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -1962,7 +1962,7 @@ th:focus-within .moka-table-menu-btn,
 }
 
 .moka-table-chip-remove:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -2300,7 +2300,7 @@ th:focus-within .moka-table-menu-btn,
 
 .moka-gate .moka-table-cell--checkbox > input[type="checkbox"]:focus-visible,
 .moka-gate .moka-table-chooser-show > input[type="checkbox"]:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

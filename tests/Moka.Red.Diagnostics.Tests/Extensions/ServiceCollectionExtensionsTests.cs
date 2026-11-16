@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moka.Red.Diagnostics.Extensions;
 using Moka.Red.Diagnostics.Services;
 
@@ -59,6 +60,39 @@ public class ServiceCollectionExtensionsTests
 		ServiceDescriptor descriptor = services.First(d => d.ServiceType == typeof(IMokaDiagnosticsService));
 
 		Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
+	}
+
+	// A second call added a second logger provider, so every log message showed twice in the Console tab.
+	[Fact]
+	public void AddMokaDiagnostics_CalledTwice_CapturesEachMessageOnce()
+	{
+		var services = new ServiceCollection();
+		services.AddLogging();
+		services.AddMokaDiagnostics();
+		services.AddMokaDiagnostics();
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		Assert.Single(provider.GetServices<ILoggerProvider>().OfType<MokaDiagnosticsLoggerProvider>());
+		Assert.Single(services, d => d.ServiceType == typeof(IMokaDiagnosticsService));
+		Assert.Single(services, d => d.ServiceType == typeof(DiagnosticsOptions));
+
+		provider.GetRequiredService<ILoggerFactory>().CreateLogger("Twice")
+			.Log(LogLevel.Warning, default, "once only", null, (state, _) => state);
+
+		Assert.Single(provider.GetRequiredService<MokaDiagnosticsConsoleBuffer>().GetMessages(), m => m.Message == "once only");
+	}
+
+	[Fact]
+	public void AddMokaDiagnostics_CalledTwice_AppliesBothConfigurations()
+	{
+		var services = new ServiceCollection();
+		services.AddMokaDiagnostics(options => options.PanelWidth = 500);
+		services.AddMokaDiagnostics(options => options.Position = OverlayPosition.TopLeft);
+		using ServiceProvider provider = services.BuildServiceProvider();
+
+		DiagnosticsOptions options = provider.GetRequiredService<DiagnosticsOptions>();
+		Assert.Equal(500, options.PanelWidth);
+		Assert.Equal(OverlayPosition.TopLeft, options.Position);
 	}
 
 	[Fact]

@@ -27,6 +27,19 @@ public class DiagnosticComponentBaseTests : BunitContext
 		Assert.Contains(entries, e => e.ComponentType == "TestDiagComponent");
 	}
 
+	// Blazor doesn't ask ShouldRender before a first render, where the timing started, so every first render was
+	// recorded as 0.0 ms.
+	[Fact]
+	public void FirstRender_IsTimed()
+	{
+		Render<TestDiagComponent>();
+
+		ComponentRenderEntry entry = Services.GetRequiredService<IMokaDiagnosticsService>().GetRenderEntries()
+			.Single(e => e.ComponentType == "TestDiagComponent");
+		Assert.Equal(1, entry.RenderCount);
+		Assert.True(entry.LastRenderDuration > TimeSpan.Zero);
+	}
+
 	[Fact]
 	public void RecordsRender_OnSubsequentRenders()
 	{

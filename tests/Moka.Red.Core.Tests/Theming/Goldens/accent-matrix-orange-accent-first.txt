@@ -1,7 +1,7 @@
 class: moka-root moka-dark moka-gate moka-popups-standard moka-buttons-standard
 nested-class: moka-root moka-root--nested moka-dark moka-gate moka-popups-standard
 page: background: var(--moka-color-background); color-scheme: dark;
-root-declares: 299
+root-declares: 300
 nested-root-declares: 0
 
 --moka-color-primary: #D08515
@@ -274,7 +274,8 @@ nested-root-declares: 0
 --moka-focus-color: var(--moka-color-primary)
 --moka-focus-width: 2px
 --moka-border-width: 1px
---moka-focus-ring: 0 0 0 3px var(--moka-color-primary-focus)
+--moka-focus-ring: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)
+--moka-focus-glow: 0 0 0 3px var(--moka-color-primary-focus)
 --moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)
 --moka-selected-glow: inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)
 --moka-selected-bar: inset 2px 0 0 var(--moka-color-primary)

@@ -22,7 +22,7 @@
 
 /* Keyboard focus on the slider */
 .moka-knob:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 

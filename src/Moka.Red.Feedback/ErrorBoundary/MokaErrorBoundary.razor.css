@@ -72,7 +72,7 @@
 }
 
 .moka-error-boundary__fold-label:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -120,6 +120,6 @@
 }
 
 .moka-error-boundary__again:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }

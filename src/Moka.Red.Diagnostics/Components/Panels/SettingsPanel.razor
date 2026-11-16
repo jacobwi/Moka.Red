@@ -40,10 +40,12 @@
 		<div class="moka-diag-settings-group">
 			<label class="moka-diag-settings-label" for="@FieldId("log-level")">Console Log Level</label>
 			<select class="moka-diag-settings-select" id="@FieldId("log-level")" @bind:get="Options.MinConsoleLogLevel" @bind:set="SetMinLogLevel">
+				<option value="Trace">Trace</option>
 				<option value="Debug">Debug</option>
 				<option value="Information">Info</option>
 				<option value="Warning">Warning</option>
 				<option value="Error">Error</option>
+				<option value="Critical">Critical</option>
 			</select>
 		</div>
 

@@ -29,6 +29,8 @@
 	position: fixed;
 	z-index: 999999;
 	width: 480px;
+	/* The width setting goes up to 600px, wider than a phone; the 16px inset is the badge's. */
+	max-width: calc(100vw - 32px);
 	max-height: 80vh;
 	background: rgba(18, 18, 18, 0.95);
 	backdrop-filter: blur(8px);
@@ -63,12 +65,55 @@
 	flex-shrink: 0;
 }
 
+.moka-diag-tabs-row {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+}
+
 .moka-diag-tabs {
 	display: flex;
 	gap: 1px;
 	flex: 1;
 	min-width: 0;
 	overflow-x: auto;
+}
+
+/* The script sets the attributes: room for both arrows while the tabs don't fit, and each arrow visible only on a
+   side with tabs out of view. Hidden arrows keep their room so the row's width never follows its scroll position. */
+.moka-diag-tabs-scroll {
+	display: none;
+	visibility: hidden;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 20px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	color: #999;
+	font-size: 16px;
+	font-family: inherit;
+	line-height: 1;
+	cursor: pointer;
+	transition: color 0.15s ease, background 0.15s ease;
+}
+
+.moka-diag-tabs-scroll:hover {
+	color: #fff;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.moka-diag-tabs-row[data-moka-overflow] .moka-diag-tabs-scroll {
+	display: inline-flex;
+}
+
+.moka-diag-tabs-row[data-moka-more-start] .moka-diag-tabs-scroll--start,
+.moka-diag-tabs-row[data-moka-more-end] .moka-diag-tabs-scroll--end {
+	visibility: visible;
 }
 
 .moka-diag-tab {

@@ -49,7 +49,7 @@
 }
 
 .moka-table-builder-control:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .moka-table-builder-remove:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

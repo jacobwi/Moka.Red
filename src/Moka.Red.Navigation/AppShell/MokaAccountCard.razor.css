@@ -33,7 +33,7 @@
 }
 
 .moka-account-card__card:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

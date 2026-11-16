@@ -18,12 +18,15 @@ order: 116
 | `Opacity` | `double` | `0.08` | Opacity of the mark, from 0 to 1. Values outside that range are clamped |
 | `Rotation` | `int` | `-30` | Angle of the text in degrees. Images are not rotated |
 | `FontSize` | `string` | `"48px"` | Size of the text: a number with `px`, `pt`, `pc`, `in`, `cm`, `mm`, `q`, `em` or `rem` (`em` and `rem` count 16px). Anything else uses the default |
-| `Color` | `string?` | -- | Text color: hex, a keyword, or a color function such as `rgb()` or `var(--moka-color-primary)`. `currentColor` works too. Unset, or not a color, uses `--moka-color-on-surface` |
+| `Color` | `MokaColor?` | -- | Text color from the theme, such as `MokaColor.Error`. `Surface` draws in the on-surface color, as unset does |
+| `ColorValue` | `string?` | -- | Text color: hex, a keyword, or a color function such as `rgb()` or `var(--moka-color-primary)`. `currentColor` works too. Wins over `Color`. A value that isn't a color is ignored |
 | `Position` | `MokaWatermarkPosition` | `Tiled` | `Tiled` repeats the mark over the whole area, `Center` draws it once in the middle |
 | `Repeat` | `bool` | `true` | Images only: repeats the image. Text follows `Position` |
 | `Gap` | `string` | `"100px"` | Space between repeated text marks, in the same units as `FontSize` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
+
+`MokaWatermark` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the root, which clips the mark to its corners. `Size`, `SizeValue`, `Variant` and `Disabled` have no effect on it.
 
 Each text tile is sized from the text, `FontSize`, `Rotation` and `Gap`, so the whole text shows and neighbouring marks sit one gap apart. The default color is the theme's on-surface color, so the mark shows on light and dark surfaces alike.
 
@@ -31,7 +34,7 @@ Each text tile is sized from the text, `FontSize`, `Rotation` and `Gap`, so the 
 
 ```blazor-preview
 <div style="width:100%;max-width:520px">
-    <MokaWatermark Text="CONFIDENTIAL" FontSize="28px" Color="#ef5350" Opacity="0.14"
+    <MokaWatermark Text="CONFIDENTIAL" FontSize="28px" Color="MokaColor.Error" Opacity="0.14"
                    Style="height:200px;border:1px solid var(--moka-color-outline-variant);border-radius:var(--moka-radius-md)">
         <div style="padding:var(--moka-spacing-lg)">
             <MokaHeading Level="4">Q3 revenue summary</MokaHeading>
@@ -49,7 +52,7 @@ Each text tile is sized from the text, `FontSize`, `Rotation` and `Gap`, so the 
 ```blazor-preview
 <div style="width:100%;max-width:520px">
     <MokaWatermark Text="DRAFT" Position="MokaWatermarkPosition.Center"
-                   FontSize="72px" Rotation="-20" Opacity="0.2" Color="#808080"
+                   FontSize="72px" Rotation="-20" Opacity="0.2" ColorValue="#808080"
                    Style="height:200px;border:1px solid var(--moka-color-outline-variant);border-radius:var(--moka-radius-md)">
         <div style="padding:var(--moka-spacing-lg)">
             <MokaHeading Level="4">Release plan</MokaHeading>

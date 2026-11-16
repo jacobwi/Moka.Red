@@ -13,7 +13,7 @@ namespace Moka.Red.Layout.BentoGrid;
 ///     Use <see cref="MokaBentoItem" /> for individual cells with span control.
 ///     With <see cref="Board" /> set it is a board the person arranges: cards they reorder, resize and hide.
 /// </summary>
-public partial class MokaBentoGrid : MokaComponentBase
+public partial class MokaBentoGrid : MokaVisualComponentBase
 {
 	private const string JsModulePath = "./_content/Moka.Red.Layout/BentoGrid/MokaBentoGrid.razor.js";
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
@@ -132,8 +132,8 @@ public partial class MokaBentoGrid : MokaComponentBase
 
 	/// <inheritdoc />
 	protected override string? CssStyle => _board is not null
-		? new StyleBuilder().AddStyle(Style).Build()
-		: new StyleBuilder()
+		? base.CssStyle
+		: SpacingStyle()
 			.AddStyle("grid-template-columns", $"repeat({Columns}, 1fr)")
 			.AddStyle("grid-auto-rows", RowHeight == "auto" ? $"minmax({MinRowHeight}, auto)" : RowHeight)
 			.AddStyle("gap", ResolvedGap)

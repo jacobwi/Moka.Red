@@ -45,7 +45,7 @@
 
 /* Keyboard focus on a clickable avatar. It replaces the bordered ring while it shows. */
 .moka-avatar--clickable:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 

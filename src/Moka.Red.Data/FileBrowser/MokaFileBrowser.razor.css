@@ -69,7 +69,7 @@
 }
 
 .moka-file-browser__crumb:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-radius: var(--moka-radius-sm);
 	box-shadow: var(--moka-focus-ring);
 }
@@ -195,7 +195,7 @@ button.moka-file-browser__heading:hover {
 }
 
 button.moka-file-browser__heading:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	border-radius: var(--moka-radius-sm);
 	box-shadow: var(--moka-focus-ring);
 }

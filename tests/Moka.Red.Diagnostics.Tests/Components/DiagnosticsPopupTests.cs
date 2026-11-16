@@ -2,6 +2,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Components;
 using Moka.Red.Diagnostics.Extensions;
 using Moka.Red.Diagnostics.Pages;
@@ -15,6 +16,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 public class DiagnosticsPopupTests : BunitContext
 {
 	private const string ModulePath = "./_content/Moka.Red.Diagnostics/moka-diagnostics.js";
+	private string? _openedSessionKey;
 	private MokaDiagnosticsService? _openerService;
 
 	public DiagnosticsPopupTests()
@@ -54,6 +56,59 @@ public class DiagnosticsPopupTests : BunitContext
 		Assert.Contains("OpenerOnlyComponent", page.Markup, StringComparison.Ordinal);
 	}
 
+	// The popup's Theme tab showed the theme the popup's own app root cascades (the default), not the one the opener's
+	// overlay inspects, while the page said it showed the window that opened it.
+	[Fact]
+	public async Task PopupPage_ShowsTheOpenersTheme_AndFollowsItsChanges()
+	{
+		SetupOverlayModule();
+		IRenderedComponent<MokaDiagnosticsOverlay> overlay =
+			Render<MokaDiagnosticsOverlay>(p => p.Add(x => x.Theme, ThemeWithPrimary("#123456")));
+		IRenderedComponent<MokaDiagnosticsPage> page = await OpenPopupAsync(overlay);
+		await page.FindAll(".moka-diag-page-tab").Single(tab => tab.TextContent.Trim() == "Theme")
+			.ClickAsync(new MouseEventArgs());
+
+		Assert.Equal("#123456", TokenValue(page, "--moka-color-primary"));
+
+		overlay.Render(p => p.Add(x => x.Theme, ThemeWithPrimary("#abcdef")));
+
+		page.WaitForAssertion(() => Assert.Equal("#abcdef", TokenValue(page, "--moka-color-primary")));
+	}
+
+	// Once the opener's overlay went (the tab closed or the circuit ended), the popup still said it showed that window,
+	// with figures that would never move again.
+	[Fact]
+	public async Task PopupPage_SaysWhenTheWindowThatOpenedItHasClosed()
+	{
+		SetupOverlayModule();
+		IRenderedComponent<MokaDiagnosticsOverlay> overlay = Render<MokaDiagnosticsOverlay>();
+		IRenderedComponent<MokaDiagnosticsPage> page = await OpenPopupAsync(overlay);
+		Assert.Contains("window that opened this page", page.Find(".moka-diag-page-notice").TextContent, StringComparison.Ordinal);
+
+		await overlay.Instance.DisposeAsync();
+
+		page.WaitForAssertion(() =>
+			Assert.Contains("has closed", page.Find(".moka-diag-page-notice").TextContent, StringComparison.Ordinal));
+		Assert.Null(Services.GetRequiredService<MokaDiagnosticsSessions>().Find(OpenedSessionKey()));
+	}
+
+	private async Task<IRenderedComponent<MokaDiagnosticsPage>> OpenPopupAsync(IRenderedComponent<MokaDiagnosticsOverlay> overlay)
+	{
+		await overlay.Find("button[title='Open in new window']").ClickAsync(new MouseEventArgs());
+		Services.GetRequiredService<NavigationManager>().NavigateTo($"moka-diagnostics?session={OpenedSessionKey()}");
+		return Render<MokaDiagnosticsPage>();
+	}
+
+	private string OpenedSessionKey() => Assert.IsType<string>(_openedSessionKey);
+
+	private static MokaTheme ThemeWithPrimary(string primary) =>
+		MokaTheme.Light with { Palette = MokaTheme.Light.Palette with { Primary = primary } };
+
+	private static string TokenValue(IRenderedComponent<MokaDiagnosticsPage> page, string variable) =>
+		page.FindAll(".moka-diag-token-row")
+			.Single(row => row.QuerySelector(".moka-diag-token-name")!.TextContent == variable)
+			.QuerySelector(".moka-diag-token-value")!.TextContent;
+
 	[Fact]
 	public void PageWithoutAKnownSession_ShowsItsOwnData()
 	{
@@ -68,6 +123,10 @@ public class DiagnosticsPopupTests : BunitContext
 	{
 		BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
 		module.Mode = JSRuntimeMode.Loose;
-		return module.SetupVoid("openDiagnosticsPage", _ => true);
+		return module.SetupVoid("openDiagnosticsPage", invocation =>
+		{
+			_openedSessionKey = invocation.Arguments.Count > 0 ? invocation.Arguments[0] as string : null;
+			return true;
+		});
 	}
 }

@@ -18,10 +18,12 @@
 			<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-pause" blazor:onchange="4" /></div>
 
 		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-log-level">Console Log Level</label>
-			<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-log-level" value="Debug" blazor:onchange="5"><option value="Debug" selected>Debug</option>
+			<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-log-level" value="Debug" blazor:onchange="5"><option value="Trace">Trace</option>
+				<option value="Debug" selected>Debug</option>
 				<option value="Information">Info</option>
 				<option value="Warning">Warning</option>
-				<option value="Error">Error</option></select></div>
+				<option value="Error">Error</option>
+				<option value="Critical">Critical</option></select></div>
 
 		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-max-events">Max Event Log Entries</label>
 			<input type="number" class="moka-diag-settings-number" id="moka-diag-settings-{guid}-max-events" min="100" max="1000" step="50" value="500" blazor:onchange="6" /></div>

@@ -106,7 +106,7 @@
 .moka-image-compare-handle:hover,
 .moka-image-compare-handle:focus-visible {
 	box-shadow: var(--moka-focus-ring);
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-image-compare--vertical .moka-image-compare-handle {

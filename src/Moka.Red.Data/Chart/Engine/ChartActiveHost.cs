@@ -46,14 +46,16 @@ internal sealed record ChartActiveState(ChartActiveInfo? Info, int? Pinned, int 
 /// <summary>
 ///     The only part of a chart that renders on hover. It draws <see cref="Content" />, which the surface authors so the
 ///     markup carries the surface's scope. The chart calls <see cref="Show" /> and only this host renders. When the chart
-///     itself renders, the host renders again only if the geometry or what the surface reads from the chart moved, and
-///     then it asks the chart for a fresh state, so a tooltip held open over live data shows the new values.
+///     itself renders, the host renders again only if the geometry or what the surface reads from the chart moved, or the
+///     parent handed over a tooltip template again while one shows, and then it asks the chart for a fresh state, so a
+///     tooltip held open over live data shows the new values.
 /// </summary>
 internal sealed class ChartActiveHost : ComponentBase, IDisposable
 {
 	private ChartActiveState _state = ChartActiveState.Idle;
 	private MokaChartBase? _registered;
 	private long _version = -1;
+	private long _templateVersion = -1;
 	private object? _surfaceKey;
 
 	/// <summary>The chart it shows the active point of.</summary>
@@ -106,7 +108,7 @@ internal sealed class ChartActiveHost : ComponentBase, IDisposable
 		    && parameters.TryGetValue(nameof(Chart), out MokaChartBase? chart) && ReferenceEquals(chart, _registered)
 		    && parameters.TryGetValue(nameof(Panel), out int panel) && panel == Panel
 		    && parameters.TryGetValue(nameof(Content), out RenderFragment<ChartActiveState>? content) && content == Content
-		    && chart.GeometryVersion == _version && Equals(chart.SurfaceKey, _surfaceKey))
+		    && chart.GeometryVersion == _version && Equals(chart.SurfaceKey, _surfaceKey) && !TemplateMoved(chart))
 		{
 			return Task.CompletedTask;
 		}
@@ -130,6 +132,7 @@ internal sealed class ChartActiveHost : ComponentBase, IDisposable
 		if (Chart is not null)
 		{
 			_version = Chart.GeometryVersion;
+			_templateVersion = Chart.TooltipTemplateVersion;
 			_surfaceKey = Chart.SurfaceKey;
 			_state = Chart.SurfaceState(Panel);
 		}
@@ -144,4 +147,8 @@ internal sealed class ChartActiveHost : ComponentBase, IDisposable
 			builder.AddContent(0, Content(_state));
 		}
 	}
+
+	// With nothing showing, the next point draws the template fresh.
+	private bool TemplateMoved(MokaChartBase chart) =>
+		chart.TooltipTemplateVersion != _templateVersion && (_state.Info is not null || _state.PinInfo is not null);
 }

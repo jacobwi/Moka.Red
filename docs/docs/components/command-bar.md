@@ -26,6 +26,8 @@ order: 63
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
+`MokaCommandBar` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the bar; `Padding` replaces its own side padding. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
+
 ## Basic with Search
 
 A command bar with the built-in search input and action buttons on the right.

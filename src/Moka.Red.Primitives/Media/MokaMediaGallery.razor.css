@@ -22,7 +22,7 @@
 
 /* Keyboard focus on a thumbnail. Lifted so the next thumbnail does not cover the ring. */
 .moka-media-gallery-item:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	z-index: 1;
 	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-border), var(--moka-focus-ring);
 }

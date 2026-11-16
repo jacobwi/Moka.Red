@@ -62,7 +62,7 @@
 }
 
 .moka-tab-header:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: inset 0 0 0 var(--moka-border-width, 1px) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
@@ -179,7 +179,7 @@
 }
 
 .moka-tab-group-header:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: inset 0 0 0 var(--moka-border-width, 1px) var(--moka-color-primary-border), var(--moka-focus-ring);
 }
 
@@ -195,6 +195,110 @@
 
 .moka-tab-group-count {
 	color: var(--moka-tab-group-count-color, inherit);
+}
+
+/* ShowTabList: the strip shares a row with the tab list button, which carries the strip's own background and edge so
+   the two read as one bar. The strip still scrolls; only the button stays put. */
+.moka-tab-strip-frame {
+	display: flex;
+	flex-shrink: 0;
+	align-items: stretch;
+	min-width: 0;
+}
+
+.moka-tab-strip-frame > .moka-tab-strip {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.moka-tab-strip-list {
+	display: flex;
+	flex: none;
+	align-items: center;
+	padding: 0 var(--moka-spacing-xs);
+	background: var(--moka-tab-strip-bg, var(--moka-color-surface-variant));
+	border-bottom: var(--moka-border-width) solid var(--moka-tab-strip-border-color, var(--moka-color-outline));
+}
+
+/* The strip's script sets data-moka-overflow while the tabs don't all fit. An open menu keeps its button, which
+   anchors it. Without the script the button never shows, and nothing could open its menu anyway. */
+.moka-tab-strip:not([data-moka-overflow]) + .moka-tab-strip-list:not(:has([aria-expanded="true"])) {
+	display: none;
+}
+
+.moka-tab-list-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--moka-control-height-xs);
+	height: var(--moka-control-height-xs);
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: transparent;
+	color: var(--moka-tab-color, var(--moka-color-on-surface-variant));
+	cursor: pointer;
+	transition: color var(--moka-transition-fast), background var(--moka-transition-fast);
+}
+
+.moka-tab-list-button:hover,
+.moka-tab-list-button[aria-expanded="true"] {
+	background: var(--moka-tab-hover-bg, color-mix(in srgb, var(--moka-color-on-surface) 5%, transparent));
+	color: var(--moka-tab-hover-color, var(--moka-color-on-surface));
+}
+
+.moka-tab-list-button:focus-visible {
+	outline: var(--moka-focus-width) solid transparent;
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary-border), var(--moka-focus-ring);
+}
+
+/* The menu: one entry per tab, in the strip's order, grouped under each group's name. */
+.moka-tab-list {
+	max-height: min(32rem, 60vh);
+	overflow-y: auto;
+}
+
+.moka-tab-list-heading {
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md) var(--moka-spacing-xxs);
+	color: var(--moka-tab-group-title-color, var(--moka-color-on-surface-tertiary));
+}
+
+.moka-tab-list-heading::before {
+	content: "";
+	flex: none;
+	width: var(--moka-spacing-sm);
+	height: var(--moka-spacing-sm);
+	border-radius: var(--moka-radius-full);
+	background: var(--_tab-group-color);
+}
+
+.moka-tab-list-icon {
+	--moka-icon-slot: var(--moka-font-size-md);
+}
+
+.moka-tab-list-title {
+	flex: 1;
+	min-width: 0;
+	max-width: 20rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.moka-tab-list-mark {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+}
+
+.moka-tab-list-pinned {
+	color: var(--moka-tab-pinned-dot-color, var(--moka-color-primary));
+}
+
+.moka-tab-list-current {
+	color: var(--moka-tab-active-color, var(--moka-color-primary));
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
@@ -266,4 +370,29 @@
 
 .moka-gate .moka-tab-group-header:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary), var(--moka-focus-ring);
+}
+
+.moka-gate .moka-tab-strip-list {
+	background: var(--moka-tab-strip-bg, var(--moka-color-surface));
+	border-bottom-color: var(--moka-tab-strip-border-color, var(--moka-color-outline-variant));
+}
+
+.moka-gate .moka-tab-list-button {
+	border-radius: var(--moka-radius-md);
+	color: var(--moka-tab-color, var(--moka-color-icon));
+	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-tab-list-button:hover,
+.moka-gate .moka-tab-list-button[aria-expanded="true"] {
+	background: var(--moka-tab-hover-bg, var(--moka-color-surface-raised));
+	color: var(--moka-tab-hover-color, var(--moka-color-on-surface));
+}
+
+.moka-gate .moka-tab-list-button:focus-visible {
+	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary), var(--moka-focus-ring);
+}
+
+.moka-gate .moka-tab-list-current {
+	color: var(--moka-tab-active-color, var(--moka-color-primary-text));
 }

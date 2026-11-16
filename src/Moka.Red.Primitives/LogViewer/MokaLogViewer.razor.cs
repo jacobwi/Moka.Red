@@ -9,7 +9,7 @@ namespace Moka.Red.Primitives.LogViewer;
 ///     Streaming log display with level filtering, search, timestamps, and auto-scroll.
 ///     Designed for dev tools, admin panels, and diagnostic views.
 /// </summary>
-public partial class MokaLogViewer : MokaComponentBase
+public partial class MokaLogViewer : MokaVisualComponentBase
 {
 	private readonly HashSet<MokaLogLevel> _enabledLevels =
 	[

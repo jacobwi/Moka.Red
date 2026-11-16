@@ -13,6 +13,7 @@ using Moka.Red.Forms.DatePicker;
 using Moka.Red.Forms.DateRangePicker;
 using Moka.Red.Forms.DropOverlay;
 using Moka.Red.Forms.FileUpload;
+using Moka.Red.Forms.FormBuilder;
 using Moka.Red.Forms.InlineEdit;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.Knob;
@@ -138,7 +139,9 @@ public class SpacingParameterTests : BunitContext
 		["PinInput"] = new(typeof(MokaPinInput), "") { RadiusOn = ".moka-pin-digit" },
 		["IpAddressInput"] = new(typeof(MokaIpAddressInput), "") { RadiusOn = ".moka-ip-octet" },
 		["IpAddressInputV6"] = new(typeof(MokaIpAddressInput), "", ("AllowIPv6", true)) { RadiusOn = ".moka-ip-octet" },
-		["MacAddressInput"] = new(typeof(MokaMacAddressInput), "") { RadiusOn = ".moka-mac-octet" }
+		["MacAddressInput"] = new(typeof(MokaMacAddressInput), "") { RadiusOn = ".moka-mac-octet" },
+		["FormBuilder"] = new(typeof(MokaFormBuilder),
+			string.Join(" | ", Enumerable.Repeat(IconStyle("14px"), 18)) + " | " + IconStyle("32px"))
 	};
 
 	// The components that draw several boxes for one value. Each box draws its own border, so each

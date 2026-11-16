@@ -1,14 +1,20 @@
 using System.Collections.Concurrent;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Diagnostics.Services;
 
 /// <summary>
 ///     Default implementation of <see cref="IMokaDiagnosticsService" />.
-///     Extracts theme tokens mirroring <see cref="MokaTheme.ToCssVariables" />.
+///     Lists theme tokens from <see cref="MokaTokens.All" /> with the values <see cref="MokaTheme.ToTokenMap" /> gives.
 /// </summary>
 internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 {
+	// Disposed components stay listed so the Tree tab can show them, but only this many: a page that keeps making and
+	// dropping components would otherwise grow the list for as long as the circuit lives.
+	internal const int MaxDisposedEntries = 500;
+
+	private readonly ConcurrentQueue<string> _disposedIds = new();
 	private readonly ConcurrentQueue<DiagnosticsEvent> _eventLog = new();
 	private readonly ConcurrentDictionary<string, JsInteropEntry> _jsInteropEntries = new();
 	private readonly ConcurrentDictionary<string, ComponentRenderEntry> _renderEntries = new();
@@ -48,13 +54,14 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	{
 		ArgumentNullException.ThrowIfNull(theme);
 
-		return
-		[
-			BuildPaletteGroup(theme.Palette),
-			BuildTypographyGroup(theme.Typography),
-			BuildSpacingGroup(theme.Spacing),
-			BuildBorderRadiusGroup(theme.Spacing)
-		];
+		IReadOnlyDictionary<string, string> values = theme.ToTokenMap();
+		return MokaTokens.All
+			.Where(token => values.ContainsKey(token.Name))
+			.GroupBy(token => token.Group)
+			.Select(group => new ThemeTokenGroup(
+				group.Key.ToString(),
+				group.Select(token => ToThemeToken(theme, token, values[token.Name])).ToList()))
+			.ToList();
 	}
 
 	// ── Render Tracking ────────────────────────────────────────────
@@ -127,6 +134,7 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	public void ClearRenderData()
 	{
 		_renderEntries.Clear();
+		_disposedIds.Clear();
 		OnRenderDataChanged?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -175,14 +183,18 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public void RecordDisposal(string componentType, string componentId)
 	{
+		// Marked even while paused: a component that went away is gone whether or not anything is recorded, and the
+		// Active count would otherwise keep it for good.
+		if (_renderEntries.TryGetValue(componentId, out ComponentRenderEntry? entry) && !entry.IsDisposed)
+		{
+			entry.IsDisposed = true;
+			_disposedIds.Enqueue(componentId);
+			ForgetOldestDisposed();
+		}
+
 		if (_isPaused)
 		{
 			return;
-		}
-
-		if (_renderEntries.TryGetValue(componentId, out ComponentRenderEntry? entry))
-		{
-			entry.IsDisposed = true;
 		}
 
 		Interlocked.Increment(ref _disposedCount);
@@ -206,14 +218,7 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	public void ClearPerformanceData()
 	{
 		_jsInteropEntries.Clear();
-		_disposedCount = 0;
-
-		// Reset disposal flags on render entries
-		foreach (ComponentRenderEntry entry in _renderEntries.Values)
-		{
-			entry.IsDisposed = false;
-		}
-
+		Interlocked.Exchange(ref _disposedCount, 0);
 		OnPerformanceDataChanged?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -271,6 +276,17 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 		OnEventLogged?.Invoke(this, EventArgs.Empty);
 	}
 
+	private void ForgetOldestDisposed()
+	{
+		while (_disposedIds.Count > MaxDisposedEntries && _disposedIds.TryDequeue(out string? oldest))
+		{
+			if (_renderEntries.TryGetValue(oldest, out ComponentRenderEntry? entry) && entry.IsDisposed)
+			{
+				_renderEntries.TryRemove(oldest, out _);
+			}
+		}
+	}
+
 	// Reads the limit on every call because the Settings tab changes the shared options at runtime.
 	private void TrimEventLog()
 	{
@@ -281,101 +297,28 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 		}
 	}
 
-	// ── Theme Token Builders ───────────────────────────────────────
-
-	private static ThemeTokenGroup BuildPaletteGroup(MokaPalette palette)
+	private static ThemeToken ToThemeToken(MokaTheme theme, MokaToken token, string value)
 	{
-		List<ThemeToken> tokens =
-		[
-			new("--moka-color-primary", palette.Primary, ThemeTokenKind.Color),
-			new("--moka-color-primary-light", palette.PrimaryLight, ThemeTokenKind.Color),
-			new("--moka-color-primary-dark", palette.PrimaryDark, ThemeTokenKind.Color),
-			new("--moka-color-on-primary", palette.OnPrimary, ThemeTokenKind.Color),
-
-			new("--moka-color-secondary", palette.Secondary, ThemeTokenKind.Color),
-			new("--moka-color-secondary-light", palette.SecondaryLight, ThemeTokenKind.Color),
-			new("--moka-color-secondary-dark", palette.SecondaryDark, ThemeTokenKind.Color),
-			new("--moka-color-on-secondary", palette.OnSecondary, ThemeTokenKind.Color),
-
-			new("--moka-color-surface", palette.Surface, ThemeTokenKind.Color),
-			new("--moka-color-surface-variant", palette.SurfaceVariant, ThemeTokenKind.Color),
-			new("--moka-color-on-surface", palette.OnSurface, ThemeTokenKind.Color),
-			new("--moka-color-background", palette.Background, ThemeTokenKind.Color),
-			new("--moka-color-on-background", palette.OnBackground, ThemeTokenKind.Color),
-
-			new("--moka-color-error", palette.Error, ThemeTokenKind.Color),
-			new("--moka-color-on-error", palette.OnError, ThemeTokenKind.Color),
-			new("--moka-color-warning", palette.Warning, ThemeTokenKind.Color),
-			new("--moka-color-on-warning", palette.OnWarning, ThemeTokenKind.Color),
-			new("--moka-color-success", palette.Success, ThemeTokenKind.Color),
-			new("--moka-color-on-success", palette.OnSuccess, ThemeTokenKind.Color),
-			new("--moka-color-info", palette.Info, ThemeTokenKind.Color),
-			new("--moka-color-on-info", palette.OnInfo, ThemeTokenKind.Color),
-
-			new("--moka-color-outline", palette.Outline, ThemeTokenKind.Color),
-			new("--moka-color-outline-variant", palette.OutlineVariant, ThemeTokenKind.Color)
-		];
-
-		return new ThemeTokenGroup("Palette", tokens);
+		ThemeTokenKind kind = KindOf(token);
+		string? color = kind == ThemeTokenKind.Color && theme.TryResolveColor(value, out MokaSrgb resolved)
+			? resolved.ToString()
+			: null;
+		return new ThemeToken(token.Name, value, kind) { ResolvedColor = color };
 	}
 
-	private static ThemeTokenGroup BuildTypographyGroup(MokaTypography typography)
+	private static ThemeTokenKind KindOf(MokaToken token) => token switch
 	{
-		List<ThemeToken> tokens =
-		[
-			new("--moka-font-family", typography.FontFamily, ThemeTokenKind.FontFamily),
-			new("--moka-font-family-mono", typography.FontFamilyMono, ThemeTokenKind.FontFamily),
+		{ Kind: MokaTokenKind.Color } => ThemeTokenKind.Color,
+		{ Group: MokaTokenGroup.Spacing, Kind: MokaTokenKind.Length } => ThemeTokenKind.Spacing,
+		{ Group: MokaTokenGroup.Radius, Kind: MokaTokenKind.Length } => ThemeTokenKind.BorderRadius,
+		{ Group: MokaTokenGroup.Typography } => TypographyKindOf(token.Name),
+		_ => ThemeTokenKind.Other
+	};
 
-			new("--moka-font-size-xs", typography.FontSizeXs, ThemeTokenKind.FontSize),
-			new("--moka-font-size-sm", typography.FontSizeSm, ThemeTokenKind.FontSize),
-			new("--moka-font-size-base", typography.FontSizeBase, ThemeTokenKind.FontSize),
-			new("--moka-font-size-md", typography.FontSizeMd, ThemeTokenKind.FontSize),
-			new("--moka-font-size-lg", typography.FontSizeLg, ThemeTokenKind.FontSize),
-			new("--moka-font-size-xl", typography.FontSizeXl, ThemeTokenKind.FontSize),
-			new("--moka-font-size-xxl", typography.FontSizeXxl, ThemeTokenKind.FontSize),
-
-			new("--moka-line-height-tight", typography.LineHeightTight, ThemeTokenKind.LineHeight),
-			new("--moka-line-height-base", typography.LineHeightBase, ThemeTokenKind.LineHeight),
-			new("--moka-line-height-relaxed", typography.LineHeightRelaxed, ThemeTokenKind.LineHeight),
-
-			new("--moka-font-weight-light", typography.FontWeightLight, ThemeTokenKind.FontWeight),
-			new("--moka-font-weight-normal", typography.FontWeightNormal, ThemeTokenKind.FontWeight),
-			new("--moka-font-weight-medium", typography.FontWeightMedium, ThemeTokenKind.FontWeight),
-			new("--moka-font-weight-semibold", typography.FontWeightSemibold, ThemeTokenKind.FontWeight),
-			new("--moka-font-weight-bold", typography.FontWeightBold, ThemeTokenKind.FontWeight)
-		];
-
-		return new ThemeTokenGroup("Typography", tokens);
-	}
-
-	private static ThemeTokenGroup BuildSpacingGroup(MokaSpacing spacing)
-	{
-		List<ThemeToken> tokens =
-		[
-			new("--moka-spacing-xxs", spacing.Xxs, ThemeTokenKind.Spacing),
-			new("--moka-spacing-xs", spacing.Xs, ThemeTokenKind.Spacing),
-			new("--moka-spacing-sm", spacing.Sm, ThemeTokenKind.Spacing),
-			new("--moka-spacing-md", spacing.Md, ThemeTokenKind.Spacing),
-			new("--moka-spacing-lg", spacing.Lg, ThemeTokenKind.Spacing),
-			new("--moka-spacing-xl", spacing.Xl, ThemeTokenKind.Spacing),
-			new("--moka-spacing-xxl", spacing.Xxl, ThemeTokenKind.Spacing)
-		];
-
-		return new ThemeTokenGroup("Spacing", tokens);
-	}
-
-	private static ThemeTokenGroup BuildBorderRadiusGroup(MokaSpacing spacing)
-	{
-		List<ThemeToken> tokens =
-		[
-			new("--moka-radius-none", spacing.RadiusNone, ThemeTokenKind.BorderRadius),
-			new("--moka-radius-sm", spacing.RadiusSm, ThemeTokenKind.BorderRadius),
-			new("--moka-radius-md", spacing.RadiusMd, ThemeTokenKind.BorderRadius),
-			new("--moka-radius-lg", spacing.RadiusLg, ThemeTokenKind.BorderRadius),
-			new("--moka-radius-xl", spacing.RadiusXl, ThemeTokenKind.BorderRadius),
-			new("--moka-radius-full", spacing.RadiusFull, ThemeTokenKind.BorderRadius)
-		];
-
-		return new ThemeTokenGroup("Border Radius", tokens);
-	}
+	private static ThemeTokenKind TypographyKindOf(string name) =>
+		name.StartsWith("--moka-font-family", StringComparison.Ordinal) ? ThemeTokenKind.FontFamily
+		: name.StartsWith("--moka-font-size", StringComparison.Ordinal) ? ThemeTokenKind.FontSize
+		: name.StartsWith("--moka-font-weight", StringComparison.Ordinal) ? ThemeTokenKind.FontWeight
+		: name.StartsWith("--moka-line-height", StringComparison.Ordinal) ? ThemeTokenKind.LineHeight
+		: ThemeTokenKind.Other;
 }

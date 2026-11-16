@@ -18,7 +18,7 @@
 }
 
 .moka-dock-host:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: inset var(--moka-focus-ring);
 }
 

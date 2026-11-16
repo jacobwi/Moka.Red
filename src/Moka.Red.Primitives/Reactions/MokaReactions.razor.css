@@ -134,7 +134,7 @@
 .moka-reactions__more:focus-visible,
 .moka-reactions__chip:focus-visible,
 .moka-reactions__add:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

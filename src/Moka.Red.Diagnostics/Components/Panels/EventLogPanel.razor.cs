@@ -1,18 +1,20 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
 ///     Panel displaying a chronological log of diagnostics events with type-based filtering.
-///     Auto-refreshes every second via a timer.
+///     Checks for new events every second and renders only when there are.
 /// </summary>
 public sealed partial class EventLogPanel : ComponentBase, IDisposable
 {
+	private readonly RowKeys<DiagnosticsEvent> _rowKeys = new();
 	private bool _disposed;
 	private IReadOnlyList<DiagnosticsEvent> _events = [];
 	private IReadOnlyList<DiagnosticsEvent> _filteredEvents = [];
-	private Timer? _refreshTimer;
+	private PanelRefresh? _refresh;
 	private bool _showDisposal = true;
 	private bool _showError = true;
 	private bool _showJsInterop = true;
@@ -36,7 +38,7 @@ public sealed partial class EventLogPanel : ComponentBase, IDisposable
 		}
 
 		_disposed = true;
-		_refreshTimer?.Dispose();
+		_refresh?.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -44,44 +46,27 @@ public sealed partial class EventLogPanel : ComponentBase, IDisposable
 	{
 		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, Services);
 		RefreshData();
-		_refreshTimer = new Timer(OnTimerTick, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
+			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
 	}
 
-	private void OnTimerTick(object? state)
-	{
-		if (_disposed)
-		{
-			return;
-		}
-
-		try
-		{
-			InvokeAsync(() =>
-			{
-				if (_disposed)
-				{
-					return;
-				}
-
-				RefreshData();
-				StateHasChanged();
-			});
-		}
-		catch (ObjectDisposedException)
-		{
-		}
-	}
-
-	private void RefreshData()
+	private bool RefreshData()
 	{
 		if (_diagnosticsService is null)
 		{
-			return;
+			return false;
 		}
 
 		// Every event the log keeps, so the MaxEventLogEntries setting shows here.
-		_events = _diagnosticsService.GetRecentEvents(int.MaxValue);
+		IReadOnlyList<DiagnosticsEvent> events = _diagnosticsService.GetRecentEvents(int.MaxValue);
+		if (RowKeys<DiagnosticsEvent>.SameLog(_events, events))
+		{
+			return false;
+		}
+
+		_events = events;
 		ApplyFilter();
+		return true;
 	}
 
 	private void ApplyFilter()

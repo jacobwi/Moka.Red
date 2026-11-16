@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Moka.Red.Core.Base;
 using Moka.Red.Diagnostics.Services;
@@ -11,7 +12,8 @@ namespace Moka.Red.Diagnostics.Extensions;
 public static class ServiceCollectionExtensions
 {
 	/// <summary>
-	///     Adds the Moka.Red diagnostics overlay services.
+	///     Adds the Moka.Red diagnostics overlay services. Calling it again registers nothing twice, so a log message is
+	///     captured once, and its <paramref name="configure" /> changes the options the first call registered.
 	/// </summary>
 	/// <param name="services">The service collection.</param>
 	/// <param name="configure">Optional configuration for diagnostics options.</param>
@@ -22,20 +24,28 @@ public static class ServiceCollectionExtensions
 	{
 		ArgumentNullException.ThrowIfNull(services);
 
-		var options = new DiagnosticsOptions();
+		DiagnosticsOptions options = RegisteredOptions(services) ?? new DiagnosticsOptions();
 		configure?.Invoke(options);
 
-		services.AddSingleton(options);
-		services.AddScoped<IMokaDiagnosticsService, MokaDiagnosticsService>();
-		services.AddSingleton<MokaDiagnosticsConsoleBuffer>();
-		services.AddSingleton<ILoggerProvider>(sp => new MokaDiagnosticsLoggerProvider(
-			sp.GetRequiredService<MokaDiagnosticsConsoleBuffer>(),
-			sp.GetRequiredService<DiagnosticsOptions>()));
+		services.TryAddSingleton(options);
+		services.TryAddScoped<IMokaDiagnosticsService, MokaDiagnosticsService>();
+		services.TryAddSingleton<MokaDiagnosticsConsoleBuffer>();
+		services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, MokaDiagnosticsLoggerProvider>(sp =>
+			new MokaDiagnosticsLoggerProvider(
+				sp.GetRequiredService<MokaDiagnosticsConsoleBuffer>(),
+				sp.GetRequiredService<DiagnosticsOptions>())));
 
 		// MokaComponentBase and MokaInputBase report their JS interop calls to this when it is registered.
-		services.AddScoped<IMokaJsInteropObserver, DiagnosticsJsInteropObserver>();
-		services.AddSingleton<MokaDiagnosticsSessions>();
+		services.TryAddScoped<IMokaJsInteropObserver, DiagnosticsJsInteropObserver>();
+		services.TryAddSingleton<MokaDiagnosticsSessions>();
 
 		return services;
 	}
+
+	private static DiagnosticsOptions? RegisteredOptions(IServiceCollection services) =>
+		services
+			.Where(descriptor => descriptor.ServiceType == typeof(DiagnosticsOptions) && !descriptor.IsKeyedService)
+			.Select(descriptor => descriptor.ImplementationInstance)
+			.OfType<DiagnosticsOptions>()
+			.FirstOrDefault();
 }

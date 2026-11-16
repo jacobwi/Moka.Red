@@ -531,6 +531,8 @@ public static partial class MokaTokens
 			Token("--moka-focus-width", MokaTokenGroup.Interaction, MokaTokenKind.Length, "The width of focus outlines.", _ => "2px"),
 			Token("--moka-border-width", MokaTokenGroup.Interaction, MokaTokenKind.Length, "The width of borders.", _ => "1px"),
 			Token("--moka-focus-ring", MokaTokenGroup.Interaction, MokaTokenKind.Other, "The ring around a focused control.", FocusRing),
+			Token("--moka-focus-glow", MokaTokenGroup.Interaction, MokaTokenKind.Other,
+				"A soft glow that joins a focused field to the list it has open.", FocusGlow),
 			Token("--moka-focus-ring-error", MokaTokenGroup.Interaction, MokaTokenKind.Other, "The ring around a focused control in error.",
 				_ => "0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)"),
 			Token("--moka-selected-glow", MokaTokenGroup.Interaction, MokaTokenKind.Other, "How a selected row, tab or item is marked.", SelectedGlow),
@@ -634,13 +636,19 @@ public static partial class MokaTokens
 		];
 	}
 
+	// On the new design the ring is solid primary past a hairline of surface, so it stands out against the surface and against
+	// a filled control: a 22% glow measured 1.3 to 1.5:1 on every preset, short of the 3:1 a focus indicator needs.
 	private static string FocusRing(MokaTokenContext context) => context.Gate
 		? context.Theme.Selection == MokaSelection.Glow
-			? "0 0 0 3px var(--moka-color-primary-focus), inset 0 0 12px var(--moka-color-primary-glow)"
-			: "0 0 0 3px var(--moka-color-primary-focus)"
+			? "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary), inset 0 0 12px var(--moka-color-primary-glow)"
+			: "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)"
 		: context.Dark
 			? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
 			: "0 0 0 3px var(--moka-color-primary-glow)";
+
+	private static string FocusGlow(MokaTokenContext context) => context.Gate
+		? "0 0 0 3px var(--moka-color-primary-focus)"
+		: "0 0 0 3px var(--moka-color-primary-glow)";
 
 	private static string SelectedGlow(MokaTokenContext context) => context.Gate
 		? context.Theme.Selection switch

@@ -80,6 +80,8 @@ dotnet new mokared-server -n MyApp
 
 Also `mokared-wasm`, `mokared-maui`, and `mokared-rcl`.
 
+`mokared-maui` targets Android, iOS, Mac Catalyst and Windows, and needs the .NET MAUI workload (`dotnet workload install maui`). Building for iOS or Mac Catalyst needs a Mac.
+
 `mokared-server --interactivity WebAssembly` or `Auto` adds a `MyApp.Client` project inside the app's folder, for the components that run in the browser. `dotnet run` from the app's folder still starts it.
 
 ## Documentation

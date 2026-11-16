@@ -305,7 +305,7 @@
 .moka-fileupload-retry:focus-visible,
 .moka-fileupload-action:focus-visible,
 .moka-fileupload-textbtn:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

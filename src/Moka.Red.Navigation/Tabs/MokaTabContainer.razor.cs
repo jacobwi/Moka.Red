@@ -116,6 +116,17 @@ public partial class MokaTabContainer<TValue> : IAsyncDisposable
 	public bool CloseOnMiddleClick { get; set; } = true;
 
 	/// <summary>
+	///     Adds a button at the strip's end, shown while the tabs don't all fit, that lists every open tab; picking one
+	///     activates it and brings it into view. See <see cref="MokaTabStrip{TValue}.ShowTabList" />. Default false.
+	/// </summary>
+	[Parameter]
+	public bool ShowTabList { get; set; }
+
+	/// <summary>Names the tab list button and its tooltip (<see cref="ShowTabList" />). Defaults to "All tabs".</summary>
+	[Parameter]
+	public string TabListLabel { get; set; } = "All tabs";
+
+	/// <summary>
 	///     Saves the open tabs under this key after every change, and restores them the first time a
 	///     container renders for the session. Uses the registered <see cref="ITabStorageProvider" />;
 	///     <c>AddMokaTabs</c> registers one backed by the browser's sessionStorage. A tab's

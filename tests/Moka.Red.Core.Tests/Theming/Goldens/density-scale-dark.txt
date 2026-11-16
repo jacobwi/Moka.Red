@@ -1,7 +1,7 @@
 class: moka-root moka-dark
 nested-class: moka-root moka-root--nested moka-dark
 page: 
-root-declares: 299
+root-declares: 300
 nested-root-declares: 0
 
 --moka-color-primary: #ef5350
@@ -275,6 +275,7 @@ nested-root-declares: 0
 --moka-focus-width: 2px
 --moka-border-width: 1px
 --moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)
+--moka-focus-glow: 0 0 0 3px var(--moka-color-primary-glow)
 --moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)
 --moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow)
 --moka-selected-bar: none

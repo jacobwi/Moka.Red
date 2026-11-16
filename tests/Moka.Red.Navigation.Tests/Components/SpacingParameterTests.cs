@@ -4,6 +4,7 @@ using Bunit.Rendering;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Navigation.AppShell;
 using Moka.Red.Navigation.Breadcrumb;
+using Moka.Red.Navigation.CommandBar;
 using Moka.Red.Navigation.Menu;
 using Moka.Red.Navigation.Sidebar;
 using Moka.Red.Navigation.Tabs;
@@ -33,7 +34,8 @@ public class SpacingParameterTests : BunitContext
 			+ SpacingCase.IconStyle("14px"),
 			("Name", "BC")) { Box = ".moka-account-card__card" },
 		["Breadcrumb"] = new(typeof(MokaBreadcrumb), ""),
-		["BreadcrumbPath"] = new(typeof(MokaBreadcrumb), "", ("Look", MokaBreadcrumbLook.Path))
+		["BreadcrumbPath"] = new(typeof(MokaBreadcrumb), "", ("Look", MokaBreadcrumbLook.Path)),
+		["CommandBar"] = new(typeof(MokaCommandBar), SpacingCase.IconStyle("14px"))
 	};
 
 	// MokaAppShell asks how it renders, as a component in an interactive layout.

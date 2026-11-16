@@ -1,5 +1,5 @@
-<DemoSection Id="cards-in-columns" Title="Cards in columns" Description="Drag a card to another column or another place in its own. OnItemMoved reports where it went; the lists are the app's.">
-	<MokaKanbanBoard TItem="WorkItem" Columns="_columns" OnItemMoved="Moved" MaxHeight="22rem">
+<DemoSection Id="cards-in-columns" Title="Cards in columns" Description="Drag a card to another column or another place in its own: a copy follows the pointer and a bar shows where it lands. From the keyboard, focus a card and press Space, move it with the arrow keys, and press Space again. OnItemMoved reports where it went; the lists are the app's.">
+	<MokaKanbanBoard TItem="WorkItem" Columns="_columns" OnItemMoved="Moved" ItemKey="task => task.Title" MaxHeight="22rem">
 		<ItemTemplate Context="task">
 			<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xxs);">
 				<strong>@task.Title</strong>
@@ -10,17 +10,31 @@
 	<MokaCaption>@_moved</MokaCaption>
 </DemoSection>
 
+<DemoSection Id="limits" Title="Work-in-progress limits" Description="A column's Limit shows the count against it in the header and marks the column once it holds more. A card can still be dropped there.">
+	<MokaKanbanBoard TItem="WorkItem" Columns="_limited" ItemKey="task => task.Title" MaxHeight="18rem">
+		<ItemTemplate Context="task">@task.Title</ItemTemplate>
+	</MokaKanbanBoard>
+</DemoSection>
+
 @code {
 	private readonly IReadOnlyList<MokaKanbanColumn<WorkItem>> _columns =
 	[
-		new("To do", [new("Draft the report", "avery"), new("Collect the numbers", "sam")]),
+		new("To do", [new("Draft the report", "avery"), new("Collect the numbers", "sam"), new("Plan the review", "jo")]),
 		new("Doing", [new("Review the budget", "jo")], MokaColor.Info),
 		new("Done", [new("Book the room", "avery")], MokaColor.Success)
 	];
 
+	private readonly IReadOnlyList<MokaKanbanColumn<WorkItem>> _limited =
+	[
+		new("Ready", [new("Write the brief", "sam"), new("Pick a venue", "jo")]),
+		new("Doing", [new("Order the prints", "avery"), new("Call the printer", "sam")], MokaColor.Warning) { Limit = 2 },
+		new("Done", [], MokaColor.Success)
+	];
+
 	private string _moved = "Nothing moved yet.";
 
-	private void Moved(MokaKanbanItemMovedArgs<WorkItem> move) => _moved = $"Moved \"{move.Item.Title}\".";
+	private void Moved(MokaKanbanItemMovedArgs<WorkItem> move) =>
+		_moved = $"Moved \"{move.Item.Title}\" from column {move.FromColumnIndex + 1}, place {move.FromIndex + 1} to column {move.ToColumnIndex + 1}, place {move.ToIndex + 1}.";
 
 	private sealed record WorkItem(string Title, string Owner);
 }

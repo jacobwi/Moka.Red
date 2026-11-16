@@ -11,7 +11,7 @@ namespace Moka.Red.Primitives.Terminal;
 ///     runs the commands, and this only draws them. Output is drawn in chunks that don't redraw once their lines are
 ///     final, so a long log stays quick while lines arrive.
 /// </summary>
-public partial class MokaTerminal : MokaComponentBase
+public partial class MokaTerminal : MokaVisualComponentBase
 {
 	private ElementReference _bodyRef;
 
@@ -99,11 +99,6 @@ public partial class MokaTerminal : MokaComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-terminal--line-numbers", ShowLineNumbers)
 		.AddClass(Class)
-		.Build();
-
-	/// <inheritdoc />
-	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle(Style)
 		.Build();
 
 	private string BodyStyle => new StyleBuilder()

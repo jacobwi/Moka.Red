@@ -12,7 +12,7 @@
   "precedence": 100,
   "name": "Moka.Red Blazor WebAssembly App",
   "shortName": "mokared-wasm",
-  "description": "A Blazor WebAssembly app pre-configured with the Moka.Red UI component library and matrix dark theme.",
+  "description": "A Blazor WebAssembly app pre-configured with the Moka.Red UI component library and its dark Red theme.",
   "defaultName": "MokaRedWasmApp",
   "sourceName": "MokaRedWasm",
   "preferNameDirectory": true,
@@ -42,7 +42,7 @@
     "DarkMode": {
       "type": "parameter",
       "datatype": "bool",
-      "description": "Start with the matrix dark theme. When false, starts in light mode.",
+      "description": "Start in dark mode. When false, starts in light mode.",
       "defaultValue": "true",
       "displayName": "Dark Mode (Matrix Theme)"
     },

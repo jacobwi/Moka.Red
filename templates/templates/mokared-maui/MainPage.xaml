@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:MokaRedMaui"
+             xmlns:components="clr-namespace:MokaRedMaui.Components"
              x:Class="MokaRedMaui.MainPage"
-             BackgroundColor="{AppThemeBinding Light=White, Dark=#060608}">
+             BackgroundColor="{AppThemeBinding Light=#F5F5F6, Dark=#0C0C0E}">
 
     <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
         <BlazorWebView.RootComponents>
-            <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
+            <RootComponent Selector="#app" ComponentType="{x:Type components:Routes}" />
         </BlazorWebView.RootComponents>
     </BlazorWebView>
 

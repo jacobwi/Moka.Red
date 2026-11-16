@@ -185,7 +185,7 @@ button.moka-chart-legend__item:hover:not(:disabled) {
 }
 
 button.moka-chart-legend__item:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 
@@ -245,7 +245,7 @@ button.moka-chart-legend__item:disabled {
 }
 
 .moka-chart-legend__more-button:focus-visible {
-	outline: none;
+	outline: var(--moka-focus-width) solid transparent;
 	box-shadow: var(--moka-focus-ring);
 }
 

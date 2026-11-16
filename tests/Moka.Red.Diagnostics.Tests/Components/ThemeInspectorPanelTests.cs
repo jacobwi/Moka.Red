@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
 using Moka.Red.Diagnostics.Components.Panels;
 using Moka.Red.Diagnostics.Extensions;
@@ -38,7 +39,9 @@ public class ThemeInspectorPanelTests : BunitContext
 			.Add(p => p.Theme, MokaTheme.Light));
 
 		IReadOnlyList<IElement> groups = cut.FindAll(".moka-diag-group-header");
-		Assert.Equal(4, groups.Count);
+		IReadOnlyDictionary<string, string> written = MokaTheme.Light.ToTokenMap();
+		Assert.Equal(MokaTokens.All.Where(t => written.ContainsKey(t.Name)).Select(t => t.Group).Distinct().Count(), groups.Count);
+		Assert.Equal(written.Count, cut.FindAll(".moka-diag-token-row").Count);
 	}
 
 	[Fact]
@@ -62,7 +65,9 @@ public class ThemeInspectorPanelTests : BunitContext
 	}
 
 	// The panel wrote token values into the style attribute as they were. A theme is anyone's to
-	// build, so a value could add declarations of its own, or load a url() as the swatch background.
+	// build, so a value could add declarations of its own, or load a url() as the swatch background. A value that could
+	// end its declaration isn't written by the theme at all, so it isn't listed; one that is written but isn't a color
+	// gets no swatch.
 	[Fact]
 	public void TokenValues_ThatAreNotSafe_GetNoPreviewStyle()
 	{
@@ -79,9 +84,9 @@ public class ThemeInspectorPanelTests : BunitContext
 		IRenderedComponent<ThemeInspectorPanel> cut = Render<ThemeInspectorPanel>(parameters => parameters
 			.Add(p => p.Theme, theme));
 
-		Assert.Null(Preview(cut, "--moka-color-primary").GetAttribute("style"));
+		Assert.DoesNotContain(cut.FindAll(".moka-diag-token-name"), name => name.TextContent == "--moka-color-primary");
+		Assert.DoesNotContain(cut.FindAll(".moka-diag-token-name"), name => name.TextContent == "--moka-spacing-md");
 		Assert.Null(Preview(cut, "--moka-color-secondary").GetAttribute("style"));
-		Assert.Null(Preview(cut, "--moka-spacing-md").GetAttribute("style"));
 	}
 
 	[Fact]
@@ -96,7 +101,8 @@ public class ThemeInspectorPanelTests : BunitContext
 		IRenderedComponent<ThemeInspectorPanel> cut = Render<ThemeInspectorPanel>(parameters => parameters
 			.Add(p => p.Theme, theme));
 
-		Assert.Equal("background-color: rgb(239 83 80 / 90%)", Preview(cut, "--moka-color-primary").GetAttribute("style"));
+		Assert.True(theme.TryResolveColor("rgb(239 83 80 / 90%)", out MokaSrgb primary));
+		Assert.Equal($"background-color: {primary}", Preview(cut, "--moka-color-primary").GetAttribute("style"));
 		Assert.Equal("width: calc(0.5rem + 1px)", Preview(cut, "--moka-spacing-md").GetAttribute("style"));
 	}
 

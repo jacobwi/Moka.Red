@@ -3368,3 +3368,62 @@ missing ::deep) on best practice. Unreleased; CHANGELOG [Unreleased] lists it al
   ThemeChoice and ThemeRootClasses. Goldens re-recorded: only the three tokens.
 - tests/Shared/ScopedCss split selector lists at every comma, so a selector with :is(a, b) could never be found (one
   toolbar test looked a rule up by "textarea)"). It splits at top-level commas now.
+
+## 2026-11-15 - 0.7.0 released
+
+BC picked 0.7.0 over 0.6.3 for the release above, since it removes MokaContextMenu.FocusRing. Local checks green (both
+builds, 12 packages with XML docs, three template scaffolds, nothing leaked into the shared cache), CI and the publish
+run green, all 12 packages on NuGet, docs pins on 0.7.0 (preview host built from a clean copy with all 212 docs usings).
+Notices went to MokaGate, Mokaterm, MokaArk and Moka Tunnel. The first scan of the apps counted published copies of the
+library under artifacts/publish/*/wwwroot/_content, so Mokaterm, MokaArk and Moka Tunnel got corrections; Moka Tunnel is
+on Dark and Light, where 0.7.0 changes nothing it uses.
+
+## 2026-11-15 - Fixes for the next version (unreleased)
+
+BC asked "anything to work on", picked the fixes first, then added a Diagnostics audit; 3D charts were offered and BC
+said skip (they stay on the not-built-by-design list). Four fixes ran in parallel agents, each in its own worktree,
+merged here by patch; I did the focus contrast.
+- Focus contrast: the new design's --moka-focus-ring was a 22% accent glow, measured 1.26 to 1.48:1 against surfaces on
+  every preset (WCAG 1.4.11 asks 3:1). Now 0 0 0 1px surface, 0 0 0 3px primary (4.9:1 or more, FocusRingTests over ten
+  presets and high contrast). The old glow is --moka-focus-glow (300 tokens), used only by the Attached list look, which
+  joined the field and its open list with it. Dark and Light keep theirs (rule; known issue 11 asks BC). Box-shadow rings
+  vanish in forced colors, so the 97 focus rules that drew the ring with outline: none now set a transparent outline as
+  wide as --moka-focus-width (render-neutral; FocusOutlineTests). The other 106 such rules have no outline declaration of
+  their own and were left, since adding one could hide a ring that shows today. Checked in the browser: a filled button
+  shows a solid red ring past a dark hairline, outline 2px transparent.
+- Charts (agent): a fragment handed over again (TitleContent, Actions, EmptyContent, ErrorContent, ToolbarControl,
+  TooltipTemplate, donut center, dot plot NameTemplate) draws the chart again without a rebuild (equal delegates hid the
+  change); a 10,000-point line chart re-rendered 5 times by its parent kept its geometry version and gate renders.
+  Followed blazor/performance/rendering.md. TickTemplate left (known issue 12).
+- Wizard (agent): steps took parameters after the wizard drew from them; a changed step now calls StepChanged in the same
+  batch (components/rendering.md). I added UnregisterStep: a removed step leaves, later steps move up, the step on screen
+  stays and a bound ActiveStep hears it (3 tests).
+- Tab strip (agent): ShowTabList/TabListLabel, an All tabs menu shown only while the strip overflows (ResizeObserver in
+  moka-tabs.js, data-moka-overflow, no .NET calls); tabs never leave the strip, which is why a dropping overflow menu was
+  rejected before. MokaDropdownItem now splats its attributes.
+- Base class (agent): nine visual components on MokaVisualComponentBase, default markup byte-identical across 23 dumped
+  cases; MokaWatermark.Color became ColorValue (breaking, build-time), Color is now the theme color. No app uses it.
+- MAUI template (agent): Platforms for Windows, Android, iOS and Mac Catalyst from Microsoft's maui-blazor template
+  (net10.0 builds on all four here; net9.0-android needs API 35), the font it never shipped removed, the logging package
+  added, an --applicationId option. I fixed the three templates' descriptions, which still said matrix dark theme.
+- Kanban (BC: "when I drag to another column there's no effect to show the new place", then "general improvements"):
+  rebuilt the moving on the bento board's pattern in a collocated MokaKanbanBoard.razor.js. Pointer drags (mouse and pen
+  after 4 px, touch after a 250 ms hold), a copy following the pointer, the card's place dimmed, the target column lit, a
+  bar at the drop place, auto-scroll; keyboard moves with announcements from MokaKanbanText templates. One .NET call per
+  drop (Move), which inserts where the bar showed (also within a column) and raises OnItemMoved with FromIndex/ToIndex.
+  Also Limit on columns, ItemKey (cards were unkeyed), ItemLabel, Disabled stops moving, and the context-menu listener
+  only while someone listens. No app uses the board, so the within-column move and insert-at-place defaults are safe.
+  Checked in the browser with dispatched pointer events (copy, dim, lit column and bar mid-drag; drop to Doing place 2)
+  and real keys (Space, Right, Right, Space: dropped in Done place 1, focus followed). 22 bUnit tests.
+- MCP: install-local.ps1 now removes moka-red from local, project and user scope before adding it back (it was at user
+  and local with two command lines). Run at the end of this round.
+- Diagnostics audit (agent, plus BC: "tabs are not responsive, no arrow to scroll right"): the Theme tab showed 53 of
+  299 tokens, now all of ToTokenMap() by MokaTokenGroup with resolved swatches; panels re-rendered every second with
+  unkeyed rows (one PanelRefresh on TimeProvider, failures through DispatchExceptionAsync; a Log refresh 133 KB to 9 KB,
+  idle 581 B a second to nothing); the popup showed the default theme; focus fell to body on open and close, Escape did
+  nothing; a second AddMokaDiagnostics doubled every log line; a shared module-level shortcut listener; Perf Clear
+  revived disposed entries, which grew without limit; first renders recorded 0 ms. The overlay's tab row scrolls with
+  arrows (ResizeObserver plus passive scroll in moka-diagnostics.js, data-moka-overflow/-more-start/-more-end; the page
+  keeps wrapping). Checked at 375 px: right arrow shown, left hidden, focus in the panel. 128 tests (94 before).
+  Followed synchronization-context.md, rendering.md, fundamentals/logging.md, file-downloads.md. Left: MokaTooltip on its
+  buttons (needs a Primitives reference), the full tabs pattern, per-circuit settings, gating outside Development.
