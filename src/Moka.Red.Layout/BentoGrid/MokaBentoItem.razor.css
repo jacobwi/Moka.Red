@@ -228,4 +228,4 @@
 
 .moka-gate .moka-bento-item--clickable:hover { border-color: var(--moka-color-outline-hover); box-shadow: var(--moka-shadow-1); }
 .moka-gate .moka-bento-item--clickable:active { box-shadow: var(--moka-shadow-1); }
-.moka-gate .moka-bento-item--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-bento-item--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }

@@ -14,6 +14,8 @@ public static class ServiceCollectionExtensions
 	/// <summary>
 	///     Adds the Moka.Red diagnostics overlay services. Calling it again registers nothing twice, so a log message is
 	///     captured once, and its <paramref name="configure" /> changes the options the first call registered.
+	///     Outside the <c>Development</c> environment the diagnostics stay off unless
+	///     <see cref="DiagnosticsOptions.EnableOutsideDevelopment" /> is set.
 	/// </summary>
 	/// <param name="services">The service collection.</param>
 	/// <param name="configure">Optional configuration for diagnostics options.</param>
@@ -28,12 +30,17 @@ public static class ServiceCollectionExtensions
 		configure?.Invoke(options);
 
 		services.TryAddSingleton(options);
-		services.TryAddScoped<IMokaDiagnosticsService, MokaDiagnosticsService>();
+		services.TryAddSingleton(sp =>
+			MokaDiagnosticsAvailability.For(sp, sp.GetRequiredService<DiagnosticsOptions>()));
+		services.TryAddScoped<IMokaDiagnosticsService>(sp => new MokaDiagnosticsService(
+			sp.GetRequiredService<DiagnosticsOptions>(),
+			sp.GetRequiredService<MokaDiagnosticsAvailability>().IsOn));
 		services.TryAddSingleton<MokaDiagnosticsConsoleBuffer>();
 		services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, MokaDiagnosticsLoggerProvider>(sp =>
 			new MokaDiagnosticsLoggerProvider(
 				sp.GetRequiredService<MokaDiagnosticsConsoleBuffer>(),
-				sp.GetRequiredService<DiagnosticsOptions>())));
+				sp.GetRequiredService<DiagnosticsOptions>(),
+				sp.GetRequiredService<MokaDiagnosticsAvailability>().IsOn)));
 
 		// MokaComponentBase and MokaInputBase report their JS interop calls to this when it is registered.
 		services.TryAddScoped<IMokaJsInteropObserver, DiagnosticsJsInteropObserver>();

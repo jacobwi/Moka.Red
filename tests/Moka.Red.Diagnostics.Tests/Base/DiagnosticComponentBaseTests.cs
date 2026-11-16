@@ -7,7 +7,7 @@ using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Tests.Base;
 
-public class DiagnosticComponentBaseTests : BunitContext
+public class DiagnosticComponentBaseTests : DevelopmentContext
 {
 	public DiagnosticComponentBaseTests()
 	{

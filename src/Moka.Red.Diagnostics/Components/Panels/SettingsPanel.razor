@@ -1,67 +1,87 @@
 @using System.Globalization
 
-@if (_diagnosticsService is not null && Options is not null)
+@if (_diagnosticsService is not null && Settings is not null && Options is not null)
 {
-	@* Each setting's text labels its control, so screen readers say what the control sets. *@
+	@* Each setting's text labels its control, so screen readers say what the control sets. Each group says how far its
+	   settings reach, and a screen reader hears that on entering the group. *@
 	<div class="moka-diag-settings">
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("position")">Overlay Position</label>
-			<select class="moka-diag-settings-select" id="@FieldId("position")" @bind:get="Options.Position" @bind:set="SetPosition">
-				<option value="BottomRight">Bottom Right</option>
-				<option value="BottomLeft">Bottom Left</option>
-				<option value="TopRight">Top Right</option>
-				<option value="TopLeft">Top Left</option>
-			</select>
-		</div>
+		<fieldset class="moka-diag-settings-section" aria-describedby="@FieldId("window-note")">
+			<legend class="moka-diag-settings-legend">Per window</legend>
+			<p class="moka-diag-settings-note" id="@FieldId("window-note")">
+				Each window keeps its own until it reloads, starting from the app's options.
+			</p>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("width")">Panel Width</label>
-			<div class="moka-diag-settings-range">
-				<input type="range" id="@FieldId("width")" min="300" max="600" step="10" @bind:get="Options.PanelWidth" @bind:set="SetPanelWidth" @bind:culture="CultureInfo.InvariantCulture"/>
-				<span class="moka-diag-settings-value">@(Options.PanelWidth)px</span>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("position")">Overlay Position</label>
+				<select class="moka-diag-settings-select" id="@FieldId("position")" @bind:get="Settings.Position" @bind:set="SetPosition">
+					<option value="BottomRight">Bottom Right</option>
+					<option value="BottomLeft">Bottom Left</option>
+					<option value="TopRight">Top Right</option>
+					<option value="TopLeft">Top Left</option>
+				</select>
 			</div>
-		</div>
 
-		<div class="moka-diag-settings-group">
-			<span class="moka-diag-settings-label">Keyboard Shortcut</span>
-			<span class="moka-diag-settings-value">@Options.KeyboardShortcut</span>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("width")">Panel Width</label>
+				<div class="moka-diag-settings-range">
+					<input type="range" id="@FieldId("width")" min="300" max="600" step="10" @bind:get="Settings.PanelWidth" @bind:set="SetPanelWidth" @bind:culture="CultureInfo.InvariantCulture"/>
+					<span class="moka-diag-settings-value">@(Settings.PanelWidth)px</span>
+				</div>
+			</div>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("expand")">Auto-expand</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("expand")" @bind:get="Options.StartExpanded" @bind:set="SetAutoExpand"/>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("pause")">Pause Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("pause")" @bind:get="_diagnosticsService.IsPaused" @bind:set="SetPaused"/>
+			</div>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("pause")">Pause Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("pause")" @bind:get="_diagnosticsService.IsPaused" @bind:set="SetPaused"/>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("render")">Render Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("render")" @bind:get="Settings.RenderTrackingEnabled" @bind:set="SetRenderTracking"/>
+			</div>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("log-level")">Console Log Level</label>
-			<select class="moka-diag-settings-select" id="@FieldId("log-level")" @bind:get="Options.MinConsoleLogLevel" @bind:set="SetMinLogLevel">
-				<option value="Trace">Trace</option>
-				<option value="Debug">Debug</option>
-				<option value="Information">Info</option>
-				<option value="Warning">Warning</option>
-				<option value="Error">Error</option>
-				<option value="Critical">Critical</option>
-			</select>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("js")">JS Interop Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("js")" @bind:get="Settings.JsInteropTrackingEnabled" @bind:set="SetJsInteropTracking"/>
+			</div>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("max-events")">Max Event Log Entries</label>
-			<input type="number" class="moka-diag-settings-number" id="@FieldId("max-events")" min="100" max="1000" step="50" @bind:get="Options.MaxEventLogEntries" @bind:set="SetMaxEventLog"/>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("max-events")">Max Event Log Entries</label>
+				<input type="number" class="moka-diag-settings-number" id="@FieldId("max-events")" min="100" max="1000" step="50" @bind:get="Settings.MaxEventLogEntries" @bind:set="SetMaxEventLog"/>
+			</div>
+		</fieldset>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("render")">Render Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("render")" @bind:get="Options.RenderTrackingEnabled" @bind:set="SetRenderTracking"/>
-		</div>
+		<fieldset class="moka-diag-settings-section" aria-describedby="@FieldId("app-note")">
+			<legend class="moka-diag-settings-legend">Whole app</legend>
+			<p class="moka-diag-settings-note" id="@FieldId("app-note")">
+				Shared by every window and every user: the console keeps one log for the whole app.
+			</p>
 
-		<div class="moka-diag-settings-group">
-			<label class="moka-diag-settings-label" for="@FieldId("js")">JS Interop Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="@FieldId("js")" @bind:get="Options.JsInteropTrackingEnabled" @bind:set="SetJsInteropTracking"/>
-		</div>
+			<div class="moka-diag-settings-group">
+				<label class="moka-diag-settings-label" for="@FieldId("log-level")">Console Log Level</label>
+				<select class="moka-diag-settings-select" id="@FieldId("log-level")" @bind:get="Options.MinConsoleLogLevel" @bind:set="SetMinLogLevel">
+					<option value="Trace">Trace</option>
+					<option value="Debug">Debug</option>
+					<option value="Information">Info</option>
+					<option value="Warning">Warning</option>
+					<option value="Error">Error</option>
+					<option value="Critical">Critical</option>
+				</select>
+			</div>
+		</fieldset>
+
+		<fieldset class="moka-diag-settings-section" aria-describedby="@FieldId("startup-note")">
+			<legend class="moka-diag-settings-legend">Set at startup</legend>
+			<p class="moka-diag-settings-note" id="@FieldId("startup-note")">From AddMokaDiagnostics, for every window.</p>
+
+			<div class="moka-diag-settings-group">
+				<span class="moka-diag-settings-label">Keyboard Shortcut</span>
+				<span class="moka-diag-settings-value">@Options.KeyboardShortcut</span>
+			</div>
+
+			<div class="moka-diag-settings-group">
+				<span class="moka-diag-settings-label">Opens on Load</span>
+				<span class="moka-diag-settings-value">@(Options.StartExpanded ? "Yes" : "No")</span>
+			</div>
+		</fieldset>
 	</div>
 }

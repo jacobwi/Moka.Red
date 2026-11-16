@@ -348,6 +348,7 @@
 .moka-gate .moka-select-trigger:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-select-trigger--sm { min-height: var(--moka-control-height-sm); padding: 0 var(--moka-button-padding-sm); font-size: var(--moka-font-size-sm); }
@@ -477,6 +478,7 @@
 
 .moka-gate .moka-select--error .moka-select-trigger:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* List looks (MokaListLook). Each is a class on the root, and the list stays inside the root in the DOM while it

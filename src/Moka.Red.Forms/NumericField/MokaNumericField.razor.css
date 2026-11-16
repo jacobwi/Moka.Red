@@ -79,4 +79,5 @@
 
 .moka-gate .moka-numericfield--error .moka-numericfield-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }

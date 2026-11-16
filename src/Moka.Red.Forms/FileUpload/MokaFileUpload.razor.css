@@ -125,6 +125,7 @@
 .moka-fileupload-dropzone:has(:focus-visible) {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* File list */
@@ -679,6 +680,7 @@
 .moka-fileupload-slot:has(> .moka-fileupload-native:focus-visible) {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-fileupload-field--dragging {
@@ -808,7 +810,7 @@
 	color: var(--moka-color-primary-light);
 }
 
-.moka-fileupload-picture:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); }
+.moka-fileupload-picture:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-fileupload-picture--dragging {
 	box-shadow: 0 0 0 var(--moka-spacing-xs) var(--moka-color-primary-ring);
@@ -1005,7 +1007,7 @@
 	color: var(--moka-color-primary-light);
 }
 
-.moka-fileupload-gallery:has(> .moka-fileupload-native:focus-visible) .moka-fileupload-add { box-shadow: var(--moka-focus-ring); }
+.moka-fileupload-gallery:has(> .moka-fileupload-native:focus-visible) .moka-fileupload-add { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 /* Quiet: one line under the fields. */
 .moka-fileupload-quiet {
@@ -1082,7 +1084,7 @@
 	background: var(--moka-color-primary-glow);
 }
 
-.moka-fileupload-term:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); }
+.moka-fileupload-term:has(> .moka-fileupload-native:focus-visible) { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-fileupload-term-line {
 	min-width: 0;

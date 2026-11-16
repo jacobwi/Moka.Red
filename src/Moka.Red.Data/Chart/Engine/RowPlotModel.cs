@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Charts;
 
 namespace Moka.Red.Data.Chart;
@@ -19,7 +18,6 @@ namespace Moka.Red.Data.Chart;
 /// <param name="ShowValueAxis">Whether the value axis's labels are drawn.</param>
 /// <param name="ValueTitle">The value axis's title.</param>
 /// <param name="Annotations">The thresholds and bands, drawn down the rows.</param>
-/// <param name="ValueTemplate">Draws each value tick, when the value axis has a template.</param>
 /// <param name="BaselineShare">Where the baseline runs, or NaN on a time axis.</param>
 internal sealed record RowPlotModel(
 	MokaScale? Scale,
@@ -37,5 +35,4 @@ internal sealed record RowPlotModel(
 	bool ShowValueAxis,
 	string? ValueTitle,
 	PlotAnnotations Annotations,
-	RenderFragment<MokaAxisTick>? ValueTemplate,
 	double BaselineShare);

@@ -69,6 +69,7 @@
 .moka-gate .moka-rating:focus-visible {
 	border-radius: var(--moka-radius-md);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-rating-star {

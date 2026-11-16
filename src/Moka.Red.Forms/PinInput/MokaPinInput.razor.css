@@ -141,6 +141,7 @@
 .moka-gate .moka-pin-digit:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-pin--error .moka-pin-digit:hover:not(:focus) { border-color: var(--moka-color-error); }

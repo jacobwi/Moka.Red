@@ -3,19 +3,28 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Theming;
+using Moka.Red.Core.Utilities;
 using Moka.Red.Diagnostics.Services;
+using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Icons;
 
 namespace Moka.Red.Diagnostics.Components;
 
 /// <summary>
 ///     Floating diagnostics overlay with badge toggle, tabbed panel, drag support,
-///     and open-in-new-window capability.
+///     and open-in-new-window capability. It renders nothing outside the Development environment unless
+///     <see cref="DiagnosticsOptions.EnableOutsideDevelopment" /> is set.
 /// </summary>
 public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDisposable
 {
 	private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
-	private string _activeTab = "Console";
+
+	// The tabs and their panel point at each other by id, and an id must be unique in the page.
+	private readonly string _idPrefix = $"moka-diag-{Guid.NewGuid():N}";
+	private readonly string _panelId;
+	private string _activeTab = DiagnosticsTabs.Console;
 	private ElementReference _badgeRef;
 	private IMokaDiagnosticsService? _diagnosticsService;
 	private bool _disposed;
@@ -33,6 +42,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	private IJSObjectReference? _tabRow;
 	private string? _tabRowBoundTo;
 	private ElementReference _tabsRowRef;
+
+	/// <summary>Creates the overlay.</summary>
+	public MokaDiagnosticsOverlay() => _panelId = $"{_idPrefix}-panel";
 
 	private enum FocusTarget
 	{
@@ -58,7 +70,7 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	{
 		get
 		{
-			OverlayPosition position = _diagnosticsService?.Options.Position ?? OverlayPosition.BottomRight;
+			OverlayPosition position = _diagnosticsService?.Settings.Position ?? OverlayPosition.BottomRight;
 			return position switch
 			{
 				OverlayPosition.BottomRight => "bottom: 16px; right: 16px;",
@@ -70,7 +82,23 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		}
 	}
 
-	private string PanelStyle => $"{PositionStyle} width: {_diagnosticsService?.Options.PanelWidth ?? 480}px;";
+	private string PanelStyle => $"{PositionStyle} width: {_diagnosticsService?.Settings.PanelWidth ?? 480}px;";
+
+	// The badge's name opens away from the corner it sits in.
+	private MokaTooltipPosition BadgeTooltipPosition =>
+		(_diagnosticsService?.Settings.Position ?? OverlayPosition.BottomRight) switch
+		{
+			OverlayPosition.BottomLeft => MokaTooltipPosition.TopStart,
+			OverlayPosition.TopRight => MokaTooltipPosition.BottomEnd,
+			OverlayPosition.TopLeft => MokaTooltipPosition.BottomStart,
+			_ => MokaTooltipPosition.TopEnd
+		};
+
+	private MokaIconDefinition PauseIcon => _diagnosticsService?.IsPaused == true ? MokaIcons.Action.Play : MokaIcons.Action.Pause;
+
+	private string PauseClass => new CssBuilder("moka-diag-action-btn")
+		.AddClass("moka-diag-action-btn--active", _diagnosticsService?.IsPaused == true)
+		.Build();
 
 	/// <summary>
 	///     Stops listening to the diagnostics service, ends the overlay's popup session and releases its JavaScript
@@ -82,7 +110,9 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 
 		if (_diagnosticsService is not null)
 		{
-			_diagnosticsService.OnOverlayVisibilityChanged -= OnVisibilityChanged;
+			_diagnosticsService.OnOverlayVisibilityChanged -= HandleVisibilityChanged;
+			_diagnosticsService.OnPauseStateChanged -= HandleShownStateChanged;
+			_diagnosticsService.Settings.Changed -= HandleShownStateChanged;
 		}
 
 		if (_session is not null)
@@ -110,13 +140,18 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
-		_diagnosticsService = Services.GetService<IMokaDiagnosticsService>();
+		_diagnosticsService = DiagnosticsServiceResolver.Resolve(null, Services);
 		_sessions = Services.GetService<MokaDiagnosticsSessions>();
 
 		if (_diagnosticsService is not null)
 		{
-			_isExpanded = _diagnosticsService.Options.StartExpanded;
-			_diagnosticsService.OnOverlayVisibilityChanged += OnVisibilityChanged;
+			// The service belongs to this window, so a layout that mounts the overlay again finds the panel as it was left.
+			_isExpanded = _diagnosticsService.IsOverlayVisible;
+			_diagnosticsService.OnOverlayVisibilityChanged += HandleVisibilityChanged;
+
+			// The popup page can pause this window or change its settings from its own circuit.
+			_diagnosticsService.OnPauseStateChanged += HandleShownStateChanged;
+			_diagnosticsService.Settings.Changed += HandleShownStateChanged;
 		}
 	}
 
@@ -271,9 +306,14 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 
 	private void SetActiveTab(string tab) => _activeTab = tab;
 
+	private string TabId(string tab) => $"{_idPrefix}-{tab}";
+
 	private string TabClass(string tab) => _activeTab == tab ? "moka-diag-tab moka-diag-tab--active" : "moka-diag-tab";
 
-	private string TabPressed(string tab) => _activeTab == tab ? "true" : "false";
+	private string Selected(string tab) => _activeTab == tab ? "true" : "false";
+
+	// One tab stop for the row, on the tab showing; the arrow keys move between the others.
+	private string TabIndex(string tab) => _activeTab == tab ? "0" : "-1";
 
 	private async Task OpenInNewWindow()
 	{
@@ -325,11 +365,24 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		await _jsModule.SafeInvokeVoidAsync("downloadJson", content, filename);
 	}
 
-	private void OnVisibilityChanged(object? sender, EventArgs e) => _ = ApplyVisibilityAsync();
+	private void HandleVisibilityChanged(object? sender, EventArgs e) => _ = DispatchAsync(ApplyVisibility);
 
-	// The visibility can be set from anywhere that holds the service, on any thread; the render goes to the renderer's
+	private void HandleShownStateChanged(object? sender, EventArgs e) => _ = DispatchAsync(StateHasChanged);
+
+	private void ApplyVisibility()
+	{
+		if (_diagnosticsService is null || _diagnosticsService.IsOverlayVisible == _isExpanded)
+		{
+			return;
+		}
+
+		SetExpanded(_diagnosticsService.IsOverlayVisible, FocusTarget.None);
+		StateHasChanged();
+	}
+
+	// The service's state can change from anywhere that holds it, on any thread; the render goes to the renderer's
 	// thread, and a failure reaches Blazor's error handling rather than vanishing with a discarded task.
-	private async Task ApplyVisibilityAsync()
+	private async Task DispatchAsync(Action change)
 	{
 		if (_disposed)
 		{
@@ -340,13 +393,10 @@ public sealed partial class MokaDiagnosticsOverlay : ComponentBase, IAsyncDispos
 		{
 			await InvokeAsync(() =>
 			{
-				if (_disposed || _diagnosticsService is null || _diagnosticsService.IsOverlayVisible == _isExpanded)
+				if (!_disposed)
 				{
-					return;
+					change();
 				}
-
-				SetExpanded(_diagnosticsService.IsOverlayVisible, FocusTarget.None);
-				StateHasChanged();
 			});
 		}
 		catch (ObjectDisposedException)

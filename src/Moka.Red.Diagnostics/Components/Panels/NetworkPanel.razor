@@ -11,6 +11,7 @@
 			<span class="moka-diag-network-stat">
 				<span class="moka-diag-network-stat-value">@_totalTime.ToString("F1")</span> ms total
 			</span>
+			<button type="button" class="moka-diag-network-clear" @onclick="Clear">Clear</button>
 		</div>
 
 		@if (_sortedEntries.Count > 0)

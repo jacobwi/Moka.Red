@@ -623,6 +623,7 @@
 .moka-colorpicker-field:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-colorpicker-field--invalid,
@@ -1275,6 +1276,7 @@
 .moka-gate .moka-colorpicker-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-colorpicker-input:disabled { opacity: var(--moka-opacity-disabled); }
@@ -1327,12 +1329,14 @@
 .moka-gate .moka-colorpicker-rgb-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-colorpicker-preset { border-radius: var(--moka-radius-md); }
 
 .moka-gate .moka-field--error .moka-colorpicker-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-colorpicker-alpha-slider--checker {

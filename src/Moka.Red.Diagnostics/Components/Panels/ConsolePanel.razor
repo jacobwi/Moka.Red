@@ -34,10 +34,12 @@
 						<span class="moka-diag-console-msg">@msg.Message</span>
 						@if (msg.Exception is not null)
 						{
-							<button type="button" class="moka-diag-console-expand" @onclick="() => ToggleException(msg)"
-							        title="Toggle exception details" aria-label="Exception details" aria-expanded="@(expanded ? "true" : "false")">
-								@(expanded ? "\u25BC" : "\u25B6")
-							</button>
+							<MokaTooltip Text="Exception details" Position="MokaTooltipPosition.BottomEnd" Class="moka-diag-console-expand-tip">
+								<button type="button" class="moka-diag-console-expand" @onclick="() => ToggleException(msg)"
+								        aria-label="Exception details" aria-expanded="@(expanded ? "true" : "false")">
+									@(expanded ? "\u25BC" : "\u25B6")
+								</button>
+							</MokaTooltip>
 						}
 					</div>
 					@if (msg.Exception is not null && expanded)

@@ -8,6 +8,7 @@ namespace Moka.Red.Diagnostics.Services;
 public sealed class MokaDiagnosticsLogger : ILogger
 {
 	private readonly MokaDiagnosticsConsoleBuffer _buffer;
+	private readonly bool _capturing;
 	private readonly string _categoryName;
 	private readonly DiagnosticsOptions _options;
 
@@ -24,11 +25,18 @@ public sealed class MokaDiagnosticsLogger : ILogger
 	///     <see cref="DiagnosticsOptions.MinConsoleLogLevel" /> and above.
 	/// </summary>
 	public MokaDiagnosticsLogger(string categoryName, MokaDiagnosticsConsoleBuffer buffer, DiagnosticsOptions options)
+		: this(categoryName, buffer, options, capturing: true)
+	{
+	}
+
+	internal MokaDiagnosticsLogger(string categoryName, MokaDiagnosticsConsoleBuffer buffer, DiagnosticsOptions options,
+		bool capturing)
 	{
 		ArgumentNullException.ThrowIfNull(options);
 		_categoryName = categoryName;
 		_buffer = buffer;
 		_options = options;
+		_capturing = capturing;
 	}
 
 	/// <inheritdoc />
@@ -37,7 +45,7 @@ public sealed class MokaDiagnosticsLogger : ILogger
 	/// <inheritdoc />
 	public bool IsEnabled(LogLevel logLevel) =>
 		// Read on every call: the Settings tab changes the shared options at runtime.
-		logLevel != LogLevel.None && logLevel >= _options.MinConsoleLogLevel;
+		_capturing && logLevel != LogLevel.None && logLevel >= _options.MinConsoleLogLevel;
 
 	/// <inheritdoc />
 	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,

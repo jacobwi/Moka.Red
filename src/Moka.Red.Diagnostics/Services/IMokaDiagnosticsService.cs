@@ -8,9 +8,16 @@ namespace Moka.Red.Diagnostics.Services;
 public interface IMokaDiagnosticsService
 {
 	/// <summary>
-	///     Gets the current diagnostics configuration.
+	///     Gets the app's diagnostics configuration, which every window shares. What one window changes at runtime is in
+	///     <see cref="Settings" />.
 	/// </summary>
 	DiagnosticsOptions Options { get; }
+
+	/// <summary>
+	///     Gets the settings this window runs with. They start from <see cref="Options" />, and the Settings tab changes
+	///     them for this window only.
+	/// </summary>
+	DiagnosticsSettings Settings { get; }
 
 	/// <summary>
 	///     Gets or sets whether the overlay panel is visible.
@@ -72,7 +79,8 @@ public interface IMokaDiagnosticsService
 	IReadOnlyList<ComponentRenderEntry> GetRenderEntries();
 
 	/// <summary>
-	///     Clears all render tracking data.
+	///     Clears the component data: the render entries, the disposed components and
+	///     <see cref="DisposedComponentCount" />.
 	/// </summary>
 	void ClearRenderData();
 
@@ -105,7 +113,8 @@ public interface IMokaDiagnosticsService
 	void RecordDisposal(string componentType, string componentId);
 
 	/// <summary>
-	///     Clears all performance tracking data (JS interop and disposal).
+	///     Clears the JS interop call data. <see cref="DisposedComponentCount" /> goes with the component data, which
+	///     <see cref="ClearRenderData" /> clears.
 	/// </summary>
 	void ClearPerformanceData();
 

@@ -5,7 +5,7 @@
 
 @if (ShowTabList)
 {
-	<div class="moka-tab-strip-frame" style="@Theme?.ToContainerStyle()">
+	<div class="@FrameCssClass" style="@Theme?.ToContainerStyle()">
 		@Strip
 		<div class="moka-tab-strip-list">
 			<MokaDropdown @bind-Open="_tabListOpen" Position="MokaPopoverPosition.BottomEnd">

@@ -1,6 +1,7 @@
 using System.Runtime;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
 
@@ -23,6 +24,7 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 	private string _latencyMode = "";
 	private int _maxCollections;
 	private PanelRefresh? _refresh;
+	private bool _shown;
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
 
@@ -44,6 +46,14 @@ public sealed partial class MemoryPanel : ComponentBase, IDisposable
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
+		// Force GC belongs to the whole process, so outside the Development environment, unless the app opted in, the
+		// panel shows nothing.
+		_shown = DiagnosticsServiceResolver.IsOn(Services);
+		if (!_shown)
+		{
+			return;
+		}
+
 		RefreshData();
 		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(2),
 			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);

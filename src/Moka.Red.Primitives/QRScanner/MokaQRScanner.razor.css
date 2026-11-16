@@ -158,6 +158,7 @@
 
 .moka-qr-scanner__pick:focus-within {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-qr-scanner__pick--disabled {

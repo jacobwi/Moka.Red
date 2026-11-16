@@ -685,10 +685,11 @@
 .moka-color-swatch-hex:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-color-swatch-hex--invalid { border-color: var(--moka-color-error); }
-.moka-color-swatch-hex--invalid:focus-within { border-color: var(--moka-color-error); box-shadow: var(--moka-focus-ring-error); }
+.moka-color-swatch-hex--invalid:focus-within { border-color: var(--moka-color-error); box-shadow: var(--moka-focus-ring-error); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-color-swatch-hex-dot {
 	flex: none;

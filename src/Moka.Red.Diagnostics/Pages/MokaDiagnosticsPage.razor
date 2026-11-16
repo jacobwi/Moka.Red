@@ -2,81 +2,49 @@
 @namespace Moka.Red.Diagnostics.Pages
 @layout EmptyLayout
 
-<div class="moka-diag-page">
-	<header class="moka-diag-page-header">
-		<h1>Moka.Red Diagnostics</h1>
-	</header>
-	@if (_diagnosticsService is null)
-	{
-		<p class="moka-diag-page-notice">
-			Diagnostics are not registered. Call <code>AddMokaDiagnostics()</code> in Program.cs to fill this page.
-		</p>
-	}
-	else if (_session is { Ended: true })
-	{
-		<p class="moka-diag-page-notice">
-			The window that opened this page has closed. Showing what it had recorded.
-		</p>
-	}
-	else if (_openerService is not null)
-	{
-		<p class="moka-diag-page-notice">Showing the window that opened this page.</p>
-	}
-	else
-	{
-		<p class="moka-diag-page-notice">
-			Showing this window's own data. On Blazor Server, open the page with the overlay's new-window
-			button to see the window it was opened from.
-		</p>
-	}
-	<div class="moka-diag-page-tabs">
-		<button type="button" class="@TabClass("Console")" aria-pressed="@TabPressed("Console")" @onclick='() => _activeTab = "Console"'>Console</button>
-		<button type="button" class="@TabClass("Theme")" aria-pressed="@TabPressed("Theme")" @onclick='() => _activeTab = "Theme"'>Theme</button>
-		<button type="button" class="@TabClass("Render")" aria-pressed="@TabPressed("Render")" @onclick='() => _activeTab = "Render"'>Render</button>
-		<button type="button" class="@TabClass("Tree")" aria-pressed="@TabPressed("Tree")" @onclick='() => _activeTab = "Tree"'>Tree</button>
-		<button type="button" class="@TabClass("Network")" aria-pressed="@TabPressed("Network")" @onclick='() => _activeTab = "Network"'>Network</button>
-		<button type="button" class="@TabClass("Memory")" aria-pressed="@TabPressed("Memory")" @onclick='() => _activeTab = "Memory"'>Memory</button>
-		<button type="button" class="@TabClass("Perf")" aria-pressed="@TabPressed("Perf")" @onclick='() => _activeTab = "Perf"'>Performance</button>
-		<button type="button" class="@TabClass("Services")" aria-pressed="@TabPressed("Services")" @onclick='() => _activeTab = "Services"'>Services</button>
-		<button type="button" class="@TabClass("Log")" aria-pressed="@TabPressed("Log")" @onclick='() => _activeTab = "Log"'>Log</button>
-		<button type="button" class="@TabClass("Settings")" aria-pressed="@TabPressed("Settings")" @onclick='() => _activeTab = "Settings"'>Settings</button>
-	</div>
-	<div class="moka-diag-page-content">
-		@* Set once in OnInitialized and never replaced, so IsFixed is safe. *@
-		<CascadingValue Value="_openerService" Name="@DiagnosticsServiceResolver.CascadeName" IsFixed="true">
-			@switch (_activeTab)
+@if (_shown)
+{
+	<div class="moka-diag-page">
+		<header class="moka-diag-page-header">
+			<h1>Moka.Red Diagnostics</h1>
+		</header>
+		@if (_diagnosticsService is null)
+		{
+			<p class="moka-diag-page-notice">
+				Diagnostics are not registered. Call <code>AddMokaDiagnostics()</code> in Program.cs to fill this page.
+			</p>
+		}
+		else if (_session is { Ended: true })
+		{
+			<p class="moka-diag-page-notice">
+				The window that opened this page has closed. Showing what it had recorded.
+			</p>
+		}
+		else if (_openerService is not null)
+		{
+			<p class="moka-diag-page-notice">Showing the window that opened this page.</p>
+		}
+		else
+		{
+			<p class="moka-diag-page-notice">
+				Showing this window's own data. On Blazor Server, open the page with the overlay's new-window
+				button to see the window it was opened from.
+			</p>
+		}
+		@* The script gives the list the tabs pattern's arrow keys, so moving between tabs costs no round trip. *@
+		<div class="moka-diag-page-tabs" role="tablist" aria-label="Diagnostics" @ref="_tabListRef">
+			@foreach (DiagnosticsTab tab in DiagnosticsTabs.All)
 			{
-				case "Console":
-					<ConsolePanel/>
-					break;
-				case "Theme":
-					<ThemeInspectorPanel Theme="_theme"/>
-					break;
-				case "Render":
-					<RenderTrackerPanel/>
-					break;
-				case "Tree":
-					<ComponentTreePanel/>
-					break;
-				case "Network":
-					<NetworkPanel/>
-					break;
-				case "Memory":
-					<MemoryPanel/>
-					break;
-				case "Perf":
-					<PerformancePanel/>
-					break;
-				case "Services":
-					<ServicesPanel/>
-					break;
-				case "Log":
-					<EventLogPanel/>
-					break;
-				case "Settings":
-					<SettingsPanel/>
-					break;
+				<button type="button" role="tab" id="@TabId(tab.Key)" class="@TabClass(tab.Key)"
+				        aria-selected="@Selected(tab.Key)" aria-controls="@_panelId" tabindex="@TabIndex(tab.Key)"
+				        @onclick="() => _activeTab = tab.Key">@tab.Name</button>
 			}
-		</CascadingValue>
+		</div>
+		<div class="moka-diag-page-content" role="tabpanel" id="@_panelId" aria-labelledby="@TabId(_activeTab)" tabindex="0">
+			@* Set once in OnInitialized and never replaced, so IsFixed is safe. *@
+			<CascadingValue Value="_openerService" Name="@DiagnosticsServiceResolver.CascadeName" IsFixed="true">
+				@DiagnosticsTabs.Panel(_activeTab, _theme)
+			</CascadingValue>
+		</div>
 	</div>
-</div>
+}

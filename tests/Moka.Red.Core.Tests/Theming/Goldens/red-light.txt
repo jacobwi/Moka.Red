@@ -276,7 +276,7 @@ nested-root-declares: 0
 --moka-border-width: 1px
 --moka-focus-ring: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)
 --moka-focus-glow: 0 0 0 3px var(--moka-color-primary-focus)
---moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)
+--moka-focus-ring-error: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-error)
 --moka-selected-glow: inset 0 0 0 1px var(--moka-color-primary-ring), inset 0 0 18px var(--moka-color-primary-glow)
 --moka-selected-bar: inset 2px 0 0 var(--moka-color-primary)
 --moka-current-bg: var(--moka-color-primary-row)

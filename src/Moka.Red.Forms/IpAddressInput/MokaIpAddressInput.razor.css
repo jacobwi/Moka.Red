@@ -144,12 +144,14 @@
 .moka-gate .moka-ip-octet:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-ip-octet:disabled { opacity: var(--moka-opacity-disabled); }
 
 .moka-gate .moka-ip--error .moka-ip-octet:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-ip-helper {

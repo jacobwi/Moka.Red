@@ -107,9 +107,15 @@ function placeByLeftTop(element, onScreen) {
 	const style = element.style;
 	if (getComputedStyle(element).transform !== 'none') style.transform = 'none';
 
+	// Left and top place it from here on. A right or bottom inset left in place stretched it between the two, so they
+	// go, and a size they gave it is kept.
+	style.right = 'auto';
+	style.bottom = 'auto';
 	style.left = '0px';
 	style.top = '0px';
 	const zero = element.getBoundingClientRect();
+	if (Math.abs(zero.width - onScreen.width) > 0.5) style.width = onScreen.width + 'px';
+	if (Math.abs(zero.height - onScreen.height) > 0.5) style.height = onScreen.height + 'px';
 	const origin = { x: zero.left, y: zero.top };
 
 	style.left = (onScreen.left - origin.x) + 'px';

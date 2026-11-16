@@ -24,14 +24,27 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	private bool _isOverlayVisible;
 	private bool _isPaused;
 
+	// Off outside the Development environment unless the app opted in (MokaDiagnosticsAvailability): nothing is shown
+	// then, so nothing is kept either.
+	private readonly bool _recording;
+
 	public MokaDiagnosticsService(DiagnosticsOptions options)
+		: this(options, recording: true)
+	{
+	}
+
+	internal MokaDiagnosticsService(DiagnosticsOptions options, bool recording)
 	{
 		ArgumentNullException.ThrowIfNull(options);
 		Options = options;
+		Settings = new DiagnosticsSettings(options);
+		_recording = recording;
 		_isOverlayVisible = options.StartExpanded;
 	}
 
 	public DiagnosticsOptions Options { get; }
+
+	public DiagnosticsSettings Settings { get; }
 
 	public bool IsOverlayVisible
 	{
@@ -70,7 +83,7 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public void RecordRender(string componentType, string componentId, TimeSpan duration)
 	{
-		if (_isPaused || !Options.RenderTrackingEnabled)
+		if (!RecordsRenders)
 		{
 			return;
 		}
@@ -99,7 +112,7 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public void RecordShouldRenderSkip(string componentType, string componentId)
 	{
-		if (_isPaused || !Options.RenderTrackingEnabled)
+		if (!RecordsRenders)
 		{
 			return;
 		}
@@ -135,8 +148,12 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	{
 		_renderEntries.Clear();
 		_disposedIds.Clear();
+		Interlocked.Exchange(ref _disposedCount, 0);
 		OnRenderDataChanged?.Invoke(this, EventArgs.Empty);
+		OnPerformanceDataChanged?.Invoke(this, EventArgs.Empty);
 	}
+
+	private bool RecordsRenders => _recording && !_isPaused && Settings.RenderTrackingEnabled;
 
 	// ── JS Interop Tracking ────────────────────────────────────────
 
@@ -144,7 +161,7 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public void RecordJsInteropCall(string identifier, TimeSpan duration)
 	{
-		if (_isPaused || !Options.JsInteropTrackingEnabled)
+		if (!_recording || _isPaused || !Settings.JsInteropTrackingEnabled)
 		{
 			return;
 		}
@@ -183,6 +200,11 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 
 	public void RecordDisposal(string componentType, string componentId)
 	{
+		if (!_recording)
+		{
+			return;
+		}
+
 		// Marked even while paused: a component that went away is gone whether or not anything is recorded, and the
 		// Active count would otherwise keep it for good.
 		if (_renderEntries.TryGetValue(componentId, out ComponentRenderEntry? entry) && !entry.IsDisposed)
@@ -218,7 +240,6 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 	public void ClearPerformanceData()
 	{
 		_jsInteropEntries.Clear();
-		Interlocked.Exchange(ref _disposedCount, 0);
 		OnPerformanceDataChanged?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -287,10 +308,10 @@ internal sealed class MokaDiagnosticsService : IMokaDiagnosticsService
 		}
 	}
 
-	// Reads the limit on every call because the Settings tab changes the shared options at runtime.
+	// Reads the limit on every call because the Settings tab changes it at runtime.
 	private void TrimEventLog()
 	{
-		int limit = Math.Max(0, Options.MaxEventLogEntries);
+		int limit = Math.Max(0, Settings.MaxEventLogEntries);
 		while (Volatile.Read(ref _eventLogCount) > limit && _eventLog.TryDequeue(out _))
 		{
 			Interlocked.Decrement(ref _eventLogCount);

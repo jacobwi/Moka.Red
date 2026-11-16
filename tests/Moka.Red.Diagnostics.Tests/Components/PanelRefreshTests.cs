@@ -13,7 +13,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 // Every panel rendered once a second whatever had happened, from a timer whose dispatch was a discarded task with
 // ObjectDisposedException swallowed, so a failure while reloading vanished. On Blazor Server each of those renders of
 // the Console and Log tabs sent every row again, since the rows weren't keyed and new entries shift them down.
-public sealed class PanelRefreshTests : BunitContext
+public sealed class PanelRefreshTests : DevelopmentContext
 {
 	private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
 	private readonly FakeClock _clock = new();

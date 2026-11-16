@@ -75,7 +75,7 @@
 	box-shadow: var(--moka-popup-row-hover-shadow, none);
 }
 
-.moka-gate .moka-menubar-item:focus-visible:not(:disabled) { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-menubar-item:focus-visible:not(:disabled) { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-gate .moka-menubar-item:disabled { opacity: var(--moka-opacity-disabled); }
 

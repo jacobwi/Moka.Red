@@ -3427,3 +3427,38 @@ merged here by patch; I did the focus contrast.
   keeps wrapping). Checked at 375 px: right arrow shown, left hidden, focus in the panel. 128 tests (94 before).
   Followed synchronization-context.md, rendering.md, fundamentals/logging.md, file-downloads.md. Left: MokaTooltip on its
   buttons (needs a Primitives reference), the full tabs pattern, per-circuit settings, gating outside Development.
+- Committed the above as 6b2b09b on BC's "commit". BC then said "finish the left open", meaning the library items only
+  (not the old worktrees or this machine's Android SDK), and "when you are done commit, merge, bump and auto release, and
+  let MokaGate, Mokaterm, WireGuard and MokaArk know", going to sleep.
+- Focus on Dark and Light (BC's call, now made): the 8% glow measured about 1.1:1, so --moka-focus-ring is the same solid
+  accent ring on every design, Dark keeping its inner glow; --moka-focus-ring-error was a 22% tint on every design and
+  is now solid error. FocusRingTests covers twelve presets with and without high contrast, accent and error at 3:1 on
+  four grounds. MatrixGolden and the 45 theme goldens re-recorded; only ring values changed (word diff checked).
+- The 107 focus rules with no outline of their own got the transparent outline (one script, re.sub per innermost rule,
+  inserted after the ring's declaration); FocusOutlineTests now requires an outline in every ring rule. On the new design
+  this also stops the page-wide outline drawing beside the ring on those controls.
+- MokaTabStrip.TabStripCssClass goes on the frame when ShowTabList is on; MokaBentoGrid uses moka-fill-width (markup gains
+  the class, one golden-style test updated).
+- Diagnostics ideas (tooltips with a Primitives reference, ARIA tabs, per-circuit settings, outside Development, merged
+  tables) and the chart TickTemplate redraw went to two agents in worktrees.
+- TickTemplate (agent): MokaChartBase gained HoldsFragments/SameApartFromFragments/CarriesFragment; the cartesian base
+  compares XAxis/YAxis by record equality with the template copied across and TickValues item by item, so a template-only
+  change goes through TakeFragmentAgain (redraw, no rebuild), also with DataVersion set. The plot reads the templates from
+  this render's axes (ValueTickTemplate, XLabelTemplate), not from the cached plot models. 10,000 points, 5 parent renders
+  with a new inline template: geometry +5 and gates +15 before, +0 and +0 after, 1.2 ms to 0.3 ms a render; a template
+  reading a changed page field now redraws (it stuck before). Axis Formatter and MokaChartText word lambdas stay compared
+  by reference (geometry, documented). 12 tests in ChartAxisTemplateTests, 8 fail on the old code.
+- Diagnostics round 2 (agent): references Primitives now; every icon-only control is a MokaIcon in a MokaTooltip (I
+  swapped the agent's leftover glyphs for MokaIcons), the panel's backdrop blur moved to ::before so it doesn't capture
+  the fixed popups, EmptyLayout renders a MokaThemeProvider (the page never loaded moka.css). WAI-ARIA tabs with manual
+  activation (APG: automatic only without latency; a Server round trip per tab). DiagnosticsSettings per window, the
+  console level app-wide on purpose. EnableOutsideDevelopment, default off (fundamentals/error-handling.md, blazor
+  handle-errors.md DetailedErrors, environments.md, hybrid developer-tools.md #if DEBUG); Hosting.Abstractions per
+  framework by VersionOverride; the WebAssembly environment read by type name, since referencing the WebAssembly package
+  ships its script into every app; no environment (Hybrid) keeps it on. Network, Memory and Perf own one thing each.
+  169 tests. Checked by the agent in Development and Production showcases.
+- Core moka-drag.js placeByLeftTop now sets right and bottom to auto (keeping the size if they gave it one): a panel
+  placed by bottom/right stretched between that edge and the drop point after a drag. Checked: the diagnostics panel
+  keeps its 214 px height after a drag, inset "0 auto auto 38px".
+- Then: full suite, commit, release 0.8.0 (breaking changes in Diagnostics, MokaWatermark and MokaKanbanBoard, so a
+  minor bump as with 0.5.0 and 0.6.0), docs pins, and notices to the four sessions BC named.

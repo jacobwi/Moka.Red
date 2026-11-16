@@ -1,107 +1,35 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
-///     Panel displaying memory usage, component statistics, and registered Moka service status.
-///     Auto-refreshes every second via a timer.
+///     Panel showing whether the diagnostics, toast and dialog services are registered. Component counts are in
+///     <see cref="PerformancePanel" /> and GC figures in <see cref="MemoryPanel" />. Registrations don't change while the
+///     app runs, so it checks them once and renders once.
 /// </summary>
-public sealed partial class ServicesPanel : ComponentBase, IDisposable
+public sealed partial class ServicesPanel : ComponentBase
 {
-	private int _activeComponents;
-	private double _avgRenderMs;
-	private bool _disposed;
-	private int _disposedComponents;
-	private int _gen0Collections;
-	private int _gen1Collections;
-	private int _gen2Collections;
-	private long _managedMemoryBytes;
-	private PanelRefresh? _refresh;
 	private List<ServiceCheck> _serviceChecks = [];
-	private bool _servicesCached;
-	private int _totalTracked;
-
-	private IMokaDiagnosticsService? _diagnosticsService;
+	private bool _shown;
 
 	[Inject] private IServiceProvider _serviceProvider { get; set; } = default!;
 
 	[CascadingParameter(Name = DiagnosticsServiceResolver.CascadeName)]
 	private IMokaDiagnosticsService? SharedService { get; set; }
 
-	/// <summary>Stops the panel's refresh timer.</summary>
-	public void Dispose()
+	/// <inheritdoc />
+	protected override void OnInitialized()
 	{
-		if (_disposed)
+		_shown = DiagnosticsServiceResolver.IsOn(_serviceProvider);
+		if (!_shown)
 		{
 			return;
 		}
 
-		_disposed = true;
-		_refresh?.Dispose();
-	}
-
-	/// <inheritdoc />
-	protected override void OnInitialized()
-	{
-		_diagnosticsService = DiagnosticsServiceResolver.Resolve(SharedService, _serviceProvider);
-		RefreshData();
-		_refresh = new PanelRefresh(_serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
-			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);
-	}
-
-	private bool RefreshData()
-	{
-		_managedMemoryBytes = GC.GetTotalMemory(false);
-		_gen0Collections = GC.CollectionCount(0);
-		_gen1Collections = GC.CollectionCount(1);
-		_gen2Collections = GC.CollectionCount(2);
-
-		if (!_servicesCached)
-		{
-			DetectRegisteredServices();
-			_servicesCached = true;
-		}
-
-		if (_diagnosticsService is not null)
-		{
-			_activeComponents = _diagnosticsService.ActiveComponentCount;
-			_disposedComponents = _diagnosticsService.DisposedComponentCount;
-
-			IReadOnlyList<ComponentRenderEntry> entries = _diagnosticsService.GetRenderEntries();
-			_totalTracked = entries.Count;
-
-			if (entries.Count > 0)
-			{
-				double totalMs = 0.0;
-				int count = 0;
-
-				foreach (ComponentRenderEntry entry in entries)
-				{
-					if (entry.RenderCount > 0)
-					{
-						totalMs += entry.LastRenderDuration.TotalMilliseconds;
-						count++;
-					}
-				}
-
-				_avgRenderMs = count > 0 ? totalMs / count : 0;
-			}
-			else
-			{
-				_avgRenderMs = 0;
-			}
-		}
-
-		return true;
-	}
-
-	private void DetectRegisteredServices()
-	{
 		_serviceChecks =
 		[
-			new ServiceCheck("DiagnosticsService", _diagnosticsService is not null),
+			new ServiceCheck("DiagnosticsService", DiagnosticsServiceResolver.Resolve(SharedService, _serviceProvider) is not null),
 			new ServiceCheck("ToastService", CheckServiceByName("Moka.Red.Feedback.Toast.IMokaToastService")),
 			new ServiceCheck("DialogService", CheckServiceByName("Moka.Red.Feedback.Dialog.IMokaDialogService"))
 		];
@@ -114,12 +42,6 @@ public sealed partial class ServicesPanel : ComponentBase, IDisposable
 			.FirstOrDefault(t => t is not null);
 
 		return type is not null && _serviceProvider.GetService(type) is not null;
-	}
-
-	private static string FormatBytes(long bytes)
-	{
-		const double mb = 1024.0 * 1024.0;
-		return $"{bytes / mb:F1} MB";
 	}
 
 	private sealed record ServiceCheck(string Name, bool IsRegistered);

@@ -40,6 +40,7 @@
 		<Compile Include="..\Shared\ScopedCss.cs" Link="Shared\ScopedCss.cs" />
 		<Compile Include="..\Shared\BindingGoldens.cs" Link="Shared\BindingGoldens.cs" />
 		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
+		<Compile Include="..\Shared\IconTooltip.cs" Link="Shared\IconTooltip.cs" />
 	</ItemGroup>
 
 </Project>

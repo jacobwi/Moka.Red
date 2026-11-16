@@ -13,7 +13,11 @@ internal static class DiagnosticsServiceResolver
 	public const string CascadeName = "MokaDiagnosticsService";
 
 	// [Inject] cannot express an optional service: it throws when the type is not registered, even on
-	// a nullable property. GetService returns null instead.
+	// a nullable property. GetService returns null instead. Outside the Development environment, unless the app opted
+	// in, there is no service to show, so the panels render nothing.
 	public static IMokaDiagnosticsService? Resolve(IMokaDiagnosticsService? cascaded, IServiceProvider services) =>
-		cascaded ?? services.GetService<IMokaDiagnosticsService>();
+		IsOn(services) ? cascaded ?? services.GetService<IMokaDiagnosticsService>() : null;
+
+	/// <summary>Whether the diagnostics run in this app (see <see cref="DiagnosticsOptions.EnableOutsideDevelopment" />).</summary>
+	public static bool IsOn(IServiceProvider services) => MokaDiagnosticsAvailability.IsOnIn(services);
 }

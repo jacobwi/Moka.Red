@@ -5,8 +5,9 @@ namespace Moka.Red.Feedback.Tests.Conventions;
 /// <summary>
 ///     Forced colors (Windows High Contrast) drops every box-shadow, so a control whose only focus mark is
 ///     <c>--moka-focus-ring</c> and whose outline is <c>none</c> shows no focus there at all. A transparent outline draws
-///     nothing otherwise and takes the system's color under forced colors, so a focus rule that draws the ring never turns
-///     the outline off.
+///     nothing otherwise and takes the system's color under forced colors, so a focus rule that draws the ring declares an
+///     outline of its own that isn't <c>none</c>. Leaving it out left the outline to whatever else matched: the page-wide
+///     ring or the browser's, drawn beside the ring, or another rule's <c>none</c>.
 /// </summary>
 public sealed partial class FocusOutlineTests
 {
@@ -33,7 +34,7 @@ public sealed partial class FocusOutlineTests
 					continue;
 				}
 
-				if (NoOutline().IsMatch(body))
+				if (!Outline().IsMatch(body) || NoOutline().IsMatch(body))
 				{
 					found.Add($"{relative}: {string.Join(' ', head.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))}");
 				}
@@ -72,4 +73,7 @@ public sealed partial class FocusOutlineTests
 
 	[GeneratedRegex(@"outline\s*:\s*(none|0)\s*(;|$)")]
 	private static partial Regex NoOutline();
+
+	[GeneratedRegex(@"(^|[;{\s])outline(-style|-width|-color)?\s*:")]
+	private static partial Regex Outline();
 }

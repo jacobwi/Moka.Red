@@ -1,35 +1,48 @@
-<div class="moka-diag-settings"><div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-position">Overlay Position</label>
-			<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-position" value="BottomRight" blazor:onchange="1"><option value="BottomRight" selected>Bottom Right</option>
-				<option value="BottomLeft">Bottom Left</option>
-				<option value="TopRight">Top Right</option>
-				<option value="TopLeft">Top Left</option></select></div>
+<div class="moka-diag-settings"><fieldset class="moka-diag-settings-section" aria-describedby="moka-diag-settings-{guid}-window-note"><legend class="moka-diag-settings-legend">Per window</legend>
+			<p class="moka-diag-settings-note" id="moka-diag-settings-{guid}-window-note">
+				Each window keeps its own until it reloads, starting from the app's options.
+			</p>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-width">Panel Width</label>
-			<div class="moka-diag-settings-range"><input type="range" id="moka-diag-settings-{guid}-width" min="300" max="600" step="10" value="420" blazor:onchange="2" />
-				<span class="moka-diag-settings-value">420px</span></div></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-position">Overlay Position</label>
+				<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-position" value="BottomRight" blazor:onchange="1"><option value="BottomRight" selected>Bottom Right</option>
+					<option value="BottomLeft">Bottom Left</option>
+					<option value="TopRight">Top Right</option>
+					<option value="TopLeft">Top Left</option></select></div>
 
-		<div class="moka-diag-settings-group"><span class="moka-diag-settings-label">Keyboard Shortcut</span>
-			<span class="moka-diag-settings-value">Ctrl+Shift+D</span></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-width">Panel Width</label>
+				<div class="moka-diag-settings-range"><input type="range" id="moka-diag-settings-{guid}-width" min="300" max="600" step="10" value="420" blazor:onchange="2" />
+					<span class="moka-diag-settings-value">420px</span></div></div>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-expand">Auto-expand</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-expand" blazor:onchange="3" /></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-pause">Pause Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-pause" blazor:onchange="3" /></div>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-pause">Pause Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-pause" blazor:onchange="4" /></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-render">Render Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-render" checked blazor:onchange="4" /></div>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-log-level">Console Log Level</label>
-			<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-log-level" value="Debug" blazor:onchange="5"><option value="Trace">Trace</option>
-				<option value="Debug" selected>Debug</option>
-				<option value="Information">Info</option>
-				<option value="Warning">Warning</option>
-				<option value="Error">Error</option>
-				<option value="Critical">Critical</option></select></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-js">JS Interop Tracking</label>
+				<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-js" checked blazor:onchange="5" /></div>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-max-events">Max Event Log Entries</label>
-			<input type="number" class="moka-diag-settings-number" id="moka-diag-settings-{guid}-max-events" min="100" max="1000" step="50" value="500" blazor:onchange="6" /></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-max-events">Max Event Log Entries</label>
+				<input type="number" class="moka-diag-settings-number" id="moka-diag-settings-{guid}-max-events" min="100" max="1000" step="50" value="500" blazor:onchange="6" /></div></fieldset>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-render">Render Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-render" checked blazor:onchange="7" /></div>
+		<fieldset class="moka-diag-settings-section" aria-describedby="moka-diag-settings-{guid}-app-note"><legend class="moka-diag-settings-legend">Whole app</legend>
+			<p class="moka-diag-settings-note" id="moka-diag-settings-{guid}-app-note">
+				Shared by every window and every user: the console keeps one log for the whole app.
+			</p>
 
-		<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-js">JS Interop Tracking</label>
-			<input type="checkbox" class="moka-diag-settings-checkbox" id="moka-diag-settings-{guid}-js" checked blazor:onchange="8" /></div></div>
+			<div class="moka-diag-settings-group"><label class="moka-diag-settings-label" for="moka-diag-settings-{guid}-log-level">Console Log Level</label>
+				<select class="moka-diag-settings-select" id="moka-diag-settings-{guid}-log-level" value="Debug" blazor:onchange="7"><option value="Trace">Trace</option>
+					<option value="Debug" selected>Debug</option>
+					<option value="Information">Info</option>
+					<option value="Warning">Warning</option>
+					<option value="Error">Error</option>
+					<option value="Critical">Critical</option></select></div></fieldset>
+
+		<fieldset class="moka-diag-settings-section" aria-describedby="moka-diag-settings-{guid}-startup-note"><legend class="moka-diag-settings-legend">Set at startup</legend>
+			<p class="moka-diag-settings-note" id="moka-diag-settings-{guid}-startup-note">From AddMokaDiagnostics, for every window.</p>
+
+			<div class="moka-diag-settings-group"><span class="moka-diag-settings-label">Keyboard Shortcut</span>
+				<span class="moka-diag-settings-value">Ctrl+Shift+D</span></div>
+
+			<div class="moka-diag-settings-group"><span class="moka-diag-settings-label">Opens on Load</span>
+				<span class="moka-diag-settings-value">No</span></div></fieldset></div>

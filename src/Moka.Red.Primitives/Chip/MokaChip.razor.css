@@ -331,4 +331,5 @@
 .moka-gate .moka-chip.moka-chip--selected:focus-visible:not(.moka-chip--disabled),
 .moka-gate .moka-chip.moka-chip--selected:has(> .moka-chip__action:focus-visible) {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }

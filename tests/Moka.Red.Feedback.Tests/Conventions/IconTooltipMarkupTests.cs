@@ -16,15 +16,12 @@ namespace Moka.Red.Feedback.Tests.Conventions;
 ///     names an icon (<c>@(IconProvider?.CloseIcon)</c>), a badge's count and visually hidden text are not labels.
 ///     Content the reader cannot see into (<c>@ChildContent</c>, <c>@{ RenderInner(); }</c>) counts as a label, so
 ///     the test never fails on a button that might show text; those are covered by the components' own tests.
-///     The one folder the rule allows is Moka.Red.Diagnostics: a development tool that references only Core, draws in
-///     its own fixed colours and keeps its titles. The one button is MokaTable's detail toggle at the row's end, a
-///     chevron on every row that turns when the row opens, with aria-expanded and the row's name in its aria-label:
-///     a tooltip on every row of a long list was asked against (2026-11-07).
+///     Every package follows it, the Diagnostics tool included. The one button allowed is MokaTable's detail toggle at
+///     the row's end, a chevron on every row that turns when the row opens, with aria-expanded and the row's name in
+///     its aria-label: a tooltip on every row of a long list was asked against (2026-11-07).
 /// </remarks>
 public sealed partial class IconTooltipMarkupTests
 {
-	private static readonly string[] AllowedFolders = ["Moka.Red.Diagnostics"];
-
 	private static readonly (string File, string Class)[] AllowedButtons =
 	[
 		(Path.Combine("Moka.Red.Data", "Table", "MokaTable.razor"), "moka-table-more-btn")
@@ -135,11 +132,6 @@ public sealed partial class IconTooltipMarkupTests
 
 			List<ButtonFinding> found = Scan(File.ReadAllText(file));
 			read += found.Count;
-			if (AllowedFolders.Contains(parts[0], StringComparer.Ordinal))
-			{
-				continue;
-			}
-
 			buttons.AddRange(found.Select(button => (relative, button)));
 		}
 

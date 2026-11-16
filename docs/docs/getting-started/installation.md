@@ -115,6 +115,8 @@ using Moka.Red.Diagnostics.Extensions;
 builder.Services.AddMokaDiagnostics();
 ```
 
+It runs only in the `Development` environment: elsewhere the overlay and its page render nothing, unless you set `EnableOutsideDevelopment`. See [Diagnostics](/components/diagnostics#outside-development).
+
 ### Full `Program.cs` Example
 
 ```csharp

@@ -62,7 +62,7 @@ public class MokaBentoBoardTests : BunitContext
 			.AddChildContent("<span>x</span>"));
 
 		cut.MarkupMatches(
-			"""<div class="moka-bento-grid" style="grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"><span>x</span></div>""");
+			"""<div class="moka-bento-grid moka-fill-width" style="grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"><span>x</span></div>""");
 		Assert.Empty(JSInterop.Invocations);
 	}
 

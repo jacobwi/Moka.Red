@@ -534,7 +534,7 @@ public static partial class MokaTokens
 			Token("--moka-focus-glow", MokaTokenGroup.Interaction, MokaTokenKind.Other,
 				"A soft glow that joins a focused field to the list it has open.", FocusGlow),
 			Token("--moka-focus-ring-error", MokaTokenGroup.Interaction, MokaTokenKind.Other, "The ring around a focused control in error.",
-				_ => "0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent)"),
+				_ => "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-error)"),
 			Token("--moka-selected-glow", MokaTokenGroup.Interaction, MokaTokenKind.Other, "How a selected row, tab or item is marked.", SelectedGlow),
 			Token("--moka-selected-bar", MokaTokenGroup.Interaction, MokaTokenKind.Other, "The bar along a selected table row.",
 				context => context.Gate && context.Theme.Selection != MokaSelection.Flat ? "inset 2px 0 0 var(--moka-color-primary)" : "none"),
@@ -636,15 +636,14 @@ public static partial class MokaTokens
 		];
 	}
 
-	// On the new design the ring is solid primary past a hairline of surface, so it stands out against the surface and against
-	// a filled control: a 22% glow measured 1.3 to 1.5:1 on every preset, short of the 3:1 a focus indicator needs.
-	private static string FocusRing(MokaTokenContext context) => context.Gate
-		? context.Theme.Selection == MokaSelection.Glow
-			? "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary), inset 0 0 12px var(--moka-color-primary-glow)"
-			: "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)"
-		: context.Dark
-			? "0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow)"
-			: "0 0 0 3px var(--moka-color-primary-glow)";
+	// The ring is solid primary past a hairline of surface, so it stands out against the surface and against a filled control.
+	// The 22% and 8% glows it was measured 1.1 to 1.5:1 on every preset, short of the 3:1 a focus indicator needs (WCAG 1.4.11).
+	private const string SolidFocusRing = "0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary)";
+
+	private static string FocusRing(MokaTokenContext context) =>
+		(context.Gate ? context.Theme.Selection == MokaSelection.Glow : context.Dark)
+			? $"{SolidFocusRing}, inset 0 0 12px var(--moka-color-primary-glow)"
+			: SolidFocusRing;
 
 	private static string FocusGlow(MokaTokenContext context) => context.Gate
 		? "0 0 0 3px var(--moka-color-primary-focus)"

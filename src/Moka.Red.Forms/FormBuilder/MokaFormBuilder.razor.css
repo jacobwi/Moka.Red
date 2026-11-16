@@ -535,6 +535,7 @@
 .moka-gate .moka-form-builder__property-textarea:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-form-builder__no-selection {

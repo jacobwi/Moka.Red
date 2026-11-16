@@ -214,6 +214,7 @@
 
 .moka-range-bar__handle:focus-visible {
 	box-shadow: 0 0 0 var(--moka-focus-width) var(--moka-color-primary-glow-strong), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Read-only: one track in the flow, with the marks and the scale in rows under it. */
@@ -370,4 +371,5 @@
 
 .moka-gate .moka-range-bar__handle:focus-visible {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }

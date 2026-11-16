@@ -6,8 +6,8 @@ namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
 ///     Panel displaying JS interop call statistics with sortable columns.
-///     Shows method name, call count, total time, average time, and max time.
-///     Checks every second and renders only when a call was recorded.
+///     Shows method name, call count, total time, average time, and max time. The one tab that lists them, with the
+///     Clear that resets them. Checks every second and renders only when a call was recorded.
 /// </summary>
 public sealed partial class NetworkPanel : ComponentBase, IDisposable
 {
@@ -72,6 +72,12 @@ public sealed partial class NetworkPanel : ComponentBase, IDisposable
 		bool changed = shown != _shown;
 		_shown = shown;
 		return changed;
+	}
+
+	private void Clear()
+	{
+		_diagnosticsService?.ClearPerformanceData();
+		RefreshData();
 	}
 
 	private void ApplySort()

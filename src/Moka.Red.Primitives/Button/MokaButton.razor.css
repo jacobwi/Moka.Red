@@ -604,6 +604,7 @@
 .moka-gate .moka-btn:focus-visible {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* The theme says how a primary button is drawn. Secondary and surface are the quiet button beside it. */
@@ -887,6 +888,7 @@
 /* A look that draws its own box-shadow outranks the focus rule above, so it starts its shadow with this. */
 .moka-gate .moka-btn:focus-visible {
 	--_btn-focus: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate.moka-buttons-raised .moka-btn:is(.moka-btn--filled, .moka-btn--outlined, .moka-btn--soft):not([data-moka-look]),

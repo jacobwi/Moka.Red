@@ -224,6 +224,7 @@
 .moka-timepicker-input--invalid:focus {
 	border-color: var(--moka-color-error);
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
@@ -239,6 +240,7 @@
 .moka-gate .moka-timepicker-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-timepicker-input:disabled { opacity: var(--moka-opacity-disabled); }
@@ -316,6 +318,7 @@
 
 .moka-gate .moka-field--error .moka-timepicker-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-timepicker-input--invalid.moka-timepicker-input:not(:disabled) { border-color: var(--moka-color-error); }

@@ -5,8 +5,10 @@ namespace Moka.Red.Data.Chart;
 
 /// <summary>
 ///     How one axis of a chart is drawn: its scale, ends, ticks, units, labels and grid. Every property left null takes
-///     the chart's look. Keep <see cref="Formatter" /> and <see cref="TickTemplate" /> as fields or methods: a lambda
-///     that captures a local is a new value every render, and the chart then draws again each time.
+///     the chart's look. A chart compares the axis it is handed with the last one, so an axis built again every render
+///     costs nothing unless it differs. Keep <see cref="Formatter" /> a field or a method: a lambda that captures a local
+///     is a new value every render, and the chart then rebuilds each time. <see cref="TickTemplate" /> is left out of
+///     the comparison and drawn again whenever the parent renders, so it can be written inline.
 /// </summary>
 public sealed record MokaChartAxis
 {
@@ -68,7 +70,7 @@ public sealed record MokaChartAxis
 	/// <summary>How many divisions to aim for. Null takes the chart's.</summary>
 	public int? TickCount { get; init; }
 
-	/// <summary>Ticks to draw instead of working them out.</summary>
+	/// <summary>Ticks to draw instead of working them out. A chart compares them item by item.</summary>
 	public IReadOnlyList<double>? TickValues { get; init; }
 
 	/// <summary>Whether ticks are rounded to round steps. Null takes the look's.</summary>
@@ -107,7 +109,11 @@ public sealed record MokaChartAxis
 	/// <summary>The least width a category gets with <see cref="MokaAxisLabelFit.Scroll" />, in em. Null is 2.5.</summary>
 	public double? MinCategoryEm { get; init; }
 
-	/// <summary>Draws each tick. Its <see cref="MokaAxisTick.Text" /> still decides how much room the tick takes.</summary>
+	/// <summary>
+	///     Draws each tick. Its <see cref="MokaAxisTick.Text" /> still decides how much room the tick takes. A chart draws
+	///     the ticks again whenever its parent hands over an axis with a template, and rebuilds nothing for it, since a
+	///     template can't say whether what it draws changed.
+	/// </summary>
 	public RenderFragment<MokaAxisTick>? TickTemplate { get; init; }
 
 	/// <summary>

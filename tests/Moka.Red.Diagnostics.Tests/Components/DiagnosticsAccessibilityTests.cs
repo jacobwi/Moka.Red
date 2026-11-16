@@ -13,7 +13,7 @@ using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Tests.Components;
 
-public class DiagnosticsAccessibilityTests : BunitContext
+public class DiagnosticsAccessibilityTests : DevelopmentContext
 {
 	public DiagnosticsAccessibilityTests()
 	{
@@ -29,14 +29,14 @@ public class DiagnosticsAccessibilityTests : BunitContext
 		IRenderedComponent<SettingsPanel> cut = Render<SettingsPanel>();
 
 		IReadOnlyList<IElement> controls = cut.FindAll("input, select");
-		Assert.Equal(8, controls.Count);
+		Assert.Equal(7, controls.Count);
 		Assert.All(controls, control =>
 		{
 			Assert.False(string.IsNullOrEmpty(control.Id));
 			IElement label = cut.Find($"label[for='{control.Id}']");
 			Assert.False(string.IsNullOrWhiteSpace(label.TextContent));
 		});
-		Assert.Equal("Pause Tracking", NameOf(cut, cut.FindAll("input[type=checkbox]")[1]));
+		Assert.Equal("Pause Tracking", NameOf(cut, cut.FindAll("input[type=checkbox]")[0]));
 	}
 
 	[Fact]

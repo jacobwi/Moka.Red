@@ -116,6 +116,7 @@
 .moka-gate .moka-textarea-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-textarea-input:disabled { opacity: var(--moka-opacity-disabled); }
@@ -131,6 +132,7 @@
 
 .moka-gate .moka-textarea--error .moka-textarea-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-textarea--emoji .moka-textarea-input { padding-right: calc(var(--moka-input-padding) * 3); }

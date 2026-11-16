@@ -10,7 +10,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 // Without AddMokaDiagnostics() these components threw "There is no registered service of type
 // IMokaDiagnosticsService": [Inject] throws for a missing service even on a nullable property, and
 // DiagnosticComponentBase promised to skip tracking silently.
-public class OptionalRegistrationTests : BunitContext
+public class OptionalRegistrationTests : DevelopmentContext
 {
 	public OptionalRegistrationTests()
 	{

@@ -144,7 +144,8 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 	public IReadOnlyList<ContextMenuItem>? CustomContextMenuItems { get; set; }
 
 	/// <summary>
-	///     Additional CSS class(es) for the tab strip container.
+	///     Additional CSS class(es) for the tab strip's outermost element: the tab list, or with <see cref="ShowTabList" />
+	///     the row that holds the tab list and its All tabs button.
 	/// </summary>
 	[Parameter]
 	public string? TabStripCssClass { get; set; }
@@ -532,6 +533,10 @@ public partial class MokaTabStrip<TValue> : IAsyncDisposable
 
 	private string StripCssClass => new CssBuilder("moka-tab-strip")
 		.AddClass("moka-thin-scrollbar")
+		.AddClass(TabStripCssClass, !ShowTabList)
+		.Build();
+
+	private string FrameCssClass => new CssBuilder("moka-tab-strip-frame")
 		.AddClass(TabStripCssClass)
 		.Build();
 

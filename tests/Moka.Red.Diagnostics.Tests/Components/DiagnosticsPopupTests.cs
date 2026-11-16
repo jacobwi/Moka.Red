@@ -13,7 +13,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 // The overlay's new-window button opened /moka-diagnostics, and on Blazor Server that page runs a
 // circuit of its own with its own scoped service, so its Render and Log tabs never showed the data of
 // the window that opened it.
-public class DiagnosticsPopupTests : BunitContext
+public class DiagnosticsPopupTests : DevelopmentContext
 {
 	private const string ModulePath = "./_content/Moka.Red.Diagnostics/moka-diagnostics.js";
 	private string? _openedSessionKey;
@@ -43,7 +43,7 @@ public class DiagnosticsPopupTests : BunitContext
 		Assert.NotNull(_openerService);
 		_openerService.RecordRender("OpenerOnlyComponent", "opener-1", TimeSpan.FromMilliseconds(2));
 
-		await overlay.Find("button[title='Open in new window']").ClickAsync(new MouseEventArgs());
+		await overlay.Find("button[aria-label='Open in new window']").ClickAsync(new MouseEventArgs());
 		JSRuntimeInvocation invocation = Assert.Single(openPage.Invocations);
 		string? sessionKey = invocation.Arguments.Count > 0 ? invocation.Arguments[0] as string : null;
 		Assert.False(string.IsNullOrEmpty(sessionKey));
@@ -94,7 +94,7 @@ public class DiagnosticsPopupTests : BunitContext
 
 	private async Task<IRenderedComponent<MokaDiagnosticsPage>> OpenPopupAsync(IRenderedComponent<MokaDiagnosticsOverlay> overlay)
 	{
-		await overlay.Find("button[title='Open in new window']").ClickAsync(new MouseEventArgs());
+		await overlay.Find("button[aria-label='Open in new window']").ClickAsync(new MouseEventArgs());
 		Services.GetRequiredService<NavigationManager>().NavigateTo($"moka-diagnostics?session={OpenedSessionKey()}");
 		return Render<MokaDiagnosticsPage>();
 	}

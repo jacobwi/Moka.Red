@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Charts;
 
 namespace Moka.Red.Data.Chart;
@@ -79,8 +78,6 @@ internal sealed record PlotAxis(IReadOnlyList<PlotLabel> Labels, string AxisClas
 /// <param name="XTitle">The x axis's title.</param>
 /// <param name="ScrollMinEm">With <see cref="MokaAxisLabelFit.Scroll" />, the least width of the plot in em; null otherwise.</param>
 /// <param name="Annotations">The thresholds, bands, events and windows.</param>
-/// <param name="ValueTemplate">Draws each value tick, when the y axis has a template.</param>
-/// <param name="XTemplate">Draws each x label, when the x axis has a template.</param>
 /// <param name="BaselineShare">Where the baseline runs: zero when the value axis crosses it, else its bottom.</param>
 internal sealed record ColumnPlotModel(
 	MokaScale Scale,
@@ -97,6 +94,4 @@ internal sealed record ColumnPlotModel(
 	string? XTitle,
 	double? ScrollMinEm,
 	PlotAnnotations Annotations,
-	RenderFragment<MokaAxisTick>? ValueTemplate,
-	RenderFragment<MokaAxisTick>? XTemplate,
 	double BaselineShare);

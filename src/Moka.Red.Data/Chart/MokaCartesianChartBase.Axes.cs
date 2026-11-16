@@ -35,6 +35,16 @@ public abstract partial class MokaCartesianChartBase
 	/// </summary>
 	internal virtual MokaChartAxis? ValueAxisOptions => YAxis;
 
+	/// <summary>
+	///     Draws the value axis's ticks: the y axis's template on a column plot, the x axis's across a row plot. Read from
+	///     the axis the parent passes at each render and kept out of the plot models, which last a geometry version, so a
+	///     template that reads its page draws what the page holds now.
+	/// </summary>
+	internal RenderFragment<MokaAxisTick>? ValueTickTemplate => (DrawsRows ? XAxis : YAxis)?.TickTemplate;
+
+	/// <summary>Draws the labels along a column plot's bottom: the x axis's template, read as <see cref="ValueTickTemplate" /> is.</summary>
+	internal RenderFragment<MokaAxisTick>? XLabelTemplate => XAxis?.TickTemplate;
+
 	/// <summary>How many categories the column plot has.</summary>
 	internal virtual int CategoryCount => Labels?.Count ?? 0;
 
@@ -564,6 +574,25 @@ public abstract partial class MokaCartesianChartBase
 
 	private static double? Finite(double? value) => value is { } number && double.IsFinite(number) ? number : null;
 
+	// Two axes that draw the same geometry: equal but for their tick templates, with tick values compared item by item, so
+	// an axis the parent builds again every render costs no rebuild. Comparing through the record's own equality keeps
+	// every property it gains in the comparison.
+	private static bool SameAxis(MokaChartAxis? before, MokaChartAxis? after)
+	{
+		if (ReferenceEquals(before, after))
+		{
+			return true;
+		}
+
+		if (before is null || after is null)
+		{
+			return false;
+		}
+
+		IReadOnlyList<double>? ticks = ChartSnapshot.SameItems(after.TickValues, before.TickValues) ? before.TickValues : after.TickValues;
+		return before == after with { TickTemplate = before.TickTemplate, TickValues = ticks };
+	}
+
 	private double InterpolatedCategoryShare(double index, int count)
 	{
 		if (count <= 0 || !double.IsFinite(index))
@@ -615,8 +644,6 @@ public abstract partial class MokaCartesianChartBase
 			XAxis?.Title ?? DefaultXTitle,
 			scroll,
 			annotations,
-			axis?.TickTemplate,
-			XAxis?.TickTemplate,
 			BaselineShare(scale, axis));
 	}
 
@@ -690,7 +717,6 @@ public abstract partial class MokaCartesianChartBase
 			axis?.Visible ?? true,
 			(scale is null ? axis?.Title : AxisTitle(axis, scale)) ?? DefaultValueTitle,
 			annotations,
-			axis?.TickTemplate,
 			scale is null ? double.NaN : BaselineShare(scale, axis));
 	}
 

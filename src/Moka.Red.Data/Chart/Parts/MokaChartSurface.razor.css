@@ -56,6 +56,7 @@
 
 .moka-chart-surface__grid:focus-visible {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* What the script draws */
@@ -450,6 +451,7 @@
 
 .moka-gate .moka-chart-surface__grid:focus-visible {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-chart-live {

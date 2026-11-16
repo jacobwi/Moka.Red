@@ -153,8 +153,12 @@
 	font-size: 10px;
 	cursor: pointer;
 	padding: 0 4px;
-	flex-shrink: 0;
 	line-height: 1;
+}
+
+/* The tooltip's element, not the button inside it, is the row's flex item. */
+.moka-diag-console-entry ::deep .moka-diag-console-expand-tip {
+	flex-shrink: 0;
 }
 
 .moka-diag-console-expand:hover {

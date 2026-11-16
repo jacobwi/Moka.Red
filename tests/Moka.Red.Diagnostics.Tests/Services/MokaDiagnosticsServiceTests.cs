@@ -389,8 +389,10 @@ public class MokaDiagnosticsServiceTests
 		Assert.Equal(2, _service.ActiveComponentCount);
 	}
 
+	// The JS interop calls are the Network tab's, and its Clear resets them alone; the disposed count goes with the
+	// component data the Render tab clears, as the Perf tab says.
 	[Fact]
-	public void ClearPerformanceData_ResetsCounters()
+	public void ClearPerformanceData_ResetsTheJsInteropCallsOnly()
 	{
 		_service.RecordJsInteropCall("eval", TimeSpan.Zero);
 		_service.RecordRender("MokaButton", "btn-1", TimeSpan.Zero);
@@ -398,8 +400,26 @@ public class MokaDiagnosticsServiceTests
 
 		_service.ClearPerformanceData();
 
-		Assert.Equal(0, _service.DisposedComponentCount);
 		Assert.Empty(_service.GetJsInteropEntries());
+		Assert.Equal(1, _service.DisposedComponentCount);
+		Assert.Single(_service.GetRenderEntries());
+	}
+
+	[Fact]
+	public void ClearRenderData_ResetsTheComponentData_AndTheDisposedCount()
+	{
+		_service.RecordJsInteropCall("eval", TimeSpan.Zero);
+		_service.RecordRender("MokaButton", "btn-1", TimeSpan.Zero);
+		_service.RecordDisposal("MokaButton", "btn-1");
+		bool performanceChanged = false;
+		_service.OnPerformanceDataChanged += (_, _) => performanceChanged = true;
+
+		_service.ClearRenderData();
+
+		Assert.Empty(_service.GetRenderEntries());
+		Assert.Equal(0, _service.DisposedComponentCount);
+		Assert.Single(_service.GetJsInteropEntries());
+		Assert.True(performanceChanged);
 	}
 
 	// Clearing the performance data marked every disposed component live again, so Active jumped by every component

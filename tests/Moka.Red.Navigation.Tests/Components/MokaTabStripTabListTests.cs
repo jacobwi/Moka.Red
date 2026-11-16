@@ -55,6 +55,19 @@ public class MokaTabStripTabListTests : BunitContext
 		Assert.Empty(cut.Find("[role=tablist]").QuerySelectorAll(".moka-tab-list-button"));
 	}
 
+	[Theory]
+	[InlineData(false, ".moka-tab-strip")]
+	[InlineData(true, ".moka-tab-strip-frame")]
+	public void TabStripCssClass_LandsOnTheOutermostElement(bool list, string outermost)
+	{
+		IRenderedComponent<MokaTabStrip<string>> cut = RenderStrip(ThreeTabs(), "a", p => p.Add(x => x.TabStripCssClass, "app-tabs"), list);
+
+		IElement root = Assert.Single(cut.Nodes.OfType<IElement>());
+		Assert.True(root.Matches(outermost));
+		Assert.Single(cut.FindAll(".app-tabs"));
+		Assert.Contains("app-tabs", root.ClassList);
+	}
+
 	[Fact]
 	public void TheButton_IsNamedByATooltipAtTheRowsEnd()
 	{

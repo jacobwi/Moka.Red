@@ -208,7 +208,7 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
-.moka-gate .moka-knob:focus-visible { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-knob:focus-visible { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 .moka-gate .moka-knob--disabled { opacity: var(--moka-opacity-disabled); }
 
 .moka-gate .moka-knob__track {

@@ -221,6 +221,7 @@
 .moka-gate .moka-cascader-trigger:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-cascader--error .moka-cascader-trigger { border-color: var(--moka-color-error); }

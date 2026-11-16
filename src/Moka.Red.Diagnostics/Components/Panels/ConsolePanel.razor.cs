@@ -47,7 +47,7 @@ public sealed partial class ConsolePanel : ComponentBase, IDisposable
 	/// <inheritdoc />
 	protected override void OnInitialized()
 	{
-		_buffer = Services.GetService<MokaDiagnosticsConsoleBuffer>();
+		_buffer = DiagnosticsServiceResolver.IsOn(Services) ? Services.GetService<MokaDiagnosticsConsoleBuffer>() : null;
 		RefreshData();
 		_refresh = new PanelRefresh(Services.GetService<TimeProvider>() ?? TimeProvider.System, TimeSpan.FromSeconds(1),
 			InvokeAsync, DispatchExceptionAsync, RefreshData, StateHasChanged);

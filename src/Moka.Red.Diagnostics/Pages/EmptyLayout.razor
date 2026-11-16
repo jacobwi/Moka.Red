@@ -1,6 +1,17 @@
 @namespace Moka.Red.Diagnostics.Pages
 @inherits LayoutComponentBase
 
-<div class="moka-diag-page-layout" style="background: #1a1a1a; color: #e0e0e0; min-height: 100vh; font-family: var(--moka-font-family, -apple-system, system-ui, sans-serif); font-size: 13px;">
-	@Body
-</div>
+@* The page sits outside the app's layout, and with it the app's provider, so it brings one of its own: that links the
+   library's stylesheet, whose tokens and utilities the panels and their tooltips read. *@
+<MokaThemeProvider Theme="@(Theme ?? MokaTheme.Default)">
+	<div class="moka-diag-page-layout">
+		@Body
+	</div>
+</MokaThemeProvider>
+
+@code {
+
+	[CascadingParameter]
+	private MokaTheme? Theme { get; set; }
+
+}

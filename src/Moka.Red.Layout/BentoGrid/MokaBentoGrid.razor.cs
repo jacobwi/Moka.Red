@@ -123,6 +123,7 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
+		.AddClass("moka-fill-width")
 		.AddClass("moka-bento-grid--board", _board is not null)
 		.AddClass("moka-bento-grid--customizing", IsCustomizing)
 		.AddClass(Class)

@@ -23,6 +23,7 @@
 .moka-dialog-prompt-input:focus {
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Why a confirm's work failed, under its message, until the next try. */
@@ -52,4 +53,5 @@
 .moka-gate .moka-dialog-prompt-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }

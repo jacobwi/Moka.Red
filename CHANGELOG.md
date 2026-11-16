@@ -21,14 +21,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   All of it runs in the browser; only the drop reaches .NET. New: `MokaKanbanColumn.Limit` (a work-in-progress limit
   shown in the header), `MokaKanbanItemMovedArgs.FromIndex` and `ToIndex`, `ItemKey`, `ItemLabel`, and `Disabled`,
   which stops moving. A press on a control inside a card stays the control's.
+- Diagnostics are off outside Development unless `DiagnosticsOptions.EnableOutsideDevelopment` is set, since the
+  console shows the server's logs to whoever opens the page: the overlay, the page and every panel render nothing, the
+  logger captures nothing and the service records nothing. The environment comes from `IHostEnvironment` or the
+  WebAssembly host's environment; a Blazor Hybrid app, which has neither, keeps them on, since its call to
+  `AddMokaDiagnostics()` is the switch and it serves one user.
+- `DiagnosticsSettings` (`IMokaDiagnosticsService.Settings`, with `Changed`): position, width, pause, render and JS
+  interop tracking and the event log size are kept per window, so on Blazor Server one person's change no longer
+  reaches everyone; the popup page edits its opener's settings. The console level stays app-wide, since one buffer
+  holds the app's logs, and the Settings tab says which is which.
+- The diagnostics overlay and page follow the WAI-ARIA tabs pattern: a tab list with one tab stop, Left, Right, Home and
+  End between tabs, manual activation, and a labelled tab panel. The Network tab has its own Clear.
 
 ### Fixed
-- On the new design a focused control's ring (`--moka-focus-ring`) is solid accent past a hairline of surface. The 22%
-  glow it drew measured 1.3 to 1.5:1 against the surface on every built-in theme, short of the 3:1 a focus indicator
-  needs; the solid ring is 4.9:1 or more. `MokaTheme.Dark` and `Light` keep their ring.
-- A focus rule that draws `--moka-focus-ring` no longer turns the outline off: it sets a transparent outline as wide as
-  `--moka-focus-width`, which draws nothing until forced colors (Windows High Contrast) drops box-shadows and shows the
-  outline in the system color. 97 rules in 69 stylesheets, with no change on screen otherwise.
+- A focused control's ring (`--moka-focus-ring`) is solid accent past a hairline of surface, on every theme. The glow it
+  drew (22% of the accent on the new design, 8% on `MokaTheme.Dark` and `Light`) measured 1.1 to 1.5:1 against the
+  surface, short of the 3:1 a focus indicator needs (WCAG 1.4.11); the solid ring is 4.9:1 or more. `Dark` keeps its
+  inner glow inside the ring. A field in error rings in solid error (`--moka-focus-ring-error`), which was a 22% tint.
+  This changes how focus looks on `Dark` and `Light`, which otherwise render as before.
+- Every focus rule that draws `--moka-focus-ring` sets its own transparent outline as wide as `--moka-focus-width`, which
+  draws nothing until forced colors (Windows High Contrast) drops box-shadows and shows the outline in the system color.
+  209 rules in 103 stylesheets. 97 of them turned the outline off, so forced colors showed no focus; 107 left it to
+  whatever else matched, so some drew the page-wide ring or the browser's outline beside the ring and some showed
+  nothing in forced colors.
 - Charts draw again when their parent renders with `TitleContent`, `Actions`, `EmptyContent`, `ErrorContent`,
   `ToolbarControl`, `TooltipTemplate`, a donut's center or a dot plot's `NameTemplate`, so a fragment that reads the
   page's own fields no longer keeps its first text. A fragment can't be compared, so a chart given one renders its frame
@@ -39,6 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A `MokaWizardStep` the page stops rendering leaves the wizard: the steps after it move up, the step on screen stays on
   screen, and a bound `ActiveStep` hears the new position. It stayed in the indicator and the count before.
 - `MokaDropdownItem` renders the attributes it is given on its menu item; it dropped them.
+- `MokaChartAxis.TickTemplate` is drawn again whenever the parent renders, so a template that reads the page's own
+  fields no longer keeps its first text, and a template written inline no longer rebuilds the chart on every parent
+  render: the axis is compared without it, and only the ticks redraw. `MokaChartAxis.TickValues` is compared item by
+  item, so a list written inline no longer rebuilds the chart either.
+- `MokaTabStrip.TabStripCssClass` lands on the strip's outermost element, the row that also holds the All tabs button
+  when `ShowTabList` is on; it landed on the tab list inside it.
+- `MokaBentoGrid` fills its container with its margin inside (`moka-fill-width`), so a `Margin` no longer pushes it past
+  the container's edge.
 - The `mokared-maui` template builds. It had no `Platforms` folder, so no platform had an entry point, and it registered
   a font it didn't ship and called `AddDebug()` without the logging package. It now follows the .NET MAUI Blazor Hybrid
   template: entry points and manifests for Windows, Android, iOS and Mac Catalyst, the iOS and Mac Catalyst scene
@@ -65,6 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   logged in the same moment, the console level setting offers Trace and Critical, and the Services tab calls
   `GC.GetTotalMemory` "Allocated".
 - Diagnostics: a failure while a panel refreshes reaches Blazor's error handling instead of being lost.
+- Diagnostics: the page loads the library stylesheet (its layout renders a `MokaThemeProvider`), and JS interop calls
+  and GC figures each appear on one tab (Network and Memory) instead of two.
+- An element dragged through `moka-drag.js` `makeDraggable` (the diagnostics panel, a draggable dialog) drops a right
+  or bottom inset it started from, so it no longer stretches between that edge and where it was dropped.
 
 ### Changed
 - `MokaBentoGrid`, `MokaRetroGrid`, `MokaWatermark`, `MokaCommandBar`, `MokaFormBuilder`, `MokaKanbanBoard`,
@@ -74,12 +101,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MokaWatermark.Color` is a theme color (`MokaColor?`) that draws the text in that palette color; `Surface` is the
   on-surface color.
 - Diagnostics: a second `AddMokaDiagnostics` call applies its `configure` to the options already registered. New
-  `ThemeTokenKind.Other` and `ThemeToken.ResolvedColor`; `MokaDiagnosticsPage` implements `IDisposable`; the export
-  downloads as a stream (the file is the same).
+  `ThemeTokenKind.Other` and `ThemeToken.ResolvedColor`; the export downloads as a stream (the file is the same).
+- Diagnostics: icon-only controls are library icons named by `aria-label` and a `MokaTooltip`, not glyphs with a
+  `title`; the Perf tab shows the component lifecycle with the average render time; the Services tab lists the
+  registered services and renders once. The package depends on Moka.Red.Primitives and
+  Microsoft.Extensions.Hosting.Abstractions.
 
 ### Breaking
 - Diagnostics: `IMokaDiagnosticsService.GetThemeTokens` returns groups named after `MokaTokenGroup` (Color,
   Typography, Spacing, Radius, Layout and the rest) instead of Palette, Typography, Spacing and Border Radius.
+- Diagnostics are off outside Development unless `EnableOutsideDevelopment` is set. bUnit's default environment is
+  Production, so a test that renders the overlay sets Development or opts in.
+- Diagnostics: `IMokaDiagnosticsService.Settings` is a new interface member. The position, width, event log size and
+  tracking values in `DiagnosticsOptions` are starting values for each window; the Settings tab no longer writes them,
+  and its Auto-expand row is gone. `ClearPerformanceData()` clears only JS interop calls; `ClearRenderData()` also
+  resets the disposed count. `MokaDiagnosticsPage` implements `IAsyncDisposable`, and `ServicesPanel` is no longer
+  `IDisposable`. Tabs carry `aria-selected` instead of `aria-pressed`.
 - `MokaKanbanBoard` raises `OnItemMoved` for a move within a column too (`FromColumnIndex` equals `ToColumnIndex`), and
   inserts a card where it was dropped rather than at the end of the column. Its cards no longer use the browser's
   native drag and drop.

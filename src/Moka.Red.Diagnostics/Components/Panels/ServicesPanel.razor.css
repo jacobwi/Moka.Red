@@ -62,3 +62,10 @@
 .moka-diag-svc-val--missing {
 	color: #999;
 }
+
+.moka-diag-svc-note {
+	margin: 0;
+	padding: 4px 4px 8px;
+	font-size: 11px;
+	color: #777;
+}

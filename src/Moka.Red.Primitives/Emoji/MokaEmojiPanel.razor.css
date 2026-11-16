@@ -106,6 +106,7 @@
 .moka-emoji-panel__search:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-emoji-panel__query {

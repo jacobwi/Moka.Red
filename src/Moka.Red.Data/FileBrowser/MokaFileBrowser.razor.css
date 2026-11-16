@@ -1283,6 +1283,7 @@ button.moka-file-browser__heading:focus-visible {
 .moka-file-browser__path-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-file-browser__path-input[aria-invalid="true"] {

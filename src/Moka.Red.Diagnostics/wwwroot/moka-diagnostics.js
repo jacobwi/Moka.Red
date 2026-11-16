@@ -59,11 +59,75 @@ export function registerKeyboardShortcut(dotNetRef, shortcut) {
 }
 
 /**
- * Lets the panel's tab row scroll when its tabs don't fit. The row gets data-moka-overflow while they don't, which
- * makes room for an arrow at each end, and data-moka-more-start or data-moka-more-end while tabs are out of view on
- * that side, which shows that side's arrow. The room depends only on whether the row overflows, never on where it is
- * scrolled, so revealing a tab can't move it back under an arrow. An arrow scrolls about a row's width, and the
- * pressed tab is kept in view. All of it stays in the browser.
+ * The WAI-ARIA tabs pattern's keys on a tab list: Left and Right move focus to the previous and next tab, wrapping, Home
+ * and End to the first and last, mirrored in a right-to-left list. Activation is manual, as the pattern advises when a
+ * tab's panel takes a moment to show: showing one is a round trip to the server and a new panel, so a tab is picked
+ * only by Enter, Space or a click, which the tab, a button, handles itself. Moving focus costs no round trip.
+ * @param {HTMLElement} list - The element with role="tablist".
+ * @param {(tab: HTMLElement) => void} focus - Moves focus to a tab and brings it into view.
+ * @returns {() => void} What stops listening.
+ */
+function listenForTabKeys(list, focus) {
+	const onKeyDown = (e) => {
+		if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+			return;
+		}
+
+		const tabs = [...list.querySelectorAll('[role="tab"]')];
+		const current = tabs.indexOf(e.target instanceof Element ? e.target.closest('[role="tab"]') : null);
+		if (current < 0) {
+			return;
+		}
+
+		const forward = getComputedStyle(list).direction === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
+		const back = forward === 'ArrowRight' ? 'ArrowLeft' : 'ArrowRight';
+		let next;
+		switch (e.key) {
+			case forward:
+				next = (current + 1) % tabs.length;
+				break;
+			case back:
+				next = (current - 1 + tabs.length) % tabs.length;
+				break;
+			case 'Home':
+				next = 0;
+				break;
+			case 'End':
+				next = tabs.length - 1;
+				break;
+			default:
+				return;
+		}
+
+		e.preventDefault();
+		focus(tabs[next]);
+	};
+
+	list.addEventListener('keydown', onKeyDown);
+	return () => list.removeEventListener('keydown', onKeyDown);
+}
+
+/**
+ * Gives the full page's tab list the tabs pattern's keys (see listenForTabKeys). Its tabs wrap rather than scroll, so
+ * the browser's own scroll into view on focus is enough.
+ * @param {HTMLElement} list - The element with role="tablist".
+ * @returns {{ dispose: () => void }} What stops listening.
+ */
+export function bindTabList(list) {
+	if (!list) {
+		return { dispose: () => { } };
+	}
+
+	return { dispose: listenForTabKeys(list, (tab) => tab.focus()) };
+}
+
+/**
+ * Lets the panel's tab row scroll when its tabs don't fit, and gives its tab list the tabs pattern's keys (see
+ * listenForTabKeys). The row gets data-moka-overflow while the tabs don't fit, which makes room for an arrow at each
+ * end, and data-moka-more-start or data-moka-more-end while tabs are out of view on that side, which shows that side's
+ * arrow. The room depends only on whether the row overflows, never on where it is scrolled, so revealing a tab can't
+ * move it back under an arrow. An arrow scrolls about a row's width, and the tab showing, a clicked tab and a tab the
+ * keys move to are kept in view. All of it stays in the browser.
  * @param {HTMLElement} row - The element holding the arrows and the tab list.
  * @returns {{ dispose: () => void }} What stops watching the row.
  */
@@ -98,12 +162,18 @@ export function bindTabRow(row) {
 		reveal(e.target instanceof Element ? e.target.closest('.moka-diag-tab') : null);
 	};
 
-	// A new size can leave the pressed tab under an arrow or past the end, so it's brought back into view.
+	// A new size can leave the tab showing under an arrow or past the end, so it's brought back into view.
 	const onResize = () => {
 		update();
-		list.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+		list.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 		update();
 	};
+
+	// The browser's own scroll on focus would jump; this one follows the reduced-motion setting like the arrows.
+	const stopKeys = listenForTabKeys(list, (tab) => {
+		tab.focus({ preventScroll: true });
+		reveal(tab);
+	});
 
 	const resizes = new ResizeObserver(onResize);
 	resizes.observe(row);
@@ -120,6 +190,7 @@ export function bindTabRow(row) {
 	return {
 		dispose: () => {
 			resizes.disconnect();
+			stopKeys();
 			list.removeEventListener('scroll', update);
 			row.removeEventListener('click', onClick);
 		},

@@ -7,7 +7,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 
 // The whole markup of the panels whose checkboxes, selects and number boxes bind a setting (BindingGoldens says when to
 // write the files again).
-public sealed class PanelBindingGoldenTests : BunitContext
+public sealed class PanelBindingGoldenTests : DevelopmentContext
 {
 	public PanelBindingGoldenTests()
 	{

@@ -234,6 +234,7 @@
 
 .moka-account-card__card--current:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-current-edge), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 [data-moka-rail] .moka-account-card__menu {

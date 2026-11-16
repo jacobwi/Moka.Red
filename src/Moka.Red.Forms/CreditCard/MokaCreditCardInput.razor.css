@@ -211,6 +211,7 @@
 .moka-gate .moka-creditcard-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-creditcard-input:disabled { opacity: var(--moka-opacity-disabled); }

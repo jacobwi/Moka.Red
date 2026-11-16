@@ -612,4 +612,5 @@
 .moka-gate .moka-dialog--terminal > .moka-dialog-actions ::deep .moka-btn:focus-visible:not(.moka-btn--disabled) {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }

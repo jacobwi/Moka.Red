@@ -24,6 +24,7 @@
 .moka-code-editor__frame:focus-within {
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-code-editor--error .moka-code-editor__frame {
@@ -371,10 +372,12 @@
 .moka-gate .moka-code-editor__frame:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-code-editor--error .moka-code-editor__frame:focus-within {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-code-editor__gutter {

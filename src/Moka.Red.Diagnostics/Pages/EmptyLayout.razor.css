@@ -1,0 +1,12 @@
+/* Dark whatever the app's theme is, with the tooltips that name its icon buttons and the browser's own controls. */
+.moka-diag-page-layout {
+	--moka-tooltip-bg: #2a2a2a;
+	--moka-tooltip-color: #e0e0e0;
+	--moka-tooltip-border: rgba(255, 255, 255, 0.15);
+	color-scheme: dark;
+	min-height: 100vh;
+	background: #1a1a1a;
+	color: #e0e0e0;
+	font-family: var(--moka-font-family, -apple-system, system-ui, sans-serif);
+	font-size: 13px;
+}

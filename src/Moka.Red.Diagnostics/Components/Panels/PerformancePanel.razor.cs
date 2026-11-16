@@ -5,18 +5,19 @@ using Moka.Red.Diagnostics.Services;
 namespace Moka.Red.Diagnostics.Components.Panels;
 
 /// <summary>
-///     Panel displaying JS interop call stats, component lifecycle counts,
-///     and potential memory leak indicators. Checks every second and renders only when a figure changed.
+///     Panel displaying the component lifecycle: active and disposed counts, the average render time, and a trend that
+///     points at a possible memory leak. JS interop calls are in <see cref="NetworkPanel" /> and GC figures in
+///     <see cref="MemoryPanel" />. Checks every second and renders only when a figure changed.
 /// </summary>
 public sealed partial class PerformancePanel : ComponentBase, IDisposable
 {
 	private int _activeCount;
+	private double _avgRenderMs;
 	private bool _disposed;
 	private int _disposedCount;
 	private int _growthStreak;
-	private IReadOnlyList<JsInteropEntry> _jsEntries = [];
 	private int _previousActiveCount;
-	private (int Active, int Disposed, string Trend, int Functions, int Calls, TimeSpan Time) _shown;
+	private (int Active, int Disposed, string Trend, double AvgRender) _shown;
 	private PanelRefresh? _refresh;
 
 	private IMokaDiagnosticsService? _diagnosticsService;
@@ -64,45 +65,42 @@ public sealed partial class PerformancePanel : ComponentBase, IDisposable
 			return false;
 		}
 
-		_jsEntries = _diagnosticsService.GetJsInteropEntries();
 		_activeCount = _diagnosticsService.ActiveComponentCount;
 		_disposedCount = _diagnosticsService.DisposedComponentCount;
+		_avgRenderMs = AverageRenderMs(_diagnosticsService.GetRenderEntries());
 
-		// Track growth trend for leak detection
+		// A streak of rising active counts points at components that are made and never disposed.
 		if (_activeCount > _previousActiveCount)
 		{
 			_growthStreak++;
 		}
-		else if (_activeCount <= _previousActiveCount)
+		else
 		{
 			_growthStreak = 0;
 		}
 
 		_previousActiveCount = _activeCount;
 
-		// The entries' totals and longest calls only grow, so their sum moves whenever an average or a maximum shown does.
-		var shown = (_activeCount, _disposedCount, LeakIndicatorText, _jsEntries.Count,
-			_jsEntries.Sum(entry => entry.CallCount),
-			_jsEntries.Aggregate(TimeSpan.Zero, (sum, entry) => sum + entry.TotalDuration + entry.MaxDuration));
+		var shown = (_activeCount, _disposedCount, LeakIndicatorText, Math.Round(_avgRenderMs, 1));
 		bool changed = shown != _shown;
 		_shown = shown;
 		return changed;
 	}
 
-	private void Clear()
+	// The mean of each rendered component's latest render.
+	private static double AverageRenderMs(IReadOnlyList<ComponentRenderEntry> entries)
 	{
-		_diagnosticsService?.ClearPerformanceData();
-		_growthStreak = 0;
-		_previousActiveCount = 0;
-		RefreshData();
-	}
+		double totalMs = 0;
+		int rendered = 0;
+		foreach (ComponentRenderEntry entry in entries)
+		{
+			if (entry.RenderCount > 0)
+			{
+				totalMs += entry.LastRenderDuration.TotalMilliseconds;
+				rendered++;
+			}
+		}
 
-	private static string ShortenIdentifier(string identifier)
-	{
-		// Show last segment of dotted identifiers (e.g., "navigator.clipboard.writeText" -> "writeText")
-		int lastDot = identifier.LastIndexOf('.');
-		return lastDot >= 0 && lastDot < identifier.Length - 1
-			? identifier[(lastDot + 1)..]
-			: identifier;
+		return rendered > 0 ? totalMs / rendered : 0;
 	}
 }

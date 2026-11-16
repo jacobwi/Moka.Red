@@ -150,6 +150,7 @@
 .moka-gate .moka-autocomplete-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-autocomplete-input:disabled { opacity: var(--moka-opacity-disabled); }
@@ -167,6 +168,7 @@
 
 .moka-gate .moka-autocomplete--error .moka-autocomplete-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-autocomplete ::deep .moka-autocomplete-clear-tip { right: var(--moka-input-padding); }

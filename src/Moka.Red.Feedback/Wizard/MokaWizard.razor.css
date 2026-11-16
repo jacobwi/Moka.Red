@@ -273,6 +273,7 @@
 
 .moka-wizard-rail-step--now > .moka-wizard-rail-button:focus-visible {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Sticky, not fixed: a wizard taller than the window gets the same bar, and a page with a sidebar keeps it inside the wizard. */

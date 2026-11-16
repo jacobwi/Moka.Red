@@ -52,7 +52,7 @@ On every cartesian chart:
 | `MinTime`, `MaxTime` | `DateTimeOffset?` | -- | `Min` and `Max` as times: a time axis spans them whatever the data |
 | `SuggestedMinTime`, `SuggestedMaxTime` | `DateTimeOffset?` | -- | `SuggestedMin` and `SuggestedMax` as times |
 | `TickCount` | `int?` | -- | How many divisions to aim for |
-| `TickValues` | `IReadOnlyList<double>?` | -- | Ticks to draw instead of working them out |
+| `TickValues` | `IReadOnlyList<double>?` | -- | Ticks to draw instead of working them out. Compared item by item, so a list written inline costs nothing |
 | `Nice` | `bool?` | -- | Round the ends and the step to 1, 2, 2.5, 4 or 5 times a power of ten, in the unit the top reaches. Every tick then takes the step's decimals, so 1.080 sits between 1.076 and 1.084 |
 | `IncludeZero` | `bool?` | -- | Whether the axis reaches zero. Null takes the chart's: a value axis reaches zero unless the chart's values sit far from it (candlesticks), an x axis spans only its data |
 | `Unit` | `MokaChartUnit?` | -- | `Bytes`, `BytesBinary`, `BitsPerSecond`, `Milliseconds`, `Seconds`, `Percent`, `Compact`, or `MokaChartUnit.Of("req/s")` |
@@ -66,7 +66,7 @@ On every cartesian chart:
 | `WrapLines` | `int` | `2` | How many lines a wrapped label may take |
 | `MaxLabelEm` | `double?` | -- | Labels longer than this, in em, are cut, with the whole text in a tooltip |
 | `MinCategoryEm` | `double?` | 2.75 | With `Fit = Scroll`, the least width each category gets |
-| `TickTemplate` | `RenderFragment<MokaAxisTick>?` | -- | Draws each tick. Its `Text` still decides the room it takes. Keep it a field |
+| `TickTemplate` | `RenderFragment<MokaAxisTick>?` | -- | Draws each tick. Its `Text` still decides the room it takes. Drawn again whenever the parent renders, rebuilding nothing, so it can be written inline and can read the page's fields |
 | `TimeFormat` | `string?` | -- | A .NET date format for a time axis's ticks; day and month boundaries keep theirs. A format that can't tell the step apart takes a coarser step |
 | `TooltipTimeFormat` | `string?` | -- | A .NET date format for the time a tooltip heading, the table view and an event marker write, whatever the ticks write. Wins over `Formatter` there |
 | `Hour12` | `bool?` | -- | A 12-hour clock ("2 PM", "2:30 PM") in the ticks and tooltips of a time axis, or a 24-hour one with false. Null follows `TimeFormat` when it writes an hour, else the culture |

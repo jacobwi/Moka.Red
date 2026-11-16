@@ -99,6 +99,7 @@
 .moka-gate .moka-otp-digit:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-otp-digit:disabled { opacity: var(--moka-opacity-disabled); }
@@ -107,6 +108,7 @@
 
 .moka-gate .moka-otp--error .moka-otp-digit:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-otp-helper {

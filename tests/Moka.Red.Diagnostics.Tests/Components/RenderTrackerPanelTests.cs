@@ -7,7 +7,7 @@ using Moka.Red.Diagnostics.Services;
 
 namespace Moka.Red.Diagnostics.Tests.Components;
 
-public class RenderTrackerPanelTests : BunitContext
+public class RenderTrackerPanelTests : DevelopmentContext
 {
 	public RenderTrackerPanelTests()
 	{

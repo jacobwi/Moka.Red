@@ -68,6 +68,7 @@
 .moka-radio-native:focus-visible + .moka-radio-circle {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Hover */
@@ -99,6 +100,7 @@
 
 .moka-radio-item--card:has(.moka-radio-native:focus-visible) {
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-radio-item__art {
@@ -154,7 +156,7 @@
 	box-shadow: none;
 }
 
-.moka-gate .moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-native:focus-visible + .moka-radio-circle { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-radio-item:hover:not(.moka-radio-item--disabled) .moka-radio-native:focus-visible + .moka-radio-circle { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-gate .moka-radio-label { font-size: var(--moka-font-size-base); }
 

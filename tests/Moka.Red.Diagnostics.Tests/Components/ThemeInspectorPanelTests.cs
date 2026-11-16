@@ -7,7 +7,7 @@ using Moka.Red.Diagnostics.Extensions;
 
 namespace Moka.Red.Diagnostics.Tests.Components;
 
-public class ThemeInspectorPanelTests : BunitContext
+public class ThemeInspectorPanelTests : DevelopmentContext
 {
 	public ThemeInspectorPanelTests()
 	{

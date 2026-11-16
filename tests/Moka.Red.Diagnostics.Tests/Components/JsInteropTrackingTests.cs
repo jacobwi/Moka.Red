@@ -11,7 +11,7 @@ namespace Moka.Red.Diagnostics.Tests.Components;
 
 // Nothing called RecordJsInteropCall, so the Network tab was always empty while its empty state said
 // calls made through SafeJsInvokeAsync were tracked.
-public class JsInteropTrackingTests : BunitContext
+public class JsInteropTrackingTests : DevelopmentContext
 {
 	private const string ModulePath = "./_content/Tests/interop-test.js";
 

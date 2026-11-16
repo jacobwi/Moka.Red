@@ -63,6 +63,7 @@
 
 .moka-native-select--error .moka-native-select-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */

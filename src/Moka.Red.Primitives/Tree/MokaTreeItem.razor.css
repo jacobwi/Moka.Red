@@ -31,6 +31,7 @@
 
 .moka-tree-item:focus-visible > .moka-tree-item__row {
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-tree-item__row:hover {
@@ -160,7 +161,7 @@
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 
-.moka-gate .moka-tree-item:focus-visible > .moka-tree-item__row { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-tree-item:focus-visible > .moka-tree-item__row { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 .moka-gate .moka-tree-item__row:hover { background-color: var(--moka-color-surface-raised); }
 
 .moka-gate .moka-tree-item__row--selected,

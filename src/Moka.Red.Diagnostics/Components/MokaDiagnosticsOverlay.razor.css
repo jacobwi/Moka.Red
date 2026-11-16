@@ -1,6 +1,19 @@
-.moka-diag-badge {
+/* The panel and the badge's corner are dark whatever the app's theme is, and so are the tooltips that name their
+   icon buttons. */
+.moka-diag-panel,
+.moka-diag-badge-corner {
+	--moka-tooltip-bg: #2a2a2a;
+	--moka-tooltip-color: #e0e0e0;
+	--moka-tooltip-border: rgba(255, 255, 255, 0.15);
+	color-scheme: dark;
+}
+
+.moka-diag-badge-corner {
 	position: fixed;
 	z-index: 999999;
+}
+
+.moka-diag-badge {
 	width: 32px;
 	height: 32px;
 	border-radius: 9999px;
@@ -32,9 +45,6 @@
 	/* The width setting goes up to 600px, wider than a phone; the 16px inset is the badge's. */
 	max-width: calc(100vw - 32px);
 	max-height: 80vh;
-	background: rgba(18, 18, 18, 0.95);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 8px;
 	color: #e0e0e0;
@@ -45,6 +55,19 @@
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+}
+
+/* The background and its blur are drawn by a layer behind the content. A backdrop filter on the panel itself would make
+   it the containing block of its fixed descendants, so the tooltips' popups would be placed in the panel and cut off at
+   its edge rather than placed in the window. */
+.moka-diag-panel::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background: rgba(18, 18, 18, 0.95);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
 }
 
 .moka-diag-header {
@@ -117,6 +140,8 @@
 }
 
 .moka-diag-tab {
+	display: inline-flex;
+	align-items: center;
 	background: transparent;
 	border: none;
 	color: #999;
@@ -148,6 +173,8 @@
 }
 
 .moka-diag-action-btn {
+	display: inline-flex;
+	align-items: center;
 	background: transparent;
 	border: none;
 	color: #999;
@@ -170,6 +197,8 @@
 }
 
 .moka-diag-close {
+	display: inline-flex;
+	align-items: center;
 	background: transparent;
 	border: none;
 	color: #999;

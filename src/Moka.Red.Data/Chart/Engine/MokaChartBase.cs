@@ -375,6 +375,26 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	/// <param name="name">The parameter's name.</param>
 	internal virtual bool DrawsFragment(string name) => !IsClassic;
 
+	/// <summary>
+	///     Whether a parameter is a record of options that carries a fragment, such as a cartesian chart's axes and their
+	///     tick templates. Its values are compared by <see cref="SameApartFromFragments" />, with or without a
+	///     <see cref="DataVersion" />, and while either one carries a fragment (<see cref="CarriesFragment" />) the chart
+	///     draws again as for a fragment parameter, rebuilding nothing.
+	/// </summary>
+	/// <param name="name">The parameter's name.</param>
+	internal virtual bool HoldsFragments(string name) => false;
+
+	/// <summary>Whether two values of a parameter that <see cref="HoldsFragments" /> are the same but for their fragments.</summary>
+	/// <param name="name">The parameter's name.</param>
+	/// <param name="before">The value the chart last took.</param>
+	/// <param name="after">The value it is handed now.</param>
+	internal virtual bool SameApartFromFragments(string name, object? before, object? after) => Equals(before, after);
+
+	/// <summary>Whether a value of a parameter that <see cref="HoldsFragments" /> carries a fragment the chart would draw.</summary>
+	/// <param name="name">The parameter's name.</param>
+	/// <param name="value">The value.</param>
+	internal virtual bool CarriesFragment(string name, object? value) => false;
+
 	/// <summary>Draws again, rebuilding the geometry first unless only chrome changed.</summary>
 	internal void Redraw(bool geometry = true)
 	{
@@ -439,7 +459,8 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	///     set, data by value against a snapshot (or by reference and <see cref="DataVersion" />), and the chart draws again
 	///     only when something differs, so an unchanged parent render costs no render and no diff. A
 	///     <see cref="RenderFragment" /> can't be compared, so one handed over again draws the chart again, but rebuilds
-	///     nothing: the marks stay behind the geometry version and only what draws the fragment renders.
+	///     nothing: the marks stay behind the geometry version and only what draws the fragment renders. The same goes for
+	///     a fragment inside a record of options, such as an axis's tick template: the record is compared without it.
 	/// </remarks>
 	public override Task SetParametersAsync(ParameterView parameters)
 	{
@@ -540,11 +561,18 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 				continue;
 			}
 
+			bool holds = HoldsFragments(name);
 			bool same = ComparesItems(name) ? SameItems(previous, value)
+				: holds ? SameApartFromFragments(name, previous, value)
 				: versioned ? Equals(previous, value)
 				: SameValue(name, previous, value);
 			if (same)
 			{
+				if (holds && (CarriesFragment(name, previous) || CarriesFragment(name, value)))
+				{
+					TakeFragmentAgain(name);
+				}
+
 				continue;
 			}
 

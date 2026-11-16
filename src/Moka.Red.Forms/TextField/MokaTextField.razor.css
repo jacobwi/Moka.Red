@@ -19,6 +19,7 @@
 .moka-textfield-input:focus {
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-textfield-input--sm {
@@ -205,6 +206,7 @@
 
 .moka-gate .moka-textfield--error .moka-textfield-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-textfield-start-icon,

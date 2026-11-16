@@ -123,6 +123,7 @@
 .moka-card--clickable:has(> .moka-card-header > .moka-card-header-content > .moka-card-title > .moka-card-action:focus-visible) {
 	border-color: var(--moka-color-primary-border);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* Full width */
@@ -307,6 +308,7 @@
 .moka-gate .moka-card--clickable:has(> .moka-card-header > .moka-card-header-content > .moka-card-title > .moka-card-action:focus-visible) {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-card-header {

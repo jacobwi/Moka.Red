@@ -12,6 +12,23 @@
 	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.moka-diag-network-clear {
+	margin-left: auto;
+	padding: 2px 8px;
+	font-size: 10px;
+	color: #999;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.moka-diag-network-clear:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #ddd;
+}
+
 .moka-diag-network-stat-value {
 	font-family: 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
 	font-weight: 600;

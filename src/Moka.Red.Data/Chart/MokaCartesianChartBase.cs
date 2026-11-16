@@ -296,6 +296,25 @@ public abstract partial class MokaCartesianChartBase : MokaChartBase
 		name is nameof(Annotations) or nameof(RangePresets) || base.ComparesItems(name);
 
 	/// <inheritdoc />
+	/// <remarks>
+	///     The axes carry their <see cref="MokaChartAxis.TickTemplate" />, which feeds no geometry: the plot reads it from
+	///     the axis at each render, and an axis the parent hands over with one draws the ticks again.
+	/// </remarks>
+	internal override bool HoldsFragments(string name) => name is nameof(XAxis) or nameof(YAxis) || base.HoldsFragments(name);
+
+	/// <inheritdoc />
+	internal override bool SameApartFromFragments(string name, object? before, object? after) =>
+		name is nameof(XAxis) or nameof(YAxis)
+			? SameAxis(before as MokaChartAxis, after as MokaChartAxis)
+			: base.SameApartFromFragments(name, before, after);
+
+	/// <inheritdoc />
+	internal override bool CarriesFragment(string name, object? value) =>
+		name is nameof(XAxis) or nameof(YAxis)
+			? value is MokaChartAxis { Visible: true, TickTemplate: not null }
+			: base.CarriesFragment(name, value);
+
+	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		if (Range != _lastRangeParameter)

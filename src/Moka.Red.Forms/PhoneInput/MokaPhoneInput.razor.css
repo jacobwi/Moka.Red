@@ -92,6 +92,7 @@
 .moka-phone-wrapper--picker:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-phone-wrapper--picker.moka-phone-wrapper--error {
@@ -139,6 +140,7 @@
 .moka-gate .moka-phone-input:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-phone-input:disabled { opacity: var(--moka-opacity-disabled); }
@@ -154,6 +156,7 @@
 
 .moka-gate .moka-phone-wrapper--error .moka-phone-input:focus {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-phone-wrapper--focused .moka-phone-prefix {
@@ -172,9 +175,10 @@
 .moka-gate .moka-phone-wrapper--picker:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
-.moka-gate .moka-phone-wrapper--picker.moka-phone-wrapper--error:focus-within { box-shadow: var(--moka-focus-ring-error); }
+.moka-gate .moka-phone-wrapper--picker.moka-phone-wrapper--error:focus-within { box-shadow: var(--moka-focus-ring-error); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-gate .moka-phone-wrapper--picker .moka-phone-input,
 .moka-gate .moka-phone-wrapper--picker .moka-phone-input:focus,

@@ -4,7 +4,7 @@ using Moka.Red.Diagnostics.Components.Panels;
 namespace Moka.Red.Diagnostics.Tests.Components;
 
 // "Total Memory" and "Managed Heap" both showed GC.GetTotalMemory, so the panel had one number twice.
-public class MemoryPanelTests : BunitContext
+public class MemoryPanelTests : DevelopmentContext
 {
 	[Fact]
 	public void Cards_ShowTheAllocatedBytesAndTheHeapOfTheLastCollection()

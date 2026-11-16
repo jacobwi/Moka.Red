@@ -330,6 +330,7 @@
 
 .moka-gate .moka-tab-header:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-tab-icon { font-size: var(--moka-font-size-lg); }
@@ -370,6 +371,7 @@
 
 .moka-gate .moka-tab-group-header:focus-visible {
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-tab-strip-list {
@@ -391,6 +393,7 @@
 
 .moka-gate .moka-tab-list-button:focus-visible {
 	box-shadow: inset 0 0 0 var(--moka-border-width) var(--moka-color-primary), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-tab-list-current {

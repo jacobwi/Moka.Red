@@ -40,7 +40,7 @@
 						<div class="moka-chart-plot__yticks">
 							@foreach (PlotTick tick in model.ValueTicks)
 							{
-								<span class="@ValueTickClass(tick)" style="@Share("--_s", tick.Share)">@TickContent(model.ValueTemplate, tick.Tick)</span>
+								<span class="@ValueTickClass(tick)" style="@Share("--_s", tick.Share)">@TickContent(Chart.ValueTickTemplate, tick.Tick)</span>
 							}
 						</div>
 					</div>
@@ -83,7 +83,7 @@
 					{
 						<div class="moka-chart-plot__rhead" aria-hidden="true">
 							<span class="moka-chart-plot__rname-space">@model.ValueTitle</span>
-							@AxisAcross(model.Axis, model.ValueTemplate)
+							@AxisAcross(model.Axis, Chart.ValueTickTemplate)
 						</div>
 					}
 					<div class="moka-chart-plot__rbody">
@@ -125,7 +125,7 @@
 		}
 		@if (model.ShowCategoryAxis && model.X.Labels.Count > 0)
 		{
-			@AxisAcross(model.X, model.XTemplate)
+			@AxisAcross(model.X, Chart!.XLabelTemplate)
 		}
 		@if (model.ScrollMinEm is not null)
 		{

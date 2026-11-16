@@ -99,7 +99,7 @@
 .moka-gate .moka-glass-card--clickable:active { box-shadow: var(--moka-shadow-1); }
 .moka-gate .moka-glass-card--glow,
 .moka-gate .moka-glass-card--glow:hover { box-shadow: none; }
-.moka-gate .moka-glass-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-glass-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 
 .moka-gate .moka-glass-card__header { padding: var(--moka-card-padding) var(--moka-card-padding) 0; border-bottom: none; }
 

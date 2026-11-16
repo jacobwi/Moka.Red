@@ -476,6 +476,7 @@ th:hover .moka-table-sort-icon,
 .moka-table-filter-select:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-table-filter-input::placeholder {
@@ -1216,6 +1217,7 @@ th:hover .moka-table-sort-icon,
 .moka-table-view-name:focus {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-table-view-name[aria-invalid="true"] {
@@ -2136,7 +2138,7 @@ th:focus-within .moka-table-menu-btn,
 }
 
 .moka-gate .moka-table-search-input:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
-.moka-gate .moka-table-search-input:focus { box-shadow: var(--moka-focus-ring); }
+.moka-gate .moka-table-search-input:focus { box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
 .moka-gate .moka-table-search-input::placeholder { color: var(--moka-color-on-surface-tertiary); opacity: 1; }
 
 .moka-gate .moka-table-toolbar-btn,

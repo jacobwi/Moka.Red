@@ -151,6 +151,7 @@
 
 .moka-gate .moka-onboarding-tooltip:focus-visible {
 	box-shadow: var(--moka-shadow-popup), var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-onboarding-tooltip-title {

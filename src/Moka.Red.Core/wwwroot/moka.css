@@ -263,7 +263,7 @@ p {
 	--moka-color-on-surface-quaternary: #bbbbbb;
 
 	/* Focus ring */
-	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow);
+	--moka-focus-ring: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary);
 	--moka-focus-glow: 0 0 0 3px var(--moka-color-primary-glow);
 	--moka-selected-glow: 0 0 0 2px var(--moka-color-primary-glow-md);
 	--moka-selected-bar: none;
@@ -404,7 +404,7 @@ p {
 	--moka-button-primary-hover-border: color-mix(in srgb, var(--moka-color-primary) 85%, var(--moka-color-lift));
 	--moka-button-text-color: var(--moka-color-primary-light);
 	--moka-button-text-hover-color: var(--moka-color-on-surface);
-	--moka-focus-ring-error: 0 0 0 3px color-mix(in srgb, var(--moka-color-error) 22%, transparent);
+	--moka-focus-ring-error: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-error);
 
 	/* Charts. The series take the theme's roles in turn, as they always have; the new design's palettes write their own
 	   colors. Sequential ramps run from the surface up to the accent, ordinal steps the other way. */
@@ -498,9 +498,9 @@ p {
 	--moka-color-on-surface-tertiary: #6a6a74;
 	--moka-color-on-surface-quaternary: #40404a;
 
-	/* Focus ring - signature red-glow */
+	/* Focus ring - solid accent, with the signature inner glow */
 	--moka-focus-color: var(--moka-color-primary);
-	--moka-focus-ring: 0 0 0 3px var(--moka-color-primary-glow), inset 0 0 12px var(--moka-color-primary-glow);
+	--moka-focus-ring: 0 0 0 1px var(--moka-color-surface), 0 0 0 3px var(--moka-color-primary), inset 0 0 12px var(--moka-color-primary-glow);
 	--moka-focus-glow: 0 0 0 3px var(--moka-color-primary-glow);
 	--moka-selected-glow: inset 0 0 20px var(--moka-color-primary-glow), 0 0 12px var(--moka-color-primary-glow);
 	--moka-current-bg: var(--moka-color-primary-row);

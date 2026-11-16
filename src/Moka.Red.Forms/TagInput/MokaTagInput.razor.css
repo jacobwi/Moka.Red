@@ -176,6 +176,7 @@
 .moka-gate .moka-taginput-container:focus-within {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-taginput-tag {
@@ -239,6 +240,7 @@
 
 .moka-gate .moka-taginput--error .moka-taginput-container:focus-within {
 	box-shadow: var(--moka-focus-ring-error);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 .moka-gate .moka-taginput--disabled .moka-taginput-container { opacity: var(--moka-opacity-disabled); }
