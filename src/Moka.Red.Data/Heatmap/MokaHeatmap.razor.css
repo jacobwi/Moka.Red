@@ -52,8 +52,15 @@
 	outline-offset: var(--moka-border-width);
 }
 
+/* A cell's color is its value, so it keeps it where the browser would drop it: in print without background graphics,
+   and in forced colors, which would paint it the system's background. */
+.moka-heatmap-cell {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
 @media (forced-colors: active) {
-	.moka-heatmap__view .moka-heatmap-cell {
+	.moka-heatmap-cell {
 		forced-color-adjust: none;
 	}
 }

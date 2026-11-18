@@ -139,3 +139,16 @@
 		right: calc(var(--_sk-node) / 2 + var(--_sk-gap) / 2);
 	}
 }
+
+/* A node's color names it, so it keeps it where the browser would drop it: in print without background graphics,
+   and in forced colors, which would paint it the system's background. The flows are drawn and keep theirs already. */
+.moka-sankey__node {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-sankey__node {
+		forced-color-adjust: none;
+	}
+}

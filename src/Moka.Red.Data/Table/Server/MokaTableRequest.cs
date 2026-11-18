@@ -79,6 +79,15 @@ public sealed record MokaTableRequest
 	public string? Cursor { get; init; }
 
 	/// <summary>
+	///     True when the table asks for more rows of a result it already has the count, totals, group totals and facets
+	///     of: a window it scrolled to under <c>Virtualize</c>, or the rows between two picks a run reaches past the window.
+	///     Answer with <see cref="MokaTableResult{TItem}.Items" /> alone and skip the counting; whatever else comes back
+	///     replaces what the table has. False for the first window after a sort, a filter, a search or a reload, and for
+	///     every page.
+	/// </summary>
+	public bool RowsOnly { get; init; }
+
+	/// <summary>
 	///     Cancelled once this request isn't wanted any more: the table has asked for something newer, or has gone away.
 	///     Pass it on to whatever fetches the rows. The table ignores the answer to a replaced request either way, so this
 	///     only saves the work.

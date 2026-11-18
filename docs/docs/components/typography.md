@@ -49,7 +49,7 @@ Moka.Red provides a full suite of semantic text components that map to HTML elem
 ```blazor-preview
 <MokaParagraph>
     Moka.Red is a lightweight, performance-focused Blazor UI component library
-    targeting .NET 9 and .NET 10.
+    targeting .NET 10.
 </MokaParagraph>
 ```
 

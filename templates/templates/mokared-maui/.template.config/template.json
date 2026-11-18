@@ -21,16 +21,11 @@
       "description": "The target framework for the project.",
       "datatype": "choice",
       "choices": [
-        { "choice": "net10.0", "description": "Target .NET 10" },
-        { "choice": "net9.0", "description": "Target .NET 9 (.NET MAUI 9 is out of support)" }
+        { "choice": "net10.0", "description": "Target .NET 10" }
       ],
       "defaultValue": "net10.0",
       "replaces": "net10.0",
       "displayName": "Target Framework"
-    },
-    "IsNet9": {
-      "type": "computed",
-      "value": "(Framework == \"net9.0\")"
     },
     "applicationId": {
       "type": "parameter",
@@ -138,35 +133,10 @@
             "Components/Pages/Counter.razor",
             "Components/Pages/Home.razor"
           ]
-        },
-        {
-          "condition": "(IsNet9)",
-          "exclude": [
-            "Platforms/iOS/SceneDelegate.cs",
-            "Platforms/MacCatalyst/SceneDelegate.cs"
-          ]
         }
       ]
     }
   ],
-  "SpecialCustomOperations": {
-    "**/*.plist": {
-      "operations": [
-        {
-          "type": "conditional",
-          "configuration": {
-            "style": "block",
-            "evaluator": "C++",
-            "startToken": "<!--",
-            "endToken": "-->",
-            "pseudoEndToken": "-- >",
-            "wholeLine": true,
-            "trimWhitespace": true
-          }
-        }
-      ]
-    }
-  },
   "primaryOutputs": [
     { "path": "MokaRedMaui.csproj" }
   ],

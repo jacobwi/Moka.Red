@@ -21,13 +21,16 @@ public sealed record MokaTableResult<TItem>
 
 	/// <summary>
 	///     Totals over the whole result set, by column title, for the footer in place of totals over the rows on this
-	///     page. A column missing here totals the rows the table has. See <see cref="MokaTableRequest.Aggregates" />.
+	///     page. A column missing here totals the rows the table has, or under <c>Virtualize</c>, which holds one window,
+	///     shows no total. See <see cref="MokaTableRequest.Aggregates" />.
 	/// </summary>
 	public IReadOnlyDictionary<string, double>? Totals { get; init; }
 
 	/// <summary>
 	///     The row count and totals of each whole group, for the group headings, which otherwise count only the rows on
-	///     this page. See <see cref="MokaTableRequest.Groups" />.
+	///     this page. See <see cref="MokaTableRequest.Groups" />. Under <c>Virtualize</c>, send every group of the whole
+	///     result, at every level, in the order its rows come, with the first window: the table places the headings and
+	///     the rows from them, and pages instead when they don't add up to <see cref="TotalItems" />.
 	/// </summary>
 	public IReadOnlyList<MokaTableGroupTotals>? GroupTotals { get; init; }
 

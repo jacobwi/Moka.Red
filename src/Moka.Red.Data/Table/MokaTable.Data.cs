@@ -45,6 +45,7 @@ public partial class MokaTable<TItem>
 		_loadCancellation = null;
 		_firstLoadPending = false;
 		_columnSamples.Clear();
+		EndAllMatchingIfTheMatchChanged();
 
 		_keepRowsWhileLoading = keepRows;
 		_isLoading = !keepRows;
@@ -371,6 +372,7 @@ public partial class MokaTable<TItem>
 		_displayItems = items;
 		_firstRowIndex = firstRowIndex;
 		_rowIndexBase = 0;
+		_lineOfRow = null;
 		_displayRows = BuildRows(items);
 		_indeterminateState = null;
 		ClampFocusedCell();

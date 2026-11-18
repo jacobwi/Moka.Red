@@ -3500,3 +3500,36 @@ docs then the platform's own source; never an unchecked "can't"), and Moka.Red C
   render for 50 to 200 children. 24 new tests; table, chart and meter goldens untouched.
 - BC, going to sleep: automate everything and decide on best practice. Plan: merge the agent, full suite, commit,
   release 0.8.1 (fixes only), docs pins, notices to the four sessions as for 0.8.0.
+
+## 2026-11-16 - 0.8.1 released
+
+a338fb6 (MokaChildList and the parents on it), 4853d0b chore: release 0.8.1 (patch: one additive public type, no
+breaks), CI and publish green, all 12 packages on NuGet, b1fee20 docs pins (preview host built in a scratch copy).
+12,624 tests passed before the commit; local release checks as for 0.8.0. Notices sent to the same four sessions: the
+table column fix for MokaGate, Mokaterm and MokaArk; nothing the WireGuard client uses changed.
+
+## 2026-11-18 - .NET 9 dropped, old worktrees cleared, table, charts and limits in progress
+
+BC: remove .NET 9, MokaTable rows in view, finish the charts, improve the limits by best practice and the Blazor docs,
+and clear the 15 old agent worktrees if merged.
+- Worktrees: all 14 agent worktrees from the 0.6.0 round had uncommitted work; 85 to 100% of their added lines were in
+  master, the rest moved (MokaTableLook to Core's MokaTableChoices, ValueParent to tests/Shared) or replaced in 0.6.0
+  (the palette editors, the Diagnostics panels). Removed with their branches, plus sad-moser and three claude/* session
+  branches with no commits outside master.
+- .NET 9 (agent, merged): support ended 2026-11-10 (the 24-month STS extension), per Microsoft's support page.
+  TargetFramework net10.0 in Directory.Build.props, 16 projects' own framework lines gone, Components.Web and
+  Hosting.Abstractions as central PackageVersions (VersionOverride is NuGet's per-project exception), templates keep  Framework with net10.0 alone as Microsoft's template does, docs and setup-dotnet in docs.yml and publish-nuget.yml.
+  MokaReconnectModal now follows components-reconnect-state-changed like the Blazor Web App template (checked on a real
+  server stop and restart). 12,624 tests, 13 net10.0-only packs, every template built, the WASM smoke test passed.
+- MokaTable already loads only the rows in view (RemoteRows since 0.6.0); doc 12's speculative entry was stale. An agent
+  is closing that mode's gaps (select-all, totals and filter values from the server, keys to unloaded rows, groups).
+- Charts: the dataviz anti-patterns rule out a dual y axis and many-slice pies; an agent builds MokaRadarChart, steers
+  the docs to the alternatives, and checks charts under emulated forced colors, print, reduced motion, touch and WASM.
+- Limits: an agent looks at MokaChildList's guessed order, OTP and PIN best practice, and one open-state holder for the
+  overlays.
+- All four agents merged (one conflict: both fixed the same racy heatmap test the same way). The table agent found a
+  request loop already on master; a fifth agent traced it to CSS, not Blazor: .moka-table-container had no position, so
+  a placeholder's visually hidden span (position: absolute) took the demo card as its containing block, wasn't scrolled
+  (CSS 2.1 11.1.1), and Virtualize.ts's range height between the spacers counted its text 1.93M px away, so the item
+  size exploded and every intersection moved the window. position: relative on the table and virtual list scrollers;
+  idle frames over 5 s went from 783 to 927 to 15. Full suite on the merged tree: 12,728 passed before the loop fix.

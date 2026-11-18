@@ -1,4 +1,4 @@
-<DemoSection Id="4-digit-masked-pin" Title="4-Digit masked PIN" Description="A short masked PIN, one box per digit.">
+<DemoSection Id="4-digit-masked-pin" Title="4-Digit masked PIN" Description="A short masked PIN: one password field over a box per digit, which the browser doesn't keep.">
 	<MokaPinInput @bind-Value="_pinValue" OnComplete="HandlePinComplete"/>
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">
 		@(_pinComplete ?? "Enter all 4 digits...")

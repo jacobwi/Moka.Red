@@ -43,6 +43,7 @@ order: 60
 | `IsValid` | `bool` | `true` | Whether this step passes validation. While `false`, Next and Finish are disabled on this step, and with `Linear` the step indicator can't skip past it |
 | `Decided` | `string?` | -- | What this step decided so far, under its title in a rail |
 | `HasProblem` | `bool` | `false` | Puts a mark on this step in a rail, for a problem to come back to |
+| `Order` | `int` | `0` | Where the step stands: lower first, and steps with the same `Order` keep the markup's order. See [Steps That Come and Go](#steps-that-come-and-go) |
 
 ## A Rail of Steps
 
@@ -96,9 +97,18 @@ before the one showing, the wizard's position moves back by one and a bound `Act
 that comes back takes its place in the markup again, and the step on screen stays on screen there too.
 
 The wizard rebuilds its step list on every render, in the order its steps render. A step written inside another
-component of yours renders after the steps written straight in the wizard, so it joins the list after them the first
-time and keeps that place; write steps straight in the wizard's content (an `@if` around one is fine) when their order
-matters.
+component of yours renders after the steps written straight in the wizard, so it joins the list after them. Give the
+steps an `Order` when one of them sits in a component of yours: the wizard lists them lowest first, and steps with the
+same `Order` keep the markup's order, as CSS `order` does. A step whose `Order` changes moves, and the step on screen
+stays on screen.
+
+```razor
+<MokaWizard>
+    <MokaWizardStep Title="Account" Order="1">...</MokaWizardStep>
+    <BillingStep Order="2" />  @* renders a MokaWizardStep and passes Order on *@
+    <MokaWizardStep Title="Review" Order="3">...</MokaWizardStep>
+</MokaWizard>
+```
 
 ## Linear Validation
 

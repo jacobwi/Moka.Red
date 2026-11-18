@@ -326,10 +326,21 @@ public partial class MokaTable<TItem>
 	private bool TryGetRow(int index, out TItem item)
 	{
 		int position = index - _rowIndexBase;
-		if (position >= 0 && position < _displayRows.Count)
+		if (position >= 0 && position < _displayRows.Count && _displayRows[position].Index == index)
 		{
 			item = _displayRows[position].Item;
 			return true;
+		}
+
+		// Grouped windows skip the rows of folded groups, so the window's rows needn't follow each other.
+		if (_lineOfRow is not null)
+		{
+			int found = _displayRows.BinarySearch(new MokaTableRow<TItem>(default!, index, null), RowPlaceOrder.Instance);
+			if (found >= 0)
+			{
+				item = _displayRows[found].Item;
+				return true;
+			}
 		}
 
 		item = default!;
@@ -406,37 +417,22 @@ public partial class MokaTable<TItem>
 	private int RowIndexOf(TItem item) =>
 		_displayRows.FindIndex(row => EqualityComparer<TItem>.Default.Equals(row.Item, item));
 
-	// Every row from the last box touched to this one takes the state of the last box, the way file managers do.
-	private bool PickRun(TItem item)
-	{
-		int to = RowIndexOf(item);
-		int from = _hasAnchor ? RowIndexOf(_anchorItem) : -1;
-		if (from < 0 || to < 0)
-		{
-			return false;
-		}
-
-		bool pick = _selectedItems.Contains(_anchorItem);
-		for (int i = Math.Min(from, to); i <= Math.Max(from, to); i++)
-		{
-			if (pick)
-			{
-				_selectedItems.Add(_displayRows[i].Item);
-			}
-			else
-			{
-				_selectedItems.Remove(_displayRows[i].Item);
-			}
-		}
-
-		_resyncBoxRow = to + _rowIndexBase;
-		return true;
-	}
-
 	// A list that ticks hands over new items for the same things, and a record with a new rate isn't equal to the old
 	// one. Under an ItemKey the new item takes the old one's place in the selection, so the box stays ticked.
 	private void CarrySelection(IReadOnlyList<TItem> items)
 	{
+		if (_except.Count > 0)
+		{
+			foreach (TItem item in items)
+			{
+				object key = PickKey(item);
+				if (_except.ContainsKey(key))
+				{
+					_except[key] = item;
+				}
+			}
+		}
+
 		if (ItemKey is null || _selectedItems.Count == 0)
 		{
 			return;
@@ -473,11 +469,11 @@ public partial class MokaTable<TItem>
 
 	// ── Bulk bar ──
 
-	private bool ShowBulkBar => BulkActions is not null && Selectable && _selectedItems.Count > 0;
+	private bool ShowBulkBar => BulkActions is not null && Selectable && AnyPicked;
 
-	private string BulkCountText => Words.SelectedCount(_selectedItems.Count);
+	private string BulkCountText => PickedCountText;
 
-	private string? BulkStatusText => _selectedItems.Count > 0 && Selectable ? BulkCountText : null;
+	private string? BulkStatusText => AnyPicked && Selectable ? BulkCountText : null;
 
 	private List<TItem> PickedInDisplayOrder()
 	{
@@ -520,6 +516,13 @@ public partial class MokaTable<TItem>
 	private static string LoadingCellWidth(int rowIndex) => rowIndex % 2 == 0 ? "72%" : "54%";
 
 	/// <summary>The handlers of the row at one position.</summary>
+	private sealed class RowPlaceOrder : IComparer<MokaTableRow<TItem>>
+	{
+		public static readonly RowPlaceOrder Instance = new();
+
+		public int Compare(MokaTableRow<TItem> x, MokaTableRow<TItem> y) => x.Index.CompareTo(y.Index);
+	}
+
 	private sealed class RowHandlers
 	{
 		private readonly MokaTable<TItem> _table;
@@ -565,19 +568,19 @@ public partial class MokaTable<TItem>
 			return handler;
 		}
 
-		private Task RaiseClickAsync(MouseEventArgs e)
+		private async Task RaiseClickAsync(MouseEventArgs e)
 		{
 			if (!_table.TryGetRow(_index, out TItem item))
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
 			if (_table.SelectOnRowClick && _table.Selectable)
 			{
-				_table.SelectFromRowClick(item, e);
+				await _table.SelectFromRowClickAsync(item, _index, e);
 			}
 
-			return _table.OnRowClick.InvokeAsync(item);
+			await _table.OnRowClick.InvokeAsync(item);
 		}
 
 		private Task RaiseDoubleClickAsync() =>
@@ -588,13 +591,8 @@ public partial class MokaTable<TItem>
 				? _table.OnRowContextMenu.InvokeAsync(new MokaItemContextMenuArgs<TItem>(item, e))
 				: Task.CompletedTask;
 
-		private void SelectAsync()
-		{
-			if (_table.TryGetRow(_index, out TItem item))
-			{
-				_table.HandleRowSelect(item);
-			}
-		}
+		private Task SelectAsync() =>
+			_table.TryGetRow(_index, out TItem item) ? _table.HandleRowSelectAsync(item, _index) : Task.CompletedTask;
 
 		private void ToggleExpand()
 		{

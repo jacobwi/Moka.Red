@@ -5,68 +5,45 @@ using Moka.Red.Forms.Base;
 namespace Moka.Red.Forms.OtpInput;
 
 /// <summary>
-///     One-time password / verification code input with individual digit boxes.
+///     A one-time password or verification code: one field over a box per digit, marked
+///     <c>autocomplete="one-time-code"</c> so the browser can offer a code it received.
 /// </summary>
-public partial class MokaOtpInput : MokaSegmentedInputBase
+public partial class MokaOtpInput : MokaCodeInputBase
 {
-	/// <summary>Number of digit inputs. Default 6.</summary>
-	[Parameter]
-	public int Length { get; set; } = 6;
-
-	/// <summary>Shows dots instead of digits when true. Default false.</summary>
-	[Parameter]
-	public bool Masked { get; set; }
-
-	/// <summary>Whether to auto-focus the first input. Default true.</summary>
+	/// <summary>Whether the field takes focus when the page loads. Default true.</summary>
 	[Parameter]
 	public bool AutoFocus { get; set; } = true;
 
-	/// <summary>Fires when all digits have been entered.</summary>
+	/// <summary>
+	///     Asks the browser for the code from a text message through the WebOTP API, where it has one (Chrome on Android,
+	///     over HTTPS), and fills the field with it as if typed, after the person allows it. The message's last line
+	///     names the site and the code, as in <c>@example.com #123456</c>. Typing a whole code stops the request.
+	///     Default false.
+	/// </summary>
 	[Parameter]
-	public EventCallback<string> OnComplete { get; set; }
+	public bool FillFromSms { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-otp";
 
 	/// <inheritdoc />
-	protected override int SegmentCount => Length;
+	protected override string AutocompleteToken => "one-time-code";
 
 	/// <inheritdoc />
-	protected override int MaxSegmentLength => 1;
+	protected override string DefaultName => "One-time code";
 
 	/// <inheritdoc />
-	protected override string Separator => "";
+	protected override bool ReadsSmsCode => FillFromSms && !Disabled;
 
-	/// <inheritdoc />
-	protected override string? AcceptPattern => "[0-9]";
-
-	/// <inheritdoc />
-	protected override string InputMode => "numeric";
-
-	/// <inheritdoc />
-	protected override string CssClass => new CssBuilder(RootClass)
+	private string RootCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-otp--error", HasError)
 		.AddClass("moka-otp--masked", Masked)
-		.AddClass(ValidationCssClass)
+		.AddClass("moka-otp--disabled", Disabled)
+		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
 
 	private string MessageCssClass => new CssBuilder("moka-otp-helper")
 		.AddClass("moka-otp-helper--error", HasError)
 		.Build();
-
-	private string GetInputType() => Masked ? "password" : "text";
-
-	/// <inheritdoc />
-	protected override bool IsValidChar(char c) => char.IsDigit(c);
-
-	/// <inheritdoc />
-	protected override async Task OnValueUpdated(string? newValue)
-	{
-		string val = newValue ?? "";
-		if (val.Length == Length && Segments.All(d => !string.IsNullOrEmpty(d)) && OnComplete.HasDelegate)
-		{
-			await OnComplete.InvokeAsync(val);
-		}
-	}
 }

@@ -76,7 +76,7 @@
 
 @if (Layout == MokaHeatmapLayout.Grid)
 {
-	<div class="@GridClass" style="@GridStyle" id="@Id" role="img" aria-label="@(Label ?? "Heatmap")"
+	<div class="@GridClass" style="@GridStyle" id="@Id" role="img" aria-label="@(Label ?? Words.Heatmap)"
 	     @attributes="AdditionalAttributes">
 		<div class="moka-heatmap__scroller">
 			<div class="moka-heatmap__matrix">
@@ -115,7 +115,7 @@
 }
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
-     role="img" aria-label="@(Label ?? "Calendar heatmap")"
+     role="img" aria-label="@(Label ?? Words.CalendarHeatmap)"
      @attributes="AdditionalAttributes">
 	@if (ShowMonthLabels)
 	{

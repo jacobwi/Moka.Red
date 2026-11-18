@@ -7,13 +7,11 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
 using Moka.Red.Forms.IpAddressInput;
 using Moka.Red.Forms.MacAddressInput;
-using Moka.Red.Forms.OtpInput;
-using Moka.Red.Forms.PinInput;
 
 namespace Moka.Red.Forms.Tests.Components;
 
 /// <summary>
-///     OTP, PIN, IP and MAC share <c>MokaSegmentedInputBase</c>, which used to sit outside EditForm:
+///     IP and MAC share <c>MokaSegmentedInputBase</c>, which used to sit outside EditForm:
 ///     DataAnnotations messages never showed, the field classes never reached the DOM, and typing
 ///     never reached the EditContext. Parameters go in by name so these tests also run against a
 ///     base without them.
@@ -24,8 +22,6 @@ public class MokaSegmentedInputValidationTests : BunitContext
 
 	private static readonly Dictionary<string, (Type Type, string RootClass)> Cases = new()
 	{
-		[nameof(MokaOtpInput)] = (typeof(MokaOtpInput), "moka-otp"),
-		[nameof(MokaPinInput)] = (typeof(MokaPinInput), "moka-pin"),
 		[nameof(MokaIpAddressInput)] = (typeof(MokaIpAddressInput), "moka-ip"),
 		[nameof(MokaMacAddressInput)] = (typeof(MokaMacAddressInput), "moka-mac")
 	};
@@ -34,8 +30,6 @@ public class MokaSegmentedInputValidationTests : BunitContext
 
 	public static TheoryData<string> Inputs => new()
 	{
-		nameof(MokaOtpInput),
-		nameof(MokaPinInput),
 		nameof(MokaIpAddressInput),
 		nameof(MokaMacAddressInput)
 	};
@@ -228,8 +222,6 @@ public class MokaSegmentedInputValidationTests : BunitContext
 
 	private IElement RenderAlone(string input) => input switch
 	{
-		nameof(MokaOtpInput) => Render<MokaOtpInput>(p => p.Add(x => x.Value, "1")).Find(".moka-otp"),
-		nameof(MokaPinInput) => Render<MokaPinInput>(p => p.Add(x => x.Value, "1")).Find(".moka-pin"),
 		nameof(MokaIpAddressInput) => Render<MokaIpAddressInput>(p => p.Add(x => x.Value, "1")).Find(".moka-ip"),
 		nameof(MokaMacAddressInput) => Render<MokaMacAddressInput>(p => p.Add(x => x.Value, "1")).Find(".moka-mac"),
 		_ => throw new ArgumentOutOfRangeException(nameof(input), input, null)

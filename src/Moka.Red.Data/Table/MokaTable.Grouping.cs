@@ -196,12 +196,17 @@ public partial class MokaTable<TItem>
 		}
 	}
 
-	// After a heading folds or opens: rows in memory page their lines again; a server's page is drawn again as it is.
-	private void RedrawGroups()
+	// After a heading folds or opens: rows in memory page their lines again; a server's page is drawn again as it is, and
+	// remote windows draw their lines again from the rows they hold.
+	private async Task RedrawGroupsAsync()
 	{
 		if (ServerData is null)
 		{
 			PageClientRows();
+		}
+		else if (RemoteRows)
+		{
+			await RedrawGroupWindowsAsync();
 		}
 		else
 		{
@@ -224,7 +229,7 @@ public partial class MokaTable<TItem>
 			_collapsedGroups.Remove(id);
 		}
 
-		RedrawGroups();
+		await RedrawGroupsAsync();
 		StateHasChanged();
 
 		if (OnGroupToggled.HasDelegate)
@@ -245,7 +250,7 @@ public partial class MokaTable<TItem>
 		}
 
 		_collapsedGroups.Clear();
-		RedrawGroups();
+		await RedrawGroupsAsync();
 		StateHasChanged();
 		await NotifyStateChangedAsync();
 	}
@@ -260,7 +265,7 @@ public partial class MokaTable<TItem>
 		}
 
 		Fold(_groupTree);
-		RedrawGroups();
+		await RedrawGroupsAsync();
 		StateHasChanged();
 		await NotifyStateChangedAsync();
 
@@ -352,9 +357,10 @@ public partial class MokaTable<TItem>
 			return text;
 		}
 
+		// Under grouped windows a group's rows the table has are the window's, so only the server's total shows.
 		double? total = col.Title is not null && node.ServerTotals is { } sent && sent.TryGetValue(col.Title, out double value)
 			? value
-			: col.HasValue
+			: col.HasValue && !RemoteRows
 				? MokaTablePipeline.Aggregate(node.Items.Select(col.ValueOf), col.Aggregate)
 				: null;
 		text = FormatAggregate(col, total);

@@ -27,7 +27,7 @@ public partial class MokaInfiniteCarousel : MokaVisualComponentBase
 	/// <summary>Creates the carousel.</summary>
 	public MokaInfiniteCarousel()
 	{
-		_slides = new MokaChildList<MokaInfiniteCarouselSlide>(StateHasChanged, SlidesChanged);
+		_slides = new MokaChildList<MokaInfiniteCarouselSlide>(StateHasChanged, SlidesChanged, static slide => slide.Order);
 	}
 
 	/// <summary>Carousel slide content (MokaInfiniteCarouselSlide children).</summary>

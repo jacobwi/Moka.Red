@@ -118,3 +118,16 @@ button.moka-treemap__tile:focus-visible {
 @container (width < 19em) { .moka-treemap__label--w19 { display: none; } }
 @container (width < 24em) { .moka-treemap__label--w24 { display: none; } }
 @container (width < 30em) { .moka-treemap__label--w30 { display: none; } }
+
+/* A tile's tint names its part, so it keeps it where the browser would drop it: in print without background
+   graphics, and in forced colors, which would paint it the system's background. The text on it keeps the theme's. */
+.moka-treemap__tile {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-treemap__tile {
+		forced-color-adjust: none;
+	}
+}

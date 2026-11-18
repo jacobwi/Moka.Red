@@ -90,8 +90,8 @@ public partial class MokaGanttChart : MokaCartesianChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _jobs.Length == 0
-		? "Gantt chart"
-		: $"Gantt chart: {string.Join(", ", _series.Where(s => !s.Hidden).Select(s => $"{Count(s.Key)} {s.Name}"))}";
+		? Words.GanttChart
+		: Words.Described(Words.GanttChart, string.Join(", ", _series.Where(s => !s.Hidden).Select(s => $"{Count(s.Key)} {s.Name}")));
 
 	/// <inheritdoc />
 	internal override bool HasData => _jobs.Length > 0;

@@ -73,8 +73,8 @@ public partial class MokaSankey : MokaChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _ribbons.Count == 0
-		? "Sankey diagram"
-		: $"Sankey diagram: {string.Join(", ", _ribbons.Select(r => $"{r.FromName} {ToText} {r.ToName} {r.ValueText}"))}";
+		? Words.Sankey
+		: Words.Described(Words.Sankey, string.Join(", ", _ribbons.Select(r => $"{r.FromName} {ToText} {r.ToName} {r.ValueText}")));
 
 	/// <inheritdoc />
 	internal override bool HasData => _ribbons.Count > 0;

@@ -75,8 +75,8 @@ public partial class MokaTreemap : MokaChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _tiles.Count == 0
-		? "Treemap"
-		: $"Treemap: {string.Join(", ", _seriesInfo.Where(s => !s.Hidden).Select(s => s.Name))}";
+		? Words.Treemap
+		: Words.Described(Words.Treemap, string.Join(", ", _seriesInfo.Where(s => !s.Hidden).Select(s => s.Name)));
 
 	/// <inheritdoc />
 	internal override bool HasData => _tiles.Count > 0;

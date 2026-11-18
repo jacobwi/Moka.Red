@@ -90,23 +90,23 @@ public partial class MokaTable<TItem>
 			return false;
 		}
 
-		bool editing = await HandleCellActionKey(key, item, columns[colIndex].Col);
+		bool editing = await HandleCellActionKey(key, item, rowIndex, columns[colIndex].Col);
 		StateHasChanged();
 		return editing;
 	}
 
-	private async Task<bool> HandleCellActionKey(string key, TItem item, MokaColumn<TItem> col)
+	private async Task<bool> HandleCellActionKey(string key, TItem item, int rowIndex, MokaColumn<TItem> col)
 	{
 		switch (key)
 		{
 			case "Enter" or "F2" when col.Editable:
 				return await BeginEditAsync(item, col);
 			case " " when Selectable:
-				HandleRowSelect(item);
+				await HandleRowSelectAsync(item, rowIndex);
 				return false;
 			case "Shift+ " when Selectable:
 				_runPick = true;
-				HandleRowSelect(item);
+				await HandleRowSelectAsync(item, rowIndex);
 				return false;
 			default:
 				return false;

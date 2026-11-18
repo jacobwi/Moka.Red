@@ -12,8 +12,8 @@ namespace Moka.Red.Tests.Shared;
 internal sealed class EndingModule : IJSObjectReference
 {
 	/// <summary>
-	///     What Blazor's JS side answers a call on an object it doesn't hold with, in .NET 9 and 10: the
-	///     error's message, then its stack.
+	///     What Blazor's JS side answers a call on an object it doesn't hold with: the error's message, then
+	///     its stack.
 	/// </summary>
 	public const string MissingObjectMessage =
 		"JS object instance with ID 39 does not exist (has it been disposed?).\n" +

@@ -166,6 +166,19 @@
 	background: var(--moka-chart-band-1, color-mix(in srgb, var(--moka-color-on-surface) 6%, transparent));
 }
 
+/* A legend dot's color names its series, so it keeps it where the browser would drop it: in print without
+   background graphics, and in forced colors, which would paint it the system's background. */
+.moka-barchart-legend-dot {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-barchart-legend-dot {
+		forced-color-adjust: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-barchart-tick {

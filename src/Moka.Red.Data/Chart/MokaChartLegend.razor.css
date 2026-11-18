@@ -249,6 +249,19 @@ button.moka-chart-legend__item:disabled {
 	box-shadow: var(--moka-focus-ring);
 }
 
+/* A key's color names its series, so it keeps it where the browser would drop it: in print without background
+   graphics, and in forced colors, which would paint it the system's background. */
+.moka-chart-legend__key {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-chart-legend__key {
+		forced-color-adjust: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-chart-legend {

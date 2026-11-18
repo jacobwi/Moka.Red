@@ -313,7 +313,7 @@ public partial class MokaTable<TItem>
 		int position = col is null ? 0 : VisibleColumnsInOrder().FindIndex(entry => ReferenceEquals(entry.Col, col));
 		if (row >= 0 && row < _displayRows.Count)
 		{
-			_focusedCell = (row + _rowIndexBase, Math.Max(position, 0));
+			_focusedCell = (_displayRows[row].Index, Math.Max(position, 0));
 			_cellFocusPending = true;
 		}
 	}
@@ -761,7 +761,7 @@ public partial class MokaTable<TItem>
 	});
 
 	private bool IsOpenAt(TableEdit<TItem> edit, MokaColumn<TItem> col, int rowIndex, int colIndex) =>
-		RowIndexOfKey(edit.Key) + _rowIndexBase == rowIndex
+		RowIndexOfKey(edit.Key) is var at and >= 0 && _displayRows[at].Index == rowIndex
 		&& VisibleColumnsInOrder().FindIndex(entry => ReferenceEquals(entry.Col, col)) == colIndex;
 
 	// Tab goes on to the next editable cell of the row, then to the next row's first; Shift+Tab goes back.

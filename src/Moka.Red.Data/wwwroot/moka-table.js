@@ -273,14 +273,15 @@ export function scrollTowardRow({ nearTop, nearIndex, rowHeight, rowIndex, view 
 }
 
 // Watches the table for the cell to be drawn. A newer key replaces the wait, and focus someone has put elsewhere in the
-// meantime stays there: the cell the key left may have scrolled out of the window, which drops focus to the page.
-function waitForCell(wrapper, rowIndex, colIndex) {
+// meantime stays there: the cell the key left may have scrolled out of the window, which drops focus to the page. A row
+// already in its place, as a placeholder, is waited for where it is; one far off is aimed at again from each render.
+function waitForCell(wrapper, rowIndex, colIndex, aim = true) {
 	stopWaitingForCell(wrapper);
 	const wait = { observer: null, timer: 0 };
 	const land = () => {
 		const cell = cellAt(wrapper, rowIndex, colIndex);
 		if (!cell) {
-			aimAt(wrapper, rowIndex, colIndex);
+			if (aim) aimAt(wrapper, rowIndex, colIndex);
 			return;
 		}
 
@@ -303,6 +304,47 @@ function stopWaitingForCell(wrapper) {
 	wait.observer.disconnect();
 	clearTimeout(wait.timer);
 	delete wrapper[FOCUS_WAIT];
+}
+
+/**
+ * Under remote virtualization the row an arrow moves to can still be on its way from the server: a placeholder stands in
+ * its place, or the drawn rows end before it. Exported for the tests, which run it on a stand-in table.
+ * @param {HTMLTableRowElement} row - The row the arrow leaves.
+ * @param {string} key - ArrowDown or ArrowUp.
+ * @param {number} rowCount - How many rows the whole result has.
+ * @returns {{rowIndex: number, placeholder: Element | null} | null} The row to wait for and its placeholder, or null
+ *     when the arrow has nowhere to wait: the grid's edge, or a drawn row, such as a folded group's next one, in between.
+ */
+export function awaitedNeighbour(row, key, rowCount) {
+	if (key !== 'ArrowDown' && key !== 'ArrowUp') return null;
+	const down = key === 'ArrowDown';
+	const rowIndex = Number(row.dataset.rowIndex) + (down ? 1 : -1);
+	if (rowIndex < 0 || rowIndex >= rowCount) return null;
+	for (let other = down ? row.nextElementSibling : row.previousElementSibling; other;
+		other = down ? other.nextElementSibling : other.previousElementSibling) {
+		if (other.classList.contains('moka-table-placeholder-row')) return { rowIndex, placeholder: other };
+		if (other.hasAttribute('data-row-index')) return null;
+	}
+
+	return { rowIndex, placeholder: null };
+}
+
+// Brings the placeholder of the row an arrow moves to into view, or the row past the drawn ones, and focuses the row's
+// cell once its window has come and drawn it.
+function stepOntoAwaitedRow(wrapper, cell, key) {
+	const table = tableOf(wrapper);
+	if (!table?.hasAttribute('data-moka-remote')) return false;
+	const row = cell.closest('tr');
+	const awaited = awaitedNeighbour(row, key, rowCountOf(wrapper));
+	if (!awaited) return false;
+	if (awaited.placeholder) {
+		awaited.placeholder.scrollIntoView({ block: 'nearest' });
+	} else if (table.parentElement) {
+		table.parentElement.scrollTop += (key === 'ArrowDown' ? 1 : -1) * (row.getBoundingClientRect().height || 36);
+	}
+
+	waitForCell(wrapper, awaited.rowIndex, Number(cell.dataset.colIndex), false);
+	return true;
 }
 
 // Page Up, Page Down, and Ctrl with Home or End: rows that may not be drawn, so they go through focusCellWhenDrawn.
@@ -445,6 +487,7 @@ export function initGridKeys(wrapper, dotNetRef) {
 		}
 
 		const next = nextCell(wrapper, cell, e.key) ?? edgeStep(wrapper, cell, e.key);
+		if (!next && !e.shiftKey && stepOntoAwaitedRow(wrapper, cell, e.key)) return;
 		next?.focus();
 		if (ranges && e.shiftKey && ARROWS.has(e.key) && next) {
 			ranges.focus = { row: Number(next.closest('tr').dataset.rowIndex), col: Number(next.dataset.colIndex) };

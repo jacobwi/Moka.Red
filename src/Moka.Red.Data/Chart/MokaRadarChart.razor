@@ -1,0 +1,76 @@
+@namespace Moka.Red.Data.Chart
+@inherits MokaChartBase
+
+@{
+	RenderFragment marks = @<svg class="moka-radarchart__svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
+	                            aria-hidden="@SvgHidden">
+		<g class="moka-radarchart__grid">
+			@foreach (Ring ring in _rings)
+			{
+				@if (ring.CircleRadius is { } radius)
+				{
+					<circle class="moka-radarchart__ring" cx="100" cy="100" r="@radius"/>
+				}
+				else
+				{
+					<path class="moka-radarchart__ring" d="@ring.Path"/>
+				}
+			}
+			@foreach (Spoke spoke in _spokes)
+			{
+				<line class="moka-radarchart__spoke" x1="100" y1="100" x2="@spoke.X" y2="@spoke.Y" data-i="@Index(spoke.Index)"/>
+			}
+		</g>
+		@foreach (Shape shape in _shapes)
+		{
+			<g @key="shape.Info.Key" class="@SeriesGroupClass(shape)" style="@shape.Info.ColorStyle" data-moka-key="@shape.Info.Key">
+				@if (shape.Fill is { } fill)
+				{
+					@if (Textured)
+					{
+						<pattern id="@PatternId(shape.Position)" patternUnits="userSpaceOnUse" width="@HatchSize(shape)"
+						         height="@HatchSize(shape)" patternTransform="@HatchTransform(shape)">
+							<line class="moka-radarchart__hatch-line" x1="1" y1="0" x2="1" y2="@HatchSize(shape)" stroke-width="2"/>
+						</pattern>
+					}
+					<path class="@AreaClass" style="@AreaStyle(shape)" d="@fill"/>
+				}
+				<path class="moka-radarchart__line" d="@shape.Outline"/>
+				@foreach (Dot dot in shape.Dots)
+				{
+					<path class="moka-radarchart__dot" d="@dot.Path" data-i="@Index(dot.Axis)"/>
+				}
+			</g>
+		}
+		@foreach (Spoke spoke in _spokes)
+		{
+			<path class="moka-radarchart__wedge" d="@spoke.Wedge" data-i="@Index(spoke.Index)">
+				@if (NativeTooltips)
+				{
+					<title>@spoke.Title</title>
+				}
+			</path>
+		}
+	</svg>;
+}
+
+<div class="@CssClass" style="@CssStyle" id="@Id" role="@RootRole" aria-label="@AccessibleLabel"
+     @ref="RootElement" @attributes="AdditionalAttributes">
+	<MokaChartFrame Chart="this">
+		<div class="moka-radarchart__box">
+			<div class="moka-radarchart__plot">
+				@marks
+			</div>
+			@foreach (TickLabel tick in _ticks)
+			{
+				<span class="moka-radarchart__tick" style="@tick.Style" aria-hidden="true">@tick.Text</span>
+			}
+			@foreach (Spoke spoke in _spokes)
+			{
+				<span class="@spoke.LabelClass" style="@spoke.LabelStyle" data-i="@Index(spoke.Index)" aria-hidden="true"
+				      title="@(NativeTooltips ? spoke.Title : null)">@spoke.Name</span>
+			}
+			<MokaChartSurface Chart="this" Panel="0"/>
+		</div>
+	</MokaChartFrame>
+</div>

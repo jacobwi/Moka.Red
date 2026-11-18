@@ -21,6 +21,7 @@ namespace Moka.Red.Data.Chart;
 public sealed partial class MokaChartLegend : MokaVisualComponentBase
 {
 	private const string FitModule = "./_content/Moka.Red.Core/moka-fit.js";
+	private const string ChartModule = "./_content/Moka.Red.Data/moka-chart.js";
 
 	private static readonly Dictionary<string, object?> FitLayout = new()
 	{
@@ -41,6 +42,7 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 	private List<LegendEntry> _entries = [];
 	private bool _expanded;
 	private bool _fitBound;
+	private (string Group, ElementReference Root)? _groupBound;
 	private bool _focusFirst;
 	private string? _isolated;
 	private (string Key, string[] Hidden, string? Isolated)? _beforeClick;
@@ -77,8 +79,10 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 	public MokaDirection Orientation { get; set; } = MokaDirection.Row;
 
 	/// <summary>
-	///     Charts with the same <c>SyncGroup</c> dim their other series while an entry is pointed at, when
-	///     <see cref="Actions" /> has <see cref="MokaChartLegendActions.Highlight" />.
+	///     Charts with the same <c>SyncGroup</c> dim their other series while an entry is pointed at or focused, when
+	///     <see cref="Actions" /> has <see cref="MokaChartLegendActions.Highlight" /> and so do the charts' legend actions.
+	///     For a legend on its own, such as one row of toggles over a dashboard; a chart's own legend follows the chart's
+	///     group. Needs an interactive render.
 	/// </summary>
 	[Parameter]
 	public string? SyncGroup { get; set; }
@@ -237,6 +241,8 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 			}
 		}
 
+		await BindGroupAsync();
+
 		bool fit = Folds && RendererInfo.IsInteractive;
 		if (fit == _fitBound)
 		{
@@ -265,11 +271,43 @@ public sealed partial class MokaChartLegend : MokaVisualComponentBase
 			await SafeModuleInvokeVoidAsync(FitModule, "unbindFit", _root);
 		}
 
+		if (_groupBound is { } bound)
+		{
+			await SafeModuleInvokeVoidAsync(ChartModule, "unbindLegend", bound.Root);
+		}
+
 		_dotNetRef?.Dispose();
 		await base.DisposeAsyncCore();
 	}
 
 	private bool IsHidden(string key) => _hidden.Contains(key);
+
+	// On its own with a sync group, the legend highlights across the group's charts while an entry is pointed at or
+	// focused. Inside a chart the chart's script does that, so the frame hands its legend no group and nothing binds.
+	private async Task BindGroupAsync()
+	{
+		(string Group, ElementReference Root)? want = !string.IsNullOrEmpty(SyncGroup) && _entries.Count > 0
+		                                               && ResolvedActions.HasFlag(MokaChartLegendActions.Highlight)
+		                                               && RendererInfo.IsInteractive
+			? (SyncGroup, _root)
+			: null;
+		if (want?.Group == _groupBound?.Group && want?.Root.Id == _groupBound?.Root.Id)
+		{
+			return;
+		}
+
+		if (_groupBound is { } bound)
+		{
+			_groupBound = null;
+			await SafeModuleInvokeVoidAsync(ChartModule, "unbindLegend", bound.Root);
+		}
+
+		if (want is { } next)
+		{
+			_groupBound = next;
+			await SafeModuleInvokeVoidAsync(ChartModule, "bindLegend", next.Root, next.Group);
+		}
+	}
 
 	// The legend's own handlers change what it shows and say why, and draw it only when they did.
 	async Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem callback, object? arg)

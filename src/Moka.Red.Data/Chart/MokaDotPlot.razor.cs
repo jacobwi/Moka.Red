@@ -97,8 +97,9 @@ public partial class MokaDotPlot : MokaCartesianChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _dots.Length == 0
-		? "Dot plot"
-		: $"Dot plot: {string.Join(", ", _dots.Take(6).Select(dot => $"{dot.Row.Name} {dot.Figure}"))}{(_dots.Length > 6 ? ", ..." : "")}";
+		? Words.DotPlot
+		: Words.Described(Words.DotPlot,
+			$"{string.Join(", ", _dots.Take(6).Select(dot => $"{dot.Row.Name} {dot.Figure}"))}{(_dots.Length > 6 ? ", ..." : "")}");
 
 	/// <inheritdoc />
 	internal override bool HasData => _dots.Length > 0;

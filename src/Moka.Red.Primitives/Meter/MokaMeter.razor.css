@@ -287,6 +287,20 @@
 	background: var(--moka-color-on-surface);
 }
 
+/* The track and everything on it are painted, so the meter keeps its colors where the browser would drop them: in
+   print without background graphics, and in forced colors, which would paint them the system's background. Both
+   settings are inherited, so the track's reach the fill, the bands and the target. */
+.moka-meter__track {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-meter__track {
+		forced-color-adjust: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 /* The track is the "off" part of the meter, so it reads the color of things that are off. surface-variant vanished on a

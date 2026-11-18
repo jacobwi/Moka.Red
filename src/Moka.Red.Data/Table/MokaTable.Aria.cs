@@ -78,7 +78,7 @@ public partial class MokaTable<TItem>
 		NoteDetailPlaces(anyOpen && RemoteRows);
 
 		bool details = anyOpen && !RemoteRows;
-		if (IsGrouped || details)
+		if ((IsGrouped && !RemoteRows) || details)
 		{
 			IndexLines(details);
 		}
@@ -87,7 +87,7 @@ public partial class MokaTable<TItem>
 			_ariaRowIndexes = null;
 			_ariaLineIndexes = null;
 			_ariaBodyEnd = RemoteRows
-				? _ariaBodyStart + _totalItems + _detailPlaces.Count
+				? _ariaBodyStart + RemotePlaces + _detailPlaces.Count
 				: _ariaBodyStart + _displayRows.Count;
 		}
 
@@ -99,7 +99,7 @@ public partial class MokaTable<TItem>
 		}
 
 		bool counted = _totalKnown && !_streaming;
-		int total = RemoteRows ? _totalItems : IsGrouped && ServerData is null ? _pageTotal : _totalItems;
+		int total = RemoteRows ? RemotePlaces : IsGrouped && ServerData is null ? _pageTotal : _totalItems;
 		// What the page draws beyond the units the pager counts: open details, and headings a server's rows or a page of
 		// lines repeat.
 		int extra = RemoteRows ? _detailPlaces.Count : _ariaBodyEnd - _ariaBodyStart - _shownUnits;
@@ -178,14 +178,14 @@ public partial class MokaTable<TItem>
 
 		_detailPlacesFor = _displayRows;
 		_detailPlacesVersion = _expandVersion;
-		int first = _rowIndexBase;
-		int end = _rowIndexBase + _displayRows.Count;
+		int first = _windowFirstPlace;
+		int end = _windowFirstPlace + _windowPlaces;
 		_detailPlaces.RemoveWhere(place => place >= first && place < end);
 		foreach (MokaTableRow<TItem> row in _displayRows)
 		{
 			if (IsExpanded(row.Item))
 			{
-				_detailPlaces.Add(row.Index);
+				_detailPlaces.Add(RowPlace(row));
 			}
 		}
 	}
@@ -211,19 +211,27 @@ public partial class MokaTable<TItem>
 		return number;
 	}
 
+	// Under remote windows the places count the rows of the whole result, or grouped, its lines.
+	private int RemotePlaces => _remoteGrouped ? _lineCount : _totalItems;
+
+	private int RowPlace(MokaTableRow<TItem> row) =>
+		_lineOfRow is { } lines && lines.TryGetValue(row.Index, out int line) ? line : row.Index;
+
 	private string AriaRowIndexOf(MokaTableRow<TItem> row) =>
-		IndexText(_ariaRowIndexes is { } rows && row.Index < rows.Length ? rows[row.Index] : AriaRowNumber(row.Index));
+		IndexText(_ariaRowIndexes is { } rows && row.Index < rows.Length ? rows[row.Index] : AriaRowNumber(RowPlace(row)));
 
 	private string AriaDetailIndexOf(MokaTableRow<TItem> row) =>
-		IndexText((_ariaRowIndexes is { } rows && row.Index < rows.Length ? rows[row.Index] : AriaRowNumber(row.Index)) + 1);
+		IndexText((_ariaRowIndexes is { } rows && row.Index < rows.Length ? rows[row.Index] : AriaRowNumber(RowPlace(row))) + 1);
 
 	private string PlaceholderRowIndex(int place) => IndexText(AriaRowNumber(place));
 
 	private string? AriaLineIndexOf(int line) =>
-		_ariaLineIndexes is { } lines && line < lines.Length ? IndexText(lines[line]) : null;
+		RemoteRows ? IndexText(AriaRowNumber(line))
+		: _ariaLineIndexes is { } lines && line < lines.Length ? IndexText(lines[line])
+		: null;
 
 	private string? AriaSelectedOf(MokaTableRow<TItem> row) =>
-		Selectable ? _selectedItems.Contains(row.Item) ? "true" : "false" : null;
+		Selectable ? IsPicked(row.Item) ? "true" : "false" : null;
 
 	// A treegrid row sits one level below its innermost heading.
 	private string? AriaLevelOfRow => IsGrouped ? IndexText(_groups.Count + 1) : null;

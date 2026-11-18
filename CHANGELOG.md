@@ -5,6 +5,75 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaRadarChart` (`MokaRadarAxis`, `MokaRadarSeries`, `MokaRadarScale`, `MokaRadarGridShape`): a few series across 3
+  to 12 axes, on a shared scale or one per axis, with reversed axes, gaps, looks, texture, legend, keyboard, table view
+  and export. Its docs point to bars for comparing values.
+- `MokaDonutChart.MaxSegments` (default 8): on the chart frame the smallest segments past it fold into a muted
+  "Other (n)" the legend can hide. The classic ring never folds.
+- Chart names in `MokaChartText` (`LineChart` to `RadarChart`, `Chart`, `Described`), plus `RadarKeys` and `Axis`, so a
+  chart's default accessible name translates; the English text is unchanged.
+- `MokaTable.SelectAllMatching`: under remote windows (`ServerData` with `Virtualize`) the header box picks every row
+  the source matches, kept as every row but those unticked since, the way server-side grids keep it. `SelectionChanged`,
+  `CurrentSelection()` and `MokaTableSelection<TItem>` (`AllMatching`, `Items`, `Except`, `Count`, `Matching`) report
+  it; a new search or filter, a new `SelectedItems` or a plain row click ends it.
+- Under remote windows a Shift run reaches past the window, asking the source for the rows between (one request per
+  stretch, cancelled by a newer run, a reload or disposal), and an arrow key onto a row still loading waits for it.
+- Grouped tables window their headings and rows from a `ServerData` source that sends every group's totals; folded
+  groups leave their rows out of the requests. Group totals that don't cover the result page instead.
+- `MokaTableRequest.RowsOnly` is true on windows after the first; the table keeps the first window's count, totals,
+  group totals and facets, so a source can skip counting on later windows.
+- `MokaOtpInput.FillFromSms`: reads a code from a text message through the WebOTP API where the browser supports it.
+- `Order` on `MokaWizardStep`, `MokaStep`, `MokaCarouselSlide`, `MokaInfiniteCarouselSlide`, `MokaColumn` and
+  `MokaColumnGroup`, and a `MokaChildList<TChild>` constructor that takes an order key (lower first, ties keep markup
+  order), to place a child rendered inside a component of your own, which Blazor renders after the parent's direct
+  children.
+- The charts overview says what to use instead of a dual y axis (charts in a sync group, `IndexTo`) and of a pie with
+  many slices (ranked horizontal bars, or the donut folding).
+
+### Fixed
+- `MokaTable` with `ServerData` and `Virtualize` requested windows in a loop far down a long result (about 180 cancelled
+  requests and 1.5 MB a second), and `MokaVirtualList` mismeasured items holding absolutely positioned content. Their
+  scroll containers weren't the containing block of what rows position absolutely, so a placeholder's visually hidden
+  text stayed outside the scroll (CSS 2.1 section 11.1.1) and Virtualize counted it in the height between its spacers.
+  The scroll containers are positioned now.
+- Under remote windows the footer and group headings show the source's totals only, not one window's; list filter
+  values without `FacetsFromServer` gather across windows instead of changing with each one.
+- Group headings and a row's edit problems drew nothing inside `Virtualize`.
+- A source that doesn't count no longer shrinks the scroll when scrolled back up, and a failure from a window request
+  already cancelled no longer shows as the table's failure.
+- A grouped `ServerData` table with `Virtualize` drew windows with no headings; it now windows them or pages.
+- A donut on the chart frame with more than 8 segments gave the ninth the first one's color; it now folds the smallest
+  into "Other".
+- A `MokaChartLegend` on its own with `SyncGroup` and `Highlight` highlights the series in its group's charts on
+  pointer and focus.
+- In forced colors (Windows High Contrast), bars, legend keys, tooltip and readout keys, donut segments and squares,
+  heatmap cells, treemap tiles, sankey nodes, plot bands and meters keep their colors instead of vanishing.
+- Printing without background graphics keeps legend keys, donut segments and squares, heatmap cells, treemap tiles,
+  sankey nodes, plot bands, readout keys and meters.
+
+### Breaking
+- `MokaOtpInput` and `MokaPinInput` are one field drawn as a box per digit, on a new `MokaCodeInputBase`
+  (`MokaVisualInputBase<string?>`), instead of one input per digit on `MokaSegmentedInputBase`. A pasted code, or one
+  the browser offers (`autocomplete="one-time-code"`), fills every box; a screen reader hears one named field
+  ("One-time code" or "PIN" without a `Label`); spaces, hyphens and full-width digits are tidied; and the value posts
+  on a static page. This follows web.dev's SMS OTP form guidance, GOV.UK's "Confirm a phone number" pattern and WCAG 2.2
+  success criterion 3.3.8, which counts boxes that take one pasted digit as a barrier. Markup changed: one `input`
+  (`.moka-otp-field`, `.moka-pin-field`), `.moka-otp-digit` and `.moka-pin-digit` are drawn `div` boxes, no
+  `role="group"`, the label uses `for`, and `Id` and unmatched attributes go on the field. OTP digits use the mono
+  font. As with `InputText`, a `@bind-Value` whose getter calls a method throws.
+- .NET 9 is no longer supported. Every package targets net10.0 only, since .NET 9 reached end of support on November
+  10, 2026. An app on .NET 9 stays on 0.8.x until it moves to .NET 10.
+- The `dotnet new` templates no longer offer `--Framework net9.0`; `net10.0` is the only choice.
+
+### Changed
+- The packages depend on Microsoft.AspNetCore.Components.Web 10.0.15, and Moka.Red.Diagnostics also on
+  Microsoft.Extensions.Hosting.Abstractions 10.0.15, as one central version each rather than a version per framework.
+- `MokaReconnectModal` follows Blazor's `components-reconnect-state-changed` event instead of watching the dialog's
+  classes, as the Blazor Web App template does, and a Resume that fails moves focus to Reload.
+
 ## [0.8.1] - 2026-11-16
 
 ### Added

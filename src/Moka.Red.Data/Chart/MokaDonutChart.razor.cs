@@ -19,6 +19,8 @@ public partial class MokaDonutChart : MokaChartBase
 	private const double ViewSize = 200;
 	private const double DefaultThickness = 20;
 	private const int WaffleCells = 100;
+	private const int DefaultMaxSegments = 8;
+	private const string OtherKey = "\u0001other";
 
 	private readonly string _uid = Guid.NewGuid().ToString("N")[..12];
 	private MokaDonutSegment[]? _snapshot;
@@ -67,6 +69,15 @@ public partial class MokaDonutChart : MokaChartBase
 	[Parameter]
 	public bool? ShowShares { get; set; }
 
+	/// <summary>
+	///     The most segments drawn. Past it the smallest fold into one "Other" segment in the muted color, drawn last, so no
+	///     two segments share a color and a reader never has to tell close slivers apart. Defaults to 8, the palette's
+	///     colors; 6 or fewer reads best at a glance. Zero or less never folds. The classic ring, drawn while none of the
+	///     chart options is set, never folds.
+	/// </summary>
+	[Parameter]
+	public int MaxSegments { get; set; } = DefaultMaxSegments;
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-donutchart";
 
@@ -100,7 +111,7 @@ public partial class MokaDonutChart : MokaChartBase
 	internal override bool IsClassic => _classic;
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => _classic ? "Donut chart" : Summary;
+	internal override string DefaultLabel => _classic ? Words.DonutChart : Summary;
 
 	/// <inheritdoc />
 	internal override bool HasData => _parts.Count > 0 || _geometry.Count > 0;
@@ -200,7 +211,7 @@ public partial class MokaDonutChart : MokaChartBase
 	private string? SvgHidden => Interactive ? "true" : null;
 
 	private string Summary => _parts.Count == 0
-		? "Donut chart"
+		? Words.DonutChart
 		: string.Join(", ", _parts.Select(part => $"{part.Segment.Name} {part.ShareText}"));
 
 	private string PatternId(int drawn) => $"moka-donut-{_uid}-h{drawn.ToString(CultureInfo.InvariantCulture)}";
@@ -268,7 +279,8 @@ public partial class MokaDonutChart : MokaChartBase
 		&& SyncGroup is null && !OnPointClick.HasDelegate && !ActiveChanged.HasDelegate && Controls is null
 		&& ToolbarControl is null && View == MokaChartView.Chart && State == MokaChartState.Auto && EmptyText is null
 		&& EmptyContent is null && ErrorContent is null && ErrorText is null && !OnRetry.HasDelegate && Text is null
-		&& ExportName is null && (Segments ?? []).All(s => s.Key is null && s.Slot is null && s.ColorValue is null);
+		&& ExportName is null && MaxSegments == DefaultMaxSegments
+		&& (Segments ?? []).All(s => s.Key is null && s.Slot is null && s.ColorValue is null);
 
 	private List<SegmentGeometry> ClassicGeometry()
 	{
@@ -305,21 +317,46 @@ public partial class MokaDonutChart : MokaChartBase
 
 	private void BuildParts()
 	{
-		List<(MokaDonutSegment Segment, int Position, string Key)> drawable = [];
+		List<(MokaDonutSegment Segment, int Position, string Key, ChartSeriesInfo Info)> drawable = [];
 		List<ChartSeriesInfo> info = [];
 		IReadOnlyList<MokaDonutSegment> positive = Drawn;
+		HashSet<int> folded = FoldedPositions(positive);
 		for (int i = 0; i < positive.Count; i++)
 		{
+			if (folded.Contains(i))
+			{
+				continue;
+			}
+
 			MokaDonutSegment segment = positive[i];
 			string key = segment.Key ?? segment.Name;
 			int slot = SlotFor(i, segment.Slot);
 			bool hidden = IsHidden(key);
 			bool muted = IsMuted(key);
-			info.Add(new ChartSeriesInfo(key, segment.Name, slot, SeriesClass(slot, segment.Color, muted),
-				SeriesStyle(slot, segment.ColorValue), ChartMark.Box, hidden, muted, null));
+			ChartSeriesInfo series = new(key, segment.Name, slot, SeriesClass(slot, segment.Color, muted),
+				SeriesStyle(slot, segment.ColorValue), ChartMark.Box, hidden, muted, null);
+			info.Add(series);
 			if (!hidden)
 			{
-				drawable.Add((segment, i, key));
+				drawable.Add((segment, i, key, series));
+			}
+		}
+
+		if (folded.Count > 0)
+		{
+			MokaDonutSegment other = new()
+			{
+				Name = $"{Words.Other} ({folded.Count.ToString(CultureInfo.CurrentCulture)})",
+				Value = folded.Sum(i => positive[i].Value),
+				Key = OtherKey
+			};
+			bool hidden = IsHidden(OtherKey);
+			ChartSeriesInfo series = new(OtherKey, other.Name, positive.Count + 1, "moka-chart-muted", null, ChartMark.Box, hidden,
+				IsMuted(OtherKey), null);
+			info.Add(series);
+			if (!hidden)
+			{
+				drawable.Add((other, -1, OtherKey, series));
 			}
 		}
 
@@ -351,8 +388,7 @@ public partial class MokaDonutChart : MokaChartBase
 		double consumed = 0;
 		for (int drawn = 0; drawn < drawable.Count; drawn++)
 		{
-			(MokaDonutSegment segment, int position, string key) = drawable[drawn];
-			ChartSeriesInfo series = info[position];
+			(MokaDonutSegment segment, int position, string key, ChartSeriesInfo series) = drawable[drawn];
 			double share = segment.Value / whole;
 			double length = Math.Min(share * circumference, circumference - consumed);
 			string shareText = ChartWholes.Percent(share);
@@ -376,6 +412,25 @@ public partial class MokaDonutChart : MokaChartBase
 		_rest = sum < whole && consumed < circumference
 			? ArcAlong(consumed, circumference - consumed, gap, thickness, round, circumference)
 			: null;
+	}
+
+	// The positions of the segments that fold into Other: past MaxSegments, the smallest, keeping one place for Other. Ties
+	// fold the later segment, so the order given decides which of two equal segments keeps its own color.
+	private HashSet<int> FoldedPositions(IReadOnlyList<MokaDonutSegment> positive)
+	{
+		int most = Math.Max(2, MaxSegments);
+		if (MaxSegments <= 0 || positive.Count <= most)
+		{
+			return [];
+		}
+
+		return
+		[
+			.. Enumerable.Range(0, positive.Count)
+				.OrderByDescending(i => positive[i].Value)
+				.ThenBy(i => i)
+				.Skip(most - 1)
+		];
 	}
 
 	// A dash for a stretch of the ring that starts `start` along it and runs `length`. The gap is split between its ends,

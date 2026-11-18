@@ -1,6 +1,9 @@
 /* MokaVirtualList - virtualized list for large datasets */
 
 .moka-virtual-list {
+	/* The containing block of what the items position absolutely, so it scrolls with them: Virtualize measures the
+	   items with a range that counts the text inside, and one left in place by the scroll threw its row size off. */
+	position: relative;
 	overflow-y: auto;
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-sm);

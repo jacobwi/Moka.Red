@@ -10,7 +10,7 @@ This page covers every step needed to add Moka.Red to an existing Blazor project
 
 ## Requirements
 
-- .NET 9 SDK or .NET 10 SDK
+- .NET 10 SDK
 - A Blazor project (WebAssembly, Server, or Auto render mode)
 
 ## NuGet Packages

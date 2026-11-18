@@ -18,7 +18,8 @@ parameters; this page says which chart to pick and what they all share.
 | How does a value move over time? | [Line Chart](line-chart.md) | One line or a few. Stacked areas for parts of a total, a band for a range, steps for values that hold |
 | How does it move, inside a card or a table cell? | [Sparkline](sparkline.md), or [Stat](stat.md) with `Spark` | No axes, no frame. A stat puts the number first and the line under it |
 | How do a few categories compare? | [Bar Chart](bar-chart.md) | Columns for a handful; `Horizontal` for long names or many rows |
-| What share of the whole is each part? | [Donut Chart](donut-chart.md) | A ring for up to five parts; `Shape = Bar` for one share bar, `Waffle` for a hundred squares; `Percent` on a bar chart to compare wholes |
+| What share of the whole is each part? | [Donut Chart](donut-chart.md) | A ring for up to five or six parts, read at a glance; `Shape = Bar` for one share bar, `Waffle` for a hundred squares; `Percent` on a bar chart to compare wholes. Past `MaxSegments` (8) the smallest fold into Other |
+| How do many parts compare, or close ones? | [Bar Chart](bar-chart.md) with `Horizontal`, largest first | Bars on one baseline compare more exactly than slices. See [Many parts](#many-parts) |
 | How does a whole split into parts of parts? | [Treemap](treemap.md) | Nested tiles sized by value, such as disk use by folder |
 | Where does a flow go? | [Sankey](sankey.md) | Sources to destinations, each band as wide as its volume. Keep it to four or so a side |
 | Which side of zero, and by how much? | [Bar Chart](bar-chart.md) with `Diverging` | Gains one way, losses the other, with `UpIsGood` saying which is good |
@@ -27,6 +28,8 @@ parameters; this page says which chart to pick and what they all share.
 | How are raw values spread? | [Histogram](histogram.md) | Counts per bucket with lines at chosen percentiles |
 | How do several groups' spreads compare? | [Box Plot](box-plot.md) | The middle half, the median and whiskers per group |
 | How do two measures relate? | [Scatter Chart](scatter-chart.md) | A dot per item, or a bubble whose area is a third measure |
+| How do two measures move over the same time? | Two [Line Charts](line-chart.md) in a `SyncGroup`, or one with `IndexTo` | Never two y axes on one plot. See [Two measures](#two-measures) |
+| What is an item's profile across several measures? | [Radar Chart](radar-chart.md) | Three to twelve axes, up to three items. To read or rank the values, bars do it more exactly |
 | Open, high, low and close per period? | [Candlestick Chart](candlestick-chart.md) | With volume under the candles |
 | When did jobs run, for how long, and which failed? | [Gantt Chart](gantt-chart.md) | One row per job on a shared clock, with a line at now |
 | How many made it through each step? | [Funnel](funnel.md) | The share that went on between steps |
@@ -68,6 +71,41 @@ Tooltips and the table write each value at its own precision, so 26.4 GB never r
                    new MokaLineSeries { Name = "API", Values = new[] { 180d, 210, 260, 300, 280, 330 } }
                })" />
 ```
+
+## Two measures
+
+There is no second y axis, on purpose. Two scales on one plot meet wherever their ends happen to be set, so the
+lines cross, or run together, wherever the axes say, and the chart shows a link the data doesn't have. Show two
+measures in one of these ways instead:
+
+- **Charts in a sync group.** One chart per measure, each on its own axis and in its own unit, with the same
+  `SyncGroup`: they share the crosshair, and with `SyncZoom` the zoom, so a peak in one lines up with the other. Stack
+  them in a column so their time axes line up.
+- **An index.** `IndexTo="100"` on a line chart divides each series by its first value, so every series starts at 100
+  and the lines compare by how they changed, on one axis. The tooltip still says each raw value.
+- **Small multiples.** `Split` on a line chart draws each series in a panel of its own over one time axis, with one
+  crosshair across them. The panels share one scale so their heights compare, which suits several series of one
+  measure, such as traffic per interface; for measures in different units, use charts in a sync group.
+
+```razor
+<MokaLineChart Title="Users" Times="_days" Series="@(new[] { _users })" SyncGroup="adoption" />
+<MokaLineChart Title="Sessions" Times="_days" Series="@(new[] { _sessions })" SyncGroup="adoption" />
+
+<MokaLineChart Title="Users and sessions, indexed to the first day" Times="_days" IndexTo="100"
+               Series="@(new[] { _users, _sessions })" />
+```
+
+## Many parts
+
+A pie or donut of many slices can't be read: past five or six, slices are too thin to tell apart, and past eight the
+palette's colors run out. Use one of these instead:
+
+- **Ranked horizontal bars**, largest first, one hue: a [Bar Chart](bar-chart.md) with `Horizontal`, each part a
+  category. Bars on one baseline compare more exactly than slices, and a long list scrolls.
+- **A donut that folds its tail.** Past `MaxSegments` the smallest segments fold into one muted "Other" segment,
+  drawn last. It is 8 by default, the palette's colors, so no two segments share one; set 6 or fewer for a donut read
+  at a glance. A [Treemap](treemap.md) and a [Sankey](sankey.md) fold the same way past `MaxTiles` and
+  `MaxNodesPerSide`.
 
 ## Today's charts keep drawing as they did
 
@@ -121,7 +159,8 @@ way, so a long list of categories reads better as `Horizontal` rows than as colu
 ## Accessibility
 
 - Each chart has an accessible name: set `Label` to say what it shows. Without one a chart names itself by its kind,
-  and most add a summary of their data, such as "Dot plot: Router 99.99%, DNS 99.97%". A chart with nothing to operate
+  and most add a summary of their data, such as "Dot plot: Router 99.99%, DNS 99.97%". The kind and the way it joins
+  the summary come from `MokaChartText` (`LineChart`, `DotPlot`, `Described` and the rest), so they translate too. A chart with nothing to operate
   is an image; one with a keyboard grid, a toolbar or legend toggles is a figure.
 - With `Keyboard` (on in every look but Standard) the chart is one tab stop. The arrow keys move along a line, between
   lines, bars or rows; Home, End, Page Up and Page Down jump; Enter and Space pin; Escape lets go. Each move is read
@@ -133,5 +172,5 @@ way, so a long list of categories reads better as `Horizontal` rows than as colu
   forced colors. See [Chart Looks](chart-looks.md).
 - Statuses don't rest on color alone: a gantt bar carries an icon and a word, a stat with `UpIsGood="false"` tells a
   screen reader whether its trend is better or worse, and a meter past `WarnAt` or `CriticalAt` names its state.
-- Every word a chart writes comes from `MokaChartText`, so it can be translated. The one exception is the chart's
-  kind in the name it gives itself ("Line chart"), so set `Label` in an app that isn't in English.
+- Every word a chart writes comes from `MokaChartText`, so it can be translated, the chart's kind in the name it
+  gives itself ("Line chart") included.

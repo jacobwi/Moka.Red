@@ -23,7 +23,6 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
-<!--#if (!IsNet9) -->
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>
@@ -41,7 +40,6 @@
             </array>
         </dict>
     </dict>
-<!--#endif -->
     <key>XSAppIconAssets</key>
     <string>Assets.xcassets/appicon.appiconset</string>
 </dict>

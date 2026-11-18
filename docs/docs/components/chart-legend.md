@@ -31,7 +31,7 @@ Every chart draws its legend with `MokaChartLegend`. On its own, it is one row o
 | `LessLabel` | `string?` | `MokaChartText.FewerSeries` ("Show fewer series") | Names the button that folds the legend back |
 | `Dense` | `bool` | `false` | Monospace names in small capitals with their values beside them, for a title row |
 | `Texture` | `bool` | `false` | Hatches box keys, as a chart with texture hatches its bars |
-| `SyncGroup` | `string?` | - | With `Highlight`, pointing at an entry dims the other series in the charts of this group |
+| `SyncGroup` | `string?` | - | With `Highlight`, pointing at or focusing an entry dims the other series in the charts of this group. For a legend on its own; a chart's own legend follows the chart's group. Needs an interactive render |
 | `Text` | `MokaChartText?` | English | The words: Show all and the sentences a screen reader hears |
 | `ItemClass` | `string?` | - | Classes added to every entry |
 | `Class`, `Style`, `Id` | | | On the legend's root. `Margin`, `Padding` and `Rounded` land there too |
@@ -71,14 +71,16 @@ Without actions the entries are names, not controls.
 
 With `Hide`, each entry is a toggle button, pressed while its series shows. A click hides or shows it. With `Isolate`, a double click, an Alt click or Alt Enter shows that series alone, and doing it again brings the rest back. A Show all button appears while anything is hidden. A hidden entry keeps its color as an outline, so it can be found again.
 
-Bind `Hidden` and pass the same set to each chart's `HiddenSeries`:
+Bind `Hidden` and pass the same set to each chart's `HiddenSeries`. With `SyncGroup`, pointing at an entry, or tabbing to it, also dims the other series in every chart of the group, as a chart's own legend does inside it. A chart takes part when it highlights from its legend and runs its script: every look but Standard does both, or set `LegendActions` with `Highlight` and a `Tooltip` of its own.
 
 ```razor
 <MokaChartLegend Items="_zones" @bind-Hidden="_hidden" Actions="MokaChartLegendActions.All"
                  Key="MokaChartLegendKey.Mark" Title="Zones" SyncGroup="network" />
 
-<MokaLineChart Series="_traffic" HiddenSeries="_hidden" ShowLegend="false" SyncGroup="network" />
-<MokaBarChart Series="_daily" HiddenSeries="_hidden" ShowLegend="false" />
+<MokaLineChart Series="_traffic" HiddenSeries="_hidden" ShowLegend="false" SyncGroup="network"
+               Look="MokaChartLook.Quiet" />
+<MokaBarChart Series="_daily" HiddenSeries="_hidden" ShowLegend="false" SyncGroup="network"
+              Look="MokaChartLook.Quiet" />
 
 @code {
     private IReadOnlyCollection<string>? _hidden;

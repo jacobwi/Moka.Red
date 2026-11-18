@@ -99,7 +99,7 @@ public partial class MokaScatterChart : MokaCartesianChartBase
 		get
 		{
 			string names = string.Join(", ", _series.Where(s => !s.Hidden).Select(s => s.Name));
-			string label = names.Length == 0 ? "Scatter chart" : $"Scatter chart: {names}";
+			string label = names.Length == 0 ? Words.ScatterChart : Words.Described(Words.ScatterChart, names);
 			return Capped is { } capped ? $"{label}. {capped}" : label;
 		}
 	}

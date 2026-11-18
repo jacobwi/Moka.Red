@@ -1,10 +1,12 @@
-/* MokaPinInput - Numeric PIN entry with masked digit boxes */
+/* MokaPinInput - Numeric PIN entry: one field over masked digit boxes */
 
 /* ============================================================
    Base styles
    ============================================================ */
 
 .moka-pin {
+	--_code-box: 2.5rem;
+	--_code-gap: var(--moka-spacing-sm);
 	display: inline-flex;
 	flex-direction: column;
 	gap: var(--moka-spacing-sm);
@@ -21,71 +23,89 @@
 	margin-left: var(--moka-spacing-xxs);
 }
 
+/* The boxes are drawn behind one field. Its digits are its own text, set in the monospace font: the padding puts the
+   first in the middle of the first box and the letter spacing steps each next one a box and a gap further on. */
 .moka-pin-inputs {
+	position: relative;
 	display: flex;
-	gap: var(--moka-spacing-sm);
+	gap: var(--_code-gap);
+	width: max-content;
+	direction: ltr;
 }
 
 .moka-pin-digit {
-	text-align: center;
-	font-family: var(--moka-font-family-mono, var(--moka-font-family));
-	font-weight: var(--moka-font-weight-bold);
+	width: var(--_code-box);
+	height: var(--_code-box);
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-md);
 	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface);
-	outline: none;
 	box-sizing: border-box;
 	transition:
 		border-color var(--moka-transition-fast),
 		box-shadow var(--moka-transition-fast);
-	-moz-appearance: textfield;
 }
 
-.moka-pin-digit::-webkit-inner-spin-button,
-.moka-pin-digit::-webkit-outer-spin-button {
-	-webkit-appearance: none;
+/* The field runs two boxes past the last, so the caret after a full PIN, or a digit too many before it is dropped,
+   never scrolls the text off its boxes. This window clips what runs past, with clip rather than hidden: a hidden
+   overflow is still a scroll container, and the browser scrolled it to bring the caret into view. */
+.moka-pin-window {
+	position: absolute;
+	inset: 0;
+	overflow: clip;
+}
+
+.moka-pin-field {
+	display: block;
+	box-sizing: border-box;
+	width: calc((var(--_code-length) + 2) * (var(--_code-box) + var(--_code-gap)));
+	height: 100%;
 	margin: 0;
+	border: 0;
+	padding: 0 0 0 calc((var(--_code-box) - 1ch) / 2);
+	background: transparent;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: var(--moka-color-on-surface);
+	caret-color: var(--moka-color-primary);
+	font-family: var(--moka-font-family-mono, var(--moka-font-family));
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: calc(var(--_code-box) + var(--_code-gap) - 1ch);
+	text-align: left;
+	outline: none;
 }
 
-.moka-pin-digit:focus {
+/* An autofilled field keeps its text color and paints its fill only inside the glyphs, so the boxes still show. */
+.moka-pin-field:-webkit-autofill {
+	-webkit-text-fill-color: var(--moka-color-on-surface);
+}
+
+/* A script marks the box at the caret. Without it, every box lights while the field has focus. */
+.moka-pin-digit[data-moka-caret],
+.moka-pin-inputs:focus-within:not(:has([data-moka-caret])) .moka-pin-digit {
 	border-color: var(--moka-color-primary);
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+	outline: var(--moka-focus-width) solid transparent;
 }
 
 /* ============================================================
    Size variants
    ============================================================ */
 
-.moka-pin-digit--xs {
-	width: var(--moka-spacing-xl);
-	height: var(--moka-spacing-xl);
-	font-size: var(--moka-font-size-xs);
-}
+.moka-pin--xs { --_code-box: var(--moka-spacing-xl); }
+.moka-pin--xs .moka-pin-field { font-size: var(--moka-font-size-xs); }
 
-.moka-pin-digit--sm {
-	width: var(--moka-spacing-xxl);
-	height: var(--moka-spacing-xxl);
-	font-size: var(--moka-font-size-sm);
-}
+.moka-pin--sm { --_code-box: var(--moka-spacing-xxl); }
+.moka-pin--sm .moka-pin-field { font-size: var(--moka-font-size-sm); }
 
-.moka-pin-digit--md {
-	width: 2.5rem;
-	height: 2.5rem;
-	font-size: var(--moka-font-size-base);
-}
-
-.moka-pin-digit--lg {
-	width: 3rem;
-	height: 3rem;
-	font-size: var(--moka-font-size-lg);
-}
+.moka-pin--lg { --_code-box: 3rem; }
+.moka-pin--lg .moka-pin-field { font-size: var(--moka-font-size-lg); }
 
 /* ============================================================
    Masked mode
    ============================================================ */
 
-.moka-pin--masked .moka-pin-digit {
+.moka-pin--masked .moka-pin-field {
 	-webkit-text-security: disc;
 }
 
@@ -93,7 +113,7 @@
    Disabled state
    ============================================================ */
 
-.moka-pin--disabled .moka-pin-digit {
+.moka-pin--disabled .moka-pin-inputs {
 	opacity: 0.5;
 	cursor: not-allowed;
 	pointer-events: none;
@@ -120,6 +140,11 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+.moka-gate .moka-pin { --_code-box: var(--moka-control-height); }
+.moka-gate .moka-pin--xs { --_code-box: var(--moka-control-height-xs); }
+.moka-gate .moka-pin--sm { --_code-box: var(--moka-control-height-sm); }
+.moka-gate .moka-pin--lg { --_code-box: var(--moka-control-height-lg); }
+
 .moka-gate .moka-pin-label {
 	font-size: var(--moka-font-size-base);
 	font-weight: var(--moka-font-weight-semibold);
@@ -131,21 +156,22 @@
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-pin-digit--xs { width: var(--moka-control-height-xs); height: var(--moka-control-height-xs); font-size: var(--moka-font-size-sm); }
-.moka-gate .moka-pin-digit--sm { width: var(--moka-control-height-sm); height: var(--moka-control-height-sm); font-size: var(--moka-font-size-base); }
-.moka-gate .moka-pin-digit--md { width: var(--moka-control-height); height: var(--moka-control-height); font-size: var(--moka-font-size-lg); }
-.moka-gate .moka-pin-digit--lg { width: var(--moka-control-height-lg); height: var(--moka-control-height-lg); font-size: var(--moka-font-size-xl); }
+.moka-gate .moka-pin--xs .moka-pin-field { font-size: var(--moka-font-size-sm); }
+.moka-gate .moka-pin--sm .moka-pin-field { font-size: var(--moka-font-size-base); }
+.moka-gate .moka-pin--md .moka-pin-field { font-size: var(--moka-font-size-lg); }
+.moka-gate .moka-pin--lg .moka-pin-field { font-size: var(--moka-font-size-xl); }
 
-.moka-gate .moka-pin-digit:hover:not(:focus) { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-pin-inputs:hover:not(:focus-within) .moka-pin-digit { border-color: var(--moka-color-outline-strong); }
 
-.moka-gate .moka-pin-digit:focus {
+.moka-gate .moka-pin-digit[data-moka-caret],
+.moka-gate .moka-pin-inputs:focus-within:not(:has([data-moka-caret])) .moka-pin-digit {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
 	outline: var(--moka-focus-width) solid transparent;
 }
 
-.moka-gate .moka-pin--error .moka-pin-digit:hover:not(:focus) { border-color: var(--moka-color-error); }
-.moka-gate .moka-pin--disabled .moka-pin-digit { opacity: var(--moka-opacity-disabled); }
+.moka-gate .moka-pin.moka-pin--error .moka-pin-inputs:hover:not(:focus-within) .moka-pin-digit { border-color: var(--moka-color-error); }
+.moka-gate .moka-pin--disabled .moka-pin-inputs { opacity: var(--moka-opacity-disabled); }
 
 .moka-gate .moka-pin-helper {
 	font-size: var(--moka-font-size-sm);

@@ -462,6 +462,7 @@ A step-by-step navigation component that guides users through a multi-step proce
 | `HasError` | `bool` | `false` | Shows error state |
 | `Optional` | `bool` | `false` | Shows "Optional" label |
 | `Disabled` | `bool` | `false` | Step cannot be clicked or activated, and Tab skips it |
+| `Order` | `int` | `0` | Where the step stands: lower first, and steps with the same `Order` keep the markup's order. See [Steps That Come and Go](#steps-that-come-and-go) |
 
 ### Horizontal Stepper
 
@@ -530,6 +531,11 @@ A step with content of its own keeps the active step active when one comes back 
 take only plain values, which Blazor doesn't hand them again when the page renders, so they can't say where they stand:
 when one comes back among them, the stepper creates its steps again in markup order and keeps the active position. Up to
 0.8.0 a step that came back went last, with the last number.
+
+A step written inside another component of yours reports after the steps written straight in the stepper, so it took
+the last number. Give the steps an `Order` in the order they stand: the stepper numbers them lowest first, and steps with
+the same `Order` keep the markup's order. Each step draws itself where the markup puts it, so an `Order` against the
+markup numbers a step out of turn.
 
 ### Keyboard and Screen Readers
 

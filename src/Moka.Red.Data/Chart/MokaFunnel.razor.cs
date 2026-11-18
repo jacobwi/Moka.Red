@@ -52,8 +52,8 @@ public partial class MokaFunnel : MokaCartesianChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _steps.Length == 0
-		? "Funnel"
-		: $"Funnel: {string.Join(", ", _steps.Take(8).Select(step => $"{step.Source.Name} {step.Figure}"))}";
+		? Words.Funnel
+		: Words.Described(Words.Funnel, string.Join(", ", _steps.Take(8).Select(step => $"{step.Source.Name} {step.Figure}")));
 
 	/// <inheritdoc />
 	internal override bool HasData => _steps.Length > 0;

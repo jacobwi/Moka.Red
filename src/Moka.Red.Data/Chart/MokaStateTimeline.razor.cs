@@ -162,7 +162,7 @@ public partial class MokaStateTimeline : MokaCartesianChartBase
 		.Build();
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => "State timeline";
+	internal override string DefaultLabel => Words.StateTimeline;
 
 	/// <inheritdoc />
 	internal override bool HasData => _views.Length > 0;

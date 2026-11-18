@@ -205,6 +205,22 @@ public class MokaTableBrowserFixTests : BunitContext
 		Assert.All(cut.FindAll(".moka-table-placeholder-row"), row => Assert.Equal("height: 37.5px", row.GetAttribute("style")));
 	}
 
+	// A placeholder's hidden "Loading row" is positioned absolutely. Its containing block has to be the element the rows
+	// scroll in (VirtualizedScrollerTests), or Virtualize measures the rows as tall as the scroll offset.
+	[Fact]
+	public void APlaceholdersHiddenText_SitsInsideTheElementTheRowsScrollIn()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
+			.Add(t => t.Virtualize, true)
+			.Add(t => t.Height, "300px")
+			.Add(t => t.ServerData, _ => new TaskCompletionSource<MokaTableResult<Person>>().Task)
+			.Add(t => t.ChildContent, DefaultColumns));
+
+		cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".moka-table-placeholder-row .moka-visually-hidden")));
+		Assert.All(cut.FindAll(".moka-table-placeholder-row .moka-visually-hidden"),
+			span => Assert.NotNull(span.Closest(".moka-table-container[style*='overflow-y: auto']")));
+	}
+
 	// ── The edit column ──
 
 	// Its Actions came from the actions column with [EditorRequired], so markup that used it as documented didn't build.
@@ -280,6 +296,27 @@ public class MokaTableBrowserFixTests : BunitContext
 		Assert.Equal(36808, json.GetProperty("aimBelow").GetDouble());
 		Assert.Equal(3508, json.GetProperty("aimAbove").GetDouble());
 		Assert.Equal(0, json.GetProperty("aimTop").GetDouble());
+	}
+
+	// Under remote windows an arrow onto a row still on its way waits for it: a placeholder in its place, or the end of the
+	// rows drawn. A drawn row in between, as after a folded group, or the grid's edge, leaves the arrow where it is.
+	[Fact]
+	public void TheScript_LetsAnArrowWait_ForARowStillOnItsWay()
+	{
+		System.Text.Json.JsonElement? result = ScriptRunner.Run(
+			["tests", "Moka.Red.Data.Tests", "Table", "Script", "table-keys.mjs"],
+			["src", "Moka.Red.Data", "wwwroot", "moka-table.js"]);
+		Assert.SkipUnless(result is not null, "Node.js isn't installed, so the table script can't be run.");
+		System.Text.Json.JsonElement json = result!.Value;
+
+		Assert.Equal(6, json.GetProperty("waitBelow").GetProperty("rowIndex").GetInt32());
+		Assert.True(json.GetProperty("waitBelow").GetProperty("placeholder").GetBoolean());
+		Assert.Equal(10, json.GetProperty("waitPastTheDrawnRows").GetProperty("rowIndex").GetInt32());
+		Assert.False(json.GetProperty("waitPastTheDrawnRows").GetProperty("placeholder").GetBoolean());
+		Assert.Equal(19, json.GetProperty("waitAbove").GetProperty("rowIndex").GetInt32());
+		Assert.Equal(System.Text.Json.JsonValueKind.Null, json.GetProperty("waitOverAFoldedGroup").ValueKind);
+		Assert.Equal(System.Text.Json.JsonValueKind.Null, json.GetProperty("waitPastTheEnd").ValueKind);
+		Assert.Equal(System.Text.Json.JsonValueKind.Null, json.GetProperty("waitSideways").ValueKind);
 	}
 
 	private static int AriaColumns(IRenderedComponent<MokaTable<Person>> cut) =>

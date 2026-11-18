@@ -77,7 +77,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 	{
 		_selection = new MokaInputValue<HashSet<TItem>>(ShowParentSelection, DispatchExceptionAsync,
 			comparer: ReferenceEqualityComparer.Instance);
-		_parts = new MokaChildList<object>(StateHasChanged, _ => SyncDeclaredOrder());
+		_parts = new MokaChildList<object>(StateHasChanged, _ => SyncDeclaredOrder(), IMokaTableOrderedPart.OrderOf);
 	}
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
@@ -289,7 +289,10 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 
 	// ── Virtualized rows ──
 
-	/// <summary>When true, uses virtualization to render only visible rows. Requires a fixed Height. Default false.</summary>
+	/// <summary>
+	///     When true, uses virtualization to render only visible rows. Requires a fixed Height. Default false. With
+	///     <see cref="ServerData" /> the rows load window by window as they scroll into view.
+	/// </summary>
 	[Parameter]
 	public bool Virtualize { get; set; }
 
@@ -843,7 +846,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 			_resyncBoxRow = null;
 			if (TryGetRow(boxRow, out TItem item))
 			{
-				await InvokeTableJsAsync("setRowBox", _wrapperRef, boxRow, _selectedItems.Contains(item));
+				await InvokeTableJsAsync("setRowBox", _wrapperRef, boxRow, IsPicked(item));
 			}
 		}
 
@@ -890,6 +893,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 		SyncDefaultsFromParameters();
 		SyncStateFromParameters();
 		SyncInitiallyCollapsed();
+		EndAllMatchingIfTheMatchChanged();
 	}
 
 	/// <inheritdoc />
@@ -1086,7 +1090,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 	};
 
 	private string RowCssClass(MokaTableRow<TItem> row) => new CssBuilder()
-		.AddClass("moka-table-row--selected", _selectedItems.Contains(row.Item))
+		.AddClass("moka-table-row--selected", IsPicked(row.Item))
 		.AddClass("moka-table-row--clickable", RowsHearClicks)
 		.AddClass("moka-table-row--dragging", _draggingRow?.Index == row.Index)
 		.AddClass("moka-table-row--phone", IsPhoneList)
@@ -1113,6 +1117,7 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 		_typingTimer?.Dispose();
 		_typingTimer = null;
 		_selection.Stop();
+		CancelRemoteRun();
 
 		if (_gridKeysInitialized || _resizeInitVersion >= 0 || _reorderDragBound || _tabStopWatchBound || _endlessArmedAt >= 0
 		    || _rangesBound || _columnWatchBound)

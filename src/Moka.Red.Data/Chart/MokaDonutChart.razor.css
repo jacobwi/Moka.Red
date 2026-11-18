@@ -301,3 +301,23 @@
 		max-width: none;
 	}
 }
+
+/* The bar's segments, the waffle's squares and the keys are painted, not drawn, so they keep their colors where the
+   browser would drop them: in print without background graphics, and in forced colors, which would paint them the
+   system's background. The ring is drawn and keeps its colors already. */
+.moka-donutchart-seg,
+.moka-donutchart-cell,
+.moka-donutchart-key,
+.moka-donutchart-legend-dot {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-donutchart-seg,
+	.moka-donutchart-cell,
+	.moka-donutchart-key,
+	.moka-donutchart-legend-dot {
+		forced-color-adjust: none;
+	}
+}

@@ -272,7 +272,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	internal override bool IsClassic => _classic;
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => "Line chart";
+	internal override string DefaultLabel => Words.LineChart;
 
 	/// <inheritdoc />
 	internal override bool HasData => _classic ? _hasValues : _modern.HasValues;
@@ -783,7 +783,7 @@ public partial class MokaLineChart : MokaCartesianChartBase
 	// The current values go into the name only when the legend shows them, so a screen reader hears what the eye sees.
 	private string Summary()
 	{
-		string label = Label ?? "Line chart";
+		string label = Label ?? Words.LineChart;
 		List<string> parts = [.. _legend.Where(entry => entry.Value is not null).Select(entry => $"{entry.Name} {entry.Value}")];
 		if (_peakText is not null)
 		{

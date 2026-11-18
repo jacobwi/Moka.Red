@@ -761,6 +761,26 @@
 	<MokaCaption>@_ledgerNote</MokaCaption>
 </DemoSection>
 
+<DemoSection Id="every-matching-row-and-grouped-windows" Title="Every matching row, and grouped windows" Description="A hundred thousand ledger lines from a server, window by window. Tick the box in the header: SelectAllMatching picks every line that matches the search and the account filter, the ones never loaded too, and unticking a line leaves it out. Tick a line, scroll far down and Shift-click another: the lines between come from the server. Group by account: the server sends every account's count with the first window, and the headings come window by window with the lines. The footer and the headings show the server's totals, and later windows ask for rows only.">
+	<DemoToggle Label="Group by account" @bind-Value="_groupLedger"/>
+	<MokaTable TItem="DemoLedgerLine" ServerData="_ledgerSource.LoadAsync" ItemKey="l => l.Entry" Virtualize Height="420px" FixedHeader
+	           Selectable SelectAllMatching SelectionChanged="PickLedgerLines" Searchable FacetsFromServer
+	           GroupBy="@(_groupLedger ? "Account" : null)" ItemsName="lines" Title="Ledger lines">
+		<SelectionActions>
+			<MokaButton Size="MokaSize.Sm" Variant="MokaVariant.Outlined" OnClick="ArchiveLedgerLines">Archive</MokaButton>
+		</SelectionActions>
+		<ChildContent>
+			<MokaNumberColumn TItem="DemoLedgerLine" Title="Entry" Value="l => l.Entry" Format="N0" Width="7rem"/>
+			<MokaColumn TItem="DemoLedgerLine" Title="Account" Field="l => l.Account" Sortable="false" Filterable
+			            FilterType="MokaColumnFilterType.MultiSelect"/>
+			<MokaColumn TItem="DemoLedgerLine" Title="Memo" Field="l => l.Memo" Sortable="false"/>
+			<MokaMoneyColumn TItem="DemoLedgerLine" Title="Amount" Value="l => l.Amount" Currency="EUR" Sortable="false"
+			                 Aggregate="MokaAggregateType.Sum" AggregateFormat="N2"/>
+		</ChildContent>
+	</MokaTable>
+	<MokaCaption>@_ledgerSource.Describe(_ledgerPicked)</MokaCaption>
+</DemoSection>
+
 <DemoSection Id="sixty-columns" Title="Sixty columns" Description="VirtualizeColumns draws only the cells of the columns in view, and scrolling sideways draws the ones that come in. The sensor and the site stay pinned at the start and the total at the end. Group by site to see each heading's totals over the columns in view.">
 	<DemoToggle Label="Group by site" @bind-Value="_groupReadings"/>
 	<MokaTable TItem="Reading" Items="Readings" ItemKey="r => r.Id" VirtualizeColumns GroupBy="@(_groupReadings ? "Site" : null)" PageSize="15"
@@ -1487,6 +1507,23 @@
 	}
 
 	private const int LedgerSize = 400_000;
+
+	private readonly DemoLedger _ledgerSource = new();
+
+	private bool _groupLedger;
+
+	private MokaTableSelection<DemoLedgerLine>? _ledgerPicked;
+
+	private void PickLedgerLines(MokaTableSelection<DemoLedgerLine> picked) => _ledgerPicked = picked;
+
+	// Every matching line is the request the table hands back, run without its paging, less the lines unticked.
+	private void ArchiveLedgerLines() => Toast.ShowInfo(_ledgerPicked switch
+	{
+		{ AllMatching: true, Matching: { } request } all => string.Create(CultureInfo.CurrentCulture,
+			$"Would archive {all.Count:N0} lines{(request.Search is { } search ? $" matching \"{search}\"" : "")} in {(request.Filters.Count == 0 ? "every account" : string.Join(", ", request.Filters[0].Values))}, leaving out the {all.Except.Count:N0} unticked."),
+		{ Items.Count: > 0 } some => string.Create(CultureInfo.CurrentCulture, $"Would archive {some.Items.Count:N0} lines."),
+		_ => "Nothing to archive."
+	});
 
 	private int _ledgerAsked;
 

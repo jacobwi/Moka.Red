@@ -29,10 +29,6 @@
         {
           "choice": "net10.0",
           "description": "Target .NET 10"
-        },
-        {
-          "choice": "net9.0",
-          "description": "Target .NET 9"
         }
       ],
       "defaultValue": "net10.0",

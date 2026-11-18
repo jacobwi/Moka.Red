@@ -28,7 +28,11 @@ public sealed class RowChartsSpacingTests : BunitContext
 			("TimeZone", TimeZoneInfo.Utc)),
 		["Funnel"] = new(typeof(MokaFunnel),
 			"--_row-h: 39px | --_s: 0%; --_hw: 0.33em | --_s: 25%; --_hw: 0.99em | --_s: 50%; --_hw: 0.33em | --_s: 75%; --_hw: 0.99em | --_s: 100%; --_hw: 0.66em | --_s: 25% | --_s: 50% | --_s: 75% | --_s: 100% | --_s: 0% | --moka-chart-color: var(--moka-chart-ord-1); --_fn-from: 0%; --_fn-len: 100% | --moka-chart-color: var(--moka-chart-ord-2); --_fn-from: 0%; --_fn-len: 50%",
-			("Steps", new[] { new MokaFunnelStep("a", 10), new MokaFunnelStep("b", 5) }))
+			("Steps", new[] { new MokaFunnelStep("a", 10), new MokaFunnelStep("b", 5) })),
+		["Radar"] = new(typeof(MokaRadarChart),
+			"--_radar-side: 3em | --_s: 0.3333 | --_s: 0.6667 | --_s: 1 | --_x: 0; --_y: -1 | --_x: 0.866; --_y: 0.5 | --_x: -0.866; --_y: 0.5",
+			("Axes", new[] { new MokaRadarAxis("a"), new MokaRadarAxis("b"), new MokaRadarAxis("c") }),
+			("Series", new[] { new MokaRadarSeries("s", [1, 2, 3]) }))
 	};
 
 	public RowChartsSpacingTests() => this.Static();

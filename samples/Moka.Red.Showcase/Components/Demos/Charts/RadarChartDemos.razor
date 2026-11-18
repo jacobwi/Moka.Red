@@ -1,0 +1,67 @@
+@using System.Globalization
+
+<DemoSection Id="basics" Title="Basics" Description="Two items across five scores out of 10. Point at an axis, or tab in and use the arrow keys, to read every value on it.">
+	<MokaRadarChart Title="Laptops compared" Subtitle="Review scores out of 10" Look="MokaChartLook.Quiet"
+	                Axes="@Scores" Series="@Laptops" Max="10"
+	                Controls="MokaChartControls.View | MokaChartControls.Export"/>
+</DemoSection>
+
+<DemoSection Id="per-axis" Title="A scale per axis"
+             Description="Measures in different units, each on its own scale. Latency and cost are reversed, so further out is better on every axis.">
+	<MokaRadarChart Title="Regions" Subtitle="Further out is better" Look="MokaChartLook.Quiet" Scale="MokaRadarScale.PerAxis"
+	                GridShape="MokaRadarGridShape.Circle" Area="MokaChartArea.None" Axes="@Regions" Series="@RegionScores"/>
+</DemoSection>
+
+<DemoSection Id="compare-with-bars" Title="Compare with bars"
+             Description="The same scores as horizontal bars. To read exact values or rank items, bars on one baseline are more precise than a shape.">
+	<MokaBarChart Title="Laptops compared" Subtitle="Review scores out of 10" Look="MokaChartLook.Quiet" Horizontal="true"
+	              Labels="@ScoreNames" Series="@LaptopBars"/>
+</DemoSection>
+
+<DemoSection Id="standard-look" Title="Standard look">
+	<MokaRadarChart Label="Laptop A's review scores" Axes="@Scores" Series="@(Laptops[..1])" Max="10" Size="MokaSize.Sm"/>
+</DemoSection>
+
+@code {
+	private static readonly MokaRadarAxis[] Scores =
+	[
+		new("Performance"), new("Battery"), new("Display"), new("Build"), new("Keyboard")
+	];
+
+	private static readonly string[] ScoreNames = [.. Scores.Select(axis => axis.Name)];
+
+	private static readonly MokaRadarSeries[] Laptops =
+	[
+		new("Laptop A", [8.5, 6, 9, 7.5, 8]),
+		new("Laptop B", [7, 9, 7.5, 8, 6.5])
+	];
+
+	private static readonly MokaBarSeries[] LaptopBars =
+	[
+		.. Laptops.Select(laptop => new MokaBarSeries { Name = laptop.Name, Values = laptop.Values })
+	];
+
+	private static readonly MokaRadarAxis[] Regions =
+	[
+		new("Uptime") { Min = 99, Max = 100, Formatter = Percent },
+		new("Latency") { Reversed = true, Max = 200, Formatter = Ms },
+		new("Throughput") { Formatter = Gbps },
+		new("Cost") { Reversed = true, Formatter = Dollars },
+		new("Capacity") { Max = 100, Formatter = Percent }
+	];
+
+	private static readonly MokaRadarSeries[] RegionScores =
+	[
+		new("Frankfurt", [99.98, 38, 9.2, 410, 72]),
+		new("Virginia", [99.95, 95, 12.5, 330, 54]),
+		new("Singapore", [99.9, 160, 7.8, 470, 88])
+	];
+
+	private static string Percent(double value) => value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+	private static string Ms(double value) => value.ToString("0", CultureInfo.InvariantCulture) + " ms";
+
+	private static string Gbps(double value) => value.ToString("0.#", CultureInfo.InvariantCulture) + " Gbps";
+
+	private static string Dollars(double value) => "$" + value.ToString("#,0", CultureInfo.InvariantCulture);
+}

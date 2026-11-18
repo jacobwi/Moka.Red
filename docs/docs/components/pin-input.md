@@ -1,12 +1,14 @@
 ---
 title: PIN Input
-description: Numeric PIN entry field with masked display and auto-advance.
+description: Numeric PIN entry, one masked field drawn as a box per digit.
 order: 44
 ---
 
 # PIN Input
 
-`MokaPinInput` renders a row of individual digit boxes for numeric PIN or code entry. Each box auto-advances on input and supports backspace navigation. Values can be masked (shown as dots) for security.
+`MokaPinInput` takes a numeric PIN, such as a card PIN or a backup code, in one password field drawn as a row of boxes, one per digit. It is masked by default and marked `autocomplete="off"` so the browser doesn't keep it. For a code the person received, such as a sign-in code, use [`MokaOtpInput`](forms.md#otpinput), which the browser can fill.
+
+The digits are the field's own text, set in the monospace font and spaced to land in their boxes, so typing, Backspace, the arrow keys, selecting and pasting work as in any text field and show at once. The value keeps the digits 0 to 9 only, up to `Length`: a PIN pasted as "12 34" arrives as "1234", and full width digits count as the digits they show. Up to 0.8.1 each digit was an input of its own, and a pasted PIN filled one box.
 
 ## Parameters
 
@@ -14,15 +16,15 @@ order: 44
 |------|------|---------|-------------|
 | `Value` | `string?` | -- | Current PIN value (bindable via `@bind-Value`) |
 | `ValueChanged` | `EventCallback<string?>` | -- | Fires when the value changes |
-| `Length` | `int` | `4` | Number of digit boxes |
-| `Masked` | `bool` | `true` | Displays dots instead of digits |
-| `Label` | `string?` | -- | Label above the boxes. It names the group for screen readers |
+| `Length` | `int` | `4` | Number of digits, one box each. Below 1 counts as 1 |
+| `Masked` | `bool` | `true` | Shows a dot for each digit and makes the field a password field |
+| `Label` | `string?` | -- | Label above the boxes. It names the field; without one the field is named "PIN", unless you pass `aria-label` |
 | `HelperText` | `string?` | -- | Hint text below the boxes |
 | `ErrorText` | `string?` | -- | Error text below the boxes. Wins over a validation message |
-| `Required` | `bool` | `false` | Shows a required marker and sets `aria-required` on every box |
-| `Disabled` | `bool` | `false` | Disables all inputs |
-| `Size` | `MokaSize` | `Md` | Input size: `Sm`, `Md`, `Lg` |
-| `OnComplete` | `EventCallback<string>` | -- | Fires when all digits are entered |
+| `Required` | `bool` | `false` | Shows a required marker and sets `aria-required` on the field |
+| `Disabled` | `bool` | `false` | Disables the field |
+| `Size` | `MokaSize` | `Md` | Box size: `Xs`, `Sm`, `Md`, `Lg` |
+| `OnComplete` | `EventCallback<string>` | -- | Fires when a change fills every box, with the PIN |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -106,8 +108,12 @@ Inside an `EditForm`, `@bind-Value` connects the PIN to the form's validation. A
 
 ## Accessibility
 
-The boxes sit in a `role="group"` that `Label` names, and each box has its own label, such as "PIN digit 1 of 4". Every box carries `aria-invalid`, `aria-required` and an `aria-describedby` that points at the helper or error text while one is shown.
+A screen reader hears one password field, named by `Label` through the label's `for`. The field carries `aria-invalid`, `aria-required` and an `aria-describedby` that points at the helper or error text while one is shown, after any `aria-describedby` you pass. The boxes are drawing only. A script marks the box at the caret, or every box a selection covers; without it, every box lights while the field has focus.
+
+## Static Pages
+
+The field is a real input, so on a statically rendered page the PIN can be typed and, bound to a field with `@bind-Value`, is posted under that field's name. No script tidies the text there, so the server gets it as typed.
 
 ## Spacing and Attributes
 
-`Id`, `Class`, `Style` and unmatched attributes go on the `role="group"` element, and the label and message ids are built from `Id` (`{Id}-label`, `{Id}-message`). `Margin` and `Padding` go on the group too, around the label, the boxes and the message. `Rounded` goes on every box, since each box draws its own border. Up to 0.1.12 the PIN input ignored `Rounded`.
+`Id` and unmatched attributes go on the field, and the message id is built from it (`{Id}-message`). `Class`, `Style`, `Margin` and `Padding` go on the outer element, around the label, the boxes and the message. `Rounded` goes on every box, since each box draws its own border. Up to 0.8.1 `Id` and unmatched attributes went on the outer element, a `role="group"` around an input per digit.

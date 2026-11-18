@@ -274,7 +274,7 @@
 		<MokaChartLegend Items="LegendItemsShown" Hidden="Chart.HiddenKeys" HiddenChanged="_hiddenChanged"
 		                 Actions="Chart.ResolvedLegendActions" Key="Chart.ResolvedLegendKey"
 		                 Orientation="@(column ? MokaDirection.Column : MokaDirection.Row)"
-		                 SyncGroup="@Chart.SyncGroup" Text="Chart.Text" FoldAbove="@(column || at is null ? 0 : 6)"
+		                 Text="Chart.Text" FoldAbove="@(column || at is null ? 0 : 6)"
 		                 Dense="@(at == MokaChartLegendPosition.TitleRow)"/>
 	};
 

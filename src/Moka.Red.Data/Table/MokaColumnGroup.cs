@@ -9,7 +9,7 @@ namespace Moka.Red.Data.Table;
 ///     inside it. Columns that stand together under the same group share one heading; a group whose columns are all hidden
 ///     draws none, and pinning or moving a column out from among the others splits the heading in two.
 /// </summary>
-public sealed class MokaColumnGroup : ComponentBase, IDisposable
+public sealed class MokaColumnGroup : ComponentBase, IDisposable, IMokaTableOrderedPart
 {
 	private readonly MokaChildList<object> _columns;
 	private (string? Title, bool KeepTogether, string? Class)? _last;
@@ -17,7 +17,7 @@ public sealed class MokaColumnGroup : ComponentBase, IDisposable
 	/// <summary>Creates the group.</summary>
 	public MokaColumnGroup()
 	{
-		_columns = new MokaChildList<object>(() => Host?.OnGroupColumnsChanged());
+		_columns = new MokaChildList<object>(() => Host?.OnGroupColumnsChanged(), null, IMokaTableOrderedPart.OrderOf);
 	}
 
 	/// <summary>The heading's text.</summary>
@@ -38,6 +38,14 @@ public sealed class MokaColumnGroup : ComponentBase, IDisposable
 	/// <summary>Classes on the heading's cell.</summary>
 	[Parameter]
 	public string? Class { get; set; }
+
+	/// <summary>
+	///     Where the group stands among the table's columns: lower comes first, and parts with the same <c>Order</c> keep
+	///     the order the markup gives. Default 0. Set it on a group rendered by a component of your own, which otherwise
+	///     joins after the table's own columns.
+	/// </summary>
+	[Parameter]
+	public int Order { get; set; }
 
 	[CascadingParameter] private IMokaTablePartHost? Host { get; set; }
 

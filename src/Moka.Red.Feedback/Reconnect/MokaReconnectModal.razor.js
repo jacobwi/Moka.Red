@@ -1,24 +1,12 @@
-// Runs with no .NET to call: this is what's on screen when the circuit is gone. It watches the state classes rather
-// than components-reconnect-state-changed, because that event is .NET 10 only and the classes are on both targets.
+// Runs with no .NET to call: this is what's on screen when the circuit is gone.
 const MODAL_ID = "components-reconnect-modal";
+const STATE_CHANGED = "components-reconnect-state-changed";
 const BOUND = Symbol.for("moka-reconnect-bound");
 
 // A failed attempt can come back in milliseconds, which would look like the button did nothing.
 const TRYING_AT_LEAST_MS = 800;
 
-const SHOWN = [
-	"components-reconnect-show",
-	"components-reconnect-retrying",
-	"components-reconnect-failed",
-	"components-reconnect-paused",
-	"components-reconnect-resume-failed"
-];
-
-const ASKS_FOR_A_CHOICE = [
-	"components-reconnect-failed",
-	"components-reconnect-paused",
-	"components-reconnect-resume-failed"
-];
+const ASKS_FOR_A_CHOICE = new Set(["failed", "paused", "resume-failed"]);
 
 export function bind() {
 	const modal = document.getElementById(MODAL_ID);
@@ -55,7 +43,7 @@ export function bind() {
 				return;
 			}
 
-			if (await globalThis.Blazor.resumeCircuit?.()) {
+			if (await globalThis.Blazor.resumeCircuit()) {
 				modal.close();
 			} else {
 				location.reload();
@@ -76,23 +64,21 @@ export function bind() {
 			}
 		} catch {
 			modal.classList.replace("components-reconnect-paused", "components-reconnect-resume-failed");
+			focusFirstAction(modal);
 		}
 	};
 
-	const sync = () => {
-		const classes = modal.classList;
+	const stateChanged = event => {
+		const { state } = event.detail;
 
-		if (classes.contains("components-reconnect-rejected")) {
+		if (state === "rejected") {
 			location.reload();
 			return;
 		}
 
-		if (!SHOWN.some(name => classes.contains(name))) {
+		if (state === "hide") {
 			document.removeEventListener("visibilitychange", retryWhenVisible);
-			if (modal.open) {
-				modal.close();
-			}
-
+			modal.close();
 			return;
 		}
 
@@ -100,17 +86,17 @@ export function bind() {
 			modal.showModal();
 		}
 
-		if (classes.contains("components-reconnect-failed")) {
+		if (state === "failed") {
 			document.addEventListener("visibilitychange", retryWhenVisible);
 		}
 
 		// showModal focused nothing while no button was on screen, and the state can change with the dialog open.
-		if (ASKS_FOR_A_CHOICE.some(name => classes.contains(name))) {
+		if (ASKS_FOR_A_CHOICE.has(state)) {
 			focusFirstAction(modal);
 		}
 	};
 
-	new MutationObserver(sync).observe(modal, { attributes: true, attributeFilter: ["class"] });
+	modal.addEventListener(STATE_CHANGED, stateChanged);
 
 	// A person pressing Escape would be left on a dead page with nothing saying why. closedby="none" covers the
 	// browsers that know it.
@@ -119,8 +105,6 @@ export function bind() {
 	modal.querySelector("#components-reconnect-button").addEventListener("click", retry);
 	modal.querySelector("#components-resume-button").addEventListener("click", resume);
 	modal.querySelector("#moka-reconnect-reload").addEventListener("click", () => location.reload());
-
-	sync();
 }
 
 function focusFirstAction(modal) {

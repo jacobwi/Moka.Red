@@ -128,6 +128,9 @@ public sealed record MokaTableText
 	/// <summary>How many rows are picked.</summary>
 	public Func<int, string> SelectedCount { get; init; } = static count => string.Create(CultureInfo.CurrentCulture, $"{count:N0} selected");
 
+	/// <summary>Every matching row picked, from a source that doesn't count its rows.</summary>
+	public string AllSelected { get; init; } = "All selected";
+
 	/// <summary>The button that clears the picked rows, as a word.</summary>
 	public string Clear { get; init; } = "Clear";
 
@@ -142,6 +145,11 @@ public sealed record MokaTableText
 
 	/// <summary>The header's box on a table that shows every row: "Select all rows".</summary>
 	public Func<string, string> SelectAll { get; init; } = static rows => $"Select all {rows}";
+
+	/// <summary>
+	///     The header's box under <c>SelectAllMatching</c>, which picks the rows not loaded too: "Select all matching rows".
+	/// </summary>
+	public Func<string, string> SelectAllMatching { get; init; } = static rows => $"Select all matching {rows}";
 
 	/// <summary>A row's box, from the row's <c>ItemName</c>.</summary>
 	public Func<string, string> SelectItem { get; init; } = static name => $"Select {name}";

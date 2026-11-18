@@ -241,7 +241,7 @@ public partial class MokaHeatmap : MokaChartBase
 	internal override bool IsClassic => _classic;
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => Layout == MokaHeatmapLayout.Grid ? "Heatmap" : "Calendar heatmap";
+	internal override string DefaultLabel => Layout == MokaHeatmapLayout.Grid ? Words.Heatmap : Words.CalendarHeatmap;
 
 	/// <inheritdoc />
 	internal override bool HasData => Layout == MokaHeatmapLayout.Grid ? _gridCells.Count > 0 : _dayCount > 0;

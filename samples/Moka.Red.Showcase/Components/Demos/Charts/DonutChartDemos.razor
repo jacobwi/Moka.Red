@@ -28,6 +28,16 @@
 	                Subtitle="Share of bytes today. Each square is 1%" Segments="@Protocols"/>
 </DemoSection>
 
+<DemoSection Id="many-parts" Title="Many parts"
+             Description="Past MaxSegments (8 by default, 6 here) the smallest parts fold into one muted Other. To compare many parts, rank them as horizontal bars instead.">
+	<MokaDonutChart Title="Requests by service" Subtitle="Twelve services, the six largest shown" Segments="@ManyServices"
+	                MaxSegments="6" Formatter="Compact"/>
+	<MokaBarChart Title="Requests by service" Subtitle="All twelve, largest first" Horizontal="true" Look="MokaChartLook.Quiet"
+	              Labels="@(ManyServices.Select(s => s.Name).ToArray())"
+	              Series="@([new MokaBarSeries { Name = "Requests", Values = ManyServices.Select(s => s.Value).ToArray() }])"
+	              Formatter="Compact"/>
+</DemoSection>
+
 <DemoSection Id="classic-ring" Title="Classic ring">
 	<MokaDonutChart Segments="@Services" Label="Classic donut" Formatter="Compact"/>
 </DemoSection>
@@ -88,6 +98,12 @@
 		new() { Name = "QUIC", Value = 24 },
 		new() { Name = "DNS", Value = 4 },
 		new() { Name = "Other", Value = 10, ColorValue = "var(--moka-color-on-surface-tertiary)" }
+	];
+
+	private static readonly MokaDonutSegment[] ManyServices =
+	[
+		.. new[] { 41200d, 23800, 9100, 6400, 4300, 3100, 2200, 1500, 900, 600, 350, 120 }
+			.Select((value, i) => new MokaDonutSegment { Name = $"svc-{i + 1:00}", Value = value })
 	];
 
 	private bool _centerShowsShare;

@@ -22,7 +22,7 @@ public partial class MokaStepper
 	/// <summary>Creates the stepper.</summary>
 	public MokaStepper()
 	{
-		_steps = new MokaChildList<MokaStep>(StateHasChanged, StepsChanged);
+		_steps = new MokaChildList<MokaStep>(StateHasChanged, StepsChanged, static step => step.Order);
 	}
 
 	/// <summary>Child step elements.</summary>

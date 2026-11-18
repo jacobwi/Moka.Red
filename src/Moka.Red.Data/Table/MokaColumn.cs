@@ -16,7 +16,7 @@ namespace Moka.Red.Data.Table;
 ///     (<see cref="ValueOf" />, <see cref="TextOf" />, <see cref="ExportTextOf" />).
 /// </remarks>
 /// <typeparam name="TItem">The row data type.</typeparam>
-public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>
+public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>, IMokaTableOrderedPart
 {
 	private const char Separator = '\u001F';
 
@@ -90,6 +90,15 @@ public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>
 	/// </summary>
 	[Parameter]
 	public bool Visible { get; set; } = true;
+
+	/// <summary>
+	///     Where the column stands among the table's columns, or its group's: lower comes first, and columns with the same
+	///     <c>Order</c> keep the order the markup gives. Default 0. Set it on a column rendered by a component of your own,
+	///     which otherwise joins after the table's own columns. The user can still move it, and an arrangement in force
+	///     still places it.
+	/// </summary>
+	[Parameter]
+	public int Order { get; set; }
 
 	/// <summary>
 	///     The edge the column starts pinned to while the rows scroll sideways: <see cref="MokaColumnPin.Start" /> or

@@ -19,7 +19,7 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	/// <summary>Creates the carousel.</summary>
 	public MokaCarousel()
 	{
-		_slides = new MokaChildList<MokaCarouselSlide>(StateHasChanged, SlidesChanged);
+		_slides = new MokaChildList<MokaCarouselSlide>(StateHasChanged, SlidesChanged, static slide => slide.Order);
 	}
 
 	/// <summary>Carousel slide content (MokaCarouselSlide children or any content).</summary>

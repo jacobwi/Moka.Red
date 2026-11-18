@@ -293,7 +293,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, CountrySelect, etc. |
 | `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, Banner, SystemNotification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
-| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaTablePager`, the column kinds such as `MokaNumberColumn<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaHeatmap` |
+| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaTablePager`, the column kinds such as `MokaNumberColumn<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaRadarChart`, `MokaHeatmap` |
 | `Moka.Red.Navigation.*` | Menu, Breadcrumb, Sidebar, Stepper, CommandBar, Tabs (`MokaTabStrip`, `MokaTabContainer`) |
 | `Moka.Red.Navigation.Tabs.Models` | `TabInfo<TValue>`, `TabGroupInfo`, `TabBadgeInfo`, `TabTheme` and the tab event args |
 | `Moka.Red.Navigation.Tabs.Services` | `IMokaTabSessionState<TValue>`, `ITabStorageProvider`, `MokaBrowserTabStorageProvider` |

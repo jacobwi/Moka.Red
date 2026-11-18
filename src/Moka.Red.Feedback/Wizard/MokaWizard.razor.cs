@@ -20,7 +20,7 @@ public partial class MokaWizard : MokaComponentBase
 	/// <summary>Creates the wizard.</summary>
 	public MokaWizard()
 	{
-		_steps = new MokaChildList<MokaWizardStep>(StateHasChanged, StepsChanged);
+		_steps = new MokaChildList<MokaWizardStep>(StateHasChanged, StepsChanged, static step => step.Order);
 	}
 
 	/// <summary>The wizard step content (must contain <see cref="MokaWizardStep" /> children).</summary>

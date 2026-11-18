@@ -21,7 +21,8 @@ public sealed class InlineSvgFilesTests
 		"Moka.Red.Data/Chart/MokaLineChart.razor",
 		"Moka.Red.Data/Chart/MokaScatterChart.razor",
 		"Moka.Red.Data/Chart/MokaBoxPlot.razor",
-		"Moka.Red.Data/Chart/MokaSankey.razor"
+		"Moka.Red.Data/Chart/MokaSankey.razor",
+		"Moka.Red.Data/Chart/MokaRadarChart.razor"
 	];
 
 	[Fact]

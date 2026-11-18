@@ -111,8 +111,8 @@ with its right end.
         new("$ dotnet build", Prefix: "$"),
         new("  Determining projects to restore..."),
         new("  Restored 3 projects in 1.2s", Color: "var(--moka-color-success)"),
-        new("  Moka.Red.Core -> bin/Debug/net9.0/Moka.Red.Core.dll"),
-        new("  Moka.Red.Primitives -> bin/Debug/net9.0/Moka.Red.Primitives.dll"),
+        new("  Moka.Red.Core -> bin/Debug/net10.0/Moka.Red.Core.dll"),
+        new("  Moka.Red.Primitives -> bin/Debug/net10.0/Moka.Red.Primitives.dll"),
         new("Build succeeded.", Color: "var(--moka-color-success)"),
         new("    0 Warning(s)", Color: "var(--moka-color-warning)"),
         new("    0 Error(s)", Color: "var(--moka-color-success)")

@@ -1993,12 +1993,74 @@ function leaveGroup(state) {
 }
 
 function members(state) {
-	const set = state.group ? groups.get(state.group) : null;
+	return state.group ? groupMembers(state.group) : [];
+}
+
+function groupMembers(name) {
+	const set = groups.get(name);
 	if (!set) return [];
 	for (const member of [...set]) {
 		if (!member.root.isConnected || !roots.has(member.root)) set.delete(member);
 	}
 	return [...set];
+}
+
+// A legend outside the charts, such as one row of toggles over a dashboard, highlights the series it points at in every
+// chart of its sync group that highlights from its legend. Its own other entries fade as a chart's do. A legend inside a
+// bound chart is the chart's to handle, so it does nothing here.
+
+const outsideLegends = new WeakMap();
+
+/**
+ * Lets a legend that stands outside the charts highlight a series across its sync group, by pointer or by focus.
+ * @param {HTMLElement} legend - The legend's root.
+ * @param {string} group - The sync group.
+ */
+export function bindLegend(legend, group) {
+	if (!legend) return;
+	unbindLegend(legend);
+	if (!group) return;
+
+	const entryOf = node => node instanceof Element ? node.closest('[data-moka-legend-key]') : null;
+	const point = entry => {
+		if (owner(legend)) return;
+		const key = entry && legend.contains(entry) ? entry.getAttribute('data-moka-legend-key') : null;
+		for (const item of legend.querySelectorAll('[data-moka-legend-key]')) {
+			item.toggleAttribute('data-moka-dim', key !== null && item.getAttribute('data-moka-legend-key') !== key);
+		}
+		highlightGroup(group, key);
+	};
+	const enter = e => {
+		const entry = entryOf(e.target);
+		if (entry) point(entry);
+	};
+	const leave = e => {
+		const entry = entryOf(e.target);
+		if (entry && !(e.relatedTarget instanceof Node && entry.contains(e.relatedTarget))) point(entryOf(e.relatedTarget));
+	};
+	const handlers = [['pointerover', enter], ['pointerout', leave], ['focusin', enter], ['focusout', leave]];
+	for (const [name, handler] of handlers) legend.addEventListener(name, handler);
+	outsideLegends.set(legend, { group, handlers, point });
+}
+
+/**
+ * Lets an outside legend go, and the highlight it set.
+ * @param {HTMLElement} legend - The legend's root.
+ */
+export function unbindLegend(legend) {
+	const bound = legend ? outsideLegends.get(legend) : null;
+	if (!bound) return;
+	outsideLegends.delete(legend);
+	for (const [name, handler] of bound.handlers) legend.removeEventListener(name, handler);
+	bound.point(null);
+}
+
+function highlightGroup(group, key) {
+	for (const member of groupMembers(group)) {
+		if (!member.options.highlight || (key === null && member.highlightBy !== 'outside')) continue;
+		member.highlightBy = key === null ? null : 'outside';
+		applyHighlight(member, key);
+	}
 }
 
 function xValue(state, ps, drawn) {

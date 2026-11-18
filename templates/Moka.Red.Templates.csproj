@@ -11,7 +11,6 @@
     <PackageProjectUrl>https://github.com/jacobwi/Moka.Red</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageTags>dotnet-new;template;blazor;moka;ui;components</PackageTags>
-    <TargetFramework>net10.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>content</ContentTargetFolders>

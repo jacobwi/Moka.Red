@@ -405,6 +405,21 @@
 	color: var(--moka-color-on-surface-variant);
 }
 
+/* A key's color names its series, so it keeps it where the browser would drop it: the readout's in print without
+   background graphics, and every key and dot in forced colors, which would paint them the system's background. */
+.moka-chart-readout__key {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-chart-tip__key,
+	.moka-chart-readout__key,
+	.moka-chart-overlay ::deep .moka-chart-ov-dot {
+		forced-color-adjust: none;
+	}
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 /* The theme's tooltip look first, when it picked one other than Standard (every other look sets all of these), then the

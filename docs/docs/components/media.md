@@ -63,6 +63,10 @@ showing when slides before it come or go: the carousel's position moves with it 
 one. When the slide showing goes, the one that takes its place shows. Up to 0.8.0 the position stayed, so the carousel
 showed whichever slide then held it.
 
+A slide written inside another component of yours reports after the slides written straight in the carousel, so the
+carousel lists it last. Give the slides an `Order` in the order they stand: lowest first, and slides with the same
+`Order` keep the markup's order. The track shows the slides where the markup puts them, so number them that way.
+
 ### Auto-Play
 
 ```blazor-preview

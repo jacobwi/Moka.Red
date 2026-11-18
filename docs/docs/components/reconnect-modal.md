@@ -48,8 +48,6 @@ It reads the tokens `MokaThemeProvider` writes to `:root`, so it needs a provide
 
 When the server answers but no longer has the page's state, as after a restart, the page reloads by itself. After a failed attempt it also tries again when the person comes back to the tab.
 
-On .NET 9, Blazor reports only the first attempt, the point it stops trying and a rejected connection. The screen keeps saying "Reconnecting" until it stops, and the paused states don't occur.
-
 ## Changing the words
 
 ```razor

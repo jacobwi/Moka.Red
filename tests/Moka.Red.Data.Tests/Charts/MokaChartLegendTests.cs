@@ -204,6 +204,7 @@ public sealed class MokaChartLegendTests : BunitContext
 	[Fact]
 	public void TheChartsScript_FindsTheEntriesAndTheirGroup()
 	{
+		this.Static();
 		IRenderedComponent<MokaChartLegend> cut = Render<MokaChartLegend>(p => p
 			.Add(x => x.Items, Three)
 			.Add(x => x.Actions, MokaChartLegendActions.Highlight)

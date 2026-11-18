@@ -7,14 +7,14 @@ layout: default
 
 # Moka.Red - A lightweight, performance-focused Blazor UI component library
 
-Moka.Red is a modular Razor Class Library (RCL) suite delivering 120+ production-ready components for Blazor applications. Designed with a dense, compact aesthetic and zero-compromise performance, it targets .NET 9 and .NET 10 and works across all Blazor hosting models.
+Moka.Red is a modular Razor Class Library (RCL) suite delivering 120+ production-ready components for Blazor applications. Designed with a dense, compact aesthetic and zero-compromise performance, it targets .NET 10 and works across all Blazor hosting models.
 
 ## Key Features
 
 - **120+ components** across 13 focused packages
 - **Dense/compact design** - 13 px base font, tight spacing, high information density
 - **Zero memory leaks** - `IAsyncDisposable` throughout, idempotent disposal, safe JS interop
-- **Multi-target** - `net9.0` and `net10.0` in every package
+- **.NET 10** - every package targets `net10.0`
 - **All hosting models** - WebAssembly, Server, and Auto render modes
 - **Theming engine** - CSS custom properties with light/dark support and full customisation
 - **No JavaScript dependencies** - collocated `.razor.js` modules loaded lazily, no bundler required

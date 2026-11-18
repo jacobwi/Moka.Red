@@ -33,9 +33,9 @@ public static class MokaJsInterop
 		exception is JSDisconnectedException or OperationCanceledException or ObjectDisposedException
 		|| (exception is JSException script && IsMissingObject(script.Message));
 
-	// Blazor's JS side answers a call on an object id it doesn't hold with this text, the same in .NET 9 and 10, then
-	// the stack. The exception carries nothing else to tell it by. A reloaded BlazorWebView page is where it happens:
-	// the old page's disposals reach the new page over the same channel.
+	// Blazor's JS side answers a call on an object id it doesn't hold with this text, then the stack. The exception
+	// carries nothing else to tell it by. A reloaded BlazorWebView page is where it happens: the old page's disposals
+	// reach the new page over the same channel.
 	private static bool IsMissingObject(string? message)
 	{
 		if (message is null || !message.StartsWith(MissingObjectStart, StringComparison.Ordinal))

@@ -74,7 +74,7 @@ public partial class MokaCandlestickChart : MokaCartesianChartBase, IChartColumn
 	}
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => "Candlestick chart";
+	internal override string DefaultLabel => Words.CandlestickChart;
 
 	/// <inheritdoc />
 	internal override bool HasData => _candles.Count > 0;

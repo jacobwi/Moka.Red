@@ -33,7 +33,7 @@ A placeholder too long for its field ends in an ellipsis rather than mid-word, a
 | `MokaAutoComplete<T>` | `T` | Async/sync suggestions |
 | `MokaSearchInput` | `string` | Debounced search field |
 | `MokaInlineEdit` | `string` | Text that becomes a field, see [Inline Edit](inline-edit.md) |
-| `MokaOtpInput` | `string` | One-time password |
+| `MokaOtpInput` | `string` | One-time code: one field drawn as a box per digit, filled by the browser's code offer |
 | `MokaPhoneInput` | `string` | Country code + number, or a country picker with `Country` |
 | `MokaCountrySelect` | `string?` | A country's ISO code, see [Country Select](country-select.md) |
 | `MokaCurrencyInput` | `decimal` | Locale-aware currency |
@@ -99,7 +99,8 @@ Where a component differs:
 | `MokaRadioGroup` | The `role="radiogroup"` element | The same element |
 | `MokaRangeSlider` | The element that holds both thumbs | The same element |
 | `MokaFileUpload` | The file input, so `capture`, `name` or `aria-describedby` work there | The field's outer element |
-| `MokaOtpInput` and the other box inputs | The `role="group"` element. The label and message ids are built from `Id` | The same element |
+| `MokaOtpInput`, `MokaPinInput` | The one field. The message id is built from `Id` | The outer element |
+| `MokaIpAddressInput`, `MokaMacAddressInput` | The `role="group"` element. The label and message ids are built from `Id` | The same element |
 | `MokaCreditCardInput`, `MokaSignaturePad` | The outer element | The same element |
 
 `MokaSelect` and `MokaRating` take their name from `aria-label` when there is no `Label`, and render it once, on the control. With a `Label`, the label names the control and `aria-label` is left out.
@@ -164,12 +165,12 @@ What a control can do on a static page depends on whether the browser can edit i
 
 | On a static page | Controls |
 |---|---|
-| Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup`, and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
+| Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaOtpInput`, `MokaPinInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup`, and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
 | Edited and posted, if you give it a `name` | `MokaSlider` and `MokaSearchInput`, which aren't tied to a form field |
 | Shown and posted, but can't be changed | `MokaSelect`, `MokaCountrySelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`, `MokaInlineEdit`, `MokaEmojiPicker`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
-| Not posted | Everything else, including `MokaRangeBar`, `MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
+| Not posted | Everything else, including `MokaRangeBar`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
 
-For a one-time code on a static page, use `MokaTextField`, since the digit boxes only join up with interactivity.
+A one-time code or a PIN posts as typed on a static page, spaces included, since no script tidies it there.
 Buttons inside a field, such as Clear or Show password, do nothing there either.
 
 A `name` attribute on any of these replaces the generated one. On interactive server pages the inputs carry a `name`
@@ -998,7 +999,17 @@ The suggestions take the same `MokaListLook` as [`MokaSelect`](select.md#looks),
 <MokaOtpInput @bind-Value="_otp" Length="6" Label="Verification code" />
 ```
 
-`MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput` and `MokaMacAddressInput` take part in `EditForm` validation like the other inputs. With `@bind-Value`, a DataAnnotations message shows below the boxes, and every box gets `aria-invalid` and an `aria-describedby` pointing at that message. `Required` adds the marker after the label and `aria-required` on every box. The boxes sit in a `role="group"` that `Label` names.
+The code is one field, drawn as a row of boxes, one per digit, with `autocomplete="one-time-code"`, `inputmode="numeric"` and `type="text"`, as [web.dev's guidance for one-time code forms](https://web.dev/articles/sms-otp-form) and GOV.UK's security code pattern use. A pasted code lands whole, the browser's offer of a code it received fills every box, and a screen reader hears one field named by `Label` (or "One-time code" without one, unless you pass `aria-label`). WCAG 2.2 asks that a code can be pasted, and its understanding of 3.3.8 names a code split across boxes, where a paste fills one, as the barrier. The digits are the field's own text, set in the monospace font and spaced to land in their boxes, so typing, Backspace, the arrow keys and selecting work as in any text field and show at once, with no round trip.
+
+The value keeps the digits 0 to 9 only, up to `Length` (6): a code pasted as "123 456" or "123-456" arrives as "123456", and full width digits count as the digits they show. `OnComplete` fires when a change fills every box. `Masked` makes it a password field with a dot per digit. A script marks the box at the caret; without it, every box lights while the field has focus. Up to 0.8.1 each digit was an input of its own, a paste or an offered code filled one box, and the digits were set in the text font.
+
+`FillFromSms` asks the browser for the code from a text message through the WebOTP API, where it has one (Chrome on Android, over HTTPS), and fills the field with it after the person allows it. The message's last line names the site and the code, as in `@example.com #123456`. Safari offers such a code through `autocomplete="one-time-code"` alone. Typing a whole code stops the request.
+
+```razor
+<MokaOtpInput @bind-Value="_code" Label="Verification code" FillFromSms OnComplete="VerifyAsync" />
+```
+
+`MokaOtpInput`, `MokaPinInput`, `MokaIpAddressInput` and `MokaMacAddressInput` take part in `EditForm` validation like the other inputs. With `@bind-Value`, a DataAnnotations message shows below the boxes, and the code's field gets `aria-invalid` and an `aria-describedby` pointing at that message (every box of the IP and MAC inputs does). `Required` adds the marker after the label and `aria-required` on the field. The IP and MAC boxes sit in a `role="group"` that `Label` names.
 
 ```razor
 <EditForm Model="_login" OnValidSubmit="Verify">
@@ -1008,7 +1019,7 @@ The suggestions take the same `MokaListLook` as [`MokaSelect`](select.md#looks),
 </EditForm>
 ```
 
-`Id` and unmatched attributes go on the group, and the label and message ids are built from `Id`. `Margin` and `Padding` go on the group too, around the label, the boxes and the message. `Rounded` goes on every box, so `RoundedValue="50%"` gives round boxes.
+On the code inputs `Id` and unmatched attributes go on the field, and the message id is built from `Id`; `Margin` and `Padding` go on the outer element, around the label, the boxes and the message. On the IP and MAC inputs they all go on the group. `Rounded` goes on every box, so `RoundedValue="50%"` gives round boxes. Like `InputText`, the code inputs need a `@bind-Value` that names a field: one whose getter calls a method throws, where up to 0.8.1 it left the input out of validation.
 
 ## PhoneInput
 

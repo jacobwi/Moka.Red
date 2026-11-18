@@ -90,8 +90,9 @@ public partial class MokaTable<TItem>
 	///     The title of the column the rows are grouped by when the state doesn't say. Rows showing the same text in that
 	///     column (or the same <see cref="MokaColumn{TItem}.GroupKey" />) are shown together under a heading, in the order
 	///     each first appears, so the sort still decides the order. The column can be hidden. Null, the default, leaves the
-	///     rows ungrouped. Grouping and <see cref="Virtualize" /> do not combine: grouping wins, because a virtualized list
-	///     has no room for the headings between its rows.
+	///     rows ungrouped. Rows in memory don't combine grouping and <see cref="Virtualize" />: grouping wins, because a
+	///     virtualized list of rows has no room for the headings between them. A <see cref="ServerData" /> source with
+	///     <see cref="Virtualize" /> windows the headings and rows together when it sends every group's totals.
 	/// </summary>
 	[Parameter]
 	public string? GroupBy { get; set; }

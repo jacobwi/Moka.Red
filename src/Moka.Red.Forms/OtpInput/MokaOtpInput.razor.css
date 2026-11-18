@@ -1,4 +1,6 @@
 .moka-otp {
+	--_code-box: 36px;
+	--_code-gap: var(--moka-spacing-md);
 	display: flex;
 	flex-direction: column;
 	gap: var(--moka-spacing-sm);
@@ -15,46 +17,79 @@
 	margin-left: var(--moka-spacing-xxs);
 }
 
+/* The boxes are drawn behind one field. Its digits are its own text, set in the monospace font: the padding puts the
+   first in the middle of the first box and the letter spacing steps each next one a box and a gap further on. */
 .moka-otp-inputs {
+	position: relative;
 	display: flex;
-	gap: var(--moka-spacing-md);
+	gap: var(--_code-gap);
+	width: max-content;
+	direction: ltr;
 }
 
 .moka-otp-digit {
-	width: 36px;
-	height: 36px;
-	text-align: center;
-	font-size: var(--moka-font-size-base);
-	font-weight: var(--moka-font-weight-bold);
-	font-family: var(--moka-font-family);
+	width: var(--_code-box);
+	height: var(--_code-box);
 	border: 1px solid var(--moka-color-outline);
 	border-radius: var(--moka-radius-md);
 	background: var(--moka-color-surface);
-	color: var(--moka-color-on-surface);
-	outline: none;
 	box-sizing: border-box;
 	transition: border-color var(--moka-transition-fast), box-shadow var(--moka-transition-fast);
-	-moz-appearance: textfield;
 }
 
-.moka-otp-digit::-webkit-inner-spin-button,
-.moka-otp-digit::-webkit-outer-spin-button {
-	-webkit-appearance: none;
+/* The field runs two boxes past the last, so the caret after a full code, or a digit too many before it is dropped,
+   never scrolls the text off its boxes. This window clips what runs past, with clip rather than hidden: a hidden
+   overflow is still a scroll container, and the browser scrolled it to bring the caret into view. */
+.moka-otp-window {
+	position: absolute;
+	inset: 0;
+	overflow: clip;
+}
+
+.moka-otp-field {
+	display: block;
+	box-sizing: border-box;
+	width: calc((var(--_code-length) + 2) * (var(--_code-box) + var(--_code-gap)));
+	height: 100%;
 	margin: 0;
+	border: 0;
+	padding: 0 0 0 calc((var(--_code-box) - 1ch) / 2);
+	background: transparent;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: var(--moka-color-on-surface);
+	caret-color: var(--moka-color-primary);
+	font-family: var(--moka-font-family-mono);
+	font-size: var(--moka-font-size-base);
+	font-weight: var(--moka-font-weight-bold);
+	letter-spacing: calc(var(--_code-box) + var(--_code-gap) - 1ch);
+	text-align: left;
+	outline: none;
 }
 
-.moka-otp-digit:focus {
-	border-color: var(--moka-color-primary);
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+/* An autofilled field keeps its text color and paints its fill only inside the glyphs, so the boxes still show. */
+.moka-otp-field:-webkit-autofill {
+	-webkit-text-fill-color: var(--moka-color-on-surface);
 }
 
-.moka-otp-digit:disabled {
-	opacity: 0.5;
+.moka-otp-field:disabled {
 	cursor: not-allowed;
 }
 
+.moka-otp--disabled .moka-otp-inputs {
+	opacity: 0.5;
+}
+
+/* A script marks the box at the caret. Without it, every box lights while the field has focus. */
+.moka-otp-digit[data-moka-caret],
+.moka-otp-inputs:focus-within:not(:has([data-moka-caret])) .moka-otp-digit {
+	border-color: var(--moka-color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-primary) 20%, transparent);
+	outline: var(--moka-focus-width) solid transparent;
+}
+
 /* Masked mode */
-.moka-otp--masked .moka-otp-digit {
+.moka-otp--masked .moka-otp-field {
 	-webkit-text-security: disc;
 }
 
@@ -63,7 +98,8 @@
 	border-color: var(--moka-color-error);
 }
 
-.moka-otp--error .moka-otp-digit:focus {
+.moka-otp--error .moka-otp-digit[data-moka-caret],
+.moka-otp--error .moka-otp-inputs:focus-within:not(:has([data-moka-caret])) .moka-otp-digit {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 
@@ -80,6 +116,10 @@
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
+.moka-gate .moka-otp {
+	--_code-box: var(--moka-control-height);
+}
+
 .moka-gate .moka-otp-label {
 	font-size: var(--moka-font-size-base);
 	font-weight: var(--moka-font-weight-semibold);
@@ -87,26 +127,29 @@
 }
 
 .moka-gate .moka-otp-digit {
-	width: var(--moka-control-height);
-	height: var(--moka-control-height);
-	font-size: var(--moka-font-size-lg);
 	background: var(--moka-color-surface-2);
 	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
 }
 
-.moka-gate .moka-otp-digit:hover:not(:disabled, :focus) { border-color: var(--moka-color-outline-strong); }
+.moka-gate .moka-otp-field { font-size: var(--moka-font-size-lg); }
 
-.moka-gate .moka-otp-digit:focus {
+.moka-gate .moka-otp:not(.moka-otp--disabled) .moka-otp-inputs:hover:not(:focus-within) .moka-otp-digit {
+	border-color: var(--moka-color-outline-strong);
+}
+
+.moka-gate .moka-otp-digit[data-moka-caret],
+.moka-gate .moka-otp-inputs:focus-within:not(:has([data-moka-caret])) .moka-otp-digit {
 	border-color: var(--moka-color-primary);
 	box-shadow: var(--moka-focus-ring);
 	outline: var(--moka-focus-width) solid transparent;
 }
 
-.moka-gate .moka-otp-digit:disabled { opacity: var(--moka-opacity-disabled); }
+.moka-gate .moka-otp--disabled .moka-otp-inputs { opacity: var(--moka-opacity-disabled); }
 
-.moka-gate .moka-otp--error .moka-otp-digit:hover:not(:focus) { border-color: var(--moka-color-error); }
+.moka-gate .moka-otp.moka-otp--error .moka-otp-inputs:hover:not(:focus-within) .moka-otp-digit { border-color: var(--moka-color-error); }
 
-.moka-gate .moka-otp--error .moka-otp-digit:focus {
+.moka-gate .moka-otp--error .moka-otp-digit[data-moka-caret],
+.moka-gate .moka-otp--error .moka-otp-inputs:focus-within:not(:has([data-moka-caret])) .moka-otp-digit {
 	box-shadow: var(--moka-focus-ring-error);
 	outline: var(--moka-focus-width) solid transparent;
 }

@@ -15,7 +15,9 @@ namespace Moka.Red.Forms.Base;
 // virtual appearance parameters, CssClass and SafeJsInvokeAsync.
 
 /// <summary>
-///     Abstract base class for segmented input components (OTP, PIN, IP address, MAC address).
+///     Abstract base class for segmented input components, such as an IP address or a MAC address, whose parts are
+///     typed in separate boxes. A code typed as digits, such as a one-time code or a PIN, is one field over a row of
+///     boxes instead: see <see cref="MokaCodeInputBase" />.
 ///     Provides shared behavior for multiple connected input boxes with auto-tab,
 ///     keyboard navigation, paste distribution, value synchronization, and
 ///     <see cref="EditContext" /> validation.

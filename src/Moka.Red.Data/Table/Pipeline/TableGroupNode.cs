@@ -30,4 +30,10 @@ internal sealed class TableGroupNode<TItem>(string key, string id, int level, IR
 
 	/// <summary>Totals a server sent for the whole group, by column title.</summary>
 	public IReadOnlyDictionary<string, double>? ServerTotals { get; set; }
+
+	/// <summary>Under grouped windows, the place in the whole result of the group's first row.</summary>
+	public int FirstRow { get; set; }
+
+	/// <summary>Under grouped windows, the line of a last-level group's first row, or -1 while a heading over it is folded.</summary>
+	public int RowsLine { get; set; } = -1;
 }

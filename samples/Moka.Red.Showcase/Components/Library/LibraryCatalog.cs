@@ -92,6 +92,7 @@ internal static partial class LibraryCatalog
 		["Heatmap"] = Charts,
 		["Histogram"] = Charts,
 		["LineChart"] = Charts,
+		["RadarChart"] = Charts,
 		["Sankey"] = Charts,
 		["ScatterChart"] = Charts,
 		["Sparkline"] = Charts,

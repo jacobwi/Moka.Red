@@ -22,6 +22,7 @@ in the middle for the total or a label. Pure SVG, so it themes and scales with t
 | `Label` | `string?` | -- | What the chart shows, for assistive technology |
 | `Formatter` | `Func<double, string>?` | -- | Writes a segment's value, such as "3 GiB", for the tooltips and the legend. Null leaves the legend to percentages |
 | `Total` | `double?` | -- | The whole the segments are shares of, such as a quota. The rest of the ring shows as the track. Null uses the segments' sum |
+| `MaxSegments` | `int` | `8` | The most segments drawn. Past it the smallest fold into one muted "Other (n)" segment, drawn last. Zero or less never folds. The classic ring never folds |
 | `Size` | `MokaSize` | `Md` | The box the ring scales into |
 
 It also takes the parameters every chart shares (`Title`, `Subtitle`, `Look`, `Texture`, `Colors`, `Highlight`,
@@ -111,6 +112,28 @@ value beside the percentage.
 When the segments add up to more than `Total`, the ring is full and the arcs that run past its end are cut off. The
 legend and tooltips still give each segment's share of `Total`, so an account over its quota reads 80% and 40%.
 A `Total` of zero or less is ignored.
+
+## Many parts
+
+A donut reads at a glance up to five or six parts. Past that the slices get too thin to tell apart, and past eight the
+palette's colors run out, so a ninth segment would take the first one's color. On the chart frame the donut folds the
+smallest segments into one muted "Other (n)" segment past `MaxSegments`, drawn last, which the legend can hide like
+any other. Segments keep their colors as their place in `Segments` gives them, folded or not, so a filter that drops a
+segment repaints nothing.
+
+```razor
+<MokaDonutChart Title="Requests by service" Segments="_twelveServices" MaxSegments="6" />
+```
+
+The default of 8 keeps every segment its own color; 6 or fewer reads best. When the parts have to be compared, ranked
+or read exactly, draw them as ranked horizontal bars instead, largest first:
+
+```razor
+<MokaBarChart Title="Requests by service" Horizontal="true" Labels="_serviceNames"
+              Series="@(new[] { new MokaBarSeries { Name = "Requests", Values = _requests } })" />
+```
+
+The classic ring, drawn while none of the chart options is set, draws every segment as it always has.
 
 ## Ring looks
 

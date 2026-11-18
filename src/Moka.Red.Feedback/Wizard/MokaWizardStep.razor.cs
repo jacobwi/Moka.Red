@@ -44,6 +44,14 @@ public partial class MokaWizardStep : MokaComponentBase
 	[Parameter]
 	public bool HasProblem { get; set; }
 
+	/// <summary>
+	///     Where the step stands among the wizard's steps: lower comes first, and steps with the same <c>Order</c> keep the
+	///     order the markup gives. Default 0. Set it on a step rendered by a component of your own, which otherwise joins
+	///     after the wizard's own steps.
+	/// </summary>
+	[Parameter]
+	public int Order { get; set; }
+
 	/// <summary>The parent wizard component. Cascaded automatically.</summary>
 	[CascadingParameter]
 	public MokaWizard? Wizard { get; set; }

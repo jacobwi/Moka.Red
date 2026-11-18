@@ -1,4 +1,4 @@
-<DemoSection Id="basics" Title="Basics" Description="A one-time code, one box per digit.">
+<DemoSection Id="basics" Title="Basics" Description="A one-time code: one field over a box per digit, so a pasted code, or one the browser offers, lands whole. Spaces and hyphens in it are dropped.">
 	<MokaOtpInput @bind-Value="_otpValue" AutoFocus="false" Label="Verification Code" HelperText="Enter the 6-digit code" OnComplete="v => _otpComplete = v"/>
 	<p style="font-size: var(--moka-font-size-xs); opacity: 0.6; margin-top: 4px;">
 		Value: @_otpValue @(_otpComplete is not null ? $" (Complete: {_otpComplete})" : "")

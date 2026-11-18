@@ -699,6 +699,78 @@ public partial class MokaTable<TItem>
 		}
 	}
 
+	// What a window brought under remote virtualization. The first after a reload brings the totals, the facets and the
+	// quick filter counts for the whole result, and the windows after it keep them unless they send new ones. Without the
+	// source's facets the lists gather the values of every window loaded since, so they grow as rows scroll into view
+	// rather than changing with each window. Says whether anything drawn outside the rows changed.
+	private bool TakeWindowValues(MokaTableResult<TItem> result, bool first)
+	{
+		if (first || result.Totals is not null)
+		{
+			_serverTotals = result.Totals;
+			_groupTotalTexts.Clear();
+		}
+
+		if (first)
+		{
+			TakeServerValues(result);
+			return true;
+		}
+
+		bool changed = result.Totals is not null;
+		if (FacetsFromServer && result.Facets is { } facets)
+		{
+			_facets = new Dictionary<string, IReadOnlyList<MokaFacetValue>>(facets, StringComparer.Ordinal);
+			_facetCountsKnown = true;
+			changed = true;
+		}
+		else if (!_facetCountsKnown && GatherWindowValues(result.Items))
+		{
+			changed = true;
+		}
+
+		if (FacetsFromServer && result.QuickFilterCounts is { } quickCounts)
+		{
+			_quickCounts = new Dictionary<string, int>(quickCounts, StringComparer.Ordinal);
+			changed = true;
+		}
+
+		if (changed)
+		{
+			FacetsVersion++;
+		}
+
+		return changed;
+	}
+
+	// Adds the values a window shows that the lists don't have yet. Their counts are unknown, so they aren't summed.
+	private bool GatherWindowValues(IReadOnlyList<TItem> items)
+	{
+		bool added = false;
+		Dictionary<string, IReadOnlyList<MokaFacetValue>>? grown = null;
+		foreach (MokaColumn<TItem> col in CountedColumns())
+		{
+			IReadOnlyList<MokaFacetValue> had = _facets.TryGetValue(col.Title!, out IReadOnlyList<MokaFacetValue>? values) ? values : [];
+			HashSet<string> seen = new(had.Select(static facet => facet.Value), StringComparer.OrdinalIgnoreCase);
+			List<MokaFacetValue> fresh = MokaTablePipeline.Facet(items, col).Where(facet => !seen.Contains(facet.Value)).ToList();
+			if (fresh.Count == 0)
+			{
+				continue;
+			}
+
+			grown ??= new Dictionary<string, IReadOnlyList<MokaFacetValue>>(_facets, StringComparer.Ordinal);
+			grown[col.Title!] = had.Concat(fresh).OrderBy(static facet => facet.Text, StringComparer.OrdinalIgnoreCase).ToList();
+			added = true;
+		}
+
+		if (grown is not null)
+		{
+			_facets = grown;
+		}
+
+		return added;
+	}
+
 	// ── Which filters keep a control ──
 
 	// A filter some control can show or clear stays. Chips and the builder show every filter; the row and the menus show

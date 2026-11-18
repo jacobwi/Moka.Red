@@ -94,8 +94,9 @@ public partial class MokaBoxPlot : MokaCartesianChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _boxes.Length == 0
-		? "Box plot"
-		: $"Box plot: {string.Join(", ", _boxes.Take(6).Select(box => $"{box.Group.Name} {MedianText} {Write(box.Summary.Median)}"))}{(_boxes.Length > 6 ? ", ..." : "")}";
+		? Words.BoxPlot
+		: Words.Described(Words.BoxPlot,
+			$"{string.Join(", ", _boxes.Take(6).Select(box => $"{box.Group.Name} {MedianText} {Write(box.Summary.Median)}"))}{(_boxes.Length > 6 ? ", ..." : "")}");
 
 	/// <inheritdoc />
 	internal override bool HasData => _boxes.Length > 0;

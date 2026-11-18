@@ -117,6 +117,8 @@ How the pager looks, where it sits, whether it sticks and which page sizes it of
 | `Selectable` | `bool` | `false` | Adds a checkbox to each row. See [Selecting rows](#selecting-rows) |
 | `SelectedItems` | `HashSet<TItem>?` | -- | The selected rows. Two-way bindable. A parent that passes it and handles `SelectedItemsChanged` owns the selection: a change it doesn't take back is undone. See [Selecting rows](#selecting-rows) |
 | `SelectedItemsChanged` | `EventCallback<HashSet<TItem>>` | -- | Raised with a new set after every change |
+| `SelectAllMatching` | `bool` | `false` | With `ServerData` and `Virtualize`, the select-all box picks every row that matches the search and the filters, the rows not loaded too, rather than the rows loaded. See [Every matching row](#every-matching-row) |
+| `SelectionChanged` | `EventCallback<MokaTableSelection<TItem>>` | -- | Raised after every change with all that is picked: the rows picked one by one, or every matching row but those unticked since |
 | `SingleSelect` | `bool` | `false` | One row at a time. Hides the select-all checkbox |
 | `SelectOnRowClick` | `bool` | `false` | With `Selectable`, a click on the row selects it the way a file list does: a plain click picks that row alone, Ctrl or Cmd adds or removes it, Shift picks a run. `OnRowClick` is still raised |
 | `SelectionActions` | `RenderFragment<HashSet<TItem>>?` | -- | Bar that takes the toolbar's place while rows are selected. Its context is a copy of the selection. See [Row and selection actions](#row-and-selection-actions) |
@@ -252,6 +254,7 @@ See [Table Editing](/components/table-editing).
 | `RefreshAsync()` | Loads the rows again like `ReloadAsync()`, but keeps the rows on screen until the new ones arrive instead of showing the loading state. For a list refreshed on a timer |
 | `ShowAtLeastAsync(int rows)` | Loads the rows again like `RefreshAsync()`, and under the load more and endless pagers draws at least `rows` of them. See [Load more and endless scroll](#load-more-and-endless-scroll) |
 | `CurrentState()` | The state the table shows now, with every property filled in |
+| `CurrentSelection()` | What is picked now, as a `MokaTableSelection<TItem>`: the rows picked one by one, or every matching row but those unticked since. See [Every matching row](#every-matching-row) |
 | `ResetStateAsync()` | Puts the table back as its parameters set it: the columns' default sorts, no filters, quick filter or search, page 1, the default page size, density, columns and grouping, nothing opened. Raises `StateChanged` |
 | `ClearSearchAndFiltersAsync()` | Clears the search, the filters and the quick filter, and loads the rows again. Raises `StateChanged` |
 | `ExpandAllAsync()` | Opens the detail of every row shown. Raises `StateChanged` |
@@ -295,7 +298,7 @@ A `MokaColumn` renders nothing itself: it registers with the table around it. So
 
 A new value the parent passes to a column, such as a new `Title`, `Width` or `Align`, shows in the same render.
 
-Columns and heading groups keep the order they stand in the markup. A column or a group inside an `@if` that comes back takes its place again, inside its group too, and **Put the columns back** puts it there. An arrangement in force, from someone moving the columns or from the state, still decides where a column it names goes. A column written inside another component of yours renders after the columns written straight in the table, so it joins after them the first time and keeps that place; write columns straight in the table's content, or in a `MokaColumnGroup`, when their order matters. A column kind that overrides `OnParametersSet` calls the base, which is where the column says where it stands. Up to 0.8.0 a column or group that came back went after all the others.
+Columns and heading groups keep the order they stand in the markup. A column or a group inside an `@if` that comes back takes its place again, inside its group too, and **Put the columns back** puts it there. An arrangement in force, from someone moving the columns or from the state, still decides where a column it names goes. A column written inside another component of yours, such as a reusable column, renders after the columns written straight in the table, so it joins after them. Give the columns an `Order` when one of them sits in a component of yours: the table lists them lowest first, and columns with the same `Order` keep the markup's order, as CSS `order` does. A column in a `MokaColumnGroup` orders within the group, and a group takes an `Order` among the table's columns. A column whose `Order` changes moves, unless an arrangement in force places it. A column kind that overrides `OnParametersSet` calls the base, which is where the column says where it stands. Up to 0.8.0 a column or group that came back went after all the others.
 
 The [column kinds](/components/table-columns) (`MokaPersonColumn`, `MokaNumberColumn`, `MokaStatusColumn` and the rest) derive from `MokaColumn` and take every parameter below, plus their own. Wrap columns in a `MokaColumnGroup` for a heading over several of them (see [Column groups](#column-groups)).
 
@@ -332,6 +335,7 @@ The [column kinds](/components/table-columns) (`MokaPersonColumn`, `MokaNumberCo
 | `MinWidth` | `string?` | -- | CSS minimum width |
 | `Align` | `MokaTextAlign` | `Left` | Text alignment of the header, the cells and the aggregate. Number, money and size columns default to `Right` |
 | `Visible` | `bool` | `true` | Whether the column starts out shown. The column toggle can change it afterwards, and a new value replaces the user's choice. See [Arranging columns](#arranging-columns) |
+| `Order` | `int` | `0` | Where the column stands among the table's columns, or its group's: lower first, and columns with the same `Order` keep the markup's order. For a column rendered by a component of yours |
 | `Pin` | `MokaColumnPin` | `None` | The edge the column starts pinned to while the rows scroll sideways: `Start` or `End`. Any number of columns can pin to each side. See [Pinned columns](#pinned-columns) |
 | `Resizable` | `bool` | `true` | Adds a resize handle to the header |
 | `Fixed` | `bool` | `false` | Stays where it is: it can't be dragged or dropped on, and isn't offered in the column toggle or the chooser. See [Arranging columns](#arranging-columns) |
@@ -543,7 +547,7 @@ An eleventh pick shows while the handler runs and goes away after it.
 
 The set holds the items and compares them with their own `Equals`. Records compare by value. `ServerData` creates new objects on every load, so rows of a class without its own `Equals` and `GetHashCode` stop showing as selected when their page reloads, unless the table has an `ItemKey`: a new item under the key of a picked row takes the old one's place, so a row whose data changed stays picked.
 
-Shift-click picks a run: every row from the last box touched to this one takes that box's state, so unticking a box and shift-clicking unpicks a run. Shift+Space on a focused cell does the same from the keyboard. A run covers the rows on screen.
+Shift-click picks a run: every row from the last box touched to this one takes that box's state, so unticking a box and shift-clicking unpicks a run. Shift+Space on a focused cell does the same from the keyboard. A run covers the rows on screen, and under [windows](#runs-past-the-window) the rows between too.
 
 ```blazor-preview
 @code {
@@ -879,6 +883,7 @@ The menu follows the WAI-ARIA menu button pattern. Focus goes to the first item.
 | `Title` | `string?` | -- | The heading's text |
 | `ChildContent` | `RenderFragment?` | -- | The columns under the heading |
 | `KeepTogether` | `bool` | `false` | A column of the group can only be dragged onto another of the group, and no other column onto one of them |
+| `Order` | `int` | `0` | Where the group stands among the table's columns: lower first, and parts with the same `Order` keep the markup's order |
 | `Class` | `string?` | -- | Classes on the heading's cell |
 
 Columns that stand together under the same group share one heading, and columns outside any group get an empty cell in that row. A group whose columns are all hidden draws no heading. Pinning a column, or moving it out from among the others, splits the heading in two, one for each run of the group's columns. A table with no group draws no extra row.
@@ -912,7 +917,7 @@ Without a `ViewSaved` handler there is no save button, and without a `ViewForgot
 
 `Aggregate` adds a footer row with a label and a value under each column that sets it: `Sum`, `Average`, `Count`, `Min` or `Max`. `Count` counts the values that aren't `null`. The others use the values that are numbers, or number text in the invariant culture, and skip the rest, so they don't work on dates. `AggregateFormat` formats the result. It's `N2` when not set, and `Count` has no format. The labels are `Text.Sum`, `Text.Average` and the rest.
 
-Aggregates cover the rows the table has loaded. With `Items` that's every row that passes the search and filters. With `ServerData` it's the current page, or every row once the pager is off, unless the source sends totals for the whole set: the request's `Aggregates` lists each column that totals something and how, as `MokaTableAggregate(Column, Type)`, and the result's `Totals` answers by column title. A column missing from `Totals` totals the rows the table has.
+Aggregates cover the rows the table has loaded. With `Items` that's every row that passes the search and filters. With `ServerData` it's the current page, or every row once the pager is off, unless the source sends totals for the whole set. Under `Virtualize` the rows loaded are one window, so only the source's totals show: the request's `Aggregates` lists each column that totals something and how, as `MokaTableAggregate(Column, Type)`, and the result's `Totals` answers by column title. A column missing from `Totals` totals the rows the table has.
 
 ```csharp
 async Task<MokaTableResult<Order>> LoadOrders(MokaTableRequest request)
@@ -1330,6 +1335,7 @@ This source applies every filter as one more `Where`, which is `FilterJoin.All`.
 |----------|------|-------------|
 | `Page` | `int` | Page number, starting at 1 |
 | `PageSize` | `int` | Rows per page. While the pager is off, `Page` is 1 and `PageSize` covers the whole result set |
+| `StartIndex` | `int` | The first row asked for, from 0: `(Page - 1) * PageSize` for a page, or where a window starts. Read rows by this and `PageSize` |
 | `Search` | `string?` | Text in the search box, or `null` when there is none |
 | `Sorts` | `IReadOnlyList<MokaTableSort>` | Every sorted column, first sort first, each a `MokaTableSort(Column, Direction)` naming the column by `Title`. Each call gets its own list, which later sorts don't change |
 | `Filters` | `IReadOnlyList<MokaTableFilter>` | The filters in force, typed: see [Typed filters](/components/table-filters#typed-filters). The filter row sends `Contains` for text, `AtLeast`, `AtMost` or `Between` for a range, `Is` for a single list or yes and no, and `IsAnyOf` for a list of several; the facets send `IsAnyOf` too. The menus, the builder and a state can use any operator |
@@ -1340,6 +1346,7 @@ This source applies every filter as one more `Where`, which is `FilterJoin.All`.
 | `Facets` | `IReadOnlyList<string>` | Under `FacetsFromServer`, the columns whose values the table wants with counts. See [Facets from the server](/components/table-filters#facets-from-the-server) |
 | `QuickFilterCounts` | `IReadOnlyList<MokaTableQuickFilter>` | Under `FacetsFromServer`, the quick filters to count |
 | `Cursor` | `string?` | Under the cursor pager, the cursor for the page wanted. See [Cursor paging](#cursor-paging) |
+| `RowsOnly` | `bool` | True when the table asks for more rows of a result it already has the count, totals, group totals and facets of: a later window, or the rows a run of picks reaches. Answer with `Items` alone. See [Rows a server sends window by window](#rows-a-server-sends-window-by-window) |
 | `CancellationToken` | `CancellationToken` | Cancelled once the table has asked for something newer, or has gone away. Pass it on to whatever fetches the rows |
 
 `MokaTableResult<TItem>` hands back:
@@ -1354,7 +1361,7 @@ This source applies every filter as one more `Where`, which is `FilterJoin.All`.
 | `Facets` | `IReadOnlyDictionary<string, IReadOnlyList<MokaFacetValue>>?` | Every value of each column asked for in `Facets`, with counts |
 | `QuickFilterCounts` | `IReadOnlyDictionary<string, int>?` | How many rows each quick filter asked for keeps, by name |
 
-When a narrower result leaves the current page past the end, the table asks again for the last page. The table ignores the answer to a replaced request, failure included, so the token only saves the work. The loading state shows while the call runs (see [Loading and empty states](#loading-and-empty-states)), and a failure of the latest call shows in the table (see [A failed load](#a-failed-load)). Without `Totals`, `Facets` and `GroupTotals`, the footer, the list filters and the group headings only see the rows of the current page.
+When a narrower result leaves the current page past the end, the table asks again for the last page. The table ignores the answer to a replaced request, failure included, so the token only saves the work. The loading state shows while the call runs (see [Loading and empty states](#loading-and-empty-states)), and a failure of the latest call shows in the table (see [A failed load](#a-failed-load)). Without `Totals`, `Facets` and `GroupTotals`, the footer, the list filters and the group headings only see the rows of the current page, and under [windows](#rows-a-server-sends-window-by-window) the footer and the headings show no totals at all.
 
 ### The first request
 
@@ -1397,7 +1404,9 @@ For long lists, add `Virtualize` and a fixed `Height` so only the rows in view a
 
 ## Rows a server sends window by window
 
-With `ServerData` and `Virtualize` the table asks for the rows as they scroll into view, the way Blazor's `Virtualize` asks an `ItemsProvider`: each request names `StartIndex` and `PageSize` for the window, along with the search, sorts and filters, and the source answers with those rows and `TotalItems`, which sizes the scroll. A placeholder row stands in for each row still on its way, and the first window waits under placeholder rows. When the view scrolls on before a window arrives, its request's `CancellationToken` is cancelled; pass it on to whatever reads the rows. A sort, a filter or a search asks again from the top. The pager is hidden, and the table holds only the window last loaded, so select-all and a run of picks cover that window. A source that doesn't count grows the scroll a window at a time while full windows come back. Grouped rows can't be windowed, so a grouped table pages instead.
+With `ServerData` and `Virtualize` the table asks for the rows as they scroll into view, the way Blazor's `Virtualize` asks an `ItemsProvider`: each request names `StartIndex` and `PageSize` for the window, along with the search, sorts and filters, and the source answers with those rows and `TotalItems`, which sizes the scroll. A placeholder row stands in for each row still on its way, and the first window waits under placeholder rows. When the view scrolls on before a window arrives, its request's `CancellationToken` is cancelled; pass it on to whatever reads the rows. A sort, a filter or a search asks again from the top. The pager is hidden, and the table holds only the window last loaded. A source that doesn't count grows the scroll a window at a time while full windows come back.
+
+The first window after a reload asks for the whole picture: the count, the totals, the group totals and the facets. The windows after it carry `RowsOnly`, and the table keeps what it has, so the source can skip the counting, which is often what a query spends most on:
 
 ```razor
 <MokaTable ServerData="LoadWindowAsync" Virtualize Height="600px" ItemKey="o => o.Id">
@@ -1409,16 +1418,92 @@ With `ServerData` and `Virtualize` the table asks for the rows as they scroll in
     async Task<MokaTableResult<Order>> LoadWindowAsync(MokaTableRequest request)
     {
         IQueryable<Order> query = Orders.Apply(request.Search, request.Filters, request.Sorts);
-        int total = await query.CountAsync(request.CancellationToken);
         List<Order> rows = await query.Skip(request.StartIndex).Take(request.PageSize).ToListAsync(request.CancellationToken);
-        return new() { Items = rows, TotalItems = total };
+        if (request.RowsOnly)
+            return new() { Items = rows };
+
+        return new() { Items = rows, TotalItems = await query.CountAsync(request.CancellationToken) };
     }
 }
 ```
 
-`StartIndex` is on every request: `(Page - 1) * PageSize` for a page, so one source serves both.
+`StartIndex` is on every request: `(Page - 1) * PageSize` for a page, so one source serves both. Whatever a `RowsOnly` answer sends anyway, a count or totals, replaces what the table has.
+
+The table holds one window, so it never totals rows itself here: the footer and the group headings show the source's `Totals` and `GroupTotals` (see [Footer and aggregates](#footer-and-aggregates)), and nothing where the source sent none. The list filters and the facet panel show the source's values under `FacetsFromServer`; without it they gather the values of every window loaded since the last reload, so a list grows as rows scroll into view rather than changing with each window, but it lists only what has been seen.
 
 The scroll is as tall as every row together, `TotalItems` times the row height. Browsers cap how tall an element can be, about 33.5 million pixels in Chromium and Safari and 17.9 million in Firefox, so at the default row height a table that scrolls through every row reaches about 900,000 rows in Chromium and Safari and 480,000 in Firefox. Rows past the cap can't be scrolled to, and near it the window keeps asking for rows that never show. For more rows, page the table, or narrow the set with a search or filters first.
+
+### Every matching row
+
+Without more, the select-all box picks the rows loaded, which under windows is the one window. `SelectAllMatching` makes it pick every row that matches the search, the filters and the quick filter, the rows the table never loaded included. It keeps the selection the way data grids over server-side rows do: a flag for every matching row, and the rows unticked since. Unticking a row leaves it out, ticking it again puts it back, and every row in a window that scrolls in shows picked unless it was unticked. The selection bar and the bulk bar count the source's rows less those unticked.
+
+`SelectedItems` holds only the rows picked one by one, so read what is picked from `SelectionChanged` or `CurrentSelection()`, a `MokaTableSelection<TItem>`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `AllMatching` | `bool` | Whether every matching row is picked, but for `Except` |
+| `Items` | `IReadOnlyList<TItem>` | The rows picked one by one. Empty while `AllMatching` |
+| `Except` | `IReadOnlyList<TItem>` | Under `AllMatching`, the rows unticked since, as the table last loaded them |
+| `Count` | `int?` | How many rows are picked. Null when every matching row is picked from a source that doesn't count |
+| `Matching` | `MokaTableRequest?` | Under `AllMatching`, the request every picked row matches, from the first row and sized to the count |
+
+Act on it the way the source reads rows, without the paging:
+
+```razor
+<MokaTable ServerData="LoadWindowAsync" Virtualize Height="600px" ItemKey="o => o.Id" Selectable SelectAllMatching
+           SelectionChanged="s => _picked = s">
+    <SelectionActions>
+        <MokaButton OnClick="ArchiveAsync">Archive</MokaButton>
+    </SelectionActions>
+    <ChildContent>
+        <MokaColumn Title="Number" Field="o => o.Number" />
+    </ChildContent>
+</MokaTable>
+
+@code {
+    MokaTableSelection<Order>? _picked;
+
+    async Task ArchiveAsync()
+    {
+        if (_picked is { AllMatching: true, Matching: { } request })
+        {
+            HashSet<int> kept = [.. _picked.Except.Select(o => o.Id)];
+            await Orders.Apply(request.Search, request.Filters, request.Sorts)
+                .Where(o => !kept.Contains(o.Id))
+                .ExecuteUpdateAsync(o => o.SetProperty(x => x.Archived, true));
+        }
+        else if (_picked is not null)
+        {
+            await Orders.ArchiveAsync(_picked.Items.Select(o => o.Id));
+        }
+    }
+}
+```
+
+The rows unticked are known by `ItemKey`, else by the item itself, so give a class without its own `Equals` an `ItemKey`. A new search, filter or quick filter clears the selection, since what matched has changed; a sort keeps it. A plain click on a row under `SelectOnRowClick` picks that row alone, and passing a new `SelectedItems` ends it too. Copying rows copies the rows picked one by one, so under `AllMatching` the copy button isn't shown.
+
+### Runs past the window
+
+Shift-click and Shift+Space pick a run from the last box touched, also when that box has scrolled out of the window. The rows the window holds take the state at once, and the table asks the source for the rest, one `RowsOnly` request per stretch of rows the window leaves out, with `StartIndex` and `PageSize` covering it. A newer run, a reload or the table going away cancels the request. A run of 50,000 rows loads 50,000 rows into the selection, so for a whole result use `SelectAllMatching`.
+
+### Keys
+
+The keys reach rows that aren't loaded. Page Up and Page Down move a view at a time, and Ctrl+Home and Ctrl+End go to the first and last row: the table scrolls to the row and focuses its cell once its window has come and drawn it. An arrow onto a row still on its way, shown as a placeholder or past the rows drawn, waits for it the same way. A key waits up to five seconds for its row, and a newer key or a click elsewhere replaces the wait.
+
+### Grouped windows
+
+A grouped table windows too, through lines: each group's heading is a line and each row is a line. The request's `Groups` names the grouped columns, and the source orders the rows by them before the sorts, as it does for pages. With the first window it sends `GroupTotals` for every group of the whole result, at every level, in the order the rows come, each with its row count. From those the table works out where each group's rows start, so it knows which rows a window of lines needs, and it asks only for those, with `StartIndex` and `PageSize` in rows. A folded group leaves its rows out of the lines and out of the requests: folding or opening a heading draws the window again from the rows it holds and asks only for rows it hasn't seen.
+
+```csharp
+if (!request.RowsOnly && request.Groups is ["Region"])
+{
+    groupTotals = await query.GroupBy(o => o.Region).OrderBy(g => g.Key)
+        .Select(g => new MokaTableGroupTotals(new[] { g.Key }, g.Count()))
+        .ToListAsync(request.CancellationToken);
+}
+```
+
+Group totals that don't add up to `TotalItems`, leave a group out, list a group twice or don't match the first window's rows can't place the rows, so that grouping pages instead, with headings over each page as under [Grouping on the server](#grouping-on-the-server), until the grouping changes. A heading's totals are its group's `Totals`, and its `MokaTableGroup.Items` are the group's rows in the window. Up to 0.8.1 a grouped table with `ServerData` and `Virtualize` drew its rows window by window without headings.
 
 ## Streamed rows
 
@@ -1474,7 +1559,7 @@ For rows in memory the groups are built across every page, so a group's count an
 
 ### Grouping on the server
 
-With `ServerData` the request's `Groups` names the grouped columns. Order the rows by them before the sorts, so each group's rows come together across pages. Without more, a heading counts and totals the group's rows on the page. Send `GroupTotals` for whole groups: one `MokaTableGroupTotals(Path, Count)` per group, `Path` being its keys outermost first, with `Totals` by column title.
+With `ServerData` the request's `Groups` names the grouped columns. Order the rows by them before the sorts, so each group's rows come together across pages. Without more, a heading counts and totals the group's rows on the page. With `Virtualize` the headings and rows come window by window instead; see [Grouped windows](#grouped-windows). Send `GroupTotals` for whole groups: one `MokaTableGroupTotals(Path, Count)` per group, `Path` being its keys outermost first, with `Totals` by column title.
 
 ```csharp
 List<MokaTableGroupTotals> groupTotals = await query
@@ -1516,7 +1601,7 @@ A key is what the column groups by: its `GroupKey`, else its text as the cell sh
 
 The groups someone folded away are in the state's `CollapsedGroups`, by `Id`. `InitiallyCollapsedGroups` names them the same way, and `OnGroupToggled` reports the `Id`. A group of the first level is named by its key alone, as before.
 
-Grouping and `Virtualize` do not combine: grouping wins, because a virtualized list has no room for headings between its rows.
+Rows in memory don't combine grouping and `Virtualize`: grouping wins, because a virtualized list of rows has no room for headings between them. A `ServerData` source windows headings and rows together; see [Grouped windows](#grouped-windows).
 
 ## Frames
 

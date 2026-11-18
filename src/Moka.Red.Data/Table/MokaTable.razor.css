@@ -267,6 +267,10 @@
 	   equals the table's min-content width; without this it overflows horizontally
 	   instead of letting overflow-x scroll. */
 	min-width: 0;
+	/* A scroll container neither clips nor scrolls an absolutely positioned descendant whose containing block lies
+	   outside it, so a visually hidden span in a row stayed where the row sits with nothing scrolled. Virtualize measures
+	   its rows with a range that counts that span's text, so it took them to be as tall as the scroll offset. */
+	position: relative;
 }
 
 .moka-table-container--responsive {

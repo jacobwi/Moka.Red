@@ -1042,3 +1042,22 @@
 	.moka-chart-plot--above-w60 .moka-chart-plot__rfig { grid-row: 2; grid-column: 2; }
 	.moka-chart-plot--above-w60 .moka-chart-plot__rlines { grid-column: 1; left: 0; }
 }
+
+/* Bands, windows and event spans are painted, so they keep their tint where the browser would drop it: in print
+   without background graphics, and in forced colors, which would paint them the system's background. */
+.moka-chart-plot__band,
+.moka-chart-plot__vband,
+.moka-chart-plot__window,
+.moka-chart-plot__span {
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+@media (forced-colors: active) {
+	.moka-chart-plot__band,
+	.moka-chart-plot__vband,
+	.moka-chart-plot__window,
+	.moka-chart-plot__span {
+		forced-color-adjust: none;
+	}
+}

@@ -1,0 +1,191 @@
+/* MokaRadarChart - a few series across a handful of axes, each a closed shape around the center */
+
+.moka-radarchart {
+	display: block;
+	min-width: 0;
+	container: moka-chart moka-radarchart / inline-size;
+}
+
+.moka-radarchart--xs { --_radar-max: 10rem; }
+.moka-radarchart--sm { --_radar-max: 14rem; }
+.moka-radarchart--md { --_radar-max: 20rem; }
+.moka-radarchart--lg { --_radar-max: 28rem; }
+
+/* The box keeps a 4 by 3 shape, no taller than its size allows, or takes the chart's height. It is a size container, so
+   the drawing's radius is whichever is smaller: half the height less a line for the labels above and below, or half the
+   width less the room the side labels need, which wrap rather than run past a third of the width. */
+.moka-radarchart__box {
+	--_radar-gap: 0.5em;
+	--_radar-side-room: min(var(--_radar-side, 3em), 30cqw);
+	--_r: max(1.5rem, min(calc(50cqh - 1.6em - var(--_radar-gap)), calc(50cqw - var(--_radar-side-room) - var(--_radar-gap))));
+	position: relative;
+	width: 100%;
+	height: var(--moka-radarchart-height, auto);
+	max-height: var(--moka-radarchart-height, var(--_radar-max));
+	aspect-ratio: 4 / 3;
+	font-size: var(--moka-font-size-xs);
+	container: moka-radar-box / size;
+}
+
+.moka-radarchart__plot {
+	position: absolute;
+	top: calc(50cqh - var(--_r));
+	left: calc(50cqw - var(--_r));
+	width: calc(var(--_r) * 2);
+	height: calc(var(--_r) * 2);
+}
+
+.moka-radarchart__svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Rings and spokes: hairlines one step off the surface. Strokes keep their width in pixels however the drawing scales. */
+.moka-radarchart__ring,
+.moka-radarchart__spoke {
+	fill: none;
+	stroke: var(--moka-chart-grid, var(--moka-color-outline-variant));
+	stroke-width: var(--moka-border-width);
+	vector-effect: non-scaling-stroke;
+}
+
+.moka-radarchart__spoke {
+	stroke: var(--moka-chart-axis, var(--moka-color-outline-variant));
+	transition: stroke var(--moka-transition-fast);
+}
+
+.moka-radarchart--grid-hairlines .moka-radarchart__ring {
+	stroke-opacity: 0.7;
+}
+
+.moka-radarchart--grid-dotted .moka-radarchart__ring {
+	stroke-dasharray: 1 3;
+	stroke-linecap: round;
+}
+
+.moka-radarchart__spoke:hover,
+.moka-radarchart__spoke[data-moka-on] {
+	stroke: var(--moka-color-on-surface-variant);
+}
+
+.moka-radarchart__area {
+	fill: var(--moka-chart-color, var(--moka-color-primary));
+	fill-opacity: var(--moka-chart-area, 0.12);
+	stroke: none;
+}
+
+.moka-radarchart__area--hatched {
+	fill-opacity: 1;
+}
+
+.moka-radarchart__hatch-line {
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-opacity: 0.55;
+}
+
+.moka-radarchart__line {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: var(--moka-chart-line, calc(var(--moka-border-width) * 2));
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
+/* A dot is a stroke of no length with round caps, so it stays round and its size is in pixels. With points on hover,
+   only the axis pointed at shows its dots. */
+.moka-radarchart__dot {
+	fill: none;
+	stroke: var(--moka-chart-color, var(--moka-color-primary));
+	stroke-width: var(--moka-chart-dot, var(--moka-spacing-sm));
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+	opacity: 0;
+	transition: opacity var(--moka-transition-fast), stroke-width var(--moka-transition-fast);
+}
+
+.moka-radarchart--points-always .moka-radarchart__dot,
+.moka-radarchart__dot[data-moka-on] {
+	opacity: 1;
+}
+
+.moka-radarchart__dot[data-moka-on] {
+	stroke-width: var(--moka-chart-end-dot, var(--moka-spacing-sm));
+}
+
+.moka-radarchart--points-none .moka-radarchart__dot:not([data-moka-on]) {
+	opacity: 0;
+}
+
+/* The wedge around each spoke takes the pointer for its axis: it reaches halfway to the axes beside it and a little past
+   the edge, so a value is found without landing on its dot. */
+.moka-radarchart__wedge {
+	fill: transparent;
+	stroke: none;
+	pointer-events: all;
+}
+
+.moka-radarchart__label {
+	position: absolute;
+	top: calc(50cqh + var(--_y) * (var(--_r) + var(--_radar-gap)));
+	left: calc(50cqw + var(--_x) * (var(--_r) + var(--_radar-gap)));
+	max-width: 40cqw;
+	color: var(--moka-color-on-surface-variant);
+	line-height: var(--moka-line-height-tight);
+	overflow-wrap: anywhere;
+	transition: color var(--moka-transition-fast);
+}
+
+.moka-radarchart__label--start {
+	max-width: var(--_radar-side-room);
+	text-align: start;
+	translate: 0 var(--_ty, -50%);
+}
+
+.moka-radarchart__label--end {
+	max-width: var(--_radar-side-room);
+	text-align: end;
+	translate: -100% var(--_ty, -50%);
+}
+
+.moka-radarchart__label--center {
+	text-align: center;
+	translate: -50% var(--_ty, -50%);
+}
+
+.moka-radarchart__label--above { --_ty: -100%; }
+.moka-radarchart__label--below { --_ty: 0%; }
+.moka-radarchart__label--middle { --_ty: -50%; }
+
+.moka-radarchart__label:hover,
+.moka-radarchart__label[data-moka-on] {
+	color: var(--moka-color-on-surface);
+	font-weight: var(--moka-font-weight-semibold);
+}
+
+/* The shared scale's values, up the top axis, on a wash of the surface so a shape under them doesn't hide them. */
+.moka-radarchart__tick {
+	position: absolute;
+	top: calc(50cqh - var(--_s) * var(--_r));
+	left: calc(50cqw + 0.3em);
+	padding-inline: 0.2em;
+	border-radius: var(--moka-radius-sm);
+	background: color-mix(in srgb, var(--moka-color-surface) 80%, transparent);
+	color: var(--moka-color-on-surface-tertiary);
+	font-family: var(--moka-chart-tick-font, var(--moka-font-family));
+	font-size: var(--moka-chart-tick-size, var(--moka-font-size-xs));
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+	white-space: nowrap;
+	translate: 0 -50%;
+	pointer-events: none;
+}
+
+/* The browser would flatten every shape to one system color, so the drawing keeps its own. */
+@media (forced-colors: active) {
+	.moka-radarchart__svg {
+		forced-color-adjust: none;
+	}
+}

@@ -1,6 +1,6 @@
 # Moka.Red
 
-A lightweight, performance-focused Blazor UI component library with 218 components targeting .NET 9 and .NET 10.
+A lightweight, performance-focused Blazor UI component library with 218 components targeting .NET 10.
 
 ## Packages
 

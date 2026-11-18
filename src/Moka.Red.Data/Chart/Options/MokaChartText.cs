@@ -229,5 +229,71 @@ public sealed record MokaChartText
 	public Func<string, int, string> AverageOf { get; init; } =
 		(name, window) => $"{name}, {Count(window)}-point average";
 
+	/// <summary>
+	///     A chart's accessible name when it has no <c>Label</c>: what kind of chart it is, then what it shows, such as
+	///     "Dot plot: Router 99.99%, DNS 99.97%". Defaults to the two joined by a colon.
+	/// </summary>
+	public Func<string, string, string> Described { get; init; } = (kind, contents) => $"{kind}: {contents}";
+
+	/// <summary>What a line chart calls itself in its accessible name. Defaults to "Line chart".</summary>
+	public string LineChart { get; init; } = "Line chart";
+
+	/// <summary>What a bar chart calls itself in its accessible name. Defaults to "Bar chart".</summary>
+	public string BarChart { get; init; } = "Bar chart";
+
+	/// <summary>What a bar chart drawn as a waterfall calls itself in its accessible name. Defaults to "Waterfall chart".</summary>
+	public string WaterfallChart { get; init; } = "Waterfall chart";
+
+	/// <summary>What a donut chart calls itself in its accessible name. Defaults to "Donut chart".</summary>
+	public string DonutChart { get; init; } = "Donut chart";
+
+	/// <summary>What a radar chart calls itself in its accessible name. Defaults to "Radar chart".</summary>
+	public string RadarChart { get; init; } = "Radar chart";
+
+	/// <summary>What a treemap calls itself in its accessible name. Defaults to "Treemap".</summary>
+	public string Treemap { get; init; } = "Treemap";
+
+	/// <summary>What a sankey calls itself in its accessible name. Defaults to "Sankey diagram".</summary>
+	public string Sankey { get; init; } = "Sankey diagram";
+
+	/// <summary>What a histogram calls itself in its accessible name. Defaults to "Histogram".</summary>
+	public string Histogram { get; init; } = "Histogram";
+
+	/// <summary>What a candlestick chart calls itself in its accessible name. Defaults to "Candlestick chart".</summary>
+	public string CandlestickChart { get; init; } = "Candlestick chart";
+
+	/// <summary>What a scatter chart calls itself in its accessible name. Defaults to "Scatter chart".</summary>
+	public string ScatterChart { get; init; } = "Scatter chart";
+
+	/// <summary>What a dot plot calls itself in its accessible name. Defaults to "Dot plot".</summary>
+	public string DotPlot { get; init; } = "Dot plot";
+
+	/// <summary>What a box plot calls itself in its accessible name. Defaults to "Box plot".</summary>
+	public string BoxPlot { get; init; } = "Box plot";
+
+	/// <summary>What a gantt chart calls itself in its accessible name. Defaults to "Gantt chart".</summary>
+	public string GanttChart { get; init; } = "Gantt chart";
+
+	/// <summary>What a state timeline calls itself in its accessible name. Defaults to "State timeline".</summary>
+	public string StateTimeline { get; init; } = "State timeline";
+
+	/// <summary>What a funnel calls itself in its accessible name. Defaults to "Funnel".</summary>
+	public string Funnel { get; init; } = "Funnel";
+
+	/// <summary>What a heatmap grid calls itself in its accessible name. Defaults to "Heatmap".</summary>
+	public string Heatmap { get; init; } = "Heatmap";
+
+	/// <summary>What a calendar heatmap calls itself in its accessible name. Defaults to "Calendar heatmap".</summary>
+	public string CalendarHeatmap { get; init; } = "Calendar heatmap";
+
+	/// <summary>What a chart with no name of its own calls itself in its accessible name. Defaults to "Chart".</summary>
+	public string Chart { get; init; } = "Chart";
+
+	/// <summary>How the keys work on a radar chart, read after its name.</summary>
+	public string RadarKeys { get; init; } = "Left and Right move between axes.";
+
+	/// <summary>The table view's heading for a radar chart's axes. Defaults to "Axis".</summary>
+	public string Axis { get; init; } = "Axis";
+
 	private static string Count(int count) => count.ToString(CultureInfo.CurrentCulture);
 }

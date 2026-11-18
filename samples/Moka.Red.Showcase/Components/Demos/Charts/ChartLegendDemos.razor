@@ -1,9 +1,12 @@
-<DemoSection Id="one-legend-for-a-whole-dashboard" Title="One legend for a whole dashboard">
+<DemoSection Id="one-legend-for-a-whole-dashboard" Title="One legend for a whole dashboard"
+             Description="Toggles hide a zone in both charts; pointing at one, or tabbing to it, highlights it in both.">
 	<MokaChartLegend Items="Toggles" @bind-Hidden="_dashboard" Actions="MokaChartLegendActions.All"
 	                 Key="MokaChartLegendKey.Mark" Title="Zones" SyncGroup="dashboard"/>
 	<MokaGrid MinColumn="min(100%, 320px)" Style="gap: var(--moka-grid-gap);">
-		<MokaLineChart Series="Zones" Labels="Hours" Title="Traffic" HiddenSeries="_dashboard" ShowLegend="false" SyncGroup="dashboard"/>
-		<MokaBarChart Series="ZoneBars" Labels="Days" Title="Data per day" HiddenSeries="_dashboard" ShowLegend="false"/>
+		<MokaLineChart Series="Zones" Labels="Hours" Title="Traffic" HiddenSeries="_dashboard" ShowLegend="false" SyncGroup="dashboard"
+		               Look="MokaChartLook.Quiet"/>
+		<MokaBarChart Series="ZoneBars" Labels="Days" Title="Data per day" HiddenSeries="_dashboard" ShowLegend="false"
+		              SyncGroup="dashboard" Look="MokaChartLook.Quiet"/>
 	</MokaGrid>
 </DemoSection>
 

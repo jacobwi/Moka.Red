@@ -135,8 +135,8 @@ public class SpacingParameterTests : BunitContext
 		{
 			Box = ".moka-slider", RadiusOn = ".moka-slider-input"
 		},
-		["OtpInput"] = new(typeof(MokaOtpInput), "") { RadiusOn = ".moka-otp-digit" },
-		["PinInput"] = new(typeof(MokaPinInput), "") { RadiusOn = ".moka-pin-digit" },
+		["OtpInput"] = new(typeof(MokaOtpInput), "--_code-length: 6") { RadiusOn = ".moka-otp-digit" },
+		["PinInput"] = new(typeof(MokaPinInput), "--_code-length: 4") { RadiusOn = ".moka-pin-digit" },
 		["IpAddressInput"] = new(typeof(MokaIpAddressInput), "") { RadiusOn = ".moka-ip-octet" },
 		["IpAddressInputV6"] = new(typeof(MokaIpAddressInput), "", ("AllowIPv6", true)) { RadiusOn = ".moka-ip-octet" },
 		["MacAddressInput"] = new(typeof(MokaMacAddressInput), "") { RadiusOn = ".moka-mac-octet" },

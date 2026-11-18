@@ -63,6 +63,10 @@ and last slides that make the wrap seamless are the right ones. The slide showin
 come or go, and a bound `ActiveIndex` hears its new position. Up to 0.8.0 a slide that came back went last, and the copies
 at the ends showed the wrong slides.
 
+A slide written inside another component of yours reports after the slides written straight in the carousel, so it is
+listed last and the copies at the ends show the wrong slides. Give the slides an `Order` in the order they stand: lowest
+first, and slides with the same `Order` keep the markup's order.
+
 ## With Controls
 
 The arrows ("Previous slide", "Next slide") and dots ("Go to slide *n*") show only a glyph, so each is named by

@@ -5,71 +5,38 @@ using Moka.Red.Forms.Base;
 namespace Moka.Red.Forms.PinInput;
 
 /// <summary>
-///     A numeric PIN entry component with individual masked digit boxes.
-///     Designed for ATM PINs, backup codes, and similar numeric secrets.
-///     Unlike <c>MokaOtpInput</c>, this is specifically for numeric PINs with masked display by default.
+///     A numeric PIN, such as a card PIN or a backup code: one field over a box per digit, masked by default and marked
+///     <c>autocomplete="off"</c> so the browser doesn't keep it. For a code the person received, use <c>MokaOtpInput</c>.
 /// </summary>
-public partial class MokaPinInput : MokaSegmentedInputBase
+public partial class MokaPinInput : MokaCodeInputBase
 {
-	/// <summary>Number of PIN digit inputs. Defaults to 4.</summary>
+	/// <summary>The number of digits, one box each. Default 4. Below 1 counts as 1.</summary>
 	[Parameter]
-	public int Length { get; set; } = 4;
+	public override int Length { get; set; } = 4;
 
-	/// <summary>
-	///     Whether to mask digits with dots instead of showing the actual numbers.
-	///     Defaults to true for security.
-	/// </summary>
+	/// <summary>Shows a dot for each digit and makes the field a password field. Default true.</summary>
 	[Parameter]
-	public bool Masked { get; set; } = true;
-
-	/// <summary>Fires when all digits have been entered.</summary>
-	[Parameter]
-	public EventCallback<string> OnComplete { get; set; }
+	public override bool Masked { get; set; } = true;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-pin";
 
 	/// <inheritdoc />
-	protected override int SegmentCount => Length;
+	protected override string AutocompleteToken => "off";
 
 	/// <inheritdoc />
-	protected override int MaxSegmentLength => 1;
+	protected override string DefaultName => "PIN";
 
-	/// <inheritdoc />
-	protected override string Separator => "";
-
-	/// <inheritdoc />
-	protected override string? AcceptPattern => "[0-9]";
-
-	/// <inheritdoc />
-	protected override string InputMode => "numeric";
-
-	/// <inheritdoc />
-	protected override string CssClass => new CssBuilder(RootClass)
+	private string RootCssClass => new CssBuilder(RootClass)
 		.AddClass($"moka-pin--{SizeToKebab(Size)}")
 		.AddClass("moka-pin--masked", Masked)
 		.AddClass("moka-pin--disabled", Disabled)
 		.AddClass("moka-pin--error", HasError)
-		.AddClass(ValidationCssClass)
+		.AddClass(CssClass)
 		.AddClass(Class)
 		.Build();
-
-	private string InputType => Masked ? "password" : "text";
 
 	private string MessageCssClass => new CssBuilder("moka-pin-helper")
 		.AddClass("moka-pin-helper--error", HasError)
 		.Build();
-
-	/// <inheritdoc />
-	protected override bool IsValidChar(char c) => char.IsDigit(c);
-
-	/// <inheritdoc />
-	protected override async Task OnValueUpdated(string? newValue)
-	{
-		string val = newValue ?? "";
-		if (val.Length == Length && Segments.All(d => !string.IsNullOrEmpty(d)) && OnComplete.HasDelegate)
-		{
-			await OnComplete.InvokeAsync(val);
-		}
-	}
 }

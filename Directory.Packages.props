@@ -4,6 +4,12 @@
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 
+	<!-- Library dependencies -->
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.15" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.15" />
+	</ItemGroup>
+
 	<!-- Test dependencies -->
 	<ItemGroup>
 		<PackageVersion Include="xunit.v3" Version="4.0.3" />

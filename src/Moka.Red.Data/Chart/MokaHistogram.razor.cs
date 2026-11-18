@@ -82,7 +82,7 @@ public partial class MokaHistogram : MokaCartesianChartBase, IChartColumns
 	private sealed record PercentileLine(string Class, string? Style, string Text);
 
 	/// <inheritdoc />
-	internal override string DefaultLabel => "Histogram";
+	internal override string DefaultLabel => Words.Histogram;
 
 	/// <inheritdoc />
 	internal override bool HasData => _bins.Count > 0;

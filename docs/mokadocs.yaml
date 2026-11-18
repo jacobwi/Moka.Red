@@ -208,6 +208,8 @@ nav:
         path: /components/treemap
       - label: Sankey
         path: /components/sankey
+      - label: Radar Chart
+        path: /components/radar-chart
       - label: Heatmap
         path: /components/heatmap
       - label: Dot Plot

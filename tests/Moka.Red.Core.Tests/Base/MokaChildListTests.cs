@@ -136,9 +136,153 @@ public class MokaChildListTests
 		Assert.Equal(0, _renders);
 	}
 
+	[Fact]
+	public void OrderKeys_ListTheChildren_LowestFirst_MarkupOrderBetweenEqualKeys()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 2, ["b"] = 1, ["c"] = 2, ["d"] = 1 };
+		MokaChildList<string> list = Ordered(keys, "a", "b", "c", "d");
+
+		Assert.Equal(["b", "d", "a", "c"], list.Items);
+		Assert.Equal(1, list.IndexOf("d"));
+		Assert.Equal("a", list[2]);
+	}
+
+	[Fact]
+	public void EqualOrderKeys_KeepTheMarkupOrder_AndReportLikeAListWithout()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 0, ["b"] = 0, ["c"] = 0 };
+		MokaChildList<string> list = Ordered(keys, "a", "b", "c");
+		_changes.Clear();
+		_renders = 0;
+
+		Collect(list, seen: ["c", "a", "b"], added: []);
+
+		Assert.Equal(["c", "a", "b"], list.Items);
+		Assert.Equal(["a", "b", "c"], Assert.Single(_changes));
+		Assert.Equal(1, _renders);
+	}
+
+	[Fact]
+	public void AChildRenderedByAnotherComponent_JoinsLast_UnlessItsKeyPlacesIt()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 1, ["c"] = 3 };
+		MokaChildList<string> plain = Collected("a", "c");
+		MokaChildList<string> ordered = Ordered(keys, "a", "c");
+
+		// The wrapped child reports after the parent's own children, as the renderer queues its wrapper's render.
+		keys["b"] = 2;
+		Collect(plain, seen: ["a", "c", "b"], added: ["b"]);
+		Collect(ordered, seen: ["a", "c", "b"], added: ["b"]);
+
+		Assert.Equal(["a", "c", "b"], plain.Items);
+		Assert.Equal(["a", "b", "c"], ordered.Items);
+	}
+
+	[Fact]
+	public void AKeyThatChanges_MovesTheChild_WhenItReports_OutsideACollection()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 1, ["b"] = 2, ["c"] = 3 };
+		MokaChildList<string> list = Ordered(keys, "a", "b", "c");
+		_changes.Clear();
+		_renders = 0;
+
+		keys["a"] = 4;
+		list.Saw("a");
+
+		Assert.Equal(["b", "c", "a"], list.Items);
+		Assert.Equal(["a", "b", "c"], Assert.Single(_changes));
+		Assert.Equal(1, _renders);
+		Assert.Equal(2, list.IndexNow(_changes[0], 0));
+	}
+
+	[Fact]
+	public void AKeyThatChangesWithoutMovingAnyone_ReportsNothing()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 1, ["b"] = 2 };
+		MokaChildList<string> list = Ordered(keys, "a", "b");
+		_changes.Clear();
+		_renders = 0;
+
+		keys["a"] = -5;
+		list.Saw("a");
+		list.Saw("b");
+
+		Assert.Equal(["a", "b"], list.Items);
+		Assert.Empty(_changes);
+		Assert.Equal(0, _renders);
+	}
+
+	[Fact]
+	public void AKeyThatChangesWhileCollecting_MovesTheChild_WhenTheCollectionEnds()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 1, ["b"] = 2 };
+		MokaChildList<string> list = Ordered(keys, "a", "b");
+		_changes.Clear();
+
+		list.StartCollecting();
+		keys["b"] = 0;
+		list.Saw("a");
+		list.Saw("b");
+		Assert.Equal(["a", "b"], list.Items);
+		list.FinishCollecting();
+
+		Assert.Equal(["b", "a"], list.Items);
+		Assert.Equal(["a", "b"], Assert.Single(_changes));
+	}
+
+	[Fact]
+	public void Remove_GivesThePlaceInTheOrderedList()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 3, ["b"] = 1, ["c"] = 2 };
+		MokaChildList<string> list = Ordered(keys, "a", "b", "c");
+
+		Assert.Equal(2, list.Remove("a"));
+		Assert.Equal(["b", "c"], list.Items);
+		Assert.Equal(0, list.Remove("b"));
+		Assert.Equal(["c"], list.Items);
+	}
+
+	[Fact]
+	public void ANewChild_HasAPlace_WhileTheCollectionIsUnderWay()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 2, ["b"] = 1, ["x"] = 0 };
+		MokaChildList<string> list = Ordered(keys, "a", "b");
+
+		list.StartCollecting();
+		list.Saw("a");
+		list.Add("x");
+
+		Assert.Equal(0, list.IndexOf("x"));
+		list.Saw("x");
+		list.Saw("b");
+		list.FinishCollecting();
+		Assert.Equal(["x", "b", "a"], list.Items);
+	}
+
+	[Fact]
+	public void Clear_ForgetsTheOrder()
+	{
+		Dictionary<string, int> keys = new() { ["a"] = 2, ["b"] = 1 };
+		MokaChildList<string> list = Ordered(keys, "a", "b");
+
+		list.Clear();
+		keys["a"] = 0;
+		keys["b"] = 0;
+		Collect(list, ["a", "b"], ["a", "b"]);
+
+		Assert.Equal(["a", "b"], list.Items);
+	}
+
 	private MokaChildList<string> Collected(params string[] children)
 	{
 		MokaChildList<string> list = new(() => _renders++, before => _changes.Add([.. before]));
+		Collect(list, children, children);
+		return list;
+	}
+
+	private MokaChildList<string> Ordered(Dictionary<string, int> keys, params string[] children)
+	{
+		MokaChildList<string> list = new(() => _renders++, before => _changes.Add([.. before]), child => keys[child]);
 		Collect(list, children, children);
 		return list;
 	}

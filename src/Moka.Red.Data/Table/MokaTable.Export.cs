@@ -220,16 +220,20 @@ public partial class MokaTable<TItem>
 		_ => ""
 	};
 
-	// The footer's total: what a server sent for the whole result set, else the rows the table has.
+	// The footer's total: what a server sent for the whole result set, else the rows the table has. Under remote windows
+	// the rows it has are one window, whose total would pass for the whole result's, so only a server's total shows.
 	private string ComputeAggregate(MokaColumn<TItem> col)
 	{
-		if (col.Aggregate == MokaAggregateType.None)
+		if (col.Aggregate == MokaAggregateType.None || (RemoteRows && !SentTotal(col)))
 		{
 			return "";
 		}
 
 		return FormatAggregate(col, AggregateValue(col, LoadedItems));
 	}
+
+	private bool SentTotal(MokaColumn<TItem> col) =>
+		col.Title is not null && _serverTotals is { } sent && sent.ContainsKey(col.Title);
 
 	// What a server sent for the whole result set, else the total over the rows given.
 	private double? AggregateValue(MokaColumn<TItem> col, IReadOnlyList<TItem> rows)

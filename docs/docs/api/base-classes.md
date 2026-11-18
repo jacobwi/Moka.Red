@@ -145,9 +145,23 @@ one that binds a second value (`CreateInputValue<T>`), calls its `Take` from
 `SetParametersAsync`, renders `Shown`, calls `Pick` for a change, `AfterRender` from
 `OnAfterRender` and `Stop` when disposed.
 
+## MokaCodeInputBase
+
+The one-time code and PIN inputs extend `MokaCodeInputBase`, a `MokaVisualInputBase<string?>`. The code is one text
+field over a row of boxes, one per digit, so a pasted or autofilled code lands whole and a screen reader hears one
+labelled field. The digits are the field's own text: the field is set in the monospace font, padded to the middle of
+the first box and letter-spaced by a box and a gap, from `--_code-box`, `--_code-gap` and the `--_code-length` the row
+carries. `TryParseValueFromString` keeps the digits 0 to 9, up to `Length`, and the script in `moka-code.js` does the
+same in the browser as text arrives, marks the box at the caret and, for `ReadsSmsCode`, asks the WebOTP API for a code.
+
+A code input of your own sets `RootClass`, `AutocompleteToken` and `DefaultName`, binds its `input` with
+`@bind:get="CodeText"`, `@bind:set="HandleTypedAsync"` and `@bind:event="oninput"`, puts `@ref="Field"` on it, marks
+the row `data-moka-boxes` with `style="@BoxesStyle"` and each of its `BoxCount` boxes `data-moka-box` with
+`style="@BoxStyle"`.
+
 ## MokaSegmentedInputBase
 
-The OTP, PIN, IP and MAC inputs render several boxes for one value, so they extend
+The IP and MAC inputs render several boxes for one value, so they extend
 `MokaVisualComponentBase` rather than `InputBase<TValue>`, which models a single input
 element. They still take part in `EditForm` validation. `@bind-Value` supplies
 `ValueExpression`, and the base reads the cascaded `EditContext`, tells it when the value
@@ -181,6 +195,12 @@ Blazor hands a child its parameters again only when one may have changed: a rend
 strings, numbers and enums that kept their values never do. A child that didn't report keeps its place after the child it
 followed. When a new child lands next to such children, its side of them is a guess and `Guessed` says so; a parent whose
 children hold no state can `Clear` and render them again under a new `@key`, and they all report in markup order.
+
+A child rendered by another component of the page gets its parameters when that component renders, which Blazor queues
+after the parent's own children, so it joins after them (QuickGrid leaves such a column out). For both gaps the parent
+creates the list with an order key, `new MokaChildList<TChild>(StateHasChanged, changed, child => child.Order)`: the
+children are listed lowest key first, and children with the same key in the markup's order, as CSS `order` does. While
+every key is the same the list is the markup's and nothing is sorted.
 
 ---
 

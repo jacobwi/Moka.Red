@@ -170,7 +170,7 @@
 		</tr>;
 
 	// What a validator or the app's save said about the whole row being edited, under its editors.
-	RenderFragment editProblems = builder =>
+	RenderFragment editProblems = __builder =>
 	{
 		<tr class="moka-table-edit-problems" role="@AriaRole("row")">
 			<td colspan="@ColSpan" role="@AriaRole("gridcell")">
@@ -337,7 +337,7 @@
 		}
 	};
 
-	RenderFragment<TableGroupNode<TItem>> groupHeaderContent = node => builder =>
+	RenderFragment<TableGroupNode<TItem>> groupHeaderContent = node => __builder =>
 	{
 		@if (GroupHeaderTemplate is not null)
 		{
@@ -350,7 +350,7 @@
 		}
 	};
 
-	RenderFragment<TableGroupNode<TItem>> groupHeading = node => builder =>
+	RenderFragment<TableGroupNode<TItem>> groupHeading = node => __builder =>
 	{
 		@if (GroupsCollapsible)
 		{
@@ -373,7 +373,7 @@
 	};
 
 	// A heading's row: one cell over the row, or with totals one cell for the heading and one per column after it.
-	RenderFragment<(TableGroupNode<TItem> Node, int Line)> groupHeaderRow = heading => builder =>
+	RenderFragment<(TableGroupNode<TItem> Node, int Line)> groupHeaderRow = heading => __builder =>
 	{
 		var node = heading.Node;
 		<tr class="@GroupRowClass(node)" role="@AriaRole("row")" aria-rowindex="@AriaLineIndexOf(heading.Line)"
@@ -442,6 +442,19 @@
 			{
 				rowGroup(_displayRows[line.Row])(builder);
 			}
+		}
+	};
+
+	// A line of remote windows: a group's heading, or a row.
+	RenderFragment<RemoteLine> remoteLine = line => builder =>
+	{
+		if (line.Group is { } node)
+		{
+			groupHeaderRow((node, line.Line))(builder);
+		}
+		else
+		{
+			rowGroup(line.Row)(builder);
 		}
 	};
 
@@ -616,7 +629,7 @@
 			<table class="@TableClasses" style="@TableStyle" role="@GridRole" aria-label="@Label"
 			       aria-rowcount="@IndexText(_ariaRowCount)" aria-colcount="@IndexText(AriaColumnCount)"
 			       aria-multiselectable="@GridMultiselectable" aria-busy="@(Loading || _isLoading ? "true" : null)"
-			       data-row-count="@IndexText(RemoteRows ? _totalItems : _displayRows.Count)"
+			       data-row-count="@IndexText(RemoteRows ? _totalItems : _displayRows.Count)" data-moka-remote="@(RemoteRows ? "" : null)"
 			       data-moka-undo="@(_lastSave is not null ? "" : null)" data-moka-copy-rows="@(ShowCopyRows ? "" : null)">
 				@if (DrawHeader)
 				{
@@ -1075,7 +1088,7 @@
 						</td>
 					</tr>
 				}
-				else if (IsGrouped)
+				else if (IsGrouped && !RemoteRows)
 				{
 					@if (NewRowAtTop)
 					{
@@ -1098,7 +1111,7 @@
 					   asks for the rows a window at a time, drawing a placeholder row for each still on its way. *@
 					@if (RemoteRows)
 					{
-						<Virtualize TItem="MokaTableRow<TItem>" ItemsProvider="RowProvider" ItemContent="rowGroup"
+						<Virtualize TItem="RemoteLine" ItemsProvider="LineProvider" ItemContent="remoteLine"
 						            Placeholder="placeholderRow" ItemSize="VirtualRowHeight" SpacerElement="tr" @ref="_virtualize"/>
 						@* Virtualize draws nothing until it knows the count, so the first window waits under placeholder rows. *@
 						@if (!_remoteLoaded)
@@ -1297,7 +1310,7 @@
 		@if (SelectionBarShown)
 		{
 			<div class="moka-table-selection-bar">
-				<span class="moka-table-selection-count">@Words.SelectedCount(_selectedItems.Count)</span>
+				<span class="moka-table-selection-count">@PickedCountText</span>
 				<div class="moka-table-selection-actions">
 					@if (ShowCopyRows)
 					{

@@ -186,10 +186,10 @@ public partial class MokaBarChart : MokaCartesianChartBase
 
 	/// <inheritdoc />
 	internal override string DefaultLabel => _classic || _modernInfo.Count == 0
-		? "Bar chart"
+		? Words.BarChart
 		: _stepSeries is { } steps
-			? $"Waterfall chart: {steps.Name}"
-			: $"Bar chart: {string.Join(", ", _modernInfo.Where(s => !s.Hidden).Select(s => s.Name))}";
+			? Words.Described(Words.WaterfallChart, steps.Name)
+			: Words.Described(Words.BarChart, string.Join(", ", _modernInfo.Where(s => !s.Hidden).Select(s => s.Name)));
 
 	/// <inheritdoc />
 	internal override bool HasData => _classic ? _categoryCount > 0 : _rawCount > 0;

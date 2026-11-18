@@ -90,12 +90,12 @@
 
 		default:
 			<MokaPageHeader Eyebrow="@($"Moka.Red {LibraryCatalog.Version}")" Title="Blazor components for dense, keyboard-first apps"
-			                Said="@($"{ComponentCount} components in {LibraryCatalog.PackageCount} packages, for .NET 9 and 10.")"
+			                Said="@($"{ComponentCount} components in {LibraryCatalog.PackageCount} packages, for .NET 10.")"
 			                Actions="LayoutSwitch"/>
 			<MokaGrid MinColumn="9rem" Class="ov-facts">
 				<MokaStat Tile Mono Label="Components" Value="@ComponentCount.ToString(CultureInfo.InvariantCulture)"/>
 				<MokaStat Tile Mono Label="Packages" Value="@LibraryCatalog.PackageCount.ToString(CultureInfo.InvariantCulture)"/>
-				<MokaStat Tile Mono Label="Targets" Value=".NET 9 + 10"/>
+				<MokaStat Tile Mono Label="Targets" Value=".NET 10"/>
 				<MokaStat Tile Mono Label="Presets" Value="@LibraryCatalog.Presets.Count.ToString(CultureInfo.InvariantCulture)"
 				          HelpText="@PresetNames"/>
 			</MokaGrid>

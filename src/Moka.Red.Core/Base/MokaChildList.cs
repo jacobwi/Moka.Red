@@ -16,11 +16,20 @@ namespace Moka.Red.Core.Base;
 ///         component rendered after the content settles the order once they have.
 ///     </para>
 ///     <para>
-///         Blazor hands a child its parameters again only when one of them may have changed: a render fragment or a
-///         delegate always may, while strings, numbers, booleans and enums that kept their values never do. A child that
-///         didn't report keeps its place after the child it followed. A new child goes right after the child that
-///         reported before it; when children that didn't report stand next to it, which side of them it belongs on is a
-///         guess, and <see cref="Guessed" /> says so.
+///         The markup order has two gaps. Blazor hands a child its parameters again only when one of them may have
+///         changed: a render fragment or a delegate always may, while strings, numbers, booleans and enums that kept their
+///         values never do. A child that didn't report keeps its place after the child it followed. A new child goes
+///         right after the child that reported before it; when children that didn't report stand next to it, which side
+///         of them it belongs on is a guess, and <see cref="Guessed" /> says so. And a child rendered by another
+///         component of the page gets its parameters when that component renders, which Blazor queues after the
+///         parent's own children, so it joins after them. QuickGrid, which collects its columns as they render, leaves
+///         such a column out.
+///     </para>
+///     <para>
+///         A parent that creates the list with an order key closes both gaps for the children that take one: they are
+///         listed by the key, lowest first, and children with the same key in the markup's order, as CSS <c>order</c>
+///         does. A child whose key changes moves when it reports. While every key is the same the list is the markup's
+///         and nothing is sorted.
 ///     </para>
 ///     <para>
 ///         The parent hears about changes through the callbacks it passes: at once, or, for changes made while it
@@ -34,13 +43,18 @@ public sealed class MokaChildList<TChild> where TChild : class
 	private readonly HashSet<TChild> _added = new(ReferenceEqualityComparer.Instance);
 	private readonly Action<IReadOnlyList<TChild>>? _changed;
 	private readonly List<TChild> _children = [];
+	private readonly IReadOnlyList<TChild> _childrenView;
 	private readonly Action _finish;
+	private readonly Dictionary<TChild, int>? _keys;
 	private readonly HashSet<TChild> _members = new(ReferenceEqualityComparer.Instance);
+	private readonly Func<TChild, int>? _order;
 	private readonly Action _render;
 	private readonly List<TChild> _seen = [];
 	private readonly HashSet<TChild> _seenSet = new(ReferenceEqualityComparer.Instance);
 	private List<TChild>? _before;
 	private bool _changing;
+	private List<TChild>? _ordered;
+	private IReadOnlyList<TChild>? _orderedView;
 	private bool _renderOwed;
 
 	/// <summary>Creates the list for one parent.</summary>
@@ -55,12 +69,30 @@ public sealed class MokaChildList<TChild> where TChild : class
 		ArgumentNullException.ThrowIfNull(render);
 		_render = render;
 		_changed = changed;
-		Items = _children.AsReadOnly();
+		_childrenView = _children.AsReadOnly();
 		_finish = FinishCollecting;
 	}
 
+	/// <summary>Creates the list for one parent whose children take an order key, such as an <c>Order</c> parameter.</summary>
+	/// <param name="render">Asks the parent to render, typically its <c>StateHasChanged</c>.</param>
+	/// <param name="changed">
+	///     Called before <paramref name="render" /> when children came, went or moved, with the children in the order they
+	///     stood before.
+	/// </param>
+	/// <param name="order">
+	///     A child's order key: lower comes first, and children with the same key keep the markup's order. Read when a
+	///     child joins, leaves or reports.
+	/// </param>
+	public MokaChildList(Action render, Action<IReadOnlyList<TChild>>? changed, Func<TChild, int> order)
+		: this(render, changed)
+	{
+		ArgumentNullException.ThrowIfNull(order);
+		_order = order;
+		_keys = new Dictionary<TChild, int>(ReferenceEqualityComparer.Instance);
+	}
+
 	/// <summary>The children in the order they stand.</summary>
-	public IReadOnlyList<TChild> Items { get; }
+	public IReadOnlyList<TChild> Items => _orderedView ?? _childrenView;
 
 	/// <summary>How many children there are.</summary>
 	public int Count => _children.Count;
@@ -75,14 +107,16 @@ public sealed class MokaChildList<TChild> where TChild : class
 	/// </summary>
 	public bool Guessed { get; private set; }
 
+	private List<TChild> View => _ordered ?? _children;
+
 	/// <summary>The child at <paramref name="index" />.</summary>
 	/// <param name="index">The child's position.</param>
-	public TChild this[int index] => _children[index];
+	public TChild this[int index] => View[index];
 
 	/// <summary>Where <paramref name="child" /> stands, or -1 when it isn't here.</summary>
 	/// <param name="child">The child.</param>
 	/// <returns>Its position.</returns>
-	public int IndexOf(TChild child) => _members.Contains(child) ? _children.IndexOf(child) : -1;
+	public int IndexOf(TChild child) => _members.Contains(child) ? View.IndexOf(child) : -1;
 
 	/// <summary>Whether <paramref name="child" /> is here.</summary>
 	/// <param name="child">The child.</param>
@@ -114,6 +148,7 @@ public sealed class MokaChildList<TChild> where TChild : class
 			_children.Add(child);
 		}
 
+		ApplyOrder();
 		EndChange();
 		return true;
 	}
@@ -130,14 +165,17 @@ public sealed class MokaChildList<TChild> where TChild : class
 		}
 
 		BeginChange();
-		int index = _children.IndexOf(child);
-		_children.RemoveAt(index);
+		int index = View.IndexOf(child);
+		_children.Remove(child);
+		_ordered?.Remove(child);
+		_keys?.Remove(child);
 		_added.Remove(child);
 		if (_seenSet.Remove(child))
 		{
 			_seen.Remove(child);
 		}
 
+		ApplyOrder();
 		EndChange();
 		return index;
 	}
@@ -166,13 +204,32 @@ public sealed class MokaChildList<TChild> where TChild : class
 		IsCollecting = true;
 	}
 
-	/// <summary>Reports where a child stands, from its <c>OnParametersSet</c>. Does nothing outside a collection.</summary>
+	/// <summary>
+	///     Reports where a child stands, from its <c>OnParametersSet</c>. Outside a collection it only moves a child whose
+	///     order key changed.
+	/// </summary>
 	/// <param name="child">The child.</param>
 	public void Saw(TChild child)
 	{
-		if (IsCollecting && child is not null && _members.Contains(child) && _seenSet.Add(child))
+		if (child is null || !_members.Contains(child))
 		{
-			_seen.Add(child);
+			return;
+		}
+
+		if (IsCollecting)
+		{
+			if (_seenSet.Add(child))
+			{
+				_seen.Add(child);
+			}
+
+			return;
+		}
+
+		if (_order is not null && _keys!.TryGetValue(child, out int key) && key != _order(child))
+		{
+			ApplyOrder();
+			EndChange();
 		}
 	}
 
@@ -218,6 +275,9 @@ public sealed class MokaChildList<TChild> where TChild : class
 		_seen.Clear();
 		_seenSet.Clear();
 		_added.Clear();
+		_keys?.Clear();
+		_ordered = null;
+		_orderedView = null;
 		_before = null;
 		_changing = false;
 		Guessed = false;
@@ -238,6 +298,7 @@ public sealed class MokaChildList<TChild> where TChild : class
 			_children.AddRange(order);
 		}
 
+		ApplyOrder();
 		_seen.Clear();
 		_seenSet.Clear();
 		_added.Clear();
@@ -252,7 +313,7 @@ public sealed class MokaChildList<TChild> where TChild : class
 		}
 
 		_changing = true;
-		_before = _changed is null ? null : [.. _children];
+		_before = _changed is null ? null : [.. View];
 	}
 
 	private void EndChange()
@@ -277,6 +338,42 @@ public sealed class MokaChildList<TChild> where TChild : class
 		{
 			_render();
 		}
+	}
+
+	// Lists the children by their order keys, the markup's order between equal keys. While every key is the same the
+	// markup's list is the list, with no copy. A change to what the parent sees counts as a change.
+	private void ApplyOrder()
+	{
+		if (_order is null)
+		{
+			return;
+		}
+
+		_keys!.Clear();
+		bool varied = false;
+		int first = 0;
+		for (int i = 0; i < _children.Count; i++)
+		{
+			int key = _order(_children[i]);
+			_keys[_children[i]] = key;
+			if (i == 0)
+			{
+				first = key;
+			}
+			else if (key != first)
+			{
+				varied = true;
+			}
+		}
+
+		List<TChild>? ordered = varied ? [.. _children.OrderBy(child => _keys[child])] : null;
+		if (!(ordered ?? _children).SequenceEqual(View, ReferenceEqualityComparer.Instance))
+		{
+			BeginChange();
+		}
+
+		_ordered = ordered;
+		_orderedView = ordered?.AsReadOnly();
 	}
 
 	// Null when the order stands. The children that didn't report keep their places: those before the first old child

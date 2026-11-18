@@ -4,6 +4,7 @@
 @using Moka.Red.Core.Interactions
 @using Moka.Red.Core.Keys
 @using Moka.Red.Data.Chart
+@using Moka.Red.Data.Heatmap
 @using Moka.Red.Data.InfiniteScroll
 @using Moka.Red.Data.Table
 @using Moka.Red.Feedback.Dialog
@@ -138,6 +139,15 @@
 		<p id="chart-result">@_chartPoint</p>
 	</section>
 
+	<section id="charts" style="width: 480px;">
+		<MokaBarChart Series="_barSeries" Labels="_chartLabels" Title="Requests" Look="MokaChartLook.Quiet"/>
+		<MokaDonutChart Segments="_donutSegments" Title="Share" Look="MokaChartLook.Quiet" MaxSegments="3"/>
+		<MokaHeatmap Layout="MokaHeatmapLayout.Grid" GridValues="_heatValues" Title="Busy" Keyboard="true"/>
+		<MokaRadarChart Axes="_radarAxes" Series="_radarSeries" Title="Scores" Look="MokaChartLook.Quiet" Max="10"
+		                ActiveChanged="NoteRadarPoint"/>
+		<p id="radar-result">@_radarPoint</p>
+	</section>
+
 	<section id="theme">
 		<SmokeThemeContent/>
 	</section>
@@ -155,6 +165,28 @@
 	];
 
 	private string _chartPoint = "none";
+
+	private static readonly IReadOnlyList<MokaBarSeries> _barSeries = [new() { Name = "API", Values = [3, 5, 8, 6, 4, 2] }];
+
+	private static readonly IReadOnlyList<MokaDonutSegment> _donutSegments =
+	[
+		new() { Name = "Web", Value = 50 }, new() { Name = "API", Value = 30 }, new() { Name = "Jobs", Value = 12 },
+		new() { Name = "Admin", Value = 8 }
+	];
+
+	private static readonly IReadOnlyList<IReadOnlyList<double>> _heatValues = [[1, 4, 2], [3, 0, 5]];
+
+	private static readonly IReadOnlyList<MokaRadarAxis> _radarAxes = [new("Speed"), new("Range"), new("Comfort"), new("Price")];
+
+	private static readonly IReadOnlyList<MokaRadarSeries> _radarSeries =
+	[
+		new("A", [8, 6, 9, 5]), new("B", [6, 9, 5, 8])
+	];
+
+	private string _radarPoint = "none";
+
+	private void NoteRadarPoint(MokaChartPoint? point) =>
+		_radarPoint = point is null ? "none" : $"{point.Category}:{point.SeriesName}:{point.ValueText}";
 
 	private void NoteChartPoint(MokaChartPoint? point) =>
 		_chartPoint = point is null ? "none" : $"{point.SeriesName}:{point.Index}:{point.ValueText}";

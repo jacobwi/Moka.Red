@@ -333,7 +333,7 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 	internal virtual bool DrawsOwnLegend => false;
 
 	/// <summary>What the chart calls itself when it has no <see cref="Label" />.</summary>
-	internal virtual string DefaultLabel => "Chart";
+	internal virtual string DefaultLabel => Words.Chart;
 
 	/// <summary>Builds the geometry from the parameters. Called before a render whenever something it reads changed.</summary>
 	internal abstract void Rebuild();
@@ -405,6 +405,22 @@ public abstract partial class MokaChartBase : MokaVisualComponentBase
 
 		_dirty = true;
 		StateHasChanged();
+	}
+
+	/// <summary>
+	///     A value as a reader sees it when nothing says how to write it: two decimals from 1 up, and below it enough to keep
+	///     three significant digits, so 0.0042 doesn't read 0. In the reader's culture.
+	/// </summary>
+	internal static string PlainValue(double value)
+	{
+		double size = Math.Abs(value);
+		if (size == 0 || size >= 1)
+		{
+			return value.ToString("#,##0.##", CultureInfo.CurrentCulture);
+		}
+
+		int decimals = Math.Clamp(2 - (int)Math.Floor(Math.Log10(size)), 2, 6);
+		return value.ToString("#,##0." + new string('#', decimals), CultureInfo.CurrentCulture);
 	}
 
 	/// <summary>A slot counting from 1, folded onto the palette's eight.</summary>

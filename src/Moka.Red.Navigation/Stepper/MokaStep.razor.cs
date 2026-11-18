@@ -45,6 +45,15 @@ public partial class MokaStep
 	[Parameter]
 	public bool Disabled { get; set; }
 
+	/// <summary>
+	///     Where the step stands among the stepper's steps: lower comes first, and steps with the same <c>Order</c> keep
+	///     the order the markup gives. Default 0. Set it on a step rendered by a component of your own, which otherwise
+	///     joins after the stepper's own steps, and number the steps in the order they stand: each step draws itself
+	///     where the markup puts it.
+	/// </summary>
+	[Parameter]
+	public int Order { get; set; }
+
 	[CascadingParameter] private MokaStepper? ParentStepper { get; set; }
 
 	// Cascaded as a value so this step re-renders whenever the active step changes, even when

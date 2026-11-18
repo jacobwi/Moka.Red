@@ -552,12 +552,11 @@ public sealed partial class OwnedValueTests : BunitContext
 
 		protected override IReadOnlyDictionary<string, object?> With => new Dictionary<string, object?> { ["Masked"] = false };
 
-		// Types the last digit into its box.
+		// The one field holds the whole code.
 		protected override Task ChangeAsync(IRenderedComponent<IComponent> cut, string? to) =>
-			cut.FindAll("input")[to!.Length - 1].InputAsync(new ChangeEventArgs { Value = to[^1].ToString() });
+			cut.Find("input").InputAsync(new ChangeEventArgs { Value = to });
 
-		protected override string Shown(IRenderedComponent<IComponent> cut) =>
-			string.Concat(cut.FindAll("input").Select(box => box.GetAttribute("value")));
+		protected override string Shown(IRenderedComponent<IComponent> cut) => cut.Find("input").GetAttribute("value") ?? "";
 
 		protected override string Text(string? value) => value ?? "";
 	}

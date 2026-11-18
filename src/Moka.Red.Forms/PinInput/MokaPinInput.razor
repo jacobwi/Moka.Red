@@ -1,10 +1,10 @@
 @namespace Moka.Red.Forms.PinInput
-@inherits MokaSegmentedInputBase
+@inherits MokaCodeInputBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+<div class="@RootCssClass" style="@ComponentStyle">
 	@if (HasLabel)
 	{
-		<label class="moka-pin-label" id="@LabelId">
+		<label class="moka-pin-label" for="@InputId">
 			@Label
 			@if (Required)
 			{
@@ -12,27 +12,29 @@
 			}
 		</label>
 	}
-	<div class="moka-pin-inputs">
-		@for (var i = 0; i < Length; i++)
+	<div class="moka-pin-inputs" style="@BoxesStyle" data-moka-boxes>
+		@for (var i = 0; i < BoxCount; i++)
 		{
-			var index = i;
-			<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
-			       class="moka-pin-digit moka-pin-digit--@SizeToKebab(Size)" style="@SegmentStyle"
-			       type="@InputType"
-			       inputmode="@InputMode"
-			       pattern="[0-9]*"
-			       maxlength="1"
-			       @bind:get="Segments[index]"
-			       @bind:set="typed => HandleSegmentInput(index, typed)"
+			<div class="moka-pin-digit" style="@BoxStyle" data-moka-box></div>
+		}
+		<span class="moka-pin-window">
+			<input @ref="Field" id="@InputId" class="moka-pin-field"
+			       type="@FieldType"
+			       inputmode="numeric"
+			       autocomplete="@AutocompleteToken"
+			       spellcheck="false"
+			       name="@FieldName"
+			       data-moka-length="@BoxCount"
+			       @bind:get="CodeText"
+			       @bind:set="HandleTypedAsync"
 			       @bind:event="oninput"
-			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
 			       disabled="@Disabled"
-			       autocomplete="off"
-			       aria-label="@($"PIN digit {index + 1} of {Length}")"
+			       aria-label="@AccessibleName"
+			       @attributes="InputAttributes"
 			       aria-invalid="@AriaInvalid"
 			       aria-required="@AriaRequired"
 			       aria-describedby="@DescribedBy"/>
-		}
+		</span>
 	</div>
 	@if (HasMessage)
 	{

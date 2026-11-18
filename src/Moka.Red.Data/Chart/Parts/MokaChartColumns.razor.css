@@ -498,3 +498,11 @@
 @container moka-chart-mark (width < 75em) { .moka-chart-mark__label--s75 { display: none; } }
 @container moka-chart-mark (width < 95em) { .moka-chart-mark__label--s95 { display: none; } }
 @container moka-chart-mark (width < 120em) { .moka-chart-mark__label--s120 { display: none; } }
+
+/* Forced colors would paint every bar the system's background, so the marks keep their own colors. They print
+   exact already, through moka-chart-hatch. */
+@media (forced-colors: active) {
+	.moka-chart-mark {
+		forced-color-adjust: none;
+	}
+}

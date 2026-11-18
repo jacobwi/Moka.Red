@@ -450,20 +450,7 @@ public abstract partial class MokaCartesianChartBase
 		MokaChartUnit? unit = axis?.Unit ?? (valueAxis ? ValueAxisUnit : null) ?? (axis?.Compact == true ? MokaChartUnit.Compact : null);
 		return unit is not null
 			? unit.Format(value, null, CultureInfo.CurrentCulture)
-			: value.ToString(PlainPattern(value), CultureInfo.CurrentCulture);
-	}
-
-	// Two decimals from 1 up; below it, enough to keep three significant digits, so 0.0042 doesn't read 0.
-	private static string PlainPattern(double value)
-	{
-		double size = Math.Abs(value);
-		if (size == 0 || size >= 1)
-		{
-			return "#,##0.##";
-		}
-
-		int decimals = Math.Clamp(2 - (int)Math.Floor(Math.Log10(size)), 2, 6);
-		return "#,##0." + new string('#', decimals);
+			: PlainValue(value);
 	}
 
 	// A power of ten on a log axis reads best in the largest step it is a whole number of: 100 s rather than 1.67 min.

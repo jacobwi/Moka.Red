@@ -322,7 +322,8 @@ public sealed class MokaHeatmapChartTests : BunitContext
 		IRenderedComponent<MokaHeatmap> cut = Render<MokaHeatmap>(p => Grid(p).Add(x => x.View, MokaChartView.Table));
 
 		Assert.NotEmpty(cut.FindAll(".moka-chart-frame__table"));
-		Assert.Contains("Tue", cut.Find(".moka-chart-frame__table tbody").TextContent, StringComparison.Ordinal);
+		cut.WaitForAssertion(() =>
+			Assert.Contains("Tue", cut.Find(".moka-chart-frame__table tbody").TextContent, StringComparison.Ordinal));
 	}
 
 	// A parent that builds the same grid and lists again every render costs no render.

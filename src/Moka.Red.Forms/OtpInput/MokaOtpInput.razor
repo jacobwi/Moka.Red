@@ -1,10 +1,10 @@
 @namespace Moka.Red.Forms.OtpInput
-@inherits MokaSegmentedInputBase
+@inherits MokaCodeInputBase
 
-<div class="@CssClass" style="@CssStyle" id="@Id" role="group" aria-labelledby="@LabelId" @ref="RootRef" data-moka-separator="@SeparatorAttribute" @attributes="AdditionalAttributes">
+<div class="@RootCssClass" style="@ComponentStyle">
 	@if (HasLabel)
 	{
-		<label class="moka-otp-label" id="@LabelId">
+		<label class="moka-otp-label" for="@InputId">
 			@Label
 			@if (Required)
 			{
@@ -12,27 +12,30 @@
 			}
 		</label>
 	}
-	<div class="moka-otp-inputs">
-		@for (var i = 0; i < Length; i++)
+	<div class="moka-otp-inputs" style="@BoxesStyle" data-moka-boxes>
+		@for (var i = 0; i < BoxCount; i++)
 		{
-			var index = i;
-			<input @ref="InputRefs[index]" data-moka-accept="@AcceptPattern"
-			       class="moka-otp-digit" style="@SegmentStyle"
-			       type="@GetInputType()"
-			       inputmode="@InputMode"
-			       maxlength="1"
-			       @bind:get="Segments[index]"
-			       @bind:set="typed => HandleSegmentInput(index, typed)"
+			<div class="moka-otp-digit" style="@BoxStyle" data-moka-box></div>
+		}
+		<span class="moka-otp-window">
+			<input @ref="Field" id="@InputId" class="moka-otp-field"
+			       type="@FieldType"
+			       inputmode="numeric"
+			       autocomplete="@AutocompleteToken"
+			       spellcheck="false"
+			       name="@FieldName"
+			       data-moka-length="@BoxCount"
+			       @bind:get="CodeText"
+			       @bind:set="HandleTypedAsync"
 			       @bind:event="oninput"
-			       @onkeydown="e => HandleSegmentKeyDown(index, e)"
 			       disabled="@Disabled"
-			       autocomplete="one-time-code"
-			       autofocus="@(AutoFocus && index == 0)"
-			       aria-label="@($"Digit {index + 1} of {Length}")"
+			       autofocus="@AutoFocus"
+			       aria-label="@AccessibleName"
+			       @attributes="InputAttributes"
 			       aria-invalid="@AriaInvalid"
 			       aria-required="@AriaRequired"
 			       aria-describedby="@DescribedBy"/>
-		}
+		</span>
 	</div>
 	@if (HasMessage)
 	{
