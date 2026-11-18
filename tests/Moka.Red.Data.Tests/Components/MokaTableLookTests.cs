@@ -480,7 +480,8 @@ public class MokaTableLookTests : BunitContext
 			.Add(t => t.Responsive, false)
 			.Add(t => t.MinWidth, "960px"));
 
-		Assert.Equal("min-width: 960px", cut.Find("table").GetAttribute("style")!.TrimEnd(';').Trim());
+		Assert.Equal("--_table-min: 960px", cut.Find("table").GetAttribute("style")!.TrimEnd(';').Trim());
+		Assert.Equal("var(--_table-min, auto)", ScopedCss.Declarations(Css, ".moka-table")["min-width"]);
 		Assert.Contains("moka-table-container--responsive", cut.Find(".moka-table-container").ClassList);
 		Assert.DoesNotContain("moka-table-wrapper--page-header", cut.Find(".moka-table-wrapper").ClassList);
 	}

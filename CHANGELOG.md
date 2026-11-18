@@ -5,6 +5,14 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `MokaTable.MinWidth` no longer applies to the phone list (below 720 px) or the List look, which have no columns to keep
+  wide. It kept the list that wide inside a box that scrolled sideways, so cells in the `Trailing` slot, such as row
+  buttons, sat out of view. Tables drawn as columns keep their minimum width and scroll as before. The table now
+  carries the value as `--_table-min` rather than an inline `min-width`.
+
 ## [0.9.0] - 2026-11-18
 
 ### Added

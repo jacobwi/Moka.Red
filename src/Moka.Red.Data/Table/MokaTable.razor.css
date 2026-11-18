@@ -281,6 +281,7 @@
 /* Table */
 .moka-table {
 	width: 100%;
+	min-width: var(--_table-min, auto);
 	border-collapse: collapse;
 	table-layout: auto;
 }
@@ -1318,8 +1319,10 @@ th:hover .moka-table-sort-icon,
 		display: block;
 	}
 
+	/* A list has no columns to keep wide, so MinWidth would only push what trails out of view. */
 	.moka-table-container > .moka-table--phone {
 		position: relative;
+		min-width: 0;
 	}
 
 	.moka-table-container > .moka-table--phone > thead {
@@ -1702,6 +1705,10 @@ th:hover .moka-table-sort-icon,
    rules draw it; these draw the same above. */
 
 @media (min-width: 721px) {
+	.moka-table-container > .moka-table--list {
+		min-width: 0;
+	}
+
 	.moka-table-container > .moka-table--list > tbody > .moka-table-row--phone {
 		display: grid;
 		grid-template-columns: auto auto [text-start] repeat(var(--_phone-secondary), minmax(0, auto)) minmax(0, 1fr) [text-end];

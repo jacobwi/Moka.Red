@@ -219,6 +219,23 @@ public class MokaTablePhoneTests : BunitContext
 		Assert.Equal("0 !important", ScopedCss.Declarations(Css, Row + " > td")["min-width"]);
 	}
 
+	// MinWidth reaches the table through a variable, so the list can drop it: kept, it pushed what trails out of view.
+	[Fact]
+	public void MinWidth_DoesNotWidenTheList()
+	{
+		IRenderedComponent<MokaTable<Person>> cut = Render<MokaTable<Person>>(p => p
+			.Add(t => t.Items, People)
+			.Add(t => t.MinWidth, "700px")
+			.Add(t => t.ChildContent, Columns(Name with { Phone = MokaColumnPhone.Primary }, Team with { Phone = MokaColumnPhone.Trailing })));
+
+		string style = cut.Find("table").GetAttribute("style")!;
+		Assert.Contains("--_table-min: 700px", style, StringComparison.Ordinal);
+		Assert.DoesNotContain("min-width", style, StringComparison.Ordinal);
+		Assert.Equal("var(--_table-min, auto)", ScopedCss.Declarations(Css, ".moka-table")["min-width"]);
+		Assert.Equal("0", ScopedCss.Declarations(Css, ".moka-table-container > .moka-table--phone")["min-width"]);
+		Assert.Equal("0", ScopedCss.Declarations(Css, ".moka-table-container > .moka-table--list")["min-width"]);
+	}
+
 	[Fact]
 	public void SkeletonRows_TakeTheGridAndTheSlots()
 	{

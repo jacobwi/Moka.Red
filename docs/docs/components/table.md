@@ -177,7 +177,7 @@ The sort itself is part of the state. A column's `DefaultSort` sets the sort the
 | `Height` | `string?` | -- | Maximum height of the table area, such as `"400px"`. A taller table scrolls inside it; the toolbar and pager stay outside |
 | `FixedHeader` | `bool` | `false` | Keeps the header row in view while the rows scroll. Use it with `Height` |
 | `Responsive` | `bool` | `true` | Scrolls the table sideways when it's wider than its container. Off, with no `MinWidth` or `Height`, a sticky header sticks to the page. See [A header that sticks to the page](#a-header-that-sticks-to-the-page) |
-| `MinWidth` | `string?` | -- | The narrowest the table draws, such as `"960px"`. In a narrower space the rows scroll sideways inside the table |
+| `MinWidth` | `string?` | -- | The narrowest the table draws, such as `"960px"`. In a narrower space the rows scroll sideways inside the table. The phone list and the List look ignore it, since they have no columns to keep wide |
 | `Label` | `string?` | -- | The table's name for screen readers, written as `aria-label` on the `table` element |
 | `Framed` | `bool` | `false` | A card of its own, with the toolbar above it. See [Frames](#frames) |
 | `ToolbarInFrame` | `bool` | `false` | With `Framed`, draws the toolbar, the chips and the chooser inside the card, as its first rows |

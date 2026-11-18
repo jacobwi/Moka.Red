@@ -290,7 +290,7 @@ public partial class MokaTable<TItem>
 				: Math.Max(1, _phoneSlots.Values.Count(static slot => slot == MokaColumnPhone.Secondary));
 			return new StyleBuilder()
 				.AddStyle("--_phone-secondary", secondary?.ToString(CultureInfo.InvariantCulture))
-				.AddStyle("min-width", MinWidth)
+				.AddStyle("--_table-min", MinWidth)
 				.Build();
 		}
 	}
