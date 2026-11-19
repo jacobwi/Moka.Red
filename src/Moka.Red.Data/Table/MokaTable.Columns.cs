@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
@@ -236,6 +237,35 @@ public partial class MokaTable<TItem>
 	// that comes back takes its place again. A group keeps the order of its own columns the same way, and they take the
 	// place it holds here.
 	private readonly MokaChildList<object> _parts;
+
+	private readonly Action<object> _drawCapture;
+	private MokaTableDraw? _draw;
+
+	// From a render of the table until its markup draws.
+	private bool _drawOwed;
+
+	// The parts the parent passes. Blazor gives them their parameters after this render, so the markup is asked for at
+	// the end of their collection rather than drawn here.
+	private void CollectParts(RenderTreeBuilder builder)
+	{
+		_drawOwed = true;
+		_parts.Render();
+		builder.AddContent(0, ChildContent);
+	}
+
+	// A draw still to come shows what the parts now hold. A part that changes once the markup has drawn, such as a column
+	// whose own parent component rendered it again, renders the table again, which collects its parts and draws in turn.
+	private void PartsSettled()
+	{
+		if (_drawOwed)
+		{
+			_draw?.Draw();
+		}
+		else
+		{
+			StateHasChanged();
+		}
+	}
 
 	void IMokaTablePartHost.AddGroup(MokaColumnGroup group) => _parts.Add(group);
 

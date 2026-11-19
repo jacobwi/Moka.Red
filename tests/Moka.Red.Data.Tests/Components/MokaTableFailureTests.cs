@@ -55,8 +55,13 @@ public class MokaTableFailureTests : BunitContext
 
 		await cut.Find(".moka-table-search input").InputAsync(new ChangeEventArgs { Value = "ada" });
 
-		cut.WaitForAssertion(() => Assert.IsType<ObjectDisposedException>(raised), Wait);
-		Assert.NotNull(cut.Find(".moka-table-failure"));
+		// bUnit tells the test about the table's own render before the render of its markup in the same batch, so the
+		// wait covers the markup too.
+		cut.WaitForAssertion(() =>
+		{
+			Assert.IsType<ObjectDisposedException>(raised);
+			Assert.NotNull(cut.Find(".moka-table-failure"));
+		}, Wait);
 	}
 
 	[Fact]

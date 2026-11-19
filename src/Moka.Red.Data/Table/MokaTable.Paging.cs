@@ -72,17 +72,10 @@ public partial class MokaTable<TItem>
 	// A page size that holds the whole result set, as far as the last load reported it.
 	private int FullSetPageSize => Math.Max(_totalItems, Math.Max(_pageSize, 1));
 
-	// Columns and the pager part join the table while its first render is drawn, after it has drawn its pager area. The
-	// table draws no pager until they have, which is the render right after, in the same batch, so the default pager is
-	// never drawn and then replaced by the one the part names.
-	private bool _partsKnown;
-	private bool _firstRenderDrawn;
-
 	// One rule for every numbered pager. Hidden while everything fits on one page, but kept while the user is past
 	// page 1, and while the rows would need more than one page at the parent's page size: someone who picked a size
 	// that fits every row needs the size menu to pick a smaller one again.
-	private bool ShowPaginationBar => _partsKnown
-	                                  && ShowPagination
+	private bool ShowPaginationBar => ShowPagination
 	                                  && !RemoteRows
 	                                  && !IsShowMoreLook
 	                                  && (IsCursorLook
@@ -167,7 +160,7 @@ public partial class MokaTable<TItem>
 	{
 		_pager = pager;
 		PagerLookChanged();
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	void IMokaTablePartHost.RemovePager(MokaTablePager pager)
@@ -179,13 +172,13 @@ public partial class MokaTable<TItem>
 
 		_pager = null;
 		PagerLookChanged();
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	void IMokaTablePartHost.OnPagerChanged(MokaTablePager pager)
 	{
 		PagerLookChanged();
-		StateHasChanged();
+		_parts.Render();
 	}
 
 	// Every paged look starts from the same first page, so the look the pager part names when it arrives needs no new

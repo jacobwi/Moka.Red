@@ -77,7 +77,8 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 	{
 		_selection = new MokaInputValue<HashSet<TItem>>(ShowParentSelection, DispatchExceptionAsync,
 			comparer: ReferenceEqualityComparer.Instance);
-		_parts = new MokaChildList<object>(StateHasChanged, _ => SyncDeclaredOrder(), IMokaTableOrderedPart.OrderOf);
+		_parts = new MokaChildList<object>(PartsSettled, _ => SyncDeclaredOrder(), IMokaTableOrderedPart.OrderOf);
+		_drawCapture = draw => _draw = (MokaTableDraw)draw;
 	}
 
 	[Inject] private IServiceProvider Services { get; set; } = default!;
@@ -630,9 +631,9 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 	}
 
 	/// <summary>
-	///     Called by a column when the parent passes it a new value for a setting the table renders.
-	///     The table has rendered before its columns got their parameters, so it renders again, in the
-	///     same batch.
+	///     Called by a column when the parent passes it a new value for a setting the table renders. During a render of
+	///     the table its markup draws after the columns have their parameters; a column that gets them later renders the
+	///     table again, in the same batch.
 	/// </summary>
 	/// <param name="column">The column whose settings changed.</param>
 	/// <param name="visibleChanged">Whether <c>Visible</c> is one of them.</param>
@@ -746,13 +747,6 @@ public partial class MokaTable<TItem> : MokaVisualComponentBase, IMokaTablePartH
 		await base.OnAfterRenderAsync(firstRender);
 
 		_selection.AfterRender();
-
-		// No part joined during the first render, so nothing asked for the render that draws the pager.
-		if (firstRender && !_partsKnown)
-		{
-			_partsKnown = true;
-			StateHasChanged();
-		}
 
 		await SyncColumnMenuAsync();
 		await SyncDensityMenuAsync();

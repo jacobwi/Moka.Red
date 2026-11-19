@@ -1754,20 +1754,25 @@ th:hover .moka-table-sort-icon,
 
 /* ── Pinned columns ──
    A pinned cell sticks at the offset moka-table.js measures, written as --_pin-N on the table. Its background is the
-   surface with the row's tint over it, so a pinned cell hides what scrolls under it and still shows the row's state. */
+   surface (--_pin-surface) with the row's tint over it, so it still shows the row's state, laid on an opaque base so it
+   hides what scrolls under it even where the app's surface lets the page through. The base is
+   --moka-table-pin-background, the page's background unless the app sets it. Under an opaque surface it never shows. */
 
 .moka-table > * > tr > .moka-table-cell--pin-start,
 .moka-table > * > tr > .moka-table-cell--pin-end {
+	--_pin-surface: var(--moka-color-surface);
 	position: sticky;
 	z-index: 1;
-	background-color: var(--moka-color-surface);
-	background-image: linear-gradient(var(--_row-tint, transparent), var(--_row-tint, transparent));
+	background-color: var(--moka-table-pin-background, var(--moka-color-background));
+	background-image:
+		linear-gradient(var(--_row-tint, transparent), var(--_row-tint, transparent)),
+		linear-gradient(var(--_pin-surface), var(--_pin-surface));
 }
 
 .moka-table > thead > tr > th.moka-table-cell--pin-start,
 .moka-table > thead > tr > th.moka-table-cell--pin-end {
+	--_pin-surface: var(--moka-color-surface-variant);
 	z-index: 3;
-	background-color: var(--moka-color-surface-variant);
 }
 
 .moka-table--striped > tbody > tr:nth-child(even) {
@@ -2541,13 +2546,14 @@ th:focus-within .moka-table-menu-btn,
 
 /* Pinned columns, heading tools, chips and the states, on this design's surfaces. */
 .moka-gate .moka-table > thead > tr > th.moka-table-cell--pin-start,
-.moka-gate .moka-table > thead > tr > th.moka-table-cell--pin-end { background-color: var(--moka-color-surface); }
+.moka-gate .moka-table > thead > tr > th.moka-table-cell--pin-end { --_pin-surface: var(--moka-color-surface); }
 .moka-gate .moka-table--hoverable > tbody > tr:hover { --_row-tint: var(--moka-color-surface-raised); }
 .moka-gate .moka-table > tbody > tr.moka-table-row--selected { --_row-tint: var(--moka-color-primary-row); }
 .moka-gate .moka-table-filter-btn--on { color: var(--moka-color-primary-light); }
 .moka-gate .moka-table-chip { background: var(--moka-color-surface-raised); border-color: var(--moka-color-outline); }
 .moka-gate .moka-table-filter-choices { border-color: var(--moka-color-outline); border-radius: var(--moka-radius-md); }
 .moka-gate .moka-table-filter-choices:hover { border-color: var(--moka-color-outline-strong); }
-.moka-gate .moka-table-row--pinned > td { background-color: var(--moka-color-surface-2); }
+.moka-gate .moka-table-row--pinned > td:not(.moka-table-cell--pin-start, .moka-table-cell--pin-end) { background-color: var(--moka-color-surface-2); }
+.moka-gate .moka-table-row--pinned > :is(.moka-table-cell--pin-start, .moka-table-cell--pin-end) { --_pin-surface: var(--moka-color-surface-2); }
 .moka-gate .moka-table-mark { background: var(--moka-color-warning-bg); color: var(--moka-color-warning-ink); }
 .moka-gate .moka-table-failure ::deep .moka-table-failure-icon { color: var(--moka-color-error-soft); }

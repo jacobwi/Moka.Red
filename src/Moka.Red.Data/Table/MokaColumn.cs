@@ -494,9 +494,6 @@ public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>,
 		}
 
 		_lastSettings = settings;
-
-		// The table renders before its columns get their new parameters, so without this it would
-		// show them one render late.
 		ParentTable?.OnColumnChanged(this, previous.Visible != settings.Visible, previous.Pin != settings.Pin, previous.Title);
 	}
 
@@ -511,9 +508,9 @@ public class MokaColumn<TItem> : ComponentBase, IDisposable, ITableField<TItem>,
 
 	string ITableField<TItem>.GroupKeyOf(TItem item) => GroupKeyFor(item);
 
-	// Delegates and templates count only by whether they are set. A parent render passes new ones
-	// every time, and the table calls them as it renders, so comparing them would cost every table
-	// a second render on every parent render.
+	// Delegates and templates count only by whether they are set. A parent render passes new ones every time, and the
+	// table's markup draws after its columns have them, so they need no report; comparing them would reset the column's
+	// layout on every parent render.
 	private RenderedSettings CurrentSettings() => new(
 		Title, Field is not null, CellTemplate is not null, HeaderTemplate is not null, Sortable, DefaultSort, Filterable,
 		FilterType, FilterOptions is null ? null : string.Join(Separator, FilterOptions.Select(static o => o.Value + Separator + o.Text)),

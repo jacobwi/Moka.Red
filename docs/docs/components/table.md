@@ -709,6 +709,8 @@ At the end of the row instead, the toggle is a narrow last column after any `Row
 </MokaTable>
 ```
 
+The table draws its cells and headings after its columns have the parameters of the render under way, as QuickGrid does. A `CellTemplate` or `HeaderTemplate` that uses a value of the page's own render, such as a loop variable or a local set in `@{ }`, shows the new value in the same render, and so does a template swapped for another. That holds for columns inside a [heading group](#column-groups) and for a column a component of yours renders. A column nested deeper still, such as a group inside such a component, gets its parameters after the cells have drawn: a new setting, such as its title or width, still shows in the same render, but a new template shows on the table's next render.
+
 ## Values on one line
 
 A value such as a name, an event id or a time reads wrong broken over two lines. `NoWrap` keeps every value in the column on one line, so the column is as wide as its longest value.
@@ -832,6 +834,16 @@ With a chooser, a `StateChanged` listener or a `StorageKey`, a heading's right e
 ```
 
 The browser measures each pinned column's offset once per layout change, such as a column shown, hidden, moved, resized or pinned, and writes it on the table as a CSS variable. A resize observer keeps the offsets right as widths change, and scrolling sends nothing to .NET. A shadow marks the edge of the pinned columns while there is more to see under them on that side. A table with no pinned column measures nothing.
+
+A pinned cell paints the surface, with the row's stripe, hover or selection tint over it, on an opaque base, so the cells scrolling under it never show through, even when your theme's surface is see-through. The base is the page's background. Set the `--moka-table-pin-background` property on the table, or anywhere above it, when that is see-through too:
+
+```css
+.orders-table {
+    --moka-table-pin-background: var(--moka-color-surface-raised);
+}
+```
+
+It is a property of the table, not a theme token. Under an opaque surface it never shows.
 
 Pins are part of the state, as `Pin` on each `MokaTableColumnState`. The column menu pins and unpins too, except a `Fixed` column, and a new `Pin` from the parent replaces what the menu or the state chose. Every row the table draws pins its cells the same way: the headings, the filter row, the data rows and the totals. A [heading group](#column-groups) splits where a pinned column leaves it. `Sticky` is gone: `Pin="MokaColumnPin.Start"` does what it did, and more than one column can use it.
 

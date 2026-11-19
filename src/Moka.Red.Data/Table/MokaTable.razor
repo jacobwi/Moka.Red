@@ -8,13 +8,11 @@
 
 @* Row markup lives in one template so the plain and virtualized body paths cannot drift apart. *@
 @{
-	// The columns and the pager part join while the first render is drawn; every render after it knows them.
-	if (_firstRenderDrawn)
+	// The markup, drawn by MokaTableDraw once the parts have this render's parameters. Its lines keep the indentation
+	// they had at the top of the file: the whitespace between sibling elements is part of the rendered markup.
+	RenderFragment drawTable = __builder =>
 	{
-		_partsKnown = true;
-	}
-
-	_firstRenderDrawn = true;
+	_drawOwed = false;
 	_virtualizeDrawn = false;
 
 	// One list per render, so the header, the filter row and every body row agree on the columns
@@ -1641,14 +1639,6 @@
 			</div>
 		}
 	};
-}
-
-@* The columns, the pager part and the column groups find the table through the one cascade. The columns and groups
-   report where they stand while it renders, and the order settles at its end. *@
-<div style="display:none">
-	<CascadingValue TValue="IMokaTablePartHost" Value="this" IsFixed="true" ChildContent="_parts.Collect(ChildContent)"/>
-</div>
-
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_wrapperRef" @attributes="AdditionalAttributes">
 @if (ToolbarInsideFrame)
 {
@@ -1685,3 +1675,13 @@ else
 	<MokaTableFilterPopup TItem="TItem" Table="this" Column="filterColumn" Anchor="@_filterAnchor" @key="filterColumn"/>
 }
 </div>
+	};
+}
+
+@* The columns, the pager part and the column groups find the table through the one cascade. The columns and groups
+   report where they stand while it renders, and the order settles at its end. *@
+<div style="display:none">
+	<CascadingValue TValue="IMokaTablePartHost" Value="this" IsFixed="true" ChildContent="_parts.Collect(CollectParts)"/>
+</div>
+
+@MokaTableDraw.For(drawTable, _drawCapture)
