@@ -6,7 +6,9 @@
 @if (_board is null)
 {
 	<div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-		@ChildContent
+		<CascadingValue Value="this">
+			@ChildContent
+		</CascadingValue>
 	</div>
 }
 else

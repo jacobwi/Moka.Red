@@ -10,8 +10,20 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="autofill" Title="Beside a sign-in" Description="The editor tells browsers and password managers to leave it alone, so a saved password or address never lands in the code. Only the two fields above it are offered for filling.">
+	<div class="code-demo">
+		<MokaTextField @bind-Value="_user" Label="User name" autocomplete="username"/>
+		<MokaPasswordField @bind-Value="_password" Label="Password" autocomplete="current-password"/>
+		<MokaCodeEditor @bind-Value="_script" Label="Start-up script" Rows="4"/>
+	</div>
+</DemoSection>
+
 @code {
 	private const string ReadOnlyText = "[server]\nhost = 10.0.0.1\nport = 8080";
+
+	private string? _user;
+	private string? _password;
+	private string _script = "echo \"Starting\"\nsleep 2";
 
 	private string _text = string.Join('\n',
 		"; Moka demo settings",

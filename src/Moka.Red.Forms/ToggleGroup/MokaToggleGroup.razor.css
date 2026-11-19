@@ -4,8 +4,15 @@
    Base styles
    ============================================================ */
 
+/* Wraps rather than clipping: items that didn't fit used to be cut off, with no way to reach them. The items stand a
+   separator's width apart, and each one's separator (its right border, MokaToggleGroupItem.razor.css) lies in that gap,
+   as the item gives the width back with a negative margin. So a group that fits on one row lays out as it always has,
+   and the item that ends a wrapped row has its separator pushed past the group's edge, where the group clips it. Rows
+   are parted by the line each item draws under itself, which the group clips on the last row. */
 .moka-toggle-group {
 	display: inline-flex;
+	flex-wrap: wrap;
+	gap: var(--moka-border-width);
 	align-items: stretch;
 	border: 1px solid var(--moka-color-outline-variant);
 	border-radius: var(--moka-radius-md);
@@ -13,6 +20,22 @@
 	font-family: var(--moka-font-family);
 	font-weight: var(--moka-font-weight-medium);
 	line-height: var(--moka-line-height-tight);
+}
+
+/* FullWidth: the width comes from moka-fill-width, so a margin stays inside the container, and the items share it. */
+.moka-toggle-group--full-width {
+	display: flex;
+}
+
+.moka-toggle-group--full-width ::deep .moka-toggle-group-item {
+	flex: 1 1 0%;
+}
+
+/* StackBelow: under the given width each item takes a row of its own, so every label shows whole on a phone. It compares
+   the group's own width, so no media query is needed. A basis of (width - 100%) * 999 is a whole row under the width and
+   clamps to zero over it, where the items share the row as they did. */
+.moka-toggle-group--stack ::deep .moka-toggle-group-item {
+	flex-basis: calc((var(--_stack-below) - 100%) * 999);
 }
 
 /* ============================================================

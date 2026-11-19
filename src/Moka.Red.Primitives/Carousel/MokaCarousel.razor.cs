@@ -54,14 +54,32 @@ public partial class MokaCarousel : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback<int> ActiveIndexChanged { get; set; }
 
+	/// <summary>
+	///     The carousel's width to its height, as the CSS <c>aspect-ratio</c> property takes it, such as "16/9" or "1/1".
+	///     Every slide is then that tall, so content made to fill its slide, such as an image with <c>width</c> and
+	///     <c>height</c> at 100% and an <c>object-fit</c>, fills the carousel. A value that isn't an aspect ratio is
+	///     ignored. Null (the default): the carousel is as tall as its tallest slide.
+	/// </summary>
+	[Parameter]
+	public string? AspectRatio { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-carousel";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-fill-width")
+		.AddClass("moka-carousel--ratio", HasAspectRatio)
 		.AddClass(Class)
 		.Build();
+
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("aspect-ratio", AspectRatio?.Trim(), HasAspectRatio)
+		.AddStyle(Style)
+		.Build();
+
+	private bool HasAspectRatio => CssValues.IsAspectRatio(AspectRatio);
 
 	private int SlideCount => _slides.Count;
 

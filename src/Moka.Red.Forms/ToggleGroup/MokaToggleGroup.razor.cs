@@ -54,6 +54,23 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 	[Parameter]
 	public bool Controlled { get; set; }
 
+	/// <summary>
+	///     Whether the group stretches to fill its container's width, its items sharing it. Default false: the group is
+	///     as wide as its items. Either way, items that don't fit move to another row rather than being cut off.
+	/// </summary>
+	[Parameter]
+	public bool FullWidth { get; set; }
+
+	/// <summary>
+	///     Below this width the items stack one per row with every label whole, such as <c>"30rem"</c>, so a phone shows
+	///     a list of choices. Any CSS length, or a <c>calc()</c>, <c>var()</c>, <c>min()</c>, <c>max()</c> or
+	///     <c>clamp()</c> of lengths. It compares the group's own width, not the window's, so a group in a narrow panel
+	///     stacks too. Applies only with <see cref="FullWidth" />, since a group as wide as its items has no width of its
+	///     own to compare. Null (the default) never stacks.
+	/// </summary>
+	[Parameter]
+	public string? StackBelow { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-toggle-group";
 
@@ -64,8 +81,19 @@ public partial class MokaToggleGroup : MokaVisualComponentBase
 		.AddClass($"moka-toggle-group--{SizeToKebab(Size)}")
 		.AddClass($"moka-toggle-group--{ColorToKebab(ResolvedColor)}")
 		.AddClass("moka-toggle-group--disabled", Disabled)
+		.AddClass("moka-toggle-group--full-width", FullWidth)
+		.AddClass("moka-fill-width", FullWidth)
+		.AddClass("moka-toggle-group--stack", Stacks)
 		.AddClass(Class)
 		.Build();
+
+	/// <inheritdoc />
+	protected override string? CssStyle => SpacingStyle()
+		.AddStyle("--_stack-below", StackBelow, Stacks)
+		.AddStyle(Style)
+		.Build();
+
+	private bool Stacks => FullWidth && CssValues.IsLengthExpression(StackBelow);
 
 	/// <summary>Has internal selection state.</summary>
 	protected override bool ShouldRender() => true;

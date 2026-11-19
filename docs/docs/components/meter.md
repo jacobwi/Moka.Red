@@ -25,9 +25,10 @@ order: 36
 | `Target` | `double?` | -- | A goal or a limit in the meter's range. Draws a bullet chart: a thin bar for the value over gray ranges, with a tick at the target |
 | `TargetText` | `string` | `"target"` | What a screen reader hears before the target's value |
 | `Layout` | `MokaMeterLayout` | `Stacked` | `Row` puts the name, the bar and the figure on one line |
-| `WarnAt` | `double?` | -- | A share of the range, 0 to 1, from which the fill turns the warning color and the name gains an icon and `WarnText` |
+| `WarnAt` | `double?` | -- | A share of the range, 0 to 1, from which the fill turns the warning color and the name gains an icon and `WarnText`: at or above it, or at or below it with `LowIsBad` |
 | `CriticalAt` | `double?` | -- | A share of the range from which the fill turns the error color and says `CriticalText` |
-| `WarnText`, `CriticalText` | `string` | `"Nearly full"`, `"Full"` | The words beside the name past each limit |
+| `LowIsBad` | `bool` | `false` | The low end is the bad end, as for a battery: `WarnAt` and `CriticalAt` count down, and a bullet's ranges darken toward the low end |
+| `WarnText`, `CriticalText` | `string?` | -- | The words beside the name past each limit. Null says "Nearly full" and "Full", or "Low" and "Empty" with `LowIsBad` |
 | `Figure` | `string?` | -- | The figure shown in place of the formatted value, such as "412 of 500 GB" |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -113,6 +114,24 @@ the state never rests on color alone.
 ```
 
 A long list of meters belongs in a `MokaVirtualList` with a fixed item height; the meter itself doesn't virtualize.
+
+## When low is bad
+
+By default the high end is the bad end: a disk filling up warns as it passes `WarnAt`. For a battery's charge, the
+space left on a disk or a signal's strength the low end is the bad one, and `LowIsBad` turns the limits round: the meter
+warns at or below `WarnAt` and turns red at or below `CriticalAt`, so `CriticalAt` sits under `WarnAt`. The words become
+"Low" and "Empty", still replaced by `WarnText` and `CriticalText`, and screen readers hear them after the value. It is
+the HTML `meter` element with its `optimum` at the high end. With a `Target`, the bullet's ranges darken toward the low
+end, since darker marks the worse range. `Segments` keep their own colors and the bar fills from the start of the range
+either way.
+
+```blazor-preview
+<div class="moka-meter-rows">
+    <MokaMeter Layout="MokaMeterLayout.Row" Label="Phone" Value="64" Figure="64%" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+    <MokaMeter Layout="MokaMeterLayout.Row" Label="Keyboard" Value="15" Figure="15%" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+    <MokaMeter Layout="MokaMeterLayout.Row" Label="Mouse" Value="4" Figure="4%" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+</div>
+```
 
 ## Your own color, inside a button
 

@@ -22,7 +22,10 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Number of columns this cell spans. Default 1. Not used on a card, whose size decides.</summary>
+	/// <summary>
+	///     Number of columns this cell spans. Default 1. In a grid with <see cref="MokaBentoGrid.MinColumn" />, no more
+	///     than the columns that fit. Not used on a card, whose size decides.
+	/// </summary>
 	[Parameter]
 	public int ColSpan { get; set; } = 1;
 
@@ -30,7 +33,10 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 	[Parameter]
 	public int RowSpan { get; set; } = 1;
 
-	/// <summary>Explicit column start position (1-based). Default auto.</summary>
+	/// <summary>
+	///     Explicit column start position (1-based). Default auto. In a grid with <see cref="MokaBentoGrid.MinColumn" /> it
+	///     moves back to the last column that fits, and a value below 1 is ignored.
+	/// </summary>
 	[Parameter]
 	public int? ColStart { get; set; }
 
@@ -88,20 +94,32 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 		.AddClass("moka-bento-item--tile", IsTile)
 		.AddClass(SizeClass)
 		.AddClass("moka-bento-item--customizing", IsCustomizing)
+		.AddClass("moka-bento-item--fit", FitsSpan)
+		.AddClass("moka-bento-item--fit-at", FitsStart)
 		.AddClass(Class)
 		.Build();
 
 	/// <inheritdoc />
 	protected override string? CssStyle => new StyleBuilder()
-		.AddStyle("grid-column", $"span {ColSpan}", Card is null && ColSpan > 1 && ColStart is null)
+		.AddStyle("grid-column", $"span {ColSpan}", Card is null && !InFittingGrid && ColSpan > 1 && ColStart is null)
 		.AddStyle("grid-row", $"span {RowSpan}", Card is null && RowSpan > 1 && RowStart is null)
-		.AddStyle("grid-column", $"{ColStart} / span {ColSpan}", Card is null && ColStart.HasValue)
+		.AddStyle("grid-column", $"{ColStart} / span {ColSpan}", Card is null && !InFittingGrid && ColStart.HasValue)
 		.AddStyle("grid-row", $"{RowStart} / span {RowSpan}", Card is null && RowStart.HasValue)
+		.AddStyle("--_bento-start", FormattableString.Invariant($"{ColStart}"), FitsStart)
+		.AddStyle("--_bento-span", FormattableString.Invariant($"{Math.Max(1, ColSpan)}"), FitsSpan || FitsStart)
 		.AddStyle("border-radius", ResolvedRounding)
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle(Style)
 		.Build();
+
+	// In a grid with MinColumn the stylesheet places the item from these values, capped at the columns that fit.
+	private bool InFittingGrid => Card is null && ParentGrid is { FitsColumns: true };
+
+	// A start below 1 counts from the last line, which moves as columns come and go, so there the item is auto-placed.
+	private bool FitsStart => InFittingGrid && ColStart >= 1;
+
+	private bool FitsSpan => InFittingGrid && ColSpan > 1;
 
 	private int? TabIndex => Clickable ? 0 : null;
 

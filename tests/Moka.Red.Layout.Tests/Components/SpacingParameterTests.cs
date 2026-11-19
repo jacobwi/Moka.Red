@@ -34,7 +34,7 @@ public class SpacingParameterTests : BunitContext
 		["ScrollArea"] = new(typeof(MokaScrollArea), "overflow-x: hidden; overflow-y: auto"),
 		["Sticky"] = new(typeof(MokaSticky), "position: sticky; top: 0; z-index: var(--moka-z-sticky)"),
 		["BentoGrid"] = new(typeof(MokaBentoGrid),
-			"grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"),
+			"grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"),
 		["BentoBoard"] = new(typeof(MokaBentoGrid), "",
 			("Board", new MokaBoardCard[] { new("a") }),
 			("CardTemplate", (RenderFragment<MokaBoardCard>)(card => builder => builder.AddContent(0, card.Id)))),

@@ -24,3 +24,54 @@
 		</MokaBentoItem>
 	</MokaBentoGrid>
 </DemoSection>
+
+<DemoSection Id="columns-that-follow-the-width" Title="Columns that follow the width" Description="MinColumn fits as many columns as the width holds. Spans are capped at the columns that fit, so a wide tile never pushes the grid past its edge. Narrow the window to watch the hero drop from three columns to two and then one.">
+	<MokaBentoGrid MinColumn="12rem" GapValue="12px" MinRowHeight="80px">
+		<MokaBentoItem ColSpan="3" Title="Hero">
+			<MokaText Size="MokaSize.Sm">Three columns where three fit</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Uptime">
+			<MokaText Size="MokaSize.Sm">99.98%</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Devices">
+			<MokaText Size="MokaSize.Sm">42 online</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem ColSpan="2" Title="Traffic">
+			<MokaText Size="MokaSize.Sm">Two columns where two fit</MokaText>
+		</MokaBentoItem>
+		<MokaBentoItem Title="Alerts">
+			<MokaText Size="MokaSize.Sm">None</MokaText>
+		</MokaBentoItem>
+	</MokaBentoGrid>
+</DemoSection>
+
+<DemoSection Id="cards-of-one-height" Title="Cards of one height" Description="On a board, StretchCards makes every card in a row as tall as the tallest, so their edges line up.">
+	<MokaSwitch @bind-Value="_stretch" Label="Stretch cards"/>
+	<MokaBentoGrid Board="_board" BoardChanged="board => _board = board" StretchCards="_stretch">
+		<CardTemplate Context="card">
+			<MokaBentoItem Card="card" Title="@card.Id">
+				@if (card.Id == "Traffic")
+				{
+					<MokaText Size="MokaSize.Sm">A taller card, with more to say than the ones beside it, so they are shorter unless they stretch.</MokaText>
+					<MokaText Size="MokaSize.Sm">Second line.</MokaText>
+					<MokaText Size="MokaSize.Sm">Third line.</MokaText>
+				}
+				else
+				{
+					<MokaText Size="MokaSize.Sm">Short</MokaText>
+				}
+			</MokaBentoItem>
+		</CardTemplate>
+	</MokaBentoGrid>
+</DemoSection>
+
+@code {
+	private bool _stretch = true;
+
+	private IReadOnlyList<MokaBoardCard> _board =
+	[
+		new("Traffic", MokaBoardSize.Wide),
+		new("Devices", MokaBoardSize.Small),
+		new("Alerts", MokaBoardSize.Small)
+	];
+}

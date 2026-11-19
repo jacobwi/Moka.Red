@@ -43,6 +43,16 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="when-low-is-bad" Title="When low is bad" Description="LowIsBad turns the limits round for a battery or the space left: the meter warns at or below WarnAt, says Low and Empty, and stays quiet near full.">
+	<div class="moka-meter-rows" style="row-gap: var(--moka-spacing-sm); column-gap: var(--moka-spacing-md);">
+		@foreach ((string name, double charge) in Batteries)
+		{
+			<MokaMeter Layout="MokaMeterLayout.Row" Label="@name" Value="charge" WarnAt="0.2" CriticalAt="0.05"
+			           LowIsBad="true" Figure="@($"{charge}%")"/>
+		}
+	</div>
+</DemoSection>
+
 <DemoSection Id="meters-in-buttons-in-each-zones-color" Title="Meters in buttons, in each zone's color">
 	<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: var(--moka-spacing-sm);">
 		@foreach ((string name, double full, string color) in Zones)
@@ -73,6 +83,9 @@
 
 	private static readonly (string Name, double Used, double Size, string Unit)[] Volumes =
 		[("System", 41, 64, "GB"), ("Data", 1.2, 2, "TB"), ("Backups", 3.4, 4, "TB"), ("Scratch", 0.2, 1, "TB"), ("Logs", 19.4, 20, "GB")];
+
+	private static readonly (string Name, double Charge)[] Batteries =
+		[("Phone", 64), ("Keyboard", 15), ("Mouse", 4), ("Headphones", 100)];
 
 	private static readonly (string Name, double Full, string Color)[] Zones =
 		[("Office", 0.42, "var(--moka-label-teal)"), ("Guest", 0.86, "var(--moka-label-violet)"), ("Cameras", 0.97, "var(--moka-label-pink)"), ("Lab", 0.12, "var(--moka-label-lime)")];

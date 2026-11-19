@@ -19,6 +19,8 @@ order: 57
 | `Values` | `IReadOnlyList<string>` | `[]` | Selected values in multi-select mode (two-way bindable) |
 | `Multiple` | `bool` | `false` | Enable multi-select mode |
 | `Controlled` | `bool` | `false` | After raising its change callback, the control shows what the parent passes back, so a refused change reverts. See [Controlled](#controlled) |
+| `FullWidth` | `bool` | `false` | The group fills its container's width and the items share it |
+| `StackBelow` | `string?` | `null` | Below this width of the group itself, such as `"30rem"`, the items stack one per row. Any CSS length or a `calc()`, `var()`, `min()`, `max()` or `clamp()` of lengths. Only with `FullWidth`. See [Rows that wrap](#rows-that-wrap) |
 | `Size` | `MokaSize` | `Md` | Button size |
 | `Color` | `MokaColor` | `Primary` | Color of selected items |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -87,6 +89,29 @@ By default the group shows the user's pick at once and keeps it, and follows `Va
 ```
 
 `MokaSegmentedControl` and `MokaChip` take the same `Controlled`, with the same meaning.
+
+## Rows that wrap
+
+Items that don't fit on one row move to the next, each as wide as its label, rather than being cut off where nobody can
+reach them. The separators sit in the gaps between the items, so a group that fits on one row looks and lays out as it
+always has; when it wraps, a line parts the rows and the group's rounded edge clips the separators at its sides.
+
+`FullWidth` makes the group fill its container, the items sharing the width. With it, `StackBelow` gives a width below
+which every item takes a row of its own, so a phone shows a list of whole labels. It compares the group's own width, not
+the window's, so a group in a narrow panel stacks too. It works as `MokaSegmentedControl.StackBelow` does.
+
+```blazor-preview
+<MokaToggleGroup @bind-Value="_range" FullWidth="true" StackBelow="26rem">
+    <MokaToggleGroupItem Value="hour" Text="Last hour" />
+    <MokaToggleGroupItem Value="day" Text="Last day" />
+    <MokaToggleGroupItem Value="week" Text="Last week" />
+    <MokaToggleGroupItem Value="month" Text="Last month" />
+</MokaToggleGroup>
+
+@code {
+    private string? _range = "day";
+}
+```
 
 ## With Icons
 

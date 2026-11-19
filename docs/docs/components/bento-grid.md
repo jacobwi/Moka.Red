@@ -19,7 +19,8 @@ order: 86
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | - | `MokaBentoItem` children. Not drawn on a board |
-| `Columns` | `int` | `4` | Number of grid columns. Not used on a board |
+| `Columns` | `int` | `4` | Number of grid columns, each an equal share of the width. Not used on a board |
+| `MinColumn` | `string?` | - | The narrowest a column may get, such as `"16rem"` or `"var(--tile-min)"`: as many columns as fit. Overrides `Columns`. Not used on a board |
 | `Gap` | `MokaSpacingScale` | `Md` | Gap between items. Not used on a board |
 | `GapValue` | `string?` | - | Custom gap value (overrides `Gap`). Not used on a board |
 | `RowHeight` | `string` | `"auto"` | Grid row height. Not used on a board |
@@ -36,6 +37,7 @@ order: 86
 | `ResetText` | `string` | `"Back to the default"` | Text of the button that puts `DefaultBoard` back |
 | `TrayLabel` | `string` | `"Hidden"` | The label over the tray of hidden cards |
 | `TrayEmptyText` | `string` | `"Nothing hidden"` | What the tray says when no card is hidden |
+| `StretchCards` | `bool` | `false` | On a board, cards in one row are as tall as the tallest of them. Off, each card is as tall as its content |
 
 `MokaBentoGrid` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Class`, `Style`, `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the grid, on a board too. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
 
@@ -44,9 +46,9 @@ order: 86
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | - | Item content |
-| `ColSpan` | `int` | `1` | Number of columns to span. Not used on a card |
+| `ColSpan` | `int` | `1` | Number of columns to span, no more than fit with `MinColumn`. Not used on a card |
 | `RowSpan` | `int` | `1` | Number of rows to span. Not used on a card |
-| `ColStart` | `int?` | - | Explicit column start position |
+| `ColStart` | `int?` | - | Explicit column start position, moved back to the last column that fits with `MinColumn` |
 | `RowStart` | `int?` | - | Explicit row start position |
 | `Title` | `string?` | - | Item title. On a card, the card's name in its head |
 | `Description` | `string?` | - | Item description text |
@@ -87,6 +89,29 @@ Setting `Card`, `Icon`, `Source` or `Href` gives the item a head: the icon, the 
     <MokaBentoItem Title="Top Right 2">Small cell</MokaBentoItem>
     <MokaBentoItem Title="Bottom Right 1">Small cell</MokaBentoItem>
     <MokaBentoItem Title="Bottom Right 2">Small cell</MokaBentoItem>
+</MokaBentoGrid>
+```
+
+## Columns that follow the width
+
+Every column takes an equal share of the width (`minmax(0, 1fr)`), so content wider than its column, such as a long
+word, a table or a picture, is cut at the item's edge instead of widening its column and pushing the grid past its own.
+(They used to be `1fr`, which grows to fit its content.)
+
+`MinColumn` lets the width decide how many columns there are: as many as fit at that width, sharing what's left, and one
+in a grid narrower than it. It takes a length or a `var()`, as `MokaGrid.MinColumn` does, and wins over `Columns`.
+An item's `ColSpan` and `ColStart` are capped at the columns that fit, so a hero block that spans three columns spans two
+when two fit, and one on a phone, and never pushes the grid past its edge. The grid works the count out in CSS from its
+own width, with no script, through `calc()` dividing one length by another (CSS typed arithmetic). A browser that can't
+do that division can't count the columns, so there an item spanning more than one column takes a whole row instead.
+
+```blazor-preview
+<MokaBentoGrid MinColumn="12rem" GapValue="12px" MinRowHeight="80px">
+    <MokaBentoItem ColSpan="3" Title="Hero">Three columns where three fit</MokaBentoItem>
+    <MokaBentoItem Title="Uptime">99.98%</MokaBentoItem>
+    <MokaBentoItem Title="Devices">42</MokaBentoItem>
+    <MokaBentoItem ColSpan="2" Title="Traffic">Two columns where two fit</MokaBentoItem>
+    <MokaBentoItem Title="Alerts">None</MokaBentoItem>
 </MokaBentoGrid>
 ```
 
@@ -164,6 +189,17 @@ On the grip, the arrow keys move the card one place, Left and Up earlier, Right 
 ### Putting a refused change back
 
 The board keeps the change it drew until the app passes a layout whose cards differ from the last one it passed. So an app that sets its field to the new layout before saving puts a refused change back by setting the field to the one it had, as `SaveAsync` above does. An app that never changes the field it passes has to pass a new list to put one back.
+
+### Cards of one height
+
+A card on a board is as tall as its content, so a short card beside a tall one leaves a gap under it. `StretchCards`
+makes every card in a row as tall as the tallest, so their edges line up; the card's body takes the extra height.
+
+```razor
+<MokaBentoGrid Board="_board" BoardChanged="SaveAsync" StretchCards="true">
+    ...
+</MokaBentoGrid>
+```
 
 ### The card's head
 

@@ -30,6 +30,8 @@
 				@* The marks go under the colored copy, so their tint doesn't cover its text. *@
 				<pre class="moka-code-editor__layer moka-code-editor__marks" @ref="_marks" aria-hidden="true">@Marks</pre>
 				<pre class="moka-code-editor__layer moka-code-editor__highlight" @ref="_highlight" aria-hidden="true">@Highlight</pre>
+				@* Password managers ignore autocomplete="off", so each one's own opt-out is named as well. The app's
+				   attributes come last and win. *@
 				<textarea @ref="_textarea"
 				          id="@InputId"
 				          name="@FieldName"
@@ -37,7 +39,12 @@
 				          spellcheck="false"
 				          wrap="off"
 				          autocapitalize="off"
+				          autocorrect="off"
 				          autocomplete="off"
+				          data-1p-ignore
+				          data-lpignore="true"
+				          data-bwignore
+				          data-form-type="other"
 				          placeholder="@Placeholder"
 				          maxlength="@MaxLength"
 				          readonly="@ReadOnly"

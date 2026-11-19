@@ -28,6 +28,8 @@ public static partial class CssValues
 
 	private const string Unit = "(?:px|em|rem|%|pt|pc|ex|ch|cm|mm|in|q|vw|vh|vmin|vmax)";
 
+	private const string Ratio = Number + "(?:[ \t]*/[ \t]*" + Number + ")?";
+
 	// Functions a color may call. url(), image() and the like are left out: they fetch a resource.
 	private static readonly string[] ColorFunctions =
 	[
@@ -188,6 +190,17 @@ public static partial class CssValues
 
 		return depth == 0;
 	}
+
+	/// <summary>
+	///     True for a value of the CSS <c>aspect-ratio</c> property: a ratio such as <c>16/9</c>, <c>4 / 3</c> or
+	///     <c>1.5</c>, <c>auto</c>, <c>auto</c> with a ratio in either order, or a reference to a custom property such as
+	///     <c>var(--ratio)</c> or <c>var(--ratio, 16/9)</c>. The numbers are non-negative and have no unit. Surrounding
+	///     whitespace is ignored.
+	/// </summary>
+	/// <param name="value">The value to check.</param>
+	/// <returns><c>true</c> when <paramref name="value" /> is an aspect ratio by these rules.</returns>
+	public static bool IsAspectRatio([NotNullWhen(true)] string? value) =>
+		value is not null && AspectRatioPattern().IsMatch(value.Trim());
 
 	/// <summary>
 	///     A bare number with <c>px</c> added, and anything else as it is. A size with no unit is invalid CSS.
@@ -905,6 +918,11 @@ public static partial class CssValues
 	[GeneratedRegex("^(?<number>" + Number + ")(?<unit>" + Unit + ")?$",
 		RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
 	private static partial Regex LengthPattern();
+
+	[GeneratedRegex("^(?:auto|" + Ratio + "|auto[ \t]+" + Ratio + "|" + Ratio + "[ \t]+auto|var\\([ \t]*--[a-z0-9_-]+[ \t]*(?:,[ \t]*"
+		+ Ratio + "[ \t]*)?\\))$",
+		RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex AspectRatioPattern();
 
 	[GeneratedRegex("^" + Number + Unit + "?(?:(?:[ \t]*,[ \t]*|[ \t]+)" + Number + Unit + "?)*$",
 		RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

@@ -21,6 +21,20 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="a-fixed-shape" Title="A fixed shape" Description="AspectRatio gives the carousel a shape. Every slide is that tall, so pictures of different sizes fill it with object-fit, and the arrows and dots stay put.">
+	<div style="max-width: 600px;">
+		<MokaCarousel AspectRatio="16/9">
+			@for (int i = 1; i <= 3; i++)
+			{
+				<MokaCarouselSlide>
+					<img src="@($"samples/photo-{i}.svg")" alt="@($"Sample photo {i}")"
+					     style="display: block; width: 100%; height: 100%; object-fit: cover;"/>
+				</MokaCarouselSlide>
+			}
+		</MokaCarousel>
+	</div>
+</DemoSection>
+
 @code {
 	private int _carouselIndex;
 }

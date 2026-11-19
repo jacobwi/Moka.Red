@@ -16,7 +16,28 @@
 	<MokaText Size="MokaSize.Sm" Style="margin-top:8px; opacity:0.6;">Selected: @string.Join(", ", _toggleGroupValues)</MokaText>
 </DemoSection>
 
+<DemoSection Id="rows-that-wrap" Title="Rows that wrap" Description="Items that don't fit move to another row instead of being cut off. With FullWidth the items share the width, and StackBelow stacks them one per row below a width of the group's own.">
+	<div style="display: grid; gap: var(--moka-spacing-md); max-width: 22rem;">
+		<MokaToggleGroup @bind-Value="_day">
+			@foreach (string day in Days)
+			{
+				<MokaToggleGroupItem Value="@day" Text="@day"/>
+			}
+		</MokaToggleGroup>
+		<MokaToggleGroup @bind-Value="_range" FullWidth="true" StackBelow="26rem">
+			<MokaToggleGroupItem Value="hour" Text="Last hour"/>
+			<MokaToggleGroupItem Value="day" Text="Last day"/>
+			<MokaToggleGroupItem Value="week" Text="Last week"/>
+			<MokaToggleGroupItem Value="month" Text="Last month"/>
+		</MokaToggleGroup>
+	</div>
+</DemoSection>
+
 @code {
+	private static readonly string[] Days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+	private string? _day = "Monday";
+	private string? _range = "day";
 	private string? _toggleGroupValue = "list";
 
 	private IReadOnlyList<string> _toggleGroupValues = new[] { "bold" };

@@ -30,6 +30,7 @@ and dots are placed with auto margins rather than a transform, which would hold 
 | `Loop` | `bool` | `true` | Wrap around at ends |
 | `ActiveIndex` | `int` | `0` | Currently active slide (two-way bindable) |
 | `ActiveIndexChanged` | `EventCallback<int>` | -- | Callback when active slide changes |
+| `AspectRatio` | `string?` | -- | The carousel's width to its height, such as `"16/9"`. Every slide is then that tall, so content set to fill it fills the carousel. Without it the carousel is as tall as its tallest slide |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the carousel. It still fills its container, with the margin inside (up to 0.1.12 a margin made it wider than the container) |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -52,6 +53,25 @@ and dots are placed with auto margins rather than a transform, which would hold 
         <div style="display:flex;align-items:center;justify-content:center;height:100%;background:var(--moka-color-success);color:white">
             Slide 3
         </div>
+    </MokaCarouselSlide>
+</MokaCarousel>
+```
+
+### A Fixed Shape
+
+By default the carousel is as tall as its tallest slide, so slides of different heights make the dots and arrows sit
+over empty space on the shorter ones, and a height set on the carousel never reaches the slides. `AspectRatio` gives
+the carousel a shape, as CSS `aspect-ratio` takes it (`"16/9"`, `"4 / 3"`, `"1/1"` or a `var()`): its height follows its
+width, every slide is that tall, and content set to `height: 100%` fills it, such as a picture with `object-fit: cover`.
+Anything taller than the shape is cut at its edge.
+
+```blazor-preview
+<MokaCarousel AspectRatio="16/9" Style="max-width: 32rem">
+    <MokaCarouselSlide>
+        <img src="https://picsum.photos/id/1015/800/450" alt="A river valley" style="width: 100%; height: 100%; object-fit: cover; display: block" />
+    </MokaCarouselSlide>
+    <MokaCarouselSlide>
+        <img src="https://picsum.photos/id/1016/600/600" alt="Canyon walls" style="width: 100%; height: 100%; object-fit: cover; display: block" />
     </MokaCarouselSlide>
 </MokaCarousel>
 ```

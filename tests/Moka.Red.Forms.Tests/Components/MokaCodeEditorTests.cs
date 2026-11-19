@@ -252,6 +252,39 @@ public class MokaCodeEditorTests : BunitContext
 		Assert.Equal("config", cut.Find("label").GetAttribute("for"));
 	}
 
+	// Code never holds personal data, and password managers and some browsers ignore autocomplete="off" alone.
+	[Fact]
+	public void TheTextarea_TellsAutofillAndPasswordManagersToLeaveItAlone()
+	{
+		IRenderedComponent<MokaCodeEditor> cut = Render<MokaCodeEditor>(p => p.Add(x => x.Value, "[Peer]"));
+
+		IElement textarea = cut.Find("textarea");
+		Assert.Equal("off", textarea.GetAttribute("autocomplete"));
+		Assert.Equal("off", textarea.GetAttribute("autocorrect"));
+		Assert.Equal("off", textarea.GetAttribute("autocapitalize"));
+		Assert.Equal("false", textarea.GetAttribute("spellcheck"));
+		Assert.True(textarea.HasAttribute("data-1p-ignore"));
+		Assert.Equal("true", textarea.GetAttribute("data-lpignore"));
+		Assert.True(textarea.HasAttribute("data-bwignore"));
+		Assert.Equal("other", textarea.GetAttribute("data-form-type"));
+	}
+
+	[Fact]
+	public void TheAppsOwnAttributes_WinOverTheOptOuts()
+	{
+		IRenderedComponent<MokaCodeEditor> cut = Render<MokaCodeEditor>(p => p
+			.Add(x => x.Value, "[Peer]")
+			.AddUnmatched("autocorrect", "on")
+			.AddUnmatched("data-form-type", "query")
+			.AddUnmatched("data-1p-ignore", false));
+
+		IElement textarea = cut.Find("textarea");
+		Assert.Equal("on", textarea.GetAttribute("autocorrect"));
+		Assert.Equal("query", textarea.GetAttribute("data-form-type"));
+		Assert.False(textarea.HasAttribute("data-1p-ignore"));
+		Assert.Equal("true", textarea.GetAttribute("data-lpignore"));
+	}
+
 	private readonly Model _model = new();
 
 	private sealed class Model

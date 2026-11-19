@@ -42,9 +42,30 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Number of columns. Default 4. A board always has 4, 2 below 1180 px and 1 on a phone.</summary>
+	/// <summary>
+	///     Number of columns. Default 4. Every column gets the same share of the width, and content wider than its
+	///     column is cut at the item's edge rather than widening the column. A board always has 4, 2 below 1180 px and 1
+	///     on a phone.
+	/// </summary>
 	[Parameter]
 	public int Columns { get; set; } = 4;
+
+	/// <summary>
+	///     The narrowest a column may get, such as "16rem" or "var(--tile-min)": as many columns as fit, sharing the
+	///     width, and one in a grid narrower than this. Overrides <see cref="Columns" />. A value that isn't a length or a
+	///     <c>var()</c> is ignored. An item's <see cref="MokaBentoItem.ColSpan" /> and <see cref="MokaBentoItem.ColStart" />
+	///     are capped at the columns that fit, so a wide item never pushes the grid past its edge; in a browser that can't
+	///     work that out in CSS, an item spanning more than one column takes a whole row. Not used on a board.
+	/// </summary>
+	[Parameter]
+	public string? MinColumn { get; set; }
+
+	/// <summary>
+	///     On a board, cards in one row are as tall as the tallest of them, so their edges line up. Default false: each
+	///     card is as tall as its content.
+	/// </summary>
+	[Parameter]
+	public bool StretchCards { get; set; }
 
 	/// <summary>Gap between cells. Default Md. Not used on a board.</summary>
 	[Parameter]
@@ -126,6 +147,8 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 		.AddClass("moka-fill-width")
 		.AddClass("moka-bento-grid--board", _board is not null)
 		.AddClass("moka-bento-grid--customizing", IsCustomizing)
+		.AddClass("moka-bento-grid--stretch", _board is not null && StretchCards)
+		.AddClass("moka-bento-grid--fit", FitsColumns)
 		.AddClass(Class)
 		.Build();
 
@@ -135,11 +158,16 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 	protected override string? CssStyle => _board is not null
 		? base.CssStyle
 		: SpacingStyle()
-			.AddStyle("grid-template-columns", $"repeat({Columns}, 1fr)")
+			.AddStyle("grid-template-columns", FormattableString.Invariant($"repeat({Columns}, minmax(0, 1fr))"), !FitsColumns)
+			.AddStyle("--_bento-min", FitsColumns ? CssValues.WithPixels(MinColumn!.Trim()) : null)
+			.AddStyle("--_bento-gap", ResolvedGap, FitsColumns)
 			.AddStyle("grid-auto-rows", RowHeight == "auto" ? $"minmax({MinRowHeight}, auto)" : RowHeight)
-			.AddStyle("gap", ResolvedGap)
+			.AddStyle("gap", ResolvedGap, !FitsColumns)
 			.AddStyle(Style)
 			.Build();
+
+	// The items read it to cap their spans at the columns that fit.
+	internal bool FitsColumns => _board is null && CssValues.IsLengthOrVariable(MinColumn);
 
 	internal bool IsCustomizing => _board is not null && _customizing;
 

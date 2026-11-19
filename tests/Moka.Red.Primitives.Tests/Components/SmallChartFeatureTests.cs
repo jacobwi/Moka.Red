@@ -247,6 +247,116 @@ public sealed class MokaMeterBulletTests : BunitContext
 	}
 
 	[Fact]
+	public void PastCriticalAt_ByDefault_ItSaysFull()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 97d)
+			.Add(x => x.WarnAt, 0.8)
+			.Add(x => x.CriticalAt, 0.95));
+
+		Assert.Equal("Full", cut.Find(".moka-meter__state").TextContent);
+		Assert.Equal("97, Full", cut.Find(".moka-meter").GetAttribute("aria-valuetext"));
+	}
+
+	[Fact]
+	public void LowIsBad_AtOrUnderWarnAt_SaysLow_WithTheWarningIcon()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 20d)
+			.Add(x => x.Label, "Battery")
+			.Add(x => x.WarnAt, 0.2)
+			.Add(x => x.CriticalAt, 0.05)
+			.Add(x => x.LowIsBad, true));
+
+		IElement root = cut.Find(".moka-meter");
+		Assert.Equal("moka-meter moka-fill-width moka-meter--md moka-meter--primary moka-meter--warn", root.ClassName);
+		Assert.Equal("Low", cut.Find(".moka-meter__state").TextContent);
+		Assert.Single(cut.FindAll(".moka-meter__name svg"));
+		Assert.Equal("20, Low", root.GetAttribute("aria-valuetext"));
+	}
+
+	[Fact]
+	public void LowIsBad_AtOrUnderCriticalAt_SaysEmpty_InTheErrorColor()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 3d)
+			.Add(x => x.WarnAt, 0.2)
+			.Add(x => x.CriticalAt, 0.05)
+			.Add(x => x.LowIsBad, true));
+
+		IElement root = cut.Find(".moka-meter");
+		Assert.Contains("moka-meter--critical", root.ClassList);
+		Assert.DoesNotContain("moka-meter--warn", root.ClassList);
+		Assert.Equal("Empty", cut.Find(".moka-meter__state").TextContent);
+		Assert.Equal("3, Empty", root.GetAttribute("aria-valuetext"));
+	}
+
+	[Fact]
+	public void LowIsBad_OverWarnAt_NothingChanges_EvenNearFull()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 99d)
+			.Add(x => x.Label, "Battery")
+			.Add(x => x.WarnAt, 0.2)
+			.Add(x => x.CriticalAt, 0.05)
+			.Add(x => x.LowIsBad, true));
+
+		Assert.Equal("moka-meter moka-fill-width moka-meter--md moka-meter--primary", cut.Find(".moka-meter").ClassName);
+		Assert.Null(cut.Find(".moka-meter").GetAttribute("aria-valuetext"));
+		Assert.Empty(cut.FindAll(".moka-meter__state"));
+	}
+
+	[Fact]
+	public void LowIsBad_TheWordsCanStillBeReplaced()
+	{
+		IRenderedComponent<MokaMeter> cut = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 10d)
+			.Add(x => x.WarnAt, 0.25)
+			.Add(x => x.LowIsBad, true)
+			.Add(x => x.WarnText, "Charge soon"));
+
+		Assert.Equal("Charge soon", cut.Find(".moka-meter__state").TextContent);
+	}
+
+	[Fact]
+	public void LowIsBad_ABulletsRangesDarkenTowardTheLowEnd()
+	{
+		IRenderedComponent<MokaMeter> lowIsBad = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 62d)
+			.Add(x => x.Target, 70d)
+			.Add(x => x.Segments, Ranges)
+			.Add(x => x.LowIsBad, true));
+		IRenderedComponent<MokaMeter> highIsBad = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 62d)
+			.Add(x => x.Target, 70d)
+			.Add(x => x.Segments, Ranges));
+
+		Assert.Equal(["moka-meter__band moka-meter__band--3", "moka-meter__band moka-meter__band--2", "moka-meter__band moka-meter__band--1"],
+			lowIsBad.FindAll(".moka-meter__band").Select(b => b.ClassName));
+		Assert.Equal(["moka-meter__band moka-meter__band--1", "moka-meter__band moka-meter__band--2", "moka-meter__band moka-meter__band--3"],
+			highIsBad.FindAll(".moka-meter__band").Select(b => b.ClassName));
+		Assert.Equal(["left: 0%; width: 60%", "left: 60%; width: 25%", "left: 85%; width: 15%"],
+			lowIsBad.FindAll(".moka-meter__band").Select(b => b.GetAttribute("style")));
+	}
+
+	// Segments carry their own colors and the fill grows from the start of the range either way, so the direction
+	// only changes the state.
+	[Fact]
+	public void LowIsBad_LeavesSegmentsAndTheFillAsTheyAre()
+	{
+		MokaMeterSegment[] zones = [new(0, 20, "red"), new(20, 100, "green")];
+		IRenderedComponent<MokaMeter> lowIsBad = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 50d)
+			.Add(x => x.Segments, zones)
+			.Add(x => x.LowIsBad, true));
+		IRenderedComponent<MokaMeter> plain = Render<MokaMeter>(p => p
+			.Add(x => x.Value, 50d)
+			.Add(x => x.Segments, zones));
+
+		lowIsBad.MarkupMatches(plain.Markup);
+	}
+
+	[Fact]
 	public void RowsInAMeterList_ShareItsColumnsThroughSubgrid()
 	{
 		const string row = ".moka-meter-rows > .moka-meter--row";

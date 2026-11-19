@@ -21,6 +21,14 @@
 	width: 100%;
 }
 
+/* AspectRatio: the height comes from the width (the root clips, so its content can't stretch it), and the viewport and
+   the track fill it. The slides stretch to the track, which makes their height definite, so content at height: 100%
+   fills the carousel; anything taller is cut at its edge. */
+.moka-carousel--ratio .moka-carousel-viewport,
+.moka-carousel--ratio .moka-carousel-track {
+	height: 100%;
+}
+
 /* The arrows sit in the tooltips that name them, and those take the arrows' places. Centred with auto margins
    rather than a transform: a transformed element holds the tooltip's fixed popup inside itself. */
 .moka-carousel ::deep .moka-carousel-arrow-tip {

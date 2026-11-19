@@ -4,6 +4,17 @@
 	display: grid;
 }
 
+/* MinColumn: as many columns as fit at that width. The grid is a size container so its items can work out from 100cqi
+   how many columns that is (--_bento-fit, the count auto-fit arrives at), and cap their spans at it: a span past the
+   last column would add columns of its own and push the grid past its edge. The value is only resolved where an item
+   reads it, against this grid. */
+.moka-bento-grid--fit {
+	container-type: inline-size;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--_bento-min)), 1fr));
+	gap: var(--_bento-gap);
+	--_bento-fit: max(1, round(down, (100cqi + var(--_bento-gap)) / (var(--_bento-min) + var(--_bento-gap))));
+}
+
 .moka-bento-grid--board {
 	display: flex;
 	flex-direction: column;
@@ -17,6 +28,11 @@
 	grid-auto-flow: dense;
 	align-items: start;
 	gap: var(--moka-grid-gap);
+}
+
+/* StretchCards: every card in a row as tall as the row. */
+.moka-bento-grid--stretch > .moka-bento-grid__cards {
+	align-items: stretch;
 }
 
 /* Room above the first row for the dashed ring, which sits outside each card. */

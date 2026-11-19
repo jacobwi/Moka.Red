@@ -4,14 +4,21 @@
    Base styles
    ============================================================ */
 
+/* The separator is the right border, laid in the group's gap by the negative margin, and the line under the item parts
+   the rows once the group wraps; the group clips both where they meet its edge. An item is never narrower than its
+   label: one that doesn't fit moves to the next row. */
 .moka-toggle-group-item {
+	--_toggle-rule: var(--moka-color-outline-variant);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: var(--moka-spacing-xs);
+	min-width: max-content;
 	background: transparent;
 	border: none;
-	border-right: 1px solid var(--moka-color-outline-variant);
+	border-right: var(--moka-border-width) solid var(--_toggle-rule);
+	margin-right: calc(-1 * var(--moka-border-width));
+	box-shadow: 0 var(--moka-border-width) 0 0 var(--_toggle-rule);
 	color: var(--moka-color-on-surface);
 	cursor: pointer;
 	font: inherit;
@@ -25,6 +32,7 @@
 
 .moka-toggle-group-item:last-child {
 	border-right: none;
+	margin-right: 0;
 }
 
 .moka-toggle-group-item:hover:not(:disabled):not(.moka-toggle-group-item--selected) {
@@ -66,7 +74,7 @@
 .moka-gate .moka-toggle-group-item {
 	min-height: var(--_toggle-height, var(--moka-segment-height));
 	padding: 0 var(--moka-button-padding-sm);
-	border-right-color: var(--moka-color-outline);
+	--_toggle-rule: var(--moka-color-outline);
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 

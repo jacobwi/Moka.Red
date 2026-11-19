@@ -56,13 +56,13 @@ public class MokaBentoBoardTests : BunitContext
 	};
 
 	[Fact]
-	public void Grid_WithoutBoard_RendersAsBefore()
+	public void Grid_WithoutBoard_GivesEachColumnAnEqualShare()
 	{
 		IRenderedComponent<MokaBentoGrid> cut = Render<MokaBentoGrid>(p => p
 			.AddChildContent("<span>x</span>"));
 
 		cut.MarkupMatches(
-			"""<div class="moka-bento-grid moka-fill-width" style="grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"><span>x</span></div>""");
+			"""<div class="moka-bento-grid moka-fill-width" style="grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: minmax(120px, auto); gap: var(--moka-spacing-md)"><span>x</span></div>""");
 		Assert.Empty(JSInterop.Invocations);
 	}
 

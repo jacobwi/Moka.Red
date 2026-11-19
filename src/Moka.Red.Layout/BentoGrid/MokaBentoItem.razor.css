@@ -78,6 +78,21 @@
 	.moka-bento-item--full { grid-column: 1 / -1; }
 }
 
+/* In a grid with MinColumn the span and the start are capped at --_bento-fit, the columns that fit, which the grid
+   works out from its width: a span past the last column would add columns and push the grid past its edge. Where calc()
+   can't divide one length by another that count can't be had, so an item spanning more than one column takes a row. */
+.moka-bento-item--fit {
+	grid-column: span min(var(--_bento-span), var(--_bento-fit));
+}
+
+.moka-bento-item--fit-at {
+	grid-column: min(var(--_bento-start), var(--_bento-fit)) / span min(var(--_bento-span), var(--_bento-fit) + 1 - min(var(--_bento-start), var(--_bento-fit)));
+}
+
+@supports not (width: calc(1px * (1px / 1px))) {
+	.moka-bento-item--fit { grid-column: 1 / -1; }
+}
+
 .moka-bento-item--customizing {
 	outline: 1px dashed var(--moka-color-primary-ring);
 	outline-offset: 0.1875rem;

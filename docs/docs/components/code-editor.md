@@ -105,6 +105,10 @@ A `MokaCodeDiagnostic` has a `Severity` (`Error`, `Warning`, `Info`), a `Message
 
 The textarea sits over a colored copy of its text and its own text is transparent, with only the caret and the selection drawn. Its module keeps the copy, the underlines and the line numbers scrolled with it. On a static page, where no module runs, the textarea shows its own text and the copy stays hidden, and it posts under the bound field's name like any Moka input.
 
+## Autofill
+
+Code never holds a name, an address or a password, so the textarea turns off spell checking, capitals, autocorrect and autocomplete. Password managers and some browsers fill a field whatever `autocomplete="off"` says, so it also carries the attribute each of them reads to leave a field alone: `data-1p-ignore` (1Password), `data-lpignore="true"` (LastPass), `data-bwignore` (Bitwarden) and `data-form-type="other"` (Dashlane). An attribute the app passes wins over these, so `data-lpignore="false"` lets LastPass back in.
+
 ## Screen readers
 
 The textarea is the field: the label names it, `aria-invalid` is set while an error shows, and `aria-describedby` points at the problems list, which is a list of buttons. The colored copy, the underlines and the line numbers are hidden from screen readers. Tab moves focus out of the editor as in any text area; it doesn't insert a tab.

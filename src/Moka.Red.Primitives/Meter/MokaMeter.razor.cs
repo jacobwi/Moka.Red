@@ -14,9 +14,9 @@ namespace Moka.Red.Primitives.Meter;
 /// </summary>
 /// <remarks>
 ///     <see cref="Target" /> turns it into a bullet chart, <see cref="Layout" /> lines a list of them up as rows, and
-///     <see cref="WarnAt" /> and <see cref="CriticalAt" /> say in a word and an icon when it runs near full. With none of
-///     those set it draws what it always has. It is built of spans, as the native <c>meter</c> element is phrasing
-///     content, so it can sit inside a button, a link or a label.
+///     <see cref="WarnAt" /> and <see cref="CriticalAt" /> say in a word and an icon when it runs near full, or with
+///     <see cref="LowIsBad" /> near empty. With none of those set it draws what it always has. It is built of spans, as
+///     the native <c>meter</c> element is phrasing content, so it can sit inside a button, a link or a label.
 /// </remarks>
 public partial class MokaMeter : MokaVisualComponentBase
 {
@@ -74,22 +74,42 @@ public partial class MokaMeter : MokaVisualComponentBase
 
 	/// <summary>
 	///     A share of the range, 0 to 1, from which the fill turns the warning color and the name gains an icon and
-	///     <see cref="WarnText" />, such as 0.8 for a volume nearly full.
+	///     <see cref="WarnText" />, such as 0.8 for a volume nearly full. At or above it, or at or below it with
+	///     <see cref="LowIsBad" />, such as 0.2 for a battery running low.
 	/// </summary>
 	[Parameter]
 	public double? WarnAt { get; set; }
 
-	/// <summary>A share of the range, 0 to 1, from which the fill turns the error color and says <see cref="CriticalText" />.</summary>
+	/// <summary>
+	///     A share of the range, 0 to 1, from which the fill turns the error color and says <see cref="CriticalText" />:
+	///     at or above it, or at or below it with <see cref="LowIsBad" />.
+	/// </summary>
 	[Parameter]
 	public double? CriticalAt { get; set; }
 
-	/// <summary>The word beside the name past <see cref="WarnAt" />. Defaults to "Nearly full".</summary>
+	/// <summary>
+	///     Whether the low end of the range is the bad end, as for a battery's charge or the space left on a disk. Then
+	///     <see cref="WarnAt" /> and <see cref="CriticalAt" /> count down: the meter warns at or below them, the words are
+	///     "Low" and "Empty", and a bullet's ranges (<see cref="Segments" /> with a <see cref="Target" />) darken toward
+	///     the low end. It is the HTML <c>meter</c> element with its <c>optimum</c> at the high end. Default false: the
+	///     high end is the bad end, as for a disk filling up.
+	/// </summary>
 	[Parameter]
-	public string WarnText { get; set; } = "Nearly full";
+	public bool LowIsBad { get; set; }
 
-	/// <summary>The word beside the name past <see cref="CriticalAt" />. Defaults to "Full".</summary>
+	/// <summary>
+	///     The word beside the name past <see cref="WarnAt" />. Null says "Nearly full", or "Low" with
+	///     <see cref="LowIsBad" />.
+	/// </summary>
 	[Parameter]
-	public string CriticalText { get; set; } = "Full";
+	public string? WarnText { get; set; }
+
+	/// <summary>
+	///     The word beside the name past <see cref="CriticalAt" />. Null says "Full", or "Empty" with
+	///     <see cref="LowIsBad" />.
+	/// </summary>
+	[Parameter]
+	public string? CriticalText { get; set; }
 
 	/// <summary>The figure shown in place of the formatted value, such as "412 of 500 GB".</summary>
 	[Parameter]
@@ -159,16 +179,16 @@ public partial class MokaMeter : MokaVisualComponentBase
 
 	private double Share => Max <= Min ? 0 : (Value - Min) / (Max - Min);
 
-	private MeterState State => CriticalAt is { } critical && Share >= critical
+	private MeterState State => CriticalAt is { } critical && Past(critical)
 		? MeterState.Critical
-		: WarnAt is { } warn && Share >= warn
+		: WarnAt is { } warn && Past(warn)
 			? MeterState.Warn
 			: MeterState.None;
 
 	private string? StateWord => State switch
 	{
-		MeterState.Critical => CriticalText,
-		MeterState.Warn => WarnText,
+		MeterState.Critical => CriticalText ?? (LowIsBad ? "Empty" : "Full"),
+		MeterState.Warn => WarnText ?? (LowIsBad ? "Low" : "Nearly full"),
 		_ => null
 	};
 
@@ -256,7 +276,9 @@ public partial class MokaMeter : MokaVisualComponentBase
 				MokaMeterSegment segment = Segments[i];
 				double from = Math.Clamp(Math.Min(segment.FromPercent, segment.ToPercent), 0, 100);
 				double to = Math.Clamp(Math.Max(segment.FromPercent, segment.ToPercent), 0, 100);
-				string level = ((i % BandCount) + 1).ToString(CultureInfo.InvariantCulture);
+				// Darker is worse, as in a bullet graph: toward the high end, or toward the low end when that is the bad one.
+				int step = LowIsBad ? Segments.Count - 1 - i : i;
+				string level = ((step % BandCount) + 1).ToString(CultureInfo.InvariantCulture);
 				bands.Add(new Band($"moka-meter__band moka-meter__band--{level}", new StyleBuilder()
 					.AddStyle("left", $"{Num(from)}%")
 					.AddStyle("width", $"{Num(to - from)}%")
@@ -270,6 +292,9 @@ public partial class MokaMeter : MokaVisualComponentBase
 	private string? BulletFillStyle => new StyleBuilder().AddStyle("width", $"{Num(FillPercent)}%").Build();
 
 	private string? TargetStyle => new StyleBuilder().AddStyle("left", $"{Num(Percent(Target ?? Min))}%").Build();
+
+	// Reached when the value is at the threshold or past it toward the bad end.
+	private bool Past(double threshold) => LowIsBad ? Share <= threshold : Share >= threshold;
 
 	private double Percent(double value) =>
 		Max <= Min ? 0 : Math.Clamp((value - Min) / (Max - Min) * 100, 0, 100);

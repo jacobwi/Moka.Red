@@ -89,6 +89,34 @@ public class CssValuesTests
 	public void IsLengthOrVariable_RejectsEverythingElse(string? value) => Assert.False(CssValues.IsLengthOrVariable(value));
 
 	[Theory]
+	[InlineData("16/9")]
+	[InlineData("4 / 3")]
+	[InlineData(" 1/1 ")]
+	[InlineData("1.5")]
+	[InlineData(".75")]
+	[InlineData("auto")]
+	[InlineData("AUTO")]
+	[InlineData("auto 16/9")]
+	[InlineData("16 / 9 auto")]
+	[InlineData("var(--ratio)")]
+	[InlineData("var(--ratio, 16/9)")]
+	public void IsAspectRatio_AcceptsRatiosAutoAndReferences(string value) => Assert.True(CssValues.IsAspectRatio(value));
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("16:9")]
+	[InlineData("-16/9")]
+	[InlineData("16/-9")]
+	[InlineData("16px/9px")]
+	[InlineData("16/9/2")]
+	[InlineData("auto auto")]
+	[InlineData("16/9; color: red")]
+	[InlineData("var(--ratio, 16px)")]
+	[InlineData("wide")]
+	public void IsAspectRatio_RejectsEverythingElse(string? value) => Assert.False(CssValues.IsAspectRatio(value));
+
+	[Theory]
 	[InlineData("12px")]
 	[InlineData("8")]
 	[InlineData("calc(8rem * var(--app-text-scale, 1))")]
