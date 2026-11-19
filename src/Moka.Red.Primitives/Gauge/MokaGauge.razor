@@ -28,7 +28,7 @@
 		      stroke-dashoffset="@DashOffsetStr"/>
 	</svg>
 
-	@if (ShowValue || HasDisplay || HasWord || ShowLabel)
+	@if (ShowValue || HasDisplay || HasWord || ShowLabel || StateWord is not null)
 	{
 		<div class="moka-gauge-center">
 			@if (HasDisplay)
@@ -46,6 +46,16 @@
 			@if (HasWord)
 			{
 				<span class="@WordClass">@Word</span>
+			}
+			@if (StateWord is { } state)
+			{
+				<span class="moka-gauge-state">
+					@if (StateIcon is { } icon)
+					{
+						<MokaIcon Icon="icon" SizeValue="1em"/>
+					}
+					@state
+				</span>
 			}
 			@if (ShowLabel)
 			{

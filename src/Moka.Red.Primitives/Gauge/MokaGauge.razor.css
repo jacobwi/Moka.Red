@@ -265,6 +265,58 @@
 }
 
 /* ============================================================
+   Past a limit: the arc and the number turn the warning or error
+   color, and a word with an icon says so, so the state never
+   rests on color alone. As specific as the ring's and the dial's
+   number rules and after them, and before the display's colors,
+   which the app chose
+   ============================================================ */
+
+.moka-gauge.moka-gauge--warn > .moka-gauge-svg > .moka-gauge-fill {
+	stroke: var(--moka-color-warning);
+}
+
+.moka-gauge.moka-gauge--critical > .moka-gauge-svg > .moka-gauge-fill {
+	stroke: var(--moka-color-error);
+}
+
+.moka-gauge.moka-gauge--warn > .moka-gauge-center > .moka-gauge-value {
+	color: var(--moka-color-warning);
+}
+
+.moka-gauge.moka-gauge--critical > .moka-gauge-center > .moka-gauge-value {
+	color: var(--moka-color-error);
+}
+
+.moka-gauge-state {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--moka-spacing-xxs);
+	margin-top: var(--moka-spacing-xxs);
+	font-size: var(--moka-font-size-xs);
+	font-weight: var(--moka-font-weight-medium);
+	line-height: var(--moka-line-height-tight);
+	white-space: nowrap;
+}
+
+.moka-gauge--warn > .moka-gauge-center > .moka-gauge-state {
+	color: var(--moka-color-warning);
+}
+
+.moka-gauge--critical > .moka-gauge-center > .moka-gauge-state {
+	color: var(--moka-color-error);
+}
+
+.moka-gauge--ring > .moka-gauge-center > .moka-gauge-state,
+.moka-gauge--sized > .moka-gauge-center > .moka-gauge-state {
+	font-size: max(var(--moka-font-size-xxs), calc(9.09cqi * var(--moka-font-scale)));
+}
+
+.moka-gauge--dial > .moka-gauge-center > .moka-gauge-state {
+	font-size: calc(0.75rem * var(--moka-font-scale));
+}
+
+/* ============================================================
    Display: the app's text in the number's place, size and font,
    and the number as a small line under it, the size of a word
    ============================================================ */

@@ -31,6 +31,7 @@ public class MokaTabsIconOnlyTests : BunitContext
 
 	public MokaTabsIconOnlyTests()
 	{
+		SetRendererInfo(new RendererInfo("Server", true));
 		JSInterop.Mode = JSRuntimeMode.Loose;
 		_fit = JSInterop.SetupModule(FitModule);
 		_fit.Mode = JSRuntimeMode.Loose;

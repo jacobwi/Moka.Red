@@ -32,6 +32,7 @@ public class MokaTabsOverflowTests : BunitContext
 
 	public MokaTabsOverflowTests()
 	{
+		SetRendererInfo(new RendererInfo("Server", true));
 		JSInterop.Mode = JSRuntimeMode.Loose;
 		_module = JSInterop.SetupModule(Module);
 		_module.Mode = JSRuntimeMode.Loose;
@@ -424,7 +425,7 @@ public class MokaTabsOverflowTests : BunitContext
 		Assert.Equal("hidden", ScopedCss.Declarations(Css, ".moka-tabs--menu[data-moka-fitted] > .moka-tabs__list")["overflow-x"]);
 
 	[Fact]
-	public void BeforeItIsMeasured_TheListScrolls() =>
+	public void WithoutTheScript_TheListScrolls() =>
 		Assert.False(ScopedCss.Declarations(Css, ".moka-tabs--menu").ContainsKey("overflow-x"));
 
 	[Fact]

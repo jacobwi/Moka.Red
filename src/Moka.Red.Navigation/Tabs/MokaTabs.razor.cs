@@ -101,7 +101,9 @@ public partial class MokaTabs : MokaVisualComponentBase
 
 	/// <summary>
 	///     What happens to tabs that don't fit. <see cref="MokaTabsOverflow.Scroll" /> by default.
-	///     <see cref="MokaTabsOverflow.Menu" /> needs an interactive render; without one the list scrolls.
+	///     <see cref="MokaTabsOverflow.Menu" /> needs an interactive render; without one the list scrolls. Until a script
+	///     has measured the row, a moment after the tabs render or after a prerendered page goes live, it shows whole tabs
+	///     only and keeps the button's room.
 	/// </summary>
 	[Parameter]
 	public MokaTabsOverflow Overflow { get; set; }
@@ -146,12 +148,17 @@ public partial class MokaTabs : MokaVisualComponentBase
 		.AddClass(Segmented ? "moka-tabs--segmented" : "moka-tabs--underline")
 		.AddClass("moka-tabs--stretch", Stretch)
 		.AddClass("moka-tabs--menu", Overflow == MokaTabsOverflow.Menu)
+		.AddClass("moka-tabs--will-fit", Overflow == MokaTabsOverflow.Menu && WillBeInteractive)
 		.AddClass("moka-tabs--icons", IconOnly == MokaTabsIconOnly.Always)
 		.AddClass("moka-tabs--icons-narrow", IconOnly == MokaTabsIconOnly.Narrow)
 		.AddClass("moka-fill-width", IconOnly == MokaTabsIconOnly.Narrow)
 		.AddClass("moka-tabs--group-dividers", _grouped && GroupLook == MokaTabsGroupLook.Divider)
 		.AddClass(Class)
 		.Build();
+
+	// A prerender of an interactive component has its render mode assigned, so the script will measure it once the page
+	// is live; a page with no render mode never runs it, and its list keeps scrolling.
+	private bool WillBeInteractive => RendererInfo.IsInteractive || AssignedRenderMode is not null;
 
 	private bool Tipped => IconOnly != MokaTabsIconOnly.Never;
 

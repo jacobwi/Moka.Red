@@ -4,7 +4,6 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Icons;
 
 namespace Moka.Red.Primitives.Meter;
 
@@ -137,8 +136,8 @@ public partial class MokaMeter : MokaVisualComponentBase
 		.AddClass(OwnColor is null ? $"moka-meter--{ColorToKebab(ResolvedColor)}" : "moka-meter--own")
 		.AddClass("moka-meter--row", Layout == MokaMeterLayout.Row)
 		.AddClass("moka-meter--bullet", Target.HasValue)
-		.AddClass("moka-meter--warn", State == MeterState.Warn)
-		.AddClass("moka-meter--critical", State == MeterState.Critical)
+		.AddClass("moka-meter--warn", State == MokaLimitState.Warn)
+		.AddClass("moka-meter--critical", State == MokaLimitState.Critical)
 		.AddClass(Class)
 		.Build();
 
@@ -149,13 +148,6 @@ public partial class MokaMeter : MokaVisualComponentBase
 		.AddStyle("--_meter-color", OwnColor)
 		.AddStyle(Style)
 		.Build();
-
-	private enum MeterState
-	{
-		None,
-		Warn,
-		Critical
-	}
 
 	private sealed record Band(string Class, string? Style);
 
@@ -179,25 +171,11 @@ public partial class MokaMeter : MokaVisualComponentBase
 
 	private double Share => Max <= Min ? 0 : (Value - Min) / (Max - Min);
 
-	private MeterState State => CriticalAt is { } critical && Past(critical)
-		? MeterState.Critical
-		: WarnAt is { } warn && Past(warn)
-			? MeterState.Warn
-			: MeterState.None;
+	private MokaLimitState State => MokaLimits.StateOf(Share, WarnAt, CriticalAt, LowIsBad);
 
-	private string? StateWord => State switch
-	{
-		MeterState.Critical => CriticalText ?? (LowIsBad ? "Empty" : "Full"),
-		MeterState.Warn => WarnText ?? (LowIsBad ? "Low" : "Nearly full"),
-		_ => null
-	};
+	private string? StateWord => MokaLimits.WordOf(State, WarnText, CriticalText, LowIsBad);
 
-	private MokaIconDefinition? StateIcon => State switch
-	{
-		MeterState.Critical => MokaIcons.Status.Error,
-		MeterState.Warn => MokaIcons.Status.Warning,
-		_ => default(MokaIconDefinition?)
-	};
+	private MokaIconDefinition? StateIcon => MokaLimits.IconOf(State);
 
 	// Read only when something beyond the number needs saying, so a plain meter keeps its markup.
 	private string? ValueText
@@ -292,9 +270,6 @@ public partial class MokaMeter : MokaVisualComponentBase
 	private string? BulletFillStyle => new StyleBuilder().AddStyle("width", $"{Num(FillPercent)}%").Build();
 
 	private string? TargetStyle => new StyleBuilder().AddStyle("left", $"{Num(Percent(Target ?? Min))}%").Build();
-
-	// Reached when the value is at the threshold or past it toward the bad end.
-	private bool Past(double threshold) => LowIsBad ? Share <= threshold : Share >= threshold;
 
 	private double Percent(double value) =>
 		Max <= Min ? 0 : Math.Clamp((value - Min) / (Max - Min) * 100, 0, 100);

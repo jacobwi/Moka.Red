@@ -2,6 +2,20 @@
 	<MokaGauge Value="72" Label="CPU Usage" Color="MokaColor.Primary"/>
 </DemoSection>
 
+<DemoSection Id="near-full-or-near-empty" Title="Near full or near empty" Description="WarnAt and CriticalAt turn the arc and the number amber and red with a word under it. LowIsBad counts them down for a battery: it warns at or below WarnAt and stays quiet near full.">
+	<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl);">
+		@foreach ((string name, double charge) in Batteries)
+		{
+			<MokaGauge Value="charge" Label="@name" Format="0'%'" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" Size="MokaSize.Sm"/>
+		}
+		<MokaGauge Value="@_disk" Label="Disk" Format="0'%'" WarnAt="0.8" CriticalAt="0.95" Size="MokaSize.Sm"/>
+	</div>
+	<div style="display: flex; justify-content: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveDisk(-8)">Free space</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => MoveDisk(8)">Fill the disk</MokaButton>
+	</div>
+</DemoSection>
+
 <DemoSection Id="a-grade-in-the-middle" Title="A grade in the middle" Description="Display draws short text large where the number goes, in the theme's number font, and the number moves to a small line.">
 	<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--moka-spacing-xl);">
 		@foreach (Grade grade in _grades)
@@ -74,6 +88,13 @@
 	};
 
 	private void MoveScore(int by) => _score = Math.Clamp(_score + by, 0, 100);
+
+	private static readonly (string Name, double Charge)[] Batteries =
+		[("Phone", 64), ("Keyboard", 15), ("Mouse", 4)];
+
+	private double _disk = 76;
+
+	private void MoveDisk(int by) => _disk = Math.Clamp(_disk + by, 0, 100);
 
 	private double _rate = 412;
 

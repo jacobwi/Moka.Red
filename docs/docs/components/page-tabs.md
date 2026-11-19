@@ -173,4 +173,8 @@ The arrow keys, Home and End pass over tabs in the menu, and Tab goes from the t
 
 `Segmented` and `Stretch` work with it. A segmented list stays as wide as its tabs, with the button in its own box right after it. With `Stretch` the tabs that fit share the width left beside the button.
 
-Measuring takes a small script in the browser, and it calls .NET only when which tabs are in the menu changes. On a static page, or until the script has run, the list scrolls. If the tab showing alone is wider than the row, the list scrolls too.
+Measuring takes a small script in the browser, and it calls .NET only when which tabs are in the menu changes. The script can only measure tabs already on screen, a moment after they render, and after the page goes live when it was prerendered. Until then the row shows whole tabs only: a tab that doesn't fit waits on a hidden second row rather than showing cut off at the edge, and the button's room is kept, so the tabs you see first are the ones that stay. Two things can still change when the measure runs: a group's name at the end of the row goes if its first tab didn't fit, and a tab showing that sits past the end of the row (one picked from the menu, on a page that draws its tabs again) takes the place of the tab before it. A segmented list spans the row until then, and hugs its tabs once measured.
+
+On a static page, with no interactivity, there is no script and the list scrolls. If the tab showing alone is wider than the row, the list scrolls too.
+
+Tests that render the tabs with `Overflow="MokaTabsOverflow.Menu"` in bUnit set the renderer first, as the tabs ask whether the page is interactive: `SetRendererInfo(new RendererInfo("Server", true))`.

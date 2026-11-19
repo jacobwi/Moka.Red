@@ -6,7 +6,7 @@ order: 47
 
 # Gauge
 
-`MokaGauge` renders a speedometer-style semicircular arc that fills proportionally to the current value within a min/max range. Use it for CPU usage, performance scores, temperature, or any bounded metric. With a `Word` it is a full ring around a score, and with `AutoScale` a half dial for a value with no fixed top, such as a live rate.
+`MokaGauge` renders a speedometer-style semicircular arc that fills proportionally to the current value within a min/max range. Use it for CPU usage, performance scores, temperature, or any bounded metric. With a `Word` it is a full ring around a score, and with `AutoScale` a half dial for a value with no fixed top, such as a live rate. `WarnAt` and `CriticalAt` warn near full, or with `LowIsBad` near empty.
 
 ## Parameters
 
@@ -29,6 +29,10 @@ order: 47
 | `SizeValue` | `string?` | -- | Any CSS length, instead of `Size`. A bare number is read as pixels, and the number in the middle keeps its proportion |
 | `StartAngle` | `double` | `-135` | Arc start angle in degrees. Doesn't apply with `AutoScale` |
 | `EndAngle` | `double` | `135` | Arc end angle in degrees. Doesn't apply with `AutoScale` |
+| `WarnAt` | `double?` | -- | A share of the range from `Min` to `Max`, 0 to 1, from which the arc and the number turn the warning color and a word with an icon says so: at or above it, or at or below it with `LowIsBad` |
+| `CriticalAt` | `double?` | -- | A share of the range from which the arc and the number turn the error color and say `CriticalText` |
+| `LowIsBad` | `bool` | `false` | The low end is the bad end, as for a battery: `WarnAt` and `CriticalAt` count down |
+| `WarnText`, `CriticalText` | `string?` | -- | The words under the number past each limit. Null says "Nearly full" and "Full", or "Low" and "Empty" with `LowIsBad` |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
 
@@ -76,6 +80,30 @@ The display is sized in proportion to the gauge, so a letter in a 64 px ring is 
 The scale stays up when the value falls, so a live rate doesn't make it jump. It comes back down only when `Max` changes, so pass a new `Max` to start over.
 
 The number in a ring or a dial is drawn in the theme's number font: the title font unless `MokaTheme.WithNumberFont(MokaNumberFont.Mono)` puts big numbers in JetBrains Mono, as `MokaTheme.Ember` does (see [Theming](/getting-started/theming#style)).
+
+## Near Full or Near Empty
+
+`WarnAt` and `CriticalAt` are shares of the range, 0 to 1, as on `MokaMeter`. Past `WarnAt` the arc and the number turn
+the warning color, and a word with an icon goes under the number, "Nearly full" unless `WarnText` says otherwise. Past
+`CriticalAt` they turn the error color and the word is "Full". The word means the state never rests on color alone,
+and a screen reader hears it after the value: "97, Full". Under both limits the gauge draws as it always has, in its
+own `Color`.
+
+By default the high end is the bad end, as for a disk filling up. For a battery's charge, the space left or a signal's
+strength the low end is the bad one, and `LowIsBad` turns the limits round: the gauge warns at or below `WarnAt` and
+turns red at or below `CriticalAt`, so `CriticalAt` sits under `WarnAt`, and the words become "Low" and "Empty".
+
+```blazor-preview
+<MokaFlexbox Gap="MokaSpacingScale.Xl" Align="MokaAlign.End">
+    <MokaGauge Value="64" Label="Phone" Format="0'%'" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+    <MokaGauge Value="15" Label="Keyboard" Format="0'%'" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+    <MokaGauge Value="4" Label="Mouse" Format="0'%'" WarnAt="0.2" CriticalAt="0.05" LowIsBad="true" />
+    <MokaGauge Value="97" Label="Disk" Format="0'%'" WarnAt="0.8" CriticalAt="0.95" />
+</MokaFlexbox>
+```
+
+The limits work on a ring and a dial too, and the word goes under a `Word`. With `AutoScale` they stay shares of `Max`,
+not of the raised scale, so a limit doesn't move as the scale grows. A `DisplayColor` the app picked keeps its color.
 
 ## Basic Percentage
 

@@ -2,7 +2,9 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
+using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Primitives.Meter;
 
 namespace Moka.Red.Primitives.Gauge;
 
@@ -10,7 +12,8 @@ namespace Moka.Red.Primitives.Gauge;
 ///     A semicircular arc gauge for displaying a value within a range, similar to a speedometer.
 ///     Renders as an SVG arc using stroke-dasharray/dashoffset with animated transitions.
 ///     With a <see cref="Word" /> it is a full ring around the number, and with <see cref="AutoScale" /> a half
-///     dial whose scale grows with the value.
+///     dial whose scale grows with the value. <see cref="WarnAt" /> and <see cref="CriticalAt" /> say in a word and an
+///     icon when it runs near full, or with <see cref="LowIsBad" /> near empty, as <see cref="Meter.MokaMeter" /> does.
 /// </summary>
 public partial class MokaGauge : MokaVisualComponentBase
 {
@@ -118,6 +121,45 @@ public partial class MokaGauge : MokaVisualComponentBase
 	[Parameter]
 	public double EndAngle { get; set; } = DefaultEndAngle;
 
+	/// <summary>
+	///     A share of the range from <see cref="Min" /> to <see cref="Max" />, 0 to 1, from which the arc and the number
+	///     turn the warning color and the gauge says <see cref="WarnText" /> with an icon, such as 0.8 for a disk nearly
+	///     full. At or above it, or at or below it with <see cref="LowIsBad" />, such as 0.2 for a battery running low.
+	///     With <see cref="AutoScale" /> it stays a share of <see cref="Max" />, not of the raised scale, so the limit
+	///     doesn't move as the scale grows.
+	/// </summary>
+	[Parameter]
+	public double? WarnAt { get; set; }
+
+	/// <summary>
+	///     A share of the range, 0 to 1, from which the arc and the number turn the error color and the gauge says
+	///     <see cref="CriticalText" />: at or above it, or at or below it with <see cref="LowIsBad" />.
+	/// </summary>
+	[Parameter]
+	public double? CriticalAt { get; set; }
+
+	/// <summary>
+	///     Whether the low end of the range is the bad end, as for a battery's charge or the space left on a disk. Then
+	///     <see cref="WarnAt" /> and <see cref="CriticalAt" /> count down: the gauge warns at or below them, and the words
+	///     are "Low" and "Empty". Default false: the high end is the bad end, as for a disk filling up.
+	/// </summary>
+	[Parameter]
+	public bool LowIsBad { get; set; }
+
+	/// <summary>
+	///     The word under the number past <see cref="WarnAt" />. Null says "Nearly full", or "Low" with
+	///     <see cref="LowIsBad" />.
+	/// </summary>
+	[Parameter]
+	public string? WarnText { get; set; }
+
+	/// <summary>
+	///     The word under the number past <see cref="CriticalAt" />. Null says "Full", or "Empty" with
+	///     <see cref="LowIsBad" />.
+	/// </summary>
+	[Parameter]
+	public string? CriticalText { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-gauge";
 
@@ -140,6 +182,8 @@ public partial class MokaGauge : MokaVisualComponentBase
 		.AddClass("moka-gauge--sized", SizeValue is not null)
 		.AddClass("moka-gauge--ring", IsRing)
 		.AddClass("moka-gauge--dial", AutoScale)
+		.AddClass("moka-gauge--warn", State == MokaLimitState.Warn)
+		.AddClass("moka-gauge--critical", State == MokaLimitState.Critical)
 		.AddClass(Class)
 		.Build();
 
@@ -163,13 +207,44 @@ public partial class MokaGauge : MokaVisualComponentBase
 		.AddStyle("font-size", DisplaySize, CssValues.IsLengthExpression(DisplaySize))
 		.Build();
 
-	private string? ValueText => (HasDisplay, HasWord) switch
+	// Read only when something beyond the number needs saying, so a plain gauge keeps its markup.
+	private string? ValueText
 	{
-		(true, true) => $"{Display}, {FormattedValue}, {Word}",
-		(true, false) => $"{Display}, {FormattedValue}",
-		(false, true) => $"{FormattedValue}, {Word}",
-		_ => null
-	};
+		get
+		{
+			if (!HasDisplay && !HasWord && StateWord is null)
+			{
+				return null;
+			}
+
+			List<string> parts = [];
+			if (HasDisplay)
+			{
+				parts.Add(Display!);
+			}
+
+			parts.Add(FormattedValue);
+			if (HasWord)
+			{
+				parts.Add(Word!);
+			}
+
+			if (StateWord is { } state)
+			{
+				parts.Add(state);
+			}
+
+			return string.Join(", ", parts);
+		}
+	}
+
+	private double Share => Max <= Min ? 0 : (Value - Min) / (Max - Min);
+
+	private MokaLimitState State => MokaLimits.StateOf(Share, WarnAt, CriticalAt, LowIsBad);
+
+	private string? StateWord => MokaLimits.WordOf(State, WarnText, CriticalText, LowIsBad);
+
+	private MokaIconDefinition? StateIcon => MokaLimits.IconOf(State);
 
 	/// <summary>The top of the scale: <see cref="Max" />, or what <see cref="AutoScale" /> raised it to.</summary>
 	private double ScaleMax => AutoScale && _peak > Max ? NextRound(_peak) : Max;
