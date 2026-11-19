@@ -38,8 +38,11 @@
 	opacity: 0.6;
 }
 
+/* A text input's automatic minimum width is its intrinsic width, about 20 characters, so without min-width it couldn't
+   shrink with its search box and pushed past it, over the level filter beside it. */
 .moka-log-viewer__search-input {
 	flex: 1;
+	min-width: 0;
 	background: none;
 	border: none;
 	outline: none;

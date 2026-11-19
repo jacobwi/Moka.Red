@@ -57,11 +57,13 @@ order: 86
 | `OnClick` | `EventCallback` | - | Click callback |
 | `Card` | `MokaBoardCard?` | - | The board card this item draws. Sets its size, and adds its tools while the board is customized |
 | `Icon` | `MokaIconDefinition?` | - | An icon in the head, before the title |
+| `IconContent` | `RenderFragment?` | - | Anything drawn in the icon's place, such as a small picture or an identicon, in the icon's 16 px box. Wins over `Icon` and is hidden from screen readers |
 | `Source` | `string?` | - | A small tag after the title saying where the card comes from, such as "Plugin" |
 | `Href` | `string?` | - | Where the head's Open link goes. Without it there is no link |
 | `OpenText` | `string` | `"Open"` | Text of the head's Open link |
+| `EndContent` | `RenderFragment?` | - | Content at the end of the head, before the Open link, such as a count or a status dot |
 
-Setting `Card`, `Icon`, `Source` or `Href` gives the item a head: the icon, the title in 14 px, the source tag and the Open link in one row. Without any of them the item renders as it always has.
+Setting `Card`, `Icon`, `IconContent`, `Source`, `Href` or `EndContent` gives the item a head: the icon, the title in 14 px, the source tag, the end content and the Open link in one row. Without any of them the item renders as it always has.
 
 ## Basic Bento Layout
 
@@ -227,5 +229,19 @@ A card's head holds its `Icon`, its title, an optional `Source` tag and an Open 
 ```razor
 <MokaBentoItem Card="card" Title="Plugins" Icon="MokaIcons.Content.Copy" Source="Plugin" Href="/plugins">
     ...
+</MokaBentoItem>
+```
+
+#### Head slots
+
+`IconContent` draws anything in the icon's place, such as a small picture, an identicon or an emoji, in the same 16 px box and spacing as `Icon`, which it wins over. Pictures and SVG fill the box and text is set at its size. It's hidden from screen readers, since the title names the card. `EndContent` sits at the end of the head, before the Open link, for a count or a status dot. Written as child elements, as below, they need the card's body in `ChildContent` too.
+
+On a `Clickable` item a click on a control in `EndContent` (a button, a link, a field, a tooltip's trigger) runs that control and doesn't click the item, while a click on plain content there, such as a count, clicks the item as anywhere else on it. Both slots work on a plain item too: like `Icon` and `Href`, either one gives it the head, with `Title` as its heading.
+
+```razor
+<MokaBentoItem Card="card" Title="Team" Href="/team">
+    <IconContent><img src="/img/team.png" alt="" /></IconContent>
+    <EndContent><MokaBadge Content="3" Tone="MokaBadgeTone.NeedsYou" /></EndContent>
+    <ChildContent>...</ChildContent>
 </MokaBentoItem>
 ```

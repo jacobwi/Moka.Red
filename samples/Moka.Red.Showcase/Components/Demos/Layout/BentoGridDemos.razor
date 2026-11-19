@@ -78,8 +78,64 @@
 	</MokaBentoGrid>
 </DemoSection>
 
+<DemoSection Id="head-slots" Title="Head slots" Description="IconContent draws a picture, an identicon or an emoji in the icon's place, and EndContent puts a count, a status dot or a button at the end of the head. On a clickable card a click on that button only runs the button; a click anywhere else, the count included, clicks the card.">
+	<MokaSwitch @bind-Value="_slotsCustomizing" Label="Customize"/>
+	<MokaBentoGrid Board="_slotsBoard" BoardChanged="board => _slotsBoard = board" @bind-Customizing="_slotsCustomizing">
+		<CardTemplate Context="card">
+			<MokaBentoItem Card="card" Title="@card.Id" Clickable OnClick="() => _clickedCard = card.Id">
+				<IconContent>
+					@switch (card.Id)
+					{
+						case "Team":
+							<MokaIdenticon Value="team" SizeValue="16px" Rounded="MokaRounding.Sm"/>
+							break;
+						case "Uptime":
+							<span>&#x1F4C8;</span>
+							break;
+						default:
+							<span>&#x1F514;</span>
+							break;
+					}
+				</IconContent>
+				<EndContent>
+					@switch (card.Id)
+					{
+						case "Team":
+							<MokaBadge Content="3" Tone="MokaBadgeTone.NeedsYou"/>
+							break;
+						case "Uptime":
+							<MokaStatusDot Color="MokaColor.Success" Label="Live" Pulse/>
+							break;
+						default:
+							<MokaTooltip Text="@(_muted ? "Unmute" : "Mute")" Position="MokaTooltipPosition.BottomEnd">
+								<MokaButton Quiet StartIcon="@(_muted ? MokaIcons.Toggle.VolumeOff : MokaIcons.Toggle.Volume)"
+								            aria-label="@(_muted ? "Unmute" : "Mute")" OnClick="() => _muted = !_muted"/>
+							</MokaTooltip>
+							break;
+					}
+				</EndContent>
+				<ChildContent>
+					<MokaText Size="MokaSize.Sm">@card.Size</MokaText>
+				</ChildContent>
+			</MokaBentoItem>
+		</CardTemplate>
+	</MokaBentoGrid>
+	<MokaText Size="MokaSize.Sm">Last card clicked: @(_clickedCard ?? "none"). Alerts are @(_muted ? "muted" : "on").</MokaText>
+</DemoSection>
+
 @code {
 	private static readonly MokaBoardFlow[] Flows = Enum.GetValues<MokaBoardFlow>();
+
+	private IReadOnlyList<MokaBoardCard> _slotsBoard =
+	[
+		new("Team", MokaBoardSize.Small),
+		new("Uptime", MokaBoardSize.Small),
+		new("Alerts", MokaBoardSize.Wide)
+	];
+
+	private bool _slotsCustomizing;
+	private string? _clickedCard;
+	private bool _muted;
 
 	private static readonly IReadOnlyList<MokaBoardCard> OrderDefaults =
 	[

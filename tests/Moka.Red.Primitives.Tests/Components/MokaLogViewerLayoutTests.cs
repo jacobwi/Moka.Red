@@ -77,6 +77,32 @@ public sealed class MokaLogViewerLayoutTests : BunitContext
 		Assert.False(source.HasAttribute("title"));
 	}
 
+	// The toolbar wraps and the search area keeps a floor, but the box inside it has to give way: a text input's automatic
+	// minimum is its intrinsic width, so on a phone it pushed past the search area, and its button with it, over the
+	// level filter beside it.
+	[Fact]
+	public void TheSearchBox_ShrinksWithinItsSearchArea()
+	{
+		Assert.Equal("wrap", ScopedCss.Declarations(Css, ".moka-log-viewer__toolbar")["flex-wrap"]);
+		Assert.Equal("120px", ScopedCss.Declarations(Css, ".moka-log-viewer__search")["min-width"]);
+		IReadOnlyDictionary<string, string> input = ScopedCss.Declarations(Css, ".moka-log-viewer__search-input");
+		Assert.Equal("1", input["flex"]);
+		Assert.Equal("0", input["min-width"]);
+	}
+
+	[Theory]
+	[InlineData(MokaLogSearchMode.Live)]
+	[InlineData(MokaLogSearchMode.OnSubmit)]
+	public void EverySearchMode_DrawsTheBoxTheRuleNames(MokaLogSearchMode mode)
+	{
+		IRenderedComponent<MokaLogViewer> cut = Render<MokaLogViewer>(p => p
+			.Add(x => x.Entries, [Line])
+			.Add(x => x.SearchMode, mode)
+			.Add(x => x.LevelFilter, MokaLogLevelFilter.AtLeast));
+
+		Assert.Single(cut.FindAll(".moka-log-viewer__toolbar > .moka-log-viewer__search > input.moka-log-viewer__search-input"));
+	}
+
 	[Fact]
 	public void ThePaneTitle_Wraps()
 	{

@@ -225,6 +225,28 @@
 	box-shadow: var(--moka-focus-ring);
 }
 
+.moka-bento-item__end {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-left: auto;
+}
+
+.moka-bento-item__end ~ .moka-bento-item__open {
+	margin-left: 0;
+}
+
+/* On a clickable item a click on plain content here reaches the item underneath; a click on a control stops at this
+   element. */
+.moka-bento-item--clickable .moka-bento-item__end {
+	pointer-events: none;
+}
+
+.moka-bento-item--clickable .moka-bento-item__end ::deep :is(a[href], button, input, select, textarea, label, [tabindex], .moka-tooltip-trigger) {
+	pointer-events: auto;
+}
+
 .moka-bento-item__body {
 	display: flex;
 	flex-direction: column;

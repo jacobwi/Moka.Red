@@ -67,7 +67,11 @@ else
 			</div>
 		}
 		<div class="moka-bento-item__head">
-			@if (Icon is not null)
+			@if (IconContent is not null)
+			{
+				<span class="moka-icon-slot moka-bento-item__icon" style="@IconSlotStyle" aria-hidden="true">@IconContent</span>
+			}
+			else if (Icon is not null)
 			{
 				<span class="moka-bento-item__icon" aria-hidden="true">
 					<MokaIcon Icon="Icon.Value" SizeValue="16px"/>
@@ -80,6 +84,10 @@ else
 			@if (Source is not null)
 			{
 				<span class="moka-bento-item__source">@Source</span>
+			}
+			@if (EndContent is not null)
+			{
+				<div class="moka-bento-item__end" @onclick:stopPropagation="Clickable">@EndContent</div>
 			}
 			@if (OpenHref is not null)
 			{

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
 
@@ -14,6 +15,9 @@ namespace Moka.Red.Layout.BentoGrid;
 public partial class MokaBentoItem : MokaVisualComponentBase
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+
+	private static readonly string IconSlotStyle =
+		new StyleBuilder().AddStyle("--moka-icon-slot", MokaEnumHelpers.ToPixels(MokaSize.Sm)).Build()!;
 
 	private ElementReference _element;
 	private bool _keysBound;
@@ -71,6 +75,23 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
 
+	/// <summary>
+	///     Anything drawn in the icon's place in the head, such as a small picture, an identicon or an emoji, in the same
+	///     box and spacing as <see cref="Icon" />, which it wins over. Pictures and SVG fill the box; text is set at the
+	///     box's size. Hidden from screen readers like the icon, since the title names the item. Like <see cref="Icon" />,
+	///     it gives the item a head.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? IconContent { get; set; }
+
+	/// <summary>
+	///     Content at the end of the head, before the Open link, such as a count or a status dot. On a
+	///     <see cref="Clickable" /> item a click on a control in it doesn't click the item; a click on anything else in it
+	///     does. Like <see cref="Href" />, it gives the item a head.
+	/// </summary>
+	[Parameter]
+	public RenderFragment? EndContent { get; set; }
+
 	/// <summary>A small tag after the title saying where the card comes from, such as "Plugin".</summary>
 	[Parameter]
 	public string? Source { get; set; }
@@ -123,7 +144,8 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 
 	private int? TabIndex => Clickable ? 0 : null;
 
-	private bool IsTile => Card is not null || Icon is not null || Source is not null || Href is not null;
+	private bool IsTile => Card is not null || Icon is not null || IconContent is not null || Source is not null || Href is not null ||
+	                       EndContent is not null;
 
 	// The board's own copy, so a card drawn through a component of the app's that held on to an older one is current.
 	private MokaBoardCard? CurrentCard => Card is null ? null : ParentGrid?.Find(Card.Id) ?? Card;
