@@ -24,6 +24,8 @@ const hosts = new WeakMap();
  * @param {string} [layout.more] Selector from the host for the button that shows while something dropped.
  * @param {string} [layout.keep] Children matching this never drop.
  * @param {string} [layout.filler] Children matching this only take up room: never dropped, never counted.
+ * @param {string} [layout.heading] Children matching this head the children after them, up to the next heading. A
+ *     heading never drops to make room and is never counted or given a position; it drops while none of its children show.
  * @param {string[]} [layout.watch] Attributes on the children whose change means measuring again.
  * @param {boolean} [layout.positions] Report where the dropped children are instead of how many there are.
  * @param {boolean} [layout.flexible] Children can grow or shrink to fill the row, so free room can't be read from where the last one ends.
@@ -121,7 +123,7 @@ function fit(host, bound) {
 
 	// When a different item is the one that has to stay, what dropped last time says nothing about what has room now.
 	const kept = layout.keep ? sides[0].querySelector(`:scope > :is(${layout.keep})`) : null;
-	const returning = kept === bound.kept ? wasDropped.filter(element => !element.matches(separator)) : [];
+	const returning = kept === bound.kept ? wasDropped.filter(element => counts(element, layout)) : [];
 	bound.kept = kept;
 
 	const button = layout.more ? host.querySelector(layout.more) : null;
@@ -142,10 +144,11 @@ function fit(host, bound) {
 		}
 
 		next.setAttribute(dropped, "");
+		tidyHeadings(next.parentElement, layout);
 		tidySeparators(next.parentElement, layout);
 	}
 
-	const count = droppedIn(sides).filter(element => !element.matches(separator)).length;
+	const count = droppedIn(sides).filter(element => counts(element, layout)).length;
 	if (count === 0) {
 		host.removeAttribute(hasMore);
 	}
@@ -177,7 +180,7 @@ function report(bound, sides, count) {
 		return;
 	}
 
-	const value = bound.layout.positions ? positionsOf(sides) : count;
+	const value = bound.layout.positions ? positionsOf(sides, bound.layout) : count;
 	const key = String(value);
 	if (bound.reported === key) {
 		return;
@@ -187,10 +190,15 @@ function report(bound, sides, count) {
 	bound.reporter.invokeMethodAsync("OnDroppedChanged", value).catch(() => { });
 }
 
-function positionsOf(sides) {
+function positionsOf(sides, layout) {
 	return sides
-		.flatMap(side => [...side.children])
+		.flatMap(side => [...side.children].filter(element => !matches(element, layout.heading)))
 		.flatMap((element, position) => element.hasAttribute(dropped) && !element.matches(separator) ? [position] : []);
+}
+
+// What the count and the positions are about: not a separator, and not a heading.
+function counts(element, layout) {
+	return !element.matches(separator) && !matches(element, layout.heading);
 }
 
 function spills(side) {
@@ -232,7 +240,16 @@ function canDrop(element, layout) {
 	return !element.matches(separator)
 		&& !element.matches(moreButton)
 		&& !matches(element, layout.keep)
-		&& !matches(element, layout.filler);
+		&& !matches(element, layout.filler)
+		&& !matches(element, layout.heading);
+}
+
+// What a heading stands over and a separator stands between: a child that is neither of them, the button or filler.
+function isItem(element, layout) {
+	return !element.matches(separator)
+		&& !element.matches(moreButton)
+		&& !matches(element, layout.filler)
+		&& !matches(element, layout.heading);
 }
 
 function dropOrder(sides, layout) {
@@ -261,6 +278,27 @@ function rankOf(element) {
 	return Number(holder?.getAttribute(priority)) || 0;
 }
 
+// A heading only stands over items that are still showing.
+function tidyHeadings(side, layout) {
+	if (!layout.heading) {
+		return;
+	}
+
+	let heading = null;
+	let headsAnItem = false;
+	for (const element of side.children) {
+		if (matches(element, layout.heading)) {
+			heading?.toggleAttribute(dropped, !headsAnItem);
+			heading = element;
+			headsAnItem = false;
+		} else if (isItem(element, layout) && !element.hasAttribute(dropped)) {
+			headsAnItem = true;
+		}
+	}
+
+	heading?.toggleAttribute(dropped, !headsAnItem);
+}
+
 // A separator only stands between two items that are still showing.
 function tidySeparators(side, layout) {
 	let afterItem = false;
@@ -270,7 +308,7 @@ function tidySeparators(side, layout) {
 			element.toggleAttribute(dropped, !afterItem);
 			trailing = afterItem ? element : trailing;
 			afterItem = false;
-		} else if (!element.matches(moreButton) && !matches(element, layout.filler) && !element.hasAttribute(dropped)) {
+		} else if (isItem(element, layout) && !element.hasAttribute(dropped)) {
 			afterItem = true;
 			trailing = null;
 		}

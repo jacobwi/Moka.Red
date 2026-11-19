@@ -89,6 +89,27 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="tabs-in-groups" Title="Tabs in groups" Description="Give tabs a Group and each group starts with its name, with a line between groups. Screen readers hear the group with each tab, the arrow keys walk every tab in order, and the menu lists the tabs that don't fit under their groups. Drag the corner to narrow the box.">
+	<ChildContent>
+		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-xl);">
+			<div class="showcase-resize">
+				<MokaTabs Items="_groupedTabs" @bind-Active="_activeGrouped" Label="Server settings" Overflow="MokaTabsOverflow.Menu">
+					<Panel>Showing @_activeGrouped.</Panel>
+				</MokaTabs>
+			</div>
+			<div class="showcase-resize">
+				<MokaCaption Micro>GroupLook="Divider", segmented</MokaCaption>
+				<MokaTabs Items="_groupedTabs" @bind-Active="_activeDivided" Label="Server settings, lines only"
+				          GroupLook="MokaTabsGroupLook.Divider" Segmented Overflow="MokaTabsOverflow.Menu"/>
+			</div>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaTabItem.Group">The group's name. Tabs next to each other with the same group show together</DemoParam>
+		<DemoParam Name="GroupLook">Label shows each group's name before its tabs, Divider only the lines between groups</DemoParam>
+	</Notes>
+</DemoSection>
+
 @code {
 	private static readonly IReadOnlyList<MokaTabItem> _pageTabs =
 	[
@@ -199,4 +220,22 @@
 	private string? _activeStretch = "day";
 
 	private string? _activeBoth = "hour";
+
+	private static readonly IReadOnlyList<MokaTabItem> _groupedTabs =
+	[
+		new("overview", "Overview", Icon: MokaIcons.Navigation.Home) { Group = "General" },
+		new("activity", "Activity", 3, MokaBadgeTone.NeedsYou) { Group = "General" },
+		new("disks", "Disks") { Group = "Storage" },
+		new("shares", "Shares", 12) { Group = "Storage" },
+		new("backups", "Backups") { Group = "Storage" },
+		new("interfaces", "Interfaces") { Group = "Network" },
+		new("names", "Names") { Group = "Network" },
+		new("firewall", "Firewall", Disabled: true) { Group = "Network" },
+		new("users", "Users") { Group = "Access" },
+		new("keys", "Keys", Href: "components/tabs#tabs-in-groups") { Group = "Access" }
+	];
+
+	private string? _activeGrouped = "overview";
+
+	private string? _activeDivided = "disks";
 }

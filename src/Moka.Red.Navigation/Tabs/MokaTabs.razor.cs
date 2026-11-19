@@ -28,11 +28,14 @@ public partial class MokaTabs : MokaVisualComponentBase
 		}
 	];
 
+	// A group's name heads its tabs: the script never drops it to make room or counts it in the positions, so they stay
+	// positions in Items, and hides it once none of its tabs show.
 	private static readonly Dictionary<string, object?> FitLayout = new()
 	{
 		["sides"] = new[] { ":scope > .moka-tabs__list" },
 		["more"] = ":scope > .moka-tabs__more [data-moka-more]",
 		["keep"] = "[aria-selected=\"true\"], [tabindex=\"0\"]",
+		["heading"] = ".moka-tabs__group",
 		["watch"] = new[] { "aria-selected", "tabindex" },
 		["positions"] = true,
 		["flexible"] = true
@@ -44,6 +47,7 @@ public partial class MokaTabs : MokaVisualComponentBase
 		["sides"] = new[] { ":scope > .moka-tabs__list" },
 		["more"] = ":scope > .moka-tabs__more [data-moka-more]",
 		["keep"] = ":has(> [aria-selected=\"true\"]), :has(> [tabindex=\"0\"])",
+		["heading"] = ".moka-tabs__group",
 		["watch"] = new[] { "aria-selected", "tabindex" },
 		["positions"] = true,
 		["flexible"] = true
@@ -59,6 +63,7 @@ public partial class MokaTabs : MokaVisualComponentBase
 	private Dictionary<string, object?>? _fittedLayout;
 	private string? _fittedLook;
 	private string? _focusRequest;
+	private bool _grouped;
 	private bool _keysBound;
 	private string? _lastActiveParameter;
 	private ElementReference _listRef;
@@ -122,6 +127,14 @@ public partial class MokaTabs : MokaVisualComponentBase
 	[Parameter]
 	public MokaTooltipPosition TooltipPosition { get; set; } = MokaTooltipPosition.Bottom;
 
+	/// <summary>
+	///     How the tabs show where a group starts, once tabs have a <see cref="MokaTabItem.Group" />: its name before its
+	///     first tab, or only a line between groups. A line stands between groups either way, and the name stays hidden
+	///     while the tabs show only their icons (<see cref="IconOnly" />). Defaults to <see cref="MokaTabsGroupLook.Label" />.
+	/// </summary>
+	[Parameter]
+	public MokaTabsGroupLook GroupLook { get; set; }
+
 	[Inject]
 	private NavigationManager Navigation { get; set; } = default!;
 
@@ -136,6 +149,7 @@ public partial class MokaTabs : MokaVisualComponentBase
 		.AddClass("moka-tabs--icons", IconOnly == MokaTabsIconOnly.Always)
 		.AddClass("moka-tabs--icons-narrow", IconOnly == MokaTabsIconOnly.Narrow)
 		.AddClass("moka-fill-width", IconOnly == MokaTabsIconOnly.Narrow)
+		.AddClass("moka-tabs--group-dividers", _grouped && GroupLook == MokaTabsGroupLook.Divider)
 		.AddClass(Class)
 		.Build();
 
@@ -197,6 +211,8 @@ public partial class MokaTabs : MokaVisualComponentBase
 			_lastActiveParameter = Active;
 			_active = Active;
 		}
+
+		_grouped = Items.Any(item => item.Group is not null);
 	}
 
 	/// <inheritdoc />
@@ -271,6 +287,34 @@ public partial class MokaTabs : MokaVisualComponentBase
 	}
 
 	private string TabId(int index) => $"{_idPrefix}-{index.ToString(CultureInfo.InvariantCulture)}";
+
+	// Named by its first tab's position, which no other group can share.
+	private string GroupId(int index) => $"{_idPrefix}-group-{index.ToString(CultureInfo.InvariantCulture)}";
+
+	// A group starts where the group changes. A run of tabs in no group needs a start only after a group, for the line.
+	private bool StartsGroup(int index) =>
+		_grouped && (index == 0
+			? Items[0].Group is not null
+			: !string.Equals(Items[index - 1].Group, Items[index].Group, StringComparison.Ordinal));
+
+	// The tabs in the menu, gathered by group: tabs that are next to each other there and share a group share a heading.
+	private List<MenuRun> DroppedRuns()
+	{
+		List<MenuRun> runs = [];
+		foreach (MokaTabItem item in DroppedItems)
+		{
+			if (runs.Count > 0 && string.Equals(runs[^1].Group, item.Group, StringComparison.Ordinal))
+			{
+				runs[^1].Items.Add(item);
+			}
+			else
+			{
+				runs.Add(new MenuRun(item.Group, [item]));
+			}
+		}
+
+		return runs;
+	}
 
 	private string AriaSelected(MokaTabItem item) => item.Id == _active ? "true" : "false";
 
@@ -369,4 +413,6 @@ public partial class MokaTabs : MokaVisualComponentBase
 
 		await PickAsync(target);
 	}
+
+	private sealed record MenuRun(string? Group, List<MokaTabItem> Items);
 }

@@ -6,20 +6,33 @@
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @ref="_root">
 	<div class="moka-tabs__list moka-hide-scrollbar" role="tablist" aria-label="@Label" @ref="_listRef" @onkeydown="HandleKeyDown" @attributes="AdditionalAttributes">
-		@{ MokaTabItem? tabStop = TabStop; }
+		@{
+			MokaTabItem? tabStop = TabStop;
+			string? groupId = null;
+		}
 		@for (int i = 0; i < Items.Count; i++)
 		{
 			int index = i;
 			MokaTabItem item = Items[index];
+			if (StartsGroup(index))
+			{
+				groupId = item.Group is null ? null : GroupId(index);
+				<span class="moka-tabs__group" id="@groupId" aria-hidden="true">
+					@if (item.Group is not null)
+					{
+						<span class="moka-tabs__group-name moka-micro-label">@item.Group</span>
+					}
+				</span>
+			}
 			if (Tipped)
 			{
 				<MokaTooltip Text="@TipText(item)" Position="TooltipPosition" Class="moka-tabs__tip">
-					@Tab(item, index, tabStop)
+					@Tab(item, index, tabStop, groupId)
 				</MokaTooltip>
 			}
 			else
 			{
-				@Tab(item, index, tabStop)
+				@Tab(item, index, tabStop, groupId)
 			}
 		}
 	</div>
@@ -31,20 +44,25 @@
 					<button type="button" class="moka-tabs__more-button" data-moka-more aria-label="@MoreName">@MoreText</button>
 				</ChildContent>
 				<Items>
-					@foreach (MokaTabItem item in DroppedItems)
+					@{ bool firstRun = true; }
+					@foreach (MenuRun run in DroppedRuns())
 					{
-						<MokaDropdownItem Icon="item.Icon" Disabled="item.Disabled" Class="moka-tabs__menu-item"
-						                  OnClick="e => PickFromMenuAsync(item, e)">
-							<span class="moka-tabs__menu-text">@item.Text</span>
-							@if (item.Count is { } count)
+						if (run.Group is null)
+						{
+							if (!firstRun)
 							{
-								<MokaBadge Tone="item.Tone" Content="@CountText(count)"/>
+								<MokaDropdownItem Divider="true"/>
 							}
-							@if (!item.Disabled && UrlValues.SafeHref(item.Href) is { } menuHref)
-							{
-								<a class="moka-tabs__menu-link" href="@menuHref" tabindex="-1" aria-hidden="true"></a>
-							}
-						</MokaDropdownItem>
+							@MenuItems(run.Items)
+						}
+						else
+						{
+							<div class="moka-tabs__menu-group" role="group" aria-label="@run.Group">
+								<div class="moka-tabs__menu-heading moka-micro-label" aria-hidden="true">@run.Group</div>
+								@MenuItems(run.Items)
+							</div>
+						}
+						firstRun = false;
 					}
 				</Items>
 			</MokaDropdown>
@@ -58,14 +76,16 @@
 
 @code {
 
-	private RenderFragment Tab(MokaTabItem item, int index, MokaTabItem? tabStop)
+	// A tablist may own only tabs, so a group's name sits in an element hidden from screen readers and reaches them as
+	// the description of each of its tabs.
+	private RenderFragment Tab(MokaTabItem item, int index, MokaTabItem? tabStop, string? groupId)
 	{
 		string? href = item.Disabled ? null : UrlValues.SafeHref(item.Href);
 		if (href is not null)
 		{
 			return @<a role="tab" id="@TabId(index)" href="@href" class="@TabClass(item)"
 			           aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel" aria-label="@IconLabel(item)"
-			           tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+			           aria-describedby="@groupId" tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
 			           @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
 				@TabContent(item, Tipped)
 			</a>;
@@ -73,11 +93,29 @@
 
 		return @<button type="button" role="tab" id="@TabId(index)" class="@TabClass(item)" disabled="@item.Disabled"
 		                aria-selected="@AriaSelected(item)" aria-controls="@ControlledPanel" aria-label="@IconLabel(item)"
-		                tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
+		                aria-describedby="@groupId" tabindex="@(ReferenceEquals(item, tabStop) ? "0" : "-1")"
 		                @ref="_tabRefs[item.Id]" @onclick="() => PickAsync(item)">
 			@TabContent(item, Tipped)
 		</button>;
 	}
+
+	private RenderFragment MenuItems(IReadOnlyList<MokaTabItem> items) => @<text>
+		@foreach (MokaTabItem item in items)
+		{
+			<MokaDropdownItem Icon="item.Icon" Disabled="item.Disabled" Class="moka-tabs__menu-item"
+			                  OnClick="e => PickFromMenuAsync(item, e)">
+				<span class="moka-tabs__menu-text">@item.Text</span>
+				@if (item.Count is { } count)
+				{
+					<MokaBadge Tone="item.Tone" Content="@CountText(count)"/>
+				}
+				@if (!item.Disabled && UrlValues.SafeHref(item.Href) is { } menuHref)
+				{
+					<a class="moka-tabs__menu-link" href="@menuHref" tabindex="-1" aria-hidden="true"></a>
+				}
+			</MokaDropdownItem>
+		}
+	</text>;
 
 	private static RenderFragment TabContent(MokaTabItem item, bool tipped) => @<text>
 		@if (item.Icon is { } icon)

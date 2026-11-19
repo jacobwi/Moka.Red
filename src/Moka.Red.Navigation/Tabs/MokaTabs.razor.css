@@ -137,6 +137,45 @@
 	}
 }
 
+/* Groups: an element before a group's first tab, hidden from screen readers since a tablist may own only tabs. It holds
+   the group's name, which each of the group's tabs reads as its description, and draws a line when anything shows
+   before it. The overflow script hides one whose tabs are all in the menu. With only the lines, or only icons, the
+   name stays in the element for the descriptions and takes no room. */
+.moka-tabs > .moka-tabs__list > .moka-tabs__group {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.moka-tabs > .moka-tabs__list > :not([data-moka-dropped]) ~ .moka-tabs__group::before {
+	content: "";
+	flex: none;
+	align-self: stretch;
+	width: var(--moka-border-width);
+	margin: var(--moka-spacing-md) var(--moka-spacing-sm);
+	background-color: var(--moka-color-outline-variant);
+}
+
+.moka-tabs > .moka-tabs__list > .moka-tabs__group > .moka-tabs__group-name {
+	padding: 0 var(--moka-spacing-md);
+}
+
+/* Without its name the first heading has nothing to show, and would only add the list's gap before the first tab. */
+.moka-tabs--group-dividers > .moka-tabs__list > .moka-tabs__group > .moka-tabs__group-name,
+.moka-tabs--group-dividers > .moka-tabs__list > .moka-tabs__group:first-child,
+.moka-tabs--icons > .moka-tabs__list > .moka-tabs__group > .moka-tabs__group-name,
+.moka-tabs--icons > .moka-tabs__list > .moka-tabs__group:first-child {
+	display: none;
+}
+
+@container moka-tabs (width <= 30rem) {
+	.moka-tabs--icons-narrow > .moka-tabs__list > .moka-tabs__group > .moka-tabs__group-name,
+	.moka-tabs--icons-narrow > .moka-tabs__list > .moka-tabs__group:first-child {
+		display: none;
+	}
+}
+
 .moka-tabs > .moka-tabs__panel:focus-visible {
 	outline: 2px solid var(--moka-color-primary);
 	outline-offset: 2px;
@@ -243,6 +282,10 @@
 .moka-tabs__menu-link {
 	position: absolute;
 	inset: 0;
+}
+
+.moka-tabs__menu-heading {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md) var(--moka-spacing-xxs);
 }
 
 @media (max-width: 720px) {

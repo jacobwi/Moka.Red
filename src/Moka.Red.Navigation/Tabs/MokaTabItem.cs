@@ -18,4 +18,12 @@ public sealed record MokaTabItem(
 	MokaBadgeTone Tone = MokaBadgeTone.Count,
 	string? Href = null,
 	MokaIconDefinition? Icon = null,
-	bool Disabled = false);
+	bool Disabled = false)
+{
+	/// <summary>
+	///     The name of the group the tab belongs to, such as "Storage". Tabs next to each other with the same group show
+	///     together after its name, and screen readers hear the name with each of them. A group that comes back later in
+	///     the list starts again with its name. Null, the default, puts the tab in no group.
+	/// </summary>
+	public string? Group { get; init; }
+}

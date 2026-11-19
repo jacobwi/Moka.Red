@@ -23,6 +23,7 @@ order: 122
 | `Panel` | `RenderFragment?` | - | The showing tab's content, wrapped as its tab panel. Leave it out to put the content anywhere on the page |
 | `IconOnly` | `MokaTabsIconOnly` | `Never` | When tabs with an icon show only the icon: `Narrow` in a box under 480 px (30rem), `Always` at every width. See [Icons only](#icons-only) |
 | `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where an icon-only tab's tooltip opens. `Top` suits tabs along the bottom of a screen |
+| `GroupLook` | `MokaTabsGroupLook` | `Label` | Once tabs have a `Group`: `Label` shows each group's name before its first tab, `Divider` only a line between groups. See [Groups](#groups) |
 | `Class` | `string?` | - | Additional CSS classes on the root |
 | `Style` | `string?` | - | Additional inline styles on the root |
 
@@ -39,6 +40,7 @@ Other attributes land on the tab list. `Margin`, `Padding` and `Rounded` land on
 | `Href` | `string?` | - | An address of its own, so the tab is a link. Without one the tab only switches state. `javascript:`, `vbscript:` and `data:` addresses are dropped |
 | `Icon` | `MokaIconDefinition?` | - | An icon before the name |
 | `Disabled` | `bool` | `false` | The tab can't be picked, and the arrow keys pass over it |
+| `Group` | `string?` | - | The name of the tab's group. Tabs next to each other with the same group show together. Set it with an initializer: `new("disks", "Disks") { Group = "Storage" }` |
 
 ## Basic
 
@@ -109,14 +111,49 @@ what's in it, so with `Narrow` the tabs fill the width they're given. Either way
 element, so a stylesheet of your own that reached a tab as a direct child of the list reaches the tooltip's element
 instead.
 
+## Groups
+
+A page with many views can group its tabs. Give each tab a `Group`: tabs next to each other with the same group show
+together, the group's name stands before its first tab as a small label, and a line stands between two groups.
+
+```razor
+<MokaTabs Items="_tabs" @bind-Active="_active" Label="Server settings" Overflow="MokaTabsOverflow.Menu" />
+
+@code {
+    private static readonly IReadOnlyList<MokaTabItem> _tabs =
+    [
+        new("overview", "Overview") { Group = "General" },
+        new("activity", "Activity", 3, MokaBadgeTone.NeedsYou) { Group = "General" },
+        new("disks", "Disks") { Group = "Storage" },
+        new("shares", "Shares", 12) { Group = "Storage" },
+        new("interfaces", "Interfaces") { Group = "Network" },
+        new("names", "Names") { Group = "Network" }
+    ];
+
+    private string? _active = "overview";
+}
+```
+
+`GroupLook="MokaTabsGroupLook.Divider"` keeps only the lines, for a row with little room. While the tabs show only their
+icons (`IconOnly`) the names hide the same way. Tabs in no group need nothing before them, and after a group they start
+with a line. A group that comes back later in the list starts again with its name, so keep a group's tabs together.
+
+All the tabs stay in one tab list with one tab stop, and the arrow keys walk them in order, from one group into the
+next. A tab list may hold only tabs (WAI-ARIA 1.2), so each name sits in an element hidden from screen readers, and each
+tab points at it with `aria-describedby`, so screen readers give the group as the tab's description, after its name.
+
+`Segmented`, `Stretch` and links work with groups as they do without. With `Overflow="MokaTabsOverflow.Menu"` a group's
+name goes once all its tabs are in the menu, and the menu lists its tabs under their group's name, each group a
+`role="group"` named after it.
+
 ## Keyboard
 
 The tabs follow the WAI-ARIA tabs pattern with automatic activation: moving to a tab shows it, and on a tab with an address, goes there. One tab is in the tab order at a time.
 
 | Key | Action |
 |-----|--------|
-| Right, Left | The next or previous tab, wrapping at the ends and passing over disabled ones |
-| Home, End | The first or last tab |
+| Right, Left | The next or previous tab, wrapping at the ends, passing over disabled ones and going from one group into the next |
+| Home, End | The first or last tab, whatever its group |
 | Space | Shows the focused tab |
 | Tab | Leaves the list, for the panel |
 
