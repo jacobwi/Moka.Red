@@ -5,6 +5,47 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-11-19
+
+### Added
+- `MokaSchemaForm` reads an `anyOf` of formats on a text property, such as `[ { "format": "hostname" }, { "format":
+  "ipv4" }, { "format": "ipv6" } ]`, as one text field that takes any one of them, with a message naming what it
+  accepts; `MokaFormSchema.Check` applies the same rule. An `anyOf` of labelled constants stays a choice, and `oneOf` of
+  formats is refused with a problem that suggests `anyOf`, since formats overlap (an all-digit host name).
+  `MokaSchemaField.Formats` lists every format a text setting may take, `MokaFormSchema.MaxFormats` (8) bounds them,
+  and `MokaSchemaFormText` gains `NotAnyFormat` and a name for each format.
+- `MokaBentoGrid.Flow` (`MokaBoardFlow` Dense, Rows). Rows keeps a board's cards in their order: each card starts from
+  its size's share of the row and the cards of a row grow to fill it, so a hidden card, or a wide one that doesn't fit,
+  leaves no hole and moves no card ahead of another. Dense, the default, is today's grid. In Rows the drag bar shows
+  the row the card will land in: beside a card it will join, or between rows.
+- `MokaGauge.WarnAt`, `CriticalAt`, `LowIsBad`, `WarnText` and `CriticalText`, as on `MokaMeter`. Past a limit the arc
+  and number take the warning or error color, and a word with an icon says "Nearly full" or "Full", or "Low" or "Empty"
+  with `LowIsBad`. With no limit reached the markup is unchanged.
+- `MokaLogViewer.TimestampFormat`, `TimestampFormatter`, `Hour12` and `TimeZone`: dates, a 12-hour clock and a time
+  zone for timestamps, written in a `time` element when set. `Utc` and `Local` times move into the zone; `Unspecified`
+  times are read as already in it. Unset, the timestamps and markup are as before.
+- `MokaLogViewer.Order` (`MokaLogOrder` OldestFirst, NewestFirst) with `HasOlder` and `OnLoadOlder`: newest first, and
+  older lines paged in from the old end by a busy button while the reader keeps their place. With `OnLoadOlder`,
+  `MaxEntries` applies only when set.
+- `MokaLogViewer.LevelFilter` (`MokaLogLevelFilter` Toggles, AtLeast) with a two-way `MinimumLevel`: one level and every
+  worse one, as `journalctl -p` does, picked from a native select.
+- `MokaLogViewer.SearchMode` (`MokaLogSearchMode` Live, OnSubmit) and `SearchDebounce`. `SearchTextChanged` reports
+  only the text searched for.
+- `MokaLogViewerText` gains `SearchButton`, `MinimumLevelLabel`, `AtLeast`, `ShowOlder` and `LoadingOlder`.
+- `MokaTimeTicks.WithClock` is public, so a component can write times by the chart axes' clock rules.
+
+### Fixed
+- On a narrow `MokaLogViewer` a long source no longer squeezes the message to a few characters: plain rows give the
+  message its own line when it would have less than 16em, and virtual rows cut the source with an ellipsis, its full
+  name in `title`. Wide rows look as before.
+- `MokaTabs` with `Overflow="Menu"` no longer paints a tab cut off at the row's edge before its first measure. Until
+  the measure runs (after an interactive render or a prerender) the row shows whole tabs only and keeps the more
+  button's room; static pages scroll as before.
+
+### Changed
+- bUnit tests that render `MokaTabs` with `Overflow="Menu"` need `SetRendererInfo`, since the tabs read
+  `RendererInfo` and `AssignedRenderMode` to mark the state before the measure.
+
 ## [0.10.0] - 2026-11-19
 
 ### Changed (breaking)
