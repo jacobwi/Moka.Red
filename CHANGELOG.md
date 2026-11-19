@@ -5,6 +5,90 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-11-19
+
+### Changed (breaking)
+- `MokaSegmentedControl` and `MokaSegment` are generic, `MokaSegmentedControl<TValue>` and `MokaSegment<TValue>`, so
+  values can be enums, numbers or records. `Value` is `TValue?` and `ValueChanged` is `EventCallback<TValue>`; segments
+  match by `EqualityComparer<TValue>.Default` and take the control's type. The markup is unchanged. To move:
+  1. Razor treats a value on a generic parameter as C#, so write string literals as C#: `Value="week"` becomes
+     `Value="@("week")"`, on segments and on the control.
+  2. A control whose `ValueChanged` is a method group or a lambda with an untyped parameter needs `TValue="string"` (or
+     your type); the compiler reports CS1503 at each one.
+  3. In C# and tests, name `MokaSegmentedControl<string>` and `MokaSegment<string>`.
+  4. Optionally bind an enum directly and drop `ToString` and `Enum.Parse`. Bind `T?` to start with nothing chosen and
+     set `TValue="T?"` on its segments, since a segment infers its type from its own `Value` first.
+- `MokaSegment.Value` is `[EditorRequired]`, and a segment outside a `MokaSegmentedControl` of its type throws
+  `InvalidOperationException`, as `InputRadio` does outside its group.
+- `MokaMeter.WarnText` and `CriticalText` are `string?`: null gives the word for the meter's direction ("Nearly full"
+  and "Full", or "Low" and "Empty" with `LowIsBad`). Code that reads them gets null unless the app set them.
+- With `AutoDetectColorScheme` on, `MokaThemeProvider` no longer uses `Theme`: `DarkTheme` and `LightTheme` are the two
+  schemes, and components receive `DarkTheme` until the browser answers.
+- `MokaThemeProvider` reads `RendererInfo` to write its token styles correctly on static and interactive renders, so
+  bUnit tests that render a provider, or a component holding one, must call `SetRendererInfo` first (register services
+  before calling it).
+- `MokaTable` draws its markup in an internal child component after its columns have their parameters. A bUnit test
+  that waits on a value the table sets and then reads the markup should wait for the markup itself, since bUnit can
+  report the table's render before the markup's in the same batch. A browser applies the batch at once.
+
+### Added
+- `MokaSchemaForm`: a settings form drawn from a JSON Schema (draft 2020-12 keywords) on `MokaSettingsForm`. It handles
+  text, numbers, switches and labelled choices (`oneOf` or `anyOf` of `const` and `title`), defaults, field checks before
+  save, advanced settings (`x-advanced`), multi-line text (`x-multiline`), outside problems by property name, and
+  write-only secrets with Keep, Change and Clear that the form never holds. `MokaFormSchema.Parse` reads a schema from
+  text or a `JsonObject`, including what `JsonSchemaExporter` writes; it is bounded for untrusted input, reports every
+  problem instead of throwing, and names keywords it can't honour rather than dropping them. `Check` and `WithDefaults`
+  apply the same rules on a server. `MokaSchemaFormSave`, `MokaSecretChange` and `MokaSchemaFormText` complete it.
+- `Danger` on `MokaDropdownItem`, `MokaContextMenuItem` and `MokaMenuBarItem`: the item and its icon in the error
+  color, the popup look's danger color on the new design, kept over the error tint when the item is lit.
+- `Href` and `Target` on `MokaDropdownItem`: the item is an `a` with `role="menuitem"`, so middle click, a new tab and
+  downloads work. It still closes the dropdown and raises `OnClick`; `javascript:`, `vbscript:` and `data:` addresses
+  leave a plain item, and a disabled link has no `href`.
+- `MokaTabItem.Group` and `MokaTabs.GroupLook` (`MokaTabsGroupLook`: `Label`, `Divider`): tabs next to each other with
+  the same group stand under the group's name, with a line between groups. Each tab is described by its group's name,
+  since a tab list may own only tabs, and the arrow keys, Home and End walk every tab across groups. With
+  `Overflow="Menu"` the menu lists dropped tabs under their group, each a named `role="group"`.
+- `layout.heading` in Core's `moka-fit.js`: children that head a run of items never drop, are never counted or given a
+  position, and hide once their run is empty.
+- `MokaBentoGrid.MinColumn`: as many columns as fit, each at least that wide, with item spans and starts capped at that
+  count. `MokaBentoGrid.StretchCards`: a board's cards in one row are as tall as the row.
+- `MokaMeter.LowIsBad`: the thresholds count down, for a level where low is bad such as a battery charge.
+- `MokaCarousel.AspectRatio`: sizes the carousel, and its viewport, track and slides fill it. `CssValues.IsAspectRatio`
+  checks such a value.
+- `MokaToggleGroup.FullWidth` (items share the row) and `StackBelow` (one item per row under a width, as on
+  `MokaSegmentedControl`).
+- `MokaCodeHighlighters.Yaml`, and `For` takes `yaml` and `yml`.
+- `MokaLogViewer.Virtualize` and `VirtualRowHeight` draw only the rows in view, one line each. `ItemsProvider` and
+  `RefreshDataAsync()` load rows on demand, filtered by the provider. `SearchText` and `Levels` bind two ways.
+  `MokaLogEntry.Exception`, `Properties` and `HasDetail`: a row with detail opens under itself, or in a pane under the
+  list when virtualized, and `DetailTemplate` draws it. `MokaLogViewerText` holds every word.
+
+### Fixed
+- `MokaTable`: a column's `CellTemplate` or `HeaderTemplate` that used a value of the page's render (a loop variable, a
+  local) showed the value from the render before, and a template swapped for another never showed. The table now draws
+  its markup once its columns, heading groups and pager part have the parameters of the render under way, as QuickGrid
+  does. A changed column setting or pager part no longer costs a second render, and the pager part's pager shows in the
+  first render. A template on a column nested two components deep still updates one render late.
+- `MokaTable`: pinned cells lay their surface and row tint on an opaque base, so rows scrolling under a pinned column no
+  longer show through a see-through surface. The base is the `--moka-table-pin-background` property, the page's
+  background by default.
+- `MokaProgress` draws its bar and ring in `Color`, on both designs; it took the parameter and ignored it. Unset keeps
+  the primary color and today's markup, `Surface` draws in the on-surface color, and segments keep their own colors.
+- `MokaThemeProvider` with `AutoDetectColorScheme` shows the OS color scheme from the first paint. Both themes' tokens
+  go out under `prefers-color-scheme` media queries, so prerendering and static pages no longer show the dark theme to
+  a light OS, a static page follows the OS, and the interactive render matches the prerendered one. The root carries
+  `moka-scheme-auto` until the browser answers, then `moka-dark` when dark.
+- `MokaThemeProvider`'s token styles were HTML-encoded on prerendered and static pages, so tokens with quotes (font
+  families) or plus signs (`calc()` heights) didn't apply there, and a nonce-scoped root lost every token on a static
+  page. They now go out as markup on a static render and as text on an interactive one.
+- `MokaBentoGrid` columns are `minmax(0, 1fr)`, so wide content no longer widens its column past the grid's edge.
+- `MokaToggleGroup` wraps items that don't fit instead of clipping them. A group that fits on one row lays out as before.
+- `MokaCodeEditor` tells password managers to leave its text alone (`autocorrect="off"`, `data-1p-ignore`,
+  `data-lpignore="true"`, `data-bwignore`, `data-form-type="other"`). The app's own attributes still win.
+- `MokaLogViewer.AutoScroll` did nothing. It now keeps the newest entry in view while the list is at the bottom, so
+  logs open at the newest entry. The level filter buttons carry `aria-pressed`, and the search box is named by
+  `MokaLogViewerText.SearchLabel` ("Search logs").
+
 ## [0.9.1] - 2026-11-18
 
 ### Fixed
