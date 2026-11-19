@@ -5,6 +5,24 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-11-19
+
+### Changed
+- The packages ship minified CSS. In Release builds the scoped style bundles and `moka.css`, `moka-fonts.css`,
+  `moka-flags.css` and `moka-boot.css` lose their comments and extra whitespace: about a third less CSS on an app's
+  first page (scoped styles 277 KB to 184 KB gzipped). Rules, paths and URLs are unchanged; fingerprints, integrity and
+  compressed copies are made from the minified files. Building the library from source, `-p:MokaMinifyCss=false` turns
+  it off, and Debug builds keep the stylesheets as written.
+
+### Added
+- `MokaBentoItem.IconContent` draws anything in the icon's place (a picture, an identicon), hidden from screen readers
+  and winning over `Icon`, and `MokaBentoItem.EndContent` puts content at the end of the head, before the Open link. On
+  a clickable item a control in `EndContent` takes its own click.
+
+### Fixed
+- `MokaLogViewer`'s search box shrinks to fit a narrow toolbar instead of pushing past it, so under
+  `SearchMode="OnSubmit"` its button no longer covers the level filter.
+
 ## [0.10.1] - 2026-11-19
 
 ### Added
