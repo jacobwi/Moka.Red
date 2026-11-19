@@ -42,6 +42,13 @@ public static class MokaCodeHighlighters
 	/// </summary>
 	public static readonly Func<string, IEnumerable<MokaCodeSpan>> Shell = ShellLexer.Highlight;
 
+	/// <summary>
+	///     YAML: keys, plain scalars with the core schema's <c>null</c>, booleans and numbers, quoted strings, comments,
+	///     anchors, aliases, tags, directives, document markers, sequence dashes, flow collections, and block scalars
+	///     (<c>|</c> and <c>&gt;</c>), whose more-indented lines are one string.
+	/// </summary>
+	public static readonly Func<string, IEnumerable<MokaCodeSpan>> Yaml = YamlLexer.Highlight;
+
 	private static readonly FrozenDictionary<string, Func<string, IEnumerable<MokaCodeSpan>>> ByName =
 		new Dictionary<string, Func<string, IEnumerable<MokaCodeSpan>>>(StringComparer.OrdinalIgnoreCase)
 		{
@@ -60,12 +67,14 @@ public static class MokaCodeHighlighters
 			["shell"] = Shell,
 			["powershell"] = Shell,
 			["ps1"] = Shell,
-			["pwsh"] = Shell
+			["pwsh"] = Shell,
+			["yaml"] = Yaml,
+			["yml"] = Yaml
 		}.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	///     The highlighter for a language name, in any case: razor, cshtml, csharp, cs, c#, html, xml, xaml, css, json,
-	///     bash, sh, shell, powershell, ps1 or pwsh. Null for any other name, and for null.
+	///     bash, sh, shell, powershell, ps1, pwsh, yaml or yml. Null for any other name, and for null.
 	/// </summary>
 	/// <param name="language">The language's name, such as a code block's <c>Language</c>.</param>
 	public static Func<string, IEnumerable<MokaCodeSpan>>? For(string? language) =>

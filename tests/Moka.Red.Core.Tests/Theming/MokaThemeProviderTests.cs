@@ -9,6 +9,9 @@ namespace Moka.Red.Core.Tests.Theming;
 
 public class MokaThemeProviderTests : BunitContext
 {
+	// A provider that follows the OS writes its rules as text or as markup depending on the renderer.
+	public MokaThemeProviderTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	[Fact]
 	public void Renders_MokaRoot_Div()
 	{

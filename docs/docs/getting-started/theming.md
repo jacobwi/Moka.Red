@@ -24,7 +24,7 @@ By default the provider applies `MokaTheme.Default`, dark graphite with a red ac
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `Theme` | `MokaTheme` | `MokaTheme.Default` | The active theme record |
+| `Theme` | `MokaTheme` | `MokaTheme.Default` | The active theme record, while `AutoDetectColorScheme` is off |
 | `AutoDetectColorScheme` | `bool` | `false` | Follow the OS light or dark setting, including changes while the app runs |
 | `DarkTheme` | `MokaTheme` | `MokaTheme.Default` | Theme used when the OS asks for dark |
 | `LightTheme` | `MokaTheme` | `MokaTheme.DefaultLight` | Theme used when the OS asks for light |
@@ -59,13 +59,40 @@ A nested root writes only the tokens that differ from the provider around it, an
 
 ### Following the OS Colour Scheme
 
-`AutoDetectColorScheme` picks `DarkTheme` or `LightTheme` from the OS setting and switches when the setting changes. The detected theme is kept apart from `Theme`, so a parent re-render does not undo it.
+`AutoDetectColorScheme` shows `DarkTheme` when the OS asks for dark and `LightTheme` otherwise, and switches when the setting changes. `Theme` isn't used while it's on. The detected theme is kept apart from the parameters, so a parent re-render does not undo it.
 
 ```razor
 <MokaThemeProvider AutoDetectColorScheme="true" DarkTheme="MyThemes.Dark" LightTheme="MyThemes.Light">
     @Body
 </MokaThemeProvider>
 ```
+
+The provider writes both themes' tokens in one style element, each under a `prefers-color-scheme` media query, so the browser picks the right one before any script runs:
+
+- **Prerendering and static pages.** The first paint already shows the scheme the OS asks for. A static page follows the OS too, changes included, with no script.
+- **Interactive rendering.** The first interactive render writes the same markup as the prerendered one, so nothing flashes when it takes over. Once the browser has answered, the cascaded theme and the root's `moka-dark` class follow it. The tokens stay as they are, so nothing is sent again.
+
+Until the browser has answered, components that read the cascaded theme get `DarkTheme`, and the root carries `moka-scheme-auto` in place of `moka-dark`. Each of the library's rules on `.moka-dark` has a twin on `.moka-scheme-auto` under the dark media query. A rule of your own that has to apply from the first paint needs the same twin:
+
+```css
+.moka-dark .my-panel {
+    border-color: var(--moka-color-outline-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+    .moka-scheme-auto .my-panel {
+        border-color: var(--moka-color-outline-strong);
+    }
+}
+```
+
+The first paint is exact when the two themes share a look and style choices, as every preset pair and `MokaAppearance.ToThemes` do. With a new-design theme for dark and an original-design one for light, the tokens still follow the OS from the first paint, but the root's classes are `DarkTheme`'s until the browser answers.
+
+A fixed appearance passes the same theme as both. The provider then has nothing to follow and draws that theme as it would through `Theme`. A provider nested inside one that follows the OS declares what differs from either of its themes, so it lands on its own theme in both schemes.
+
+The first render weighs about what one theme did. A provider used to write its tokens twice, on `:root` and on its root, and now writes each theme once for both: 27.3 KB in place of 26.8 KB for the Red pair.
+
+A provider that follows the OS reads `RendererInfo`, since a static render writes its rules as markup and an interactive one as text. In a bUnit test, call `SetRendererInfo` before rendering one.
 
 ### Content Security Policy
 

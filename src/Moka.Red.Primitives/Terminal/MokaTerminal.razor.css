@@ -30,6 +30,13 @@
 	--_ansi-black: var(--moka-color-background);
 }
 
+/* A theme provider that follows the OS adds moka-dark only once the browser has answered. */
+@media (prefers-color-scheme: dark) {
+	.moka-scheme-auto .moka-terminal {
+		--_ansi-black: var(--moka-color-background);
+	}
+}
+
 /* ============================================================
    Header (macOS-style title bar)
    ============================================================ */

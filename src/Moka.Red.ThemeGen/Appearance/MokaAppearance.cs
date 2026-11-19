@@ -9,7 +9,10 @@ namespace Moka.Red.ThemeGen.Appearance;
 ///     <c>AutoDetectColorScheme</c> on whatever the mode is, so nothing else changes when someone picks System. For a
 ///     fixed mode <see cref="DarkTheme" /> and <see cref="LightTheme" /> are the same theme, so the device has no say.
 /// </summary>
-/// <param name="Theme">What shows before the device's setting is known, such as during a prerender.</param>
+/// <param name="Theme">
+///     What a provider with <c>AutoDetectColorScheme</c> off shows. With it on, the provider shows
+///     <paramref name="DarkTheme" /> or <paramref name="LightTheme" /> from the first paint.
+/// </param>
 /// <param name="DarkTheme">What shows on a device set to dark.</param>
 /// <param name="LightTheme">What shows on a device set to light.</param>
 public sealed record MokaAppearanceThemes(MokaTheme Theme, MokaTheme DarkTheme, MokaTheme LightTheme);

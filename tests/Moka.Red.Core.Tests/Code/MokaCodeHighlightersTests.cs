@@ -23,7 +23,9 @@ public sealed class MokaCodeHighlightersTests
 		{ "shell", nameof(MokaCodeHighlighters.Shell) },
 		{ "PowerShell", nameof(MokaCodeHighlighters.Shell) },
 		{ "ps1", nameof(MokaCodeHighlighters.Shell) },
-		{ "pwsh", nameof(MokaCodeHighlighters.Shell) }
+		{ "pwsh", nameof(MokaCodeHighlighters.Shell) },
+		{ "yaml", nameof(MokaCodeHighlighters.Yaml) },
+		{ "YML", nameof(MokaCodeHighlighters.Yaml) }
 	};
 
 	public static TheoryData<string, string> Pathological => new()
@@ -50,7 +52,15 @@ public sealed class MokaCodeHighlightersTests
 		{ "css", "/*" + new string('a', 400_000) },
 		{ "json", Repeat("[\"", 200_000) },
 		{ "shell", "cat <<EOF\n" + Repeat("line\n", 100_000) },
-		{ "shell", Repeat("\"$a", 100_000) }
+		{ "shell", Repeat("\"$a", 100_000) },
+		{ "yaml", "a: \"" + new string('a', 400_000) },
+		{ "yaml", Repeat("a: |\n", 100_000) },
+		{ "yaml", "a: |\n" + Repeat("  line\n\n", 100_000) },
+		{ "yaml", Repeat("a: |\n\n\n\n", 100_000) },
+		{ "yaml", Repeat("[", 400_000) },
+		{ "yaml", Repeat("- a: b # c\n", 100_000) },
+		{ "yaml", Repeat("'a''", 100_000) },
+		{ "yaml", Repeat("a:b ", 200_000) }
 	};
 
 	private static Func<string, IEnumerable<MokaCodeSpan>> Field(string name) => name switch
@@ -61,6 +71,7 @@ public sealed class MokaCodeHighlightersTests
 		nameof(MokaCodeHighlighters.Xml) => MokaCodeHighlighters.Xml,
 		nameof(MokaCodeHighlighters.Css) => MokaCodeHighlighters.Css,
 		nameof(MokaCodeHighlighters.Json) => MokaCodeHighlighters.Json,
+		nameof(MokaCodeHighlighters.Yaml) => MokaCodeHighlighters.Yaml,
 		_ => MokaCodeHighlighters.Shell
 	};
 
@@ -125,6 +136,7 @@ public sealed class MokaCodeHighlightersTests
 				".xml" or ".csproj" or ".props" => MokaCodeHighlighters.Xml,
 				".html" => MokaCodeHighlighters.Html,
 				".ps1" or ".sh" => MokaCodeHighlighters.Shell,
+				".yml" or ".yaml" => MokaCodeHighlighters.Yaml,
 				_ => null
 			};
 			if (highlighter is null)

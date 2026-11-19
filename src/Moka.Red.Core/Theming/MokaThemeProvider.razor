@@ -15,13 +15,19 @@
 		<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka-flags.css"]"/>
 	}
 	<link rel="stylesheet" href="@Assets["_content/Moka.Red.Core/moka.css"]"/>
-	<style nonce="@Nonce">:root { @_rootStyle @_pageStyle }</style>
+	<style nonce="@Nonce">@_pageRules</style>
 }
 
 <CascadingValue Value="this" Name="@ProviderCascadeName" IsFixed="true">
 	<CascadingValue Value="_themeSource" IsFixed="true">
 		<CascadingValue Value="ActiveTheme">
-			@if (Nonce is not null && _themeStyle is not null)
+			@if (_schemeStyle is not null && !IsOutermost)
+			{
+				@* Media queries can't go in a style attribute, so a provider that follows the OS writes its
+				   tokens in a style element scoped to its root. *@
+				<style nonce="@Nonce">@_schemeRules</style>
+			}
+			else if (Nonce is not null && _themeStyle is not null)
 			{
 				@* With a nonce the tokens for this subtree come from a style element scoped to it: a strict
 				   content security policy blocks the inline style attribute used otherwise. *@
@@ -29,7 +35,7 @@
 			}
 			<div class="@_rootClass"
 			     style="@(Nonce is null ? _themeStyle : null)"
-			     data-moka-theme="@(Nonce is null ? null : _scopeId)">
+			     data-moka-theme="@(Nonce is null && _schemeStyle is null ? null : _scopeId)">
 				@ChildContent
 			</div>
 		</CascadingValue>

@@ -6,7 +6,7 @@ order: 153
 
 # Code Editor
 
-`MokaCodeEditor` is a text area for code or a configuration file: monospace, with line numbers down the side, coloring from a highlighter, and problems from a checker the app passes, underlined in place and listed below with a jump to each. `MokaCodeHighlighters` has highlighters for Razor, C#, HTML, XML, CSS, JSON and shell, and an app can pass its own for any other language. It's meant for texts of a few thousand lines at most, since every edit colors the whole text again. For plain text, use [`MokaTextArea`](/components/forms).
+`MokaCodeEditor` is a text area for code or a configuration file: monospace, with line numbers down the side, coloring from a highlighter, and problems from a checker the app passes, underlined in place and listed below with a jump to each. `MokaCodeHighlighters` has highlighters for Razor, C#, HTML, XML, CSS, JSON, shell and YAML, and an app can pass its own for any other language. It's meant for texts of a few thousand lines at most, since every edit colors the whole text again. For plain text, use [`MokaTextArea`](/components/forms).
 
 ## Setup
 

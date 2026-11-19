@@ -586,6 +586,15 @@ p {
 	color-scheme: dark;
 }
 
+/* A provider that follows the OS writes moka-scheme-auto on its root and adds moka-dark only once the browser has
+   answered, which a static page never does. So every rule on .moka-dark has a twin on .moka-scheme-auto under the
+   dark media query, with the same declarations, and the first paint is already dark. */
+@media (prefers-color-scheme: dark) {
+	.moka-gate.moka-scheme-auto {
+		color-scheme: dark;
+	}
+}
+
 /* Keyboard focus everywhere. The whole selector sits in :where, so it weighs nothing: a component that draws its own
    ring, or turns the outline off because something else shows focus (a lit row, a field's border), keeps its rule. */
 :where(.moka-gate :is(a, button, summary, [tabindex]):focus-visible) {
@@ -898,6 +907,19 @@ p {
 	--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-surface) 74%, var(--moka-color-lift));
 }
 
+@media (prefers-color-scheme: dark) {
+	.moka-scheme-auto.moka-popups-contrast,
+	.moka-scheme-auto .moka-popups-contrast:not(.moka-root) {
+		--moka-popup-bg: color-mix(in srgb, var(--moka-color-surface) 86%, var(--moka-color-lift));
+		--moka-popup-color: initial;
+		--moka-popup-muted: initial;
+		--moka-popup-danger: initial;
+		--moka-popup-accent: initial;
+		--moka-popup-divider: color-mix(in srgb, var(--moka-color-lift) 10%, transparent);
+		--moka-popup-row-hover: color-mix(in srgb, var(--moka-color-surface) 74%, var(--moka-color-lift));
+	}
+}
+
 .moka-popups-terminal {
 	--moka-popup-bg: var(--moka-color-background);
 	--moka-popup-border: color-mix(in srgb, var(--moka-color-primary) 24%, transparent);
@@ -1013,6 +1035,15 @@ p {
 	--moka-tooltip-look-bg: color-mix(in srgb, var(--moka-color-surface) 70%, var(--moka-color-lift));
 	--moka-tooltip-look-color: var(--moka-color-on-surface);
 	--moka-tooltip-look-muted: var(--moka-color-on-surface-variant);
+}
+
+@media (prefers-color-scheme: dark) {
+	.moka-scheme-auto.moka-tooltips-contrast,
+	.moka-scheme-auto .moka-tooltips-contrast:not(.moka-root) {
+		--moka-tooltip-look-bg: color-mix(in srgb, var(--moka-color-surface) 70%, var(--moka-color-lift));
+		--moka-tooltip-look-color: var(--moka-color-on-surface);
+		--moka-tooltip-look-muted: var(--moka-color-on-surface-variant);
+	}
 }
 
 .moka-tooltips-terminal {

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.Appearance;
 
@@ -246,6 +247,7 @@ public class MokaAppearanceTests : BunitContext
 	private IRenderedComponent<MokaThemeProvider> RenderProvider(MokaAppearance value)
 	{
 		MokaAppearanceThemes themes = value.ToThemes();
+		SetRendererInfo(new RendererInfo("Server", true));
 		return Render<MokaThemeProvider>(p => p
 			.Add(x => x.AutoDetectColorScheme, true)
 			.Add(x => x.Theme, themes.Theme)

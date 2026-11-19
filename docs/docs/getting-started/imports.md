@@ -277,7 +277,7 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Base` | `MokaComponentBase`, `MokaVisualComponentBase` -- base classes all components inherit from |
 | `Moka.Red.Core.Charts` | Chart math the charts share and an app can use too: `MokaChartUnit` (units on axes and tooltips), `MokaScale`, `MokaTimeTicks`, `MokaDownsampler`, `MokaMinMaxIndex`, `MokaChartStats`, `MokaLinearFit` |
 | `Moka.Red.Core.Clipboard` | `MokaCopyEventArgs` and the `@onmokacopied` and `@onmokacopyask` events, for an element of your own that copies inside its click through `data-moka-copy` |
-| `Moka.Red.Core.Code` | `MokaCodeHighlighters` (Razor, C#, HTML, XML, CSS, JSON and shell highlighters for `MokaCodeBlock` and `MokaCodeEditor`), `MokaCodeSpan` and `MokaCodeTokenKind` for a highlighter of your own |
+| `Moka.Red.Core.Code` | `MokaCodeHighlighters` (Razor, C#, HTML, XML, CSS, JSON, shell and YAML highlighters for `MokaCodeBlock` and `MokaCodeEditor`), `MokaCodeSpan` and `MokaCodeTokenKind` for a highlighter of your own |
 | `Moka.Red.Core.Enums` | `MokaSize`, `MokaColor`, `MokaVariant`, `MokaDirection`, `MokaRounding`, `MokaSpacingScale`, and other shared enums used as component parameters |
 | `Moka.Red.Core.Extensions` | `AddMokaRed()` service registration extension method, and `AddMokaFilePicker<TPicker>()` |
 | `Moka.Red.Core.Files` | `IMokaFilePicker` and `MokaFilePickRequest`, for an app that picks files itself in place of the browser's dialog |

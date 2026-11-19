@@ -140,7 +140,7 @@ public sealed class ProviderCascadeTests : BunitContext
 		Assert.Equal(before, cut.Markup);
 	}
 
-	private static void AssertLands(MokaTheme theme, Dictionary<string, string> computed, string what)
+	internal static void AssertLands(MokaTheme theme, Dictionary<string, string> computed, string what)
 	{
 		Dictionary<string, string> expected = Compute(new Dictionary<string, string>(theme.ToTokenMap(), StringComparer.Ordinal), []);
 		List<string> wrong = [.. expected
@@ -154,7 +154,7 @@ public sealed class ProviderCascadeTests : BunitContext
 	private static Dictionary<string, string> Dark(IElement root, Dictionary<string, string> dark) =>
 		root.ClassList.Contains("moka-dark") && !root.ClassList.Contains("moka-root") ? dark : [];
 
-	private static Dictionary<string, string> Merge(Dictionary<string, string> under, Dictionary<string, string> over)
+	internal static Dictionary<string, string> Merge(Dictionary<string, string> under, Dictionary<string, string> over)
 	{
 		Dictionary<string, string> merged = new(under, StringComparer.Ordinal);
 		foreach ((string name, string value) in over)
@@ -165,7 +165,7 @@ public sealed class ProviderCascadeTests : BunitContext
 		return merged;
 	}
 
-	private static Dictionary<string, string> Declarations(string? style)
+	internal static Dictionary<string, string> Declarations(string? style)
 	{
 		Dictionary<string, string> declarations = new(StringComparer.Ordinal);
 		foreach (string declaration in (style ?? "").Split(';'))
@@ -181,7 +181,7 @@ public sealed class ProviderCascadeTests : BunitContext
 	}
 
 	// The computed values on one element: its own declarations with var() resolved on it, the rest inherited.
-	private static Dictionary<string, string> Compute(Dictionary<string, string> specified, Dictionary<string, string> inherited)
+	internal static Dictionary<string, string> Compute(Dictionary<string, string> specified, Dictionary<string, string> inherited)
 	{
 		Dictionary<string, string> computed = new(StringComparer.Ordinal);
 

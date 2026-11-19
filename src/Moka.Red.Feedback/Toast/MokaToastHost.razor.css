@@ -331,6 +331,17 @@
 	background: color-mix(in srgb, var(--moka-color-surface) 86%, var(--moka-color-lift));
 }
 
+/* A theme provider that follows the OS adds moka-dark only once the browser has answered. */
+@media (prefers-color-scheme: dark) {
+	.moka-gate.moka-scheme-auto .moka-toast-host--snackbar .moka-toast {
+		--_toast-on: var(--moka-color-on-surface);
+		--_toast-muted: var(--moka-color-on-surface-variant);
+		--_toast-accent: var(--moka-color-primary-light);
+		--_toast-glyph: var(--_toast-tone);
+		background: color-mix(in srgb, var(--moka-color-surface) 86%, var(--moka-color-lift));
+	}
+}
+
 .moka-gate .moka-toast-host--snackbar ::deep .moka-toast-icon { color: var(--_toast-glyph); }
 
 .moka-gate .moka-toast-host--snackbar .moka-toast-content,

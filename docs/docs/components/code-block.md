@@ -126,6 +126,7 @@ order: 49
 | `Css` | `css` | Selectors, at-rules, properties, custom properties, numbers with their units, colors, strings and comments |
 | `Json` | `json` | Keys, strings, numbers, `true`, `false` and `null`, and comments |
 | `Shell` | `bash`, `sh`, `shell`, `powershell`, `ps1`, `pwsh` | The command starting each step, options, variables, strings, here-documents and here-strings, comments and keywords, for bash and PowerShell alike |
+| `Yaml` | `yaml`, `yml` | Keys, plain values with the core schema's `null`, `~`, booleans and numbers, quoted strings, comments, anchors (`&x`), aliases (`*x`), tags (`!x`, `!!str`), directives, document markers (`---`, `...`), sequence dashes, flow collections, and block scalars (`\|`, `>`), whose more-indented lines are one string |
 
 `MokaCodeHighlighters.For(name)` gives the highlighter for one of those names, in any case, or null for any other, so a block can follow a language chosen at run time:
 

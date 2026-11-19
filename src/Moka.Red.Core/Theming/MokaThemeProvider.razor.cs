@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
@@ -18,23 +19,33 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 	private readonly string _scopeId = $"moka-theme-{Guid.NewGuid():N}";
 	private readonly MokaThemeSource _themeSource = new();
+	private readonly RenderFragment _pageRules;
+	private readonly RenderFragment _schemeRules;
 	private string _rootClass = "moka-root";
 	private string? _pageStyle;
 	private bool _disposed;
 	private DotNetObjectReference<MokaThemeProvider>? _dotNetRef;
 	private IJSObjectReference? _module;
 	private bool? _prefersDark;
-	private MokaTheme? _previousTheme;
-	private MokaTheme? _previousParentTheme;
+	private AppliedThemes? _applied;
 	private string? _rootStyle;
+	private string? _schemeStyle;
 	private string? _themeStyle;
 	private int _watchHandle;
 	private bool _watchStarted;
 
+	/// <summary>Creates a provider.</summary>
+	public MokaThemeProvider()
+	{
+		_pageRules = WritePageRules;
+		_schemeRules = WriteSchemeRules;
+	}
+
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
 
 	/// <summary>
-	///     The theme to apply. Defaults to <see cref="MokaTheme.Default" />.
+	///     The theme to apply. Defaults to <see cref="MokaTheme.Default" />. Not used while
+	///     <see cref="AutoDetectColorScheme" /> is on.
 	/// </summary>
 	[Parameter]
 	public MokaTheme Theme { get; set; } = MokaTheme.Default;
@@ -44,10 +55,12 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	public RenderFragment? ChildContent { get; set; }
 
 	/// <summary>
-	///     When true, automatically detects the OS color scheme preference
-	///     and applies <see cref="DarkTheme" /> or <see cref="LightTheme" /> accordingly.
-	///     Listens for changes in real time (e.g., when the user switches OS dark mode).
-	///     It can be turned on or off at any time. Defaults to false.
+	///     When true, the page follows the OS color scheme: <see cref="DarkTheme" /> when it asks for dark,
+	///     <see cref="LightTheme" /> otherwise, and it switches when the setting changes. Both themes' tokens are written
+	///     under <c>prefers-color-scheme</c> media queries, so the first paint of a prerendered or static page already
+	///     shows the right one, and a static page follows the OS too. Once the browser has answered, the cascaded theme
+	///     and the root's <c>moka-dark</c> class follow it; until then components receive <see cref="DarkTheme" />. It can
+	///     be turned on or off at any time. Defaults to false.
 	/// </summary>
 	[Parameter]
 	public bool AutoDetectColorScheme { get; set; }
@@ -102,8 +115,8 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 
 	// The detected scheme is kept here rather than written into Theme: a value written into the
 	// parameter was undone the next time the parent rendered.
-	private MokaTheme ActiveTheme => AutoDetectColorScheme && _prefersDark is { } dark
-		? dark ? DarkTheme : LightTheme
+	private MokaTheme ActiveTheme => AutoDetectColorScheme
+		? _prefersDark ?? true ? DarkTheme : LightTheme
 		: Theme;
 
 	/// <summary>Stops watching the OS color scheme and releases the provider's JavaScript module.</summary>
@@ -140,51 +153,160 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	/// <inheritdoc />
 	protected override void OnParametersSet() => ApplyTheme();
 
+	// The theme this provider's root carries the tokens of while the OS asks for the given scheme. A provider that
+	// doesn't follow the OS carries its Theme in both. Nested providers read their parent's to work out what to declare.
+	private MokaTheme SchemeTheme(bool dark) => AutoDetectColorScheme
+		? dark ? DarkTheme : LightTheme
+		: Theme;
+
 	// Themes compare by value, so a theme built in markup, a new but equal instance on every render, costs nothing.
 	private void ApplyTheme()
 	{
-		MokaTheme activeTheme = ActiveTheme;
-		MokaTheme? parentTheme = ParentProvider?.ActiveTheme;
+		var applied = new AppliedThemes(ActiveTheme, SchemeTheme(false), SchemeTheme(true),
+			ParentProvider?.SchemeTheme(false), ParentProvider?.SchemeTheme(true), _prefersDark is not null);
 
-		if (Equals(activeTheme, _previousTheme) && Equals(parentTheme, _previousParentTheme))
+		if (applied == _applied)
 		{
 			return;
 		}
 
-		_previousTheme = activeTheme;
-		_previousParentTheme = parentTheme;
-		_themeSource.Theme = activeTheme;
+		AppliedThemes? previous = _applied;
+		_applied = applied;
+		_themeSource.Theme = applied.Active;
+
+		if (applied.FollowsScheme)
+		{
+			ApplySchemeThemes(applied, previous is not { FollowsScheme: true } before || !applied.WritesSameTokens(before));
+		}
+		else
+		{
+			ApplyOneTheme(applied);
+		}
+	}
+
+	private void ApplyOneTheme(AppliedThemes applied)
+	{
+		MokaTheme theme = applied.Active;
 
 		// The outermost provider declares every token twice. On :root, for content outside its root such as the page canvas
 		// and the reconnect dialog. On its root, because a page can hold several outermost providers side by side (live
 		// previews, or panels drawn outside the app's provider), each writing :root, where the last would win for all of
 		// them. A nested root declares only what differs from the provider around it and what reads that, since every
-		// other token arrives inherited (see MokaThemeTokens.RootDeclarations).
-		_rootStyle = IsOutermost ? activeTheme.ToCssVariables() : null;
-		string declarations = parentTheme is null ? activeTheme.ToCssVariables() : MokaThemeTokens.RootDeclarations(activeTheme, parentTheme);
-		_themeStyle = declarations.Length == 0 ? null : declarations;
+		// other token arrives inherited (see MokaThemeTokens.RootDeclarations). Inside a provider that follows the OS it
+		// declares what differs from either of that provider's themes, which holds in both schemes.
+		string declarations;
+		if (applied.ParentLight is not { } parentLight || applied.ParentDark is not { } parentDark)
+		{
+			declarations = theme.ToCssVariables();
+		}
+		else if (Equals(parentLight, parentDark))
+		{
+			declarations = MokaThemeTokens.RootDeclarations(theme, parentLight);
+		}
+		else
+		{
+			declarations = MokaThemeTokens.RootDeclarations(theme, parentLight, parentDark);
+		}
 
-		bool gate = activeTheme.Look == MokaLook.Gate;
-		_rootClass = new CssBuilder("moka-root")
-			.AddClass("moka-root--nested", !IsOutermost)
-			.AddClass("moka-dark", activeTheme.IsDark)
-			.AddClass("moka-gate", gate)
-			.AddClass(PopupsClass(activeTheme), gate)
-			.AddClass(ButtonsClass(activeTheme), gate && IsOutermost)
-			.AddClass(DisabledButtonsClass(activeTheme),
-				gate && IsOutermost && activeTheme.DisabledButtons != MokaDisabledButtonLook.Faded)
-			.AddClass("moka-control-heights-matched", gate && activeTheme.ControlHeights == MokaControlHeights.Matched)
-			.AddClass(TooltipsClass(activeTheme), gate && activeTheme.Tooltips != MokaTooltipLook.Standard)
-			.AddClass("moka-tooltips-arrow", gate && activeTheme.TooltipArrows)
-			.AddClass(TooltipMotionClass(activeTheme), gate && activeTheme.TooltipMotion != MokaTooltipMotion.Fade)
-			.AddClass(TooltipSizeClass(activeTheme), gate && activeTheme.TooltipSize != MokaTooltipSize.Standard)
-			.Build();
+		_rootStyle = IsOutermost ? theme.ToCssVariables() : null;
+		_themeStyle = declarations.Length == 0 ? null : declarations;
+		_schemeStyle = null;
+		_rootClass = RootClass(theme, theme.IsDark, false);
 
 		// The root element fills the window, so this shows only where a page overscrolls, and the scheme is
 		// what the window's own scrollbars follow. The Matrix look leaves both to the app, as it always has.
-		_pageStyle = gate
-			? $"background: var(--moka-color-background); color-scheme: {(activeTheme.IsDark ? "dark" : "light")};"
-			: null;
+		_pageStyle = PageStyle(theme);
+	}
+
+	// Both themes go out under prefers-color-scheme, so the first paint shows the scheme the OS asks for before any
+	// script runs: in prerendering, on a static page, and in the first interactive render, which then matches the
+	// prerendered one. The browser's answer changes only the class and the cascaded theme, never the tokens.
+	private void ApplySchemeThemes(AppliedThemes applied, bool tokensChanged)
+	{
+		_rootStyle = null;
+		_themeStyle = null;
+		_pageStyle = null;
+		if (tokensChanged)
+		{
+			string light = SchemeBlock("light", applied.Light, applied.ParentLight);
+			string dark = SchemeBlock("dark", applied.Dark, applied.ParentDark);
+
+			// A nested root whose themes match the provider around it in both schemes declares nothing, as it would for one.
+			_schemeStyle = light.Length + dark.Length == 0 ? null : string.Join(" ", light, dark).Trim();
+		}
+
+		// The class reads moka-dark only once the browser has said so. Until then moka-scheme-auto stands in for it under
+		// the dark media query: every stylesheet rule on .moka-dark has a twin there.
+		MokaTheme theme = applied.Active;
+		_rootClass = RootClass(theme, applied.SchemeKnown && theme.IsDark, true);
+	}
+
+	private string SchemeBlock(string scheme, MokaTheme theme, MokaTheme? parent)
+	{
+		string root = $".moka-root[data-moka-theme=\"{_scopeId}\"]";
+		if (parent is not null)
+		{
+			string declarations = MokaThemeTokens.RootDeclarations(theme, parent);
+			return declarations.Length == 0 ? "" : $"@media (prefers-color-scheme: {scheme}) {{ {root} {{ {declarations}}} }}";
+		}
+
+		string page = PageStyle(theme) is { } pageStyle ? $":root {{ {pageStyle} }} " : "";
+		return $"@media (prefers-color-scheme: {scheme}) {{ {page}:root, {root} {{ {theme.ToCssVariables()}}} }}";
+	}
+
+	// The outermost provider's page-wide rules: :root's tokens for one theme, or both themes' rules when it follows the OS.
+	private void WritePageRules(RenderTreeBuilder builder)
+	{
+		if (_schemeStyle is not null)
+		{
+			WriteSchemeRules(builder);
+			return;
+		}
+
+		builder.AddContent(0, ":root { ");
+		builder.AddContent(1, _rootStyle);
+		builder.AddContent(2, " ");
+		builder.AddContent(3, _pageStyle);
+		builder.AddContent(4, " }");
+	}
+
+	// The static renderer HTML-encodes text, quotes and plus signs included, and a style element never decodes it, so
+	// there the rules go out as markup. An interactive render sets text, which reaches the page as written, while
+	// markup would go through innerHTML, which a Trusted Types policy refuses.
+	private void WriteSchemeRules(RenderTreeBuilder builder)
+	{
+		if (RendererInfo.IsInteractive)
+		{
+			builder.AddContent(5, _schemeStyle);
+		}
+		else
+		{
+			builder.AddMarkupContent(6, _schemeStyle);
+		}
+	}
+
+	private static string? PageStyle(MokaTheme theme) => theme.Look == MokaLook.Gate
+		? $"background: var(--moka-color-background); color-scheme: {(theme.IsDark ? "dark" : "light")};"
+		: null;
+
+	private string RootClass(MokaTheme theme, bool dark, bool followsScheme)
+	{
+		bool gate = theme.Look == MokaLook.Gate;
+		return new CssBuilder("moka-root")
+			.AddClass("moka-root--nested", !IsOutermost)
+			.AddClass("moka-dark", dark)
+			.AddClass("moka-scheme-auto", followsScheme)
+			.AddClass("moka-gate", gate)
+			.AddClass(PopupsClass(theme), gate)
+			.AddClass(ButtonsClass(theme), gate && IsOutermost)
+			.AddClass(DisabledButtonsClass(theme),
+				gate && IsOutermost && theme.DisabledButtons != MokaDisabledButtonLook.Faded)
+			.AddClass("moka-control-heights-matched", gate && theme.ControlHeights == MokaControlHeights.Matched)
+			.AddClass(TooltipsClass(theme), gate && theme.Tooltips != MokaTooltipLook.Standard)
+			.AddClass("moka-tooltips-arrow", gate && theme.TooltipArrows)
+			.AddClass(TooltipMotionClass(theme), gate && theme.TooltipMotion != MokaTooltipMotion.Fade)
+			.AddClass(TooltipSizeClass(theme), gate && theme.TooltipSize != MokaTooltipSize.Standard)
+			.Build();
 	}
 
 	// Classes rather than a cascaded value, because hundreds of buttons and every popup read them, and each cascading
@@ -270,5 +392,21 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 		}
 
 		_prefersDark = null;
+	}
+
+	// What the root's style and class were last worked out from. The provider follows the OS while its two themes differ.
+	private readonly record struct AppliedThemes(
+		MokaTheme Active,
+		MokaTheme Light,
+		MokaTheme Dark,
+		MokaTheme? ParentLight,
+		MokaTheme? ParentDark,
+		bool SchemeKnown)
+	{
+		public bool FollowsScheme => !Equals(Light, Dark);
+
+		public bool WritesSameTokens(AppliedThemes other) => Equals(Light, other.Light) && Equals(Dark, other.Dark)
+		                                                     && Equals(ParentLight, other.ParentLight)
+		                                                     && Equals(ParentDark, other.ParentDark);
 	}
 }

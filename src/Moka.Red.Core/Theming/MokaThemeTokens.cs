@@ -66,20 +66,40 @@ internal sealed class MokaThemeTokens
 	// parent. A custom property is inherited as a finished value, so the root declares a token when
 	// its value differs from the parent's or reads, directly or through others, one that does. moka.css's dark rules
 	// skip a provider's root, so nothing else reaches it.
-	internal static string RootDeclarations(MokaTheme theme, MokaTheme parent)
+	internal static string RootDeclarations(MokaTheme theme, MokaTheme parent) => RootDeclarations(theme, [parent]);
+
+	// The same inside a provider whose root carries parent in one color scheme and otherParent in the other: what
+	// differs from either, which leaves every token on theme's value whichever scheme the browser picks.
+	internal static string RootDeclarations(MokaTheme theme, MokaTheme parent, MokaTheme otherParent) =>
+		RootDeclarations(theme, [parent, otherParent]);
+
+	private static string RootDeclarations(MokaTheme theme, ReadOnlySpan<MokaTheme> parents)
 	{
 		MokaThemeTokens child = For(theme);
-		MokaThemeTokens around = For(parent);
-		if (ReferenceEquals(child, around))
-		{
-			return "";
-		}
-
 		IReadOnlyList<MokaToken> tokens = MokaTokens.All;
 		bool[] changed = new bool[tokens.Count];
-		for (int i = 0; i < tokens.Count; i++)
+		bool any = false;
+		foreach (MokaTheme parent in parents)
 		{
-			changed[i] = !string.Equals(child._values[i], around._values[i], StringComparison.Ordinal);
+			MokaThemeTokens around = For(parent);
+			if (ReferenceEquals(child, around))
+			{
+				continue;
+			}
+
+			for (int i = 0; i < tokens.Count; i++)
+			{
+				if (!changed[i] && !string.Equals(child._values[i], around._values[i], StringComparison.Ordinal))
+				{
+					changed[i] = true;
+					any = true;
+				}
+			}
+		}
+
+		if (!any)
+		{
+			return "";
 		}
 
 		bool grew = true;
