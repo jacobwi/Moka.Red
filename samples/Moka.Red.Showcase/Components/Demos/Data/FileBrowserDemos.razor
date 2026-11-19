@@ -9,7 +9,7 @@
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
 		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
 			<MokaCaption Micro>View</MokaCaption>
-			<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="View" Value="@_view.Mode.ToString()" ValueChanged="SetMode">
+			<MokaSegmentedControl TValue="string" Size="MokaSize.Sm" AriaLabel="View" Value="@_view.Mode.ToString()" ValueChanged="SetMode">
 				@foreach (MokaFileViewMode mode in AllViews)
 				{
 					<MokaSegment Value="@mode.ToString()" Text="@mode.ToString()"/>
@@ -18,7 +18,7 @@
 		</div>
 		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
 			<MokaCaption Micro>Row style</MokaCaption>
-			<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Row style" Value="@_rowStyle.ToString()" ValueChanged="SetRowStyle">
+			<MokaSegmentedControl TValue="string" Size="MokaSize.Sm" AriaLabel="Row style" Value="@_rowStyle.ToString()" ValueChanged="SetRowStyle">
 				@foreach (MokaFileRowStyle style in Enum.GetValues<MokaFileRowStyle>())
 				{
 					<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>
@@ -27,7 +27,7 @@
 		</div>
 		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
 			<MokaCaption Micro>Group by</MokaCaption>
-			<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Group by" Value="@_groupBy.ToString()" ValueChanged="SetGroupBy">
+			<MokaSegmentedControl TValue="string" Size="MokaSize.Sm" AriaLabel="Group by" Value="@_groupBy.ToString()" ValueChanged="SetGroupBy">
 				@foreach (MokaFileGroupBy group in Enum.GetValues<MokaFileGroupBy>())
 				{
 					<MokaSegment Value="@group.ToString()" Text="@group.ToString()"/>
@@ -35,11 +35,11 @@
 			</MokaSegmentedControl>
 			<MokaCaption Micro>Theme</MokaCaption>
 			<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="Theme" @bind-Value="_themeName">
-				<MokaSegment Value="app" Text="The app's"/>
-				<MokaSegment Value="red" Text="Red"/>
-				<MokaSegment Value="red-light" Text="Red light"/>
-				<MokaSegment Value="dark" Text="Original dark"/>
-				<MokaSegment Value="light" Text="Original light"/>
+				<MokaSegment Value="@("app")" Text="The app's"/>
+				<MokaSegment Value="@("red")" Text="Red"/>
+				<MokaSegment Value="@("red-light")" Text="Red light"/>
+				<MokaSegment Value="@("dark")" Text="Original dark"/>
+				<MokaSegment Value="@("light")" Text="Original light"/>
 			</MokaSegmentedControl>
 		</div>
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg);">

@@ -323,7 +323,7 @@
 
 <DemoSection Id="filter-controls" Title="Filter controls" Description="Five ways to filter the same rows, and every one reads and writes the same filters. Set a filter in one mode and switch: the chips, the menus and the builder show it. Quick filters count the rows each keeps.">
 	<DemoControl Label="Filter controls">
-		<MokaSegmentedControl Value="@_filterMode.ToString()" ValueChanged="PickFilterMode" AriaLabel="Filter controls">
+		<MokaSegmentedControl TValue="string" Value="@_filterMode.ToString()" ValueChanged="PickFilterMode" AriaLabel="Filter controls">
 			<MokaSegment Value="@nameof(FilterMode.Row)" Text="Filter row"/>
 			<MokaSegment Value="@nameof(FilterMode.Menus)" Text="Menus and chips"/>
 			<MokaSegment Value="@nameof(FilterMode.Quick)" Text="Quick filters"/>
@@ -567,11 +567,11 @@
 </DemoSection>
 
 <DemoSection Id="everything-together" Title="Everything together" Description="Tick two boxes for the bulk bar, then shift-click a third for a run. Pick a zone, then &quot;Save this view&quot;. The foot shows more rows. Columns opens the chooser. Drag a heading to move it (Name is fixed), or Tab to its right edge and press Left, Right or Home. Below 720 px each row is a list item from its columns' Phone slots.">
-	<MokaSegmentedControl Value="@_zone" ValueChanged="PickZone" AriaLabel="Zone">
-		<MokaSegment Value="All" Text="All zones"/>
-		<MokaSegment Value="Home" Text="Home"/>
-		<MokaSegment Value="Guests" Text="Guests"/>
-		<MokaSegment Value="Things" Text="Things"/>
+	<MokaSegmentedControl TValue="string" Value="@_zone" ValueChanged="PickZone" AriaLabel="Zone">
+		<MokaSegment Value="@("All")" Text="All zones"/>
+		<MokaSegment Value="@("Home")" Text="Home"/>
+		<MokaSegment Value="@("Guests")" Text="Guests"/>
+		<MokaSegment Value="@("Things")" Text="Things"/>
 	</MokaSegmentedControl>
 
 	@DevicesTable

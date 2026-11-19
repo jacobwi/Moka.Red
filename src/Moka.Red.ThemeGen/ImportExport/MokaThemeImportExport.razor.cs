@@ -52,8 +52,6 @@ public partial class MokaThemeImportExport : ComponentBase
 
 	private string ExportOutput { get; set; } = "";
 
-	private string FormatValue => _format.ToString();
-
 	private string Language => _format switch
 	{
 		MokaThemeExportFormat.Json => "json",
@@ -104,13 +102,8 @@ public partial class MokaThemeImportExport : ComponentBase
 		};
 	}
 
-	private Task SetFormatAsync(string value)
+	private Task SetFormatAsync(MokaThemeExportFormat format)
 	{
-		if (!Enum.TryParse(value, out MokaThemeExportFormat format))
-		{
-			return Task.CompletedTask;
-		}
-
 		_format = format;
 		UpdateExport();
 		return FormatChanged.InvokeAsync(format);

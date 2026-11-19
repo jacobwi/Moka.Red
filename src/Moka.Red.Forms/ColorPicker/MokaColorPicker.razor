@@ -566,12 +566,12 @@
 	private RenderFragment EyeDropperNote => @<p class="moka-colorpicker-note moka-colorpicker-eye-note" role="status">@_eyeStatus</p>;
 
 	private RenderFragment FormatSection => @<div class="moka-colorpicker-sec moka-colorpicker-formats">
-		<MokaSegmentedControl Value="@_format.ToString()" ValueChanged="SelectFormatAsync" AriaLabel="Format" FullWidth="true"
+		<MokaSegmentedControl TValue="MokaColorFormat" Value="@_format" ValueChanged="SelectFormatAsync" AriaLabel="Format" FullWidth="true"
 		                      Disabled="@Disabled" Class="moka-colorpicker-format-switch">
-			<MokaSegment Value="Hex" Text="HEX"/>
-			<MokaSegment Value="Rgb" Text="RGB"/>
-			<MokaSegment Value="Hsl" Text="HSL"/>
-			<MokaSegment Value="Oklch" Text="OKLCH"/>
+			<MokaSegment Value="MokaColorFormat.Hex" Text="HEX"/>
+			<MokaSegment Value="MokaColorFormat.Rgb" Text="RGB"/>
+			<MokaSegment Value="MokaColorFormat.Hsl" Text="HSL"/>
+			<MokaSegment Value="MokaColorFormat.Oklch" Text="OKLCH"/>
 		</MokaSegmentedControl>
 		<div class="moka-colorpicker-hexrow">
 			<span class="moka-colorpicker-preview" aria-hidden="true"></span>

@@ -11,7 +11,7 @@
 
 <DemoSection Id="layouts" Title="Layouts">
 	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
-		<MokaSegmentedControl Value="@_layout.ToString()" ValueChanged="@(v => _layout = Enum.Parse<MokaColorPickerLayout>(v))"
+		<MokaSegmentedControl TValue="string" Value="@_layout.ToString()" ValueChanged="@(v => _layout = Enum.Parse<MokaColorPickerLayout>(v))"
 		                      AriaLabel="Layout">
 			@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
 			{

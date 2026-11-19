@@ -34,13 +34,13 @@ public sealed class ChartFrameRangeTests : BunitContext
 			.Add(x => x.Controls, MokaChartControls.Ranges)
 			.Add(x => x.RangePresetChanged, label => preset = label));
 
-		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl>().Instance.ValueChanged.InvokeAsync("24 h"));
+		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl<string>>().Instance.ValueChanged.InvokeAsync("24 h"));
 
 		Assert.Equal("24 h", preset);
 		(double from, double to) = Assert.Single(cut.Instance.Chosen);
 		Assert.Equal(MokaChartX.FromDateTimeOffset(Week[^1]).Value, to);
 		Assert.Equal(MokaChartX.FromDateTimeOffset(Week[^1].AddHours(-24)).Value, from);
-		Assert.Equal("24 h", cut.FindComponent<MokaSegmentedControl>().Instance.Value);
+		Assert.Equal("24 h", cut.FindComponent<MokaSegmentedControl<string>>().Instance.Value);
 	}
 
 	[Fact]
@@ -51,7 +51,7 @@ public sealed class ChartFrameRangeTests : BunitContext
 		this.StaticFrame();
 		IRenderedComponent<FrameChart> cut = Chart(p => p.Add(x => x.Controls, MokaChartControls.Ranges));
 
-		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl>().Instance.ValueChanged.InvokeAsync("1 h"));
+		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl<string>>().Instance.ValueChanged.InvokeAsync("1 h"));
 
 		Assert.Equal((MokaChartX.FromDateTimeOffset(now.AddHours(-1)).Value, MokaChartX.FromDateTimeOffset(now).Value), Assert.Single(cut.Instance.Chosen));
 	}
@@ -63,12 +63,12 @@ public sealed class ChartFrameRangeTests : BunitContext
 		IRenderedComponent<FrameChart> cut = Chart(p => p.Add(x => x.Controls, MokaChartControls.ResetZoom | MokaChartControls.Ranges));
 		Assert.Empty(cut.Find("[data-moka-control='reset-zoom']").Children);
 
-		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl>().Instance.ValueChanged.InvokeAsync("1 h"));
+		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl<string>>().Instance.ValueChanged.InvokeAsync("1 h"));
 		Assert.Empty(cut.Find("[data-moka-control='reset-zoom']").Children);
 
 		await cut.InvokeAsync(() => cut.Instance.Base.ChooseRangeAsync(Week[10].ToUnixTimeMilliseconds(), Week[20].ToUnixTimeMilliseconds()));
 		Assert.Equal("Reset zoom", cut.Find("[data-moka-control='reset-zoom'] button").TextContent.Trim());
-		Assert.Null(cut.FindComponent<MokaSegmentedControl>().Instance.Value);
+		Assert.Null(cut.FindComponent<MokaSegmentedControl<string>>().Instance.Value);
 
 		await cut.Find("[data-moka-control='reset-zoom'] button").ClickAsync(new MouseEventArgs());
 		(double from, double to) = cut.Instance.Chosen[^1];

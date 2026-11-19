@@ -40,8 +40,8 @@
 				<MokaButton Variant="MokaVariant.Filled">Save changes</MokaButton>
 				<MokaButton Variant="MokaVariant.Text">Cancel</MokaButton>
 				<MokaSegmentedControl Size="MokaSize.Sm" @bind-Value="_caseView" AriaLabel="View">
-					<MokaSegment Value="list" Text="List"/>
-					<MokaSegment Value="tiles" Text="Tiles"/>
+					<MokaSegment Value="@("list")" Text="List"/>
+					<MokaSegment Value="@("tiles")" Text="Tiles"/>
 				</MokaSegmentedControl>
 			</div>
 		</div>;

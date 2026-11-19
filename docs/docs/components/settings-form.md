@@ -135,8 +135,8 @@ Save stays in view on a long section, because the footer sticks to the bottom of
     <Status><MokaTag Text="Healthy" Color="MokaColor.Success" Pill/></Status>
     <HeaderActions>
         <MokaSegmentedControl @bind-Value="_detail" Size="MokaSize.Xs" AriaLabel="Detail">
-            <MokaSegment Value="simple" Text="Simple"/>
-            <MokaSegment Value="detailed" Text="Detailed"/>
+            <MokaSegment Value="@("simple")" Text="Simple"/>
+            <MokaSegment Value="@("detailed")" Text="Detailed"/>
         </MokaSegmentedControl>
     </HeaderActions>
     <ChildContent>

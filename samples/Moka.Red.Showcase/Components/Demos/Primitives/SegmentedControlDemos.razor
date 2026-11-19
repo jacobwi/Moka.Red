@@ -1,35 +1,61 @@
 <DemoSection Id="basic" Title="Basic" Description="One choice from a few, as native radios, so the browser owns the arrow keys and the tab stop.">
 	<MokaSegmentedControl @bind-Value="_segmentValue">
-		<MokaSegment Value="daily" Text="Daily"/>
-		<MokaSegment Value="weekly" Text="Weekly"/>
-		<MokaSegment Value="monthly" Text="Monthly"/>
+		<MokaSegment Value="@("daily")" Text="Daily"/>
+		<MokaSegment Value="@("weekly")" Text="Weekly"/>
+		<MokaSegment Value="@("monthly")" Text="Monthly"/>
 	</MokaSegmentedControl>
 	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">Selected: @_segmentValue</p>
 </DemoSection>
 
+<DemoSection Id="typed-values" Title="Typed values" Description="The values can be an enum, a number or a record as well as a string. The segments take the control's type, so each segment's Value is read as C#.">
+	<div style="@Row">
+		<MokaSegmentedControl @bind-Value="_format" AriaLabel="Report format">
+			<MokaSegment Value="ReportFormat.Pdf" Text="PDF"/>
+			<MokaSegment Value="ReportFormat.Spreadsheet" Text="Spreadsheet"/>
+			<MokaSegment Value="ReportFormat.Text" Text="Text"/>
+		</MokaSegmentedControl>
+		<MokaSegmentedControl @bind-Value="_pageSize" AriaLabel="Rows per page">
+			<MokaSegment Value="10" Text="10"/>
+			<MokaSegment Value="25" Text="25"/>
+			<MokaSegment Value="50" Text="50"/>
+		</MokaSegmentedControl>
+	</div>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">Selected: @_format, @_pageSize rows</p>
+	<p style="font-size: var(--moka-font-size-xs);">A string literal takes the C# form: <code>Value="@@("week")"</code>.</p>
+</DemoSection>
+
+<DemoSection Id="nothing-chosen" Title="Nothing chosen yet" Description="An enum's default is its first member, so a control bound to an enum always shows a choice. Bind its nullable type to start with none, and give the segments that type too, since a segment infers its type from its own value first.">
+	<MokaSegmentedControl @bind-Value="_exportFormat" AriaLabel="Export format">
+		<MokaSegment TValue="ReportFormat?" Value="ReportFormat.Pdf" Text="PDF"/>
+		<MokaSegment TValue="ReportFormat?" Value="ReportFormat.Spreadsheet" Text="Spreadsheet"/>
+		<MokaSegment TValue="ReportFormat?" Value="ReportFormat.Text" Text="Text"/>
+	</MokaSegmentedControl>
+	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">Selected: @(_exportFormat?.ToString() ?? "nothing yet")</p>
+</DemoSection>
+
 <DemoSection Id="with-icons" Title="With icons">
 	<MokaSegmentedControl @bind-Value="_segmentView">
-		<MokaSegment Value="list" Text="List" Icon="MokaIcons.Navigation.Menu"/>
-		<MokaSegment Value="grid" Text="Grid" Icon="MokaIcons.Content.Image"/>
-		<MokaSegment Value="board" Text="Board" Icon="MokaIcons.File.Folder"/>
+		<MokaSegment Value="@("list")" Text="List" Icon="MokaIcons.Navigation.Menu"/>
+		<MokaSegment Value="@("grid")" Text="Grid" Icon="MokaIcons.Content.Image"/>
+		<MokaSegment Value="@("board")" Text="Board" Icon="MokaIcons.File.Folder"/>
 	</MokaSegmentedControl>
 </DemoSection>
 
 <DemoSection Id="full-width" Title="Full width">
 	<div style="width: 320px;">
 		<MokaSegmentedControl @bind-Value="_segmentTab" FullWidth>
-			<MokaSegment Value="overview" Text="Overview"/>
-			<MokaSegment Value="details" Text="Details"/>
-			<MokaSegment Value="history" Text="History"/>
+			<MokaSegment Value="@("overview")" Text="Overview"/>
+			<MokaSegment Value="@("details")" Text="Details"/>
+			<MokaSegment Value="@("history")" Text="History"/>
 		</MokaSegmentedControl>
 	</div>
 </DemoSection>
 
 <DemoSection Id="controlled" Title="Controlled">
-	<MokaSegmentedControl Controlled Value="@_segmentPlan" ValueChanged="SetPlan" AriaLabel="Plan">
-		<MokaSegment Value="free" Text="Free"/>
-		<MokaSegment Value="team" Text="Team"/>
-		<MokaSegment Value="enterprise" Text="Enterprise"/>
+	<MokaSegmentedControl TValue="string" Controlled Value="@_segmentPlan" ValueChanged="SetPlan" AriaLabel="Plan">
+		<MokaSegment Value="@("free")" Text="Free"/>
+		<MokaSegment Value="@("team")" Text="Team"/>
+		<MokaSegment Value="@("enterprise")" Text="Enterprise"/>
 	</MokaSegmentedControl>
 	<p style="font-size: var(--moka-font-size-xs); margin-top: 4px;">@_segmentPlanNote</p>
 </DemoSection>
@@ -41,16 +67,16 @@
 		<MokaSelect TValue="string" Size="MokaSize.Sm" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
 		<div style="flex: 0 1 14rem;"><MokaSearchInput Size="MokaSize.Sm" Placeholder="Search" HideLabel Label="Search"/></div>
 		<MokaSegmentedControl Size="MokaSize.Sm" MatchControlHeight @bind-Value="_range" AriaLabel="Range">
-			<MokaSegment Value="day" Text="Day"/>
-			<MokaSegment Value="week" Text="Week"/>
+			<MokaSegment Value="@("day")" Text="Day"/>
+			<MokaSegment Value="@("week")" Text="Week"/>
 		</MokaSegmentedControl>
 	</div>
 	<div style="@Row">
 		<MokaTextField Placeholder="Text field" aria-label="Text field"/>
 		<MokaSelect TValue="string" Items="Fruits" Placeholder="Select" aria-label="Fruit"/>
 		<MokaSegmentedControl MatchControlHeight @bind-Value="_range" AriaLabel="Range, default size">
-			<MokaSegment Value="day" Text="Day"/>
-			<MokaSegment Value="week" Text="Week"/>
+			<MokaSegment Value="@("day")" Text="Day"/>
+			<MokaSegment Value="@("week")" Text="Week"/>
 		</MokaSegmentedControl>
 	</div>
 </DemoSection>
@@ -78,6 +104,19 @@
 
 @code {
 	private string _segmentValue = "daily";
+
+	private ReportFormat _format = ReportFormat.Pdf;
+
+	private int _pageSize = 25;
+
+	private ReportFormat? _exportFormat;
+
+	private enum ReportFormat
+	{
+		Pdf,
+		Spreadsheet,
+		Text
+	}
 
 	private string _segmentView = "list";
 
@@ -122,10 +161,10 @@
 	private RenderFragment Segments(bool wrap, string? stackBelow = null) =>
 		@<MokaSegmentedControl Wrap="wrap" FullWidth StackBelow="@stackBelow" @bind-Value="_period"
 		                       AriaLabel="@($"Period{(wrap ? ", wrapping" : "")}{(stackBelow is null ? "" : ", stacking")}")">
-			<MokaSegment Value="today" Text="Today"/>
-			<MokaSegment Value="week" Text="This week"/>
-			<MokaSegment Value="month" Text="This month"/>
-			<MokaSegment Value="year" Text="This year"/>
+			<MokaSegment Value="@("today")" Text="Today"/>
+			<MokaSegment Value="@("week")" Text="This week"/>
+			<MokaSegment Value="@("month")" Text="This month"/>
+			<MokaSegment Value="@("year")" Text="This year"/>
 		</MokaSegmentedControl>;
 
 	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-spacing-xl); margin-top: var(--moka-spacing-md)";

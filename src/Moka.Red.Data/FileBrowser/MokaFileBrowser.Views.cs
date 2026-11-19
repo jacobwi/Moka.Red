@@ -128,9 +128,8 @@ public partial class MokaFileBrowser<TItem>
 		ApplyPreviewParameter();
 	}
 
-	private async Task SetGroupByAsync(string? value)
+	private async Task SetGroupByAsync(MokaFileGroupBy next)
 	{
-		MokaFileGroupBy next = string.Equals(value, "date", StringComparison.Ordinal) ? MokaFileGroupBy.Date : MokaFileGroupBy.Kind;
 		if (next == _groupBy)
 		{
 			return;
@@ -142,7 +141,7 @@ public partial class MokaFileBrowser<TItem>
 		await RaiseSelectionIfChangedAsync();
 	}
 
-	private string GroupByValue => _groupBy == MokaFileGroupBy.Date ? "date" : "kind";
+	private MokaFileGroupBy GroupByValue => _groupBy == MokaFileGroupBy.Date ? MokaFileGroupBy.Date : MokaFileGroupBy.Kind;
 
 	private async Task ToggleGroupAsync(FileGroup group)
 	{

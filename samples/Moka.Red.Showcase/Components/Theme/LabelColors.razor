@@ -22,7 +22,7 @@
 
 		<MokaCard Title="Tone">
 			<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
-				<MokaSegmentedControl Value="@_tone.ToString()" ValueChanged="SetTone" AriaLabel="Label tone">
+				<MokaSegmentedControl TValue="string" Value="@_tone.ToString()" ValueChanged="SetTone" AriaLabel="Label tone">
 					@foreach (MokaLabelTone tone in Tones)
 					{
 						<MokaSegment Value="@tone.ToString()" Text="@tone.ToString()"/>
@@ -85,7 +85,7 @@
 
 			<MokaCard Title="Colored folders">
 				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
-					<MokaSegmentedControl Value="@_mark.ToString()" ValueChanged="v => _mark = Enum.Parse<MokaLabelMark>(v)" AriaLabel="How the label shows" Size="MokaSize.Sm">
+					<MokaSegmentedControl TValue="string" Value="@_mark.ToString()" ValueChanged="v => _mark = Enum.Parse<MokaLabelMark>(v)" AriaLabel="How the label shows" Size="MokaSize.Sm">
 						@foreach (MokaLabelMark mark in Enum.GetValues<MokaLabelMark>())
 						{
 							<MokaSegment Value="@mark.ToString()" Text="@mark.ToString()"/>
@@ -124,10 +124,10 @@
 
 			<MokaCard Title="Swatch menu">
 				<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
-					<MokaSegmentedControl Value="@_set" ValueChanged="v => _set = v" AriaLabel="Which hues" Size="MokaSize.Sm">
-						<MokaSegment Value="All" Text="Sixteen and slate"/>
-						<MokaSegment Value="Standard" Text="Twelve and slate"/>
-						<MokaSegment Value="Distinct" Text="Eight and slate"/>
+					<MokaSegmentedControl TValue="string" Value="@_set" ValueChanged="v => _set = v" AriaLabel="Which hues" Size="MokaSize.Sm">
+						<MokaSegment Value="@("All")" Text="Sixteen and slate"/>
+						<MokaSegment Value="@("Standard")" Text="Twelve and slate"/>
+						<MokaSegment Value="@("Distinct")" Text="Eight and slate"/>
 					</MokaSegmentedControl>
 					<MokaColorSwatch Labels="SwatchSet" @bind-SelectedLabel="_picked" ShowNone Columns="9" SwatchSize="26px"
 					                 AriaLabel="Label color"/>

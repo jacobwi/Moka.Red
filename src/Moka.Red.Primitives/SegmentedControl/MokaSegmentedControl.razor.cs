@@ -5,26 +5,39 @@ namespace Moka.Red.Primitives.SegmentedControl;
 
 /// <summary>
 ///     A row of connected segments for picking one option (segmented control / pill toggle).
-///     Children are <see cref="MokaSegment" /> components. It is a radio group: each segment is a
+///     Children are <see cref="MokaSegment{TValue}" /> components. It is a radio group: each segment is a
 ///     native radio button, so Tab reaches the selected segment and the arrow keys move the selection.
 /// </summary>
-public partial class MokaSegmentedControl
+/// <typeparam name="TValue">
+///     The type of the segments' values: a string, an enum, a number or a record. It is inferred from
+///     <see cref="Value" /> or <c>@bind-Value</c> and passed down to the segments written inside the control. Razor can't
+///     infer it from a method group, so with <c>ValueChanged="SetPlan"</c> set it: <c>TValue="Plan"</c>. To start with
+///     nothing chosen when the values are an enum or a number, use its nullable type.
+/// </typeparam>
+[CascadingTypeParameter(nameof(TValue))]
+public partial class MokaSegmentedControl<TValue>
 {
-	private string? _browserChecked;
-	private string? _lastValue;
-	private string? _value;
+	private static readonly EqualityComparer<TValue> Comparer = EqualityComparer<TValue>.Default;
 
-	/// <summary>Child content containing <see cref="MokaSegment" /> elements.</summary>
+	private TValue? _browserChecked;
+	private bool _followsBrowser;
+	private TValue? _lastValue;
+	private TValue? _value;
+
+	/// <summary>Child content containing <see cref="MokaSegment{TValue}" /> elements.</summary>
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Currently selected segment value. Two-way bindable.</summary>
+	/// <summary>
+	///     The chosen segment's value. Two-way bindable with <c>@bind-Value</c>. A segment is chosen when its value is equal to
+	///     this one by <see cref="EqualityComparer{T}.Default" />, so a record matches by its contents.
+	/// </summary>
 	[Parameter]
-	public string? Value { get; set; }
+	public TValue? Value { get; set; }
 
-	/// <summary>Callback for when <see cref="Value" /> changes.</summary>
+	/// <summary>Callback for when <see cref="Value" /> changes. A method group here needs <typeparamref name="TValue" /> set.</summary>
 	[Parameter]
-	public EventCallback<string> ValueChanged { get; set; }
+	public EventCallback<TValue> ValueChanged { get; set; }
 
 	/// <summary>
 	///     After raising its change callback, the control shows what the parent passes back, so a refused change reverts.
@@ -113,7 +126,7 @@ public partial class MokaSegmentedControl
 
 		// Uncontrolled, Value only seeds the selection when the parent passes a new value, so a parent render that
 		// passes the old one again cannot undo the user's choice.
-		if (Controlled || !string.Equals(_lastValue, Value, StringComparison.Ordinal))
+		if (Controlled || !Comparer.Equals(_lastValue, Value))
 		{
 			_lastValue = Value;
 			_value = Value;
@@ -121,9 +134,9 @@ public partial class MokaSegmentedControl
 	}
 
 	/// <summary>Sets the selected segment value.</summary>
-	internal async Task SelectAsync(string value)
+	internal async Task SelectAsync(TValue value)
 	{
-		if (Disabled || string.Equals(_value, value, StringComparison.Ordinal))
+		if (Disabled || Comparer.Equals(_value, value))
 		{
 			return;
 		}
@@ -150,24 +163,25 @@ public partial class MokaSegmentedControl
 	// rendering the old choice again would send nothing and leave the refused radio checked. One render with the
 	// browser's radio checked, sent on its own, gives the next render a change to make, and the browser checks the old
 	// radio again. The segments' look follows the value throughout, so the refused one is never drawn as chosen.
-	private async Task AskAsync(string value)
+	private async Task AskAsync(TValue value)
 	{
 		_browserChecked = value;
+		_followsBrowser = true;
 		StateHasChanged();
 		Task answer = ValueChanged.InvokeAsync(value);
 
 		await Task.Yield();
-		_browserChecked = null;
+		_followsBrowser = false;
+		_browserChecked = default;
 		StateHasChanged();
 
 		await answer;
 	}
 
 	/// <summary>Checks whether a given segment value is currently selected.</summary>
-	internal bool IsSelected(string value) => string.Equals(_value, value, StringComparison.Ordinal);
+	internal bool IsSelected(TValue value) => Comparer.Equals(_value, value);
 
 	// Apart from IsSelected for the moment after a controlled click, when the radio follows the browser and the look
 	// still follows the value.
-	internal bool IsChecked(string value) =>
-		string.Equals(_browserChecked ?? _value, value, StringComparison.Ordinal);
+	internal bool IsChecked(TValue value) => Comparer.Equals(_followsBrowser ? _browserChecked : _value, value);
 }

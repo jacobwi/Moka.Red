@@ -636,9 +636,8 @@ public partial class MokaThemeStudio : IAsyncDisposable
 
 	private Task ResetSeedAsync(SeedSlot slot) => ApplyAsync(new StudioChange(SeedLabel(slot), null), () => _seed = WithSlot(CurrentSeed, slot, null));
 
-	private Task SetContrastAsync(string value) => Enum.TryParse(value, out MokaSeedContrast contrast)
-		? ApplyAsync(new StudioChange(Text.Contrast, null), () => _seed = CurrentSeed with { Contrast = contrast })
-		: Task.CompletedTask;
+	private Task SetContrastAsync(MokaSeedContrast contrast) =>
+		ApplyAsync(new StudioChange(Text.Contrast, null), () => _seed = CurrentSeed with { Contrast = contrast });
 
 	private Task SetHighContrastAsync(bool value) => ApplyAsync(new StudioChange(Text.HighContrast, null), () => _highContrast = value);
 
@@ -680,18 +679,13 @@ public partial class MokaThemeStudio : IAsyncDisposable
 		_changeLine = null;
 	}
 
-	private Task SetViewAsync(string value)
+	private Task SetViewAsync(MokaThemeStudioView view)
 	{
-		if (!Enum.TryParse(value, out MokaThemeStudioView view))
-		{
-			return Task.CompletedTask;
-		}
-
 		_view = view;
 		return ViewChanged.InvokeAsync(view);
 	}
 
-	private void SetInspected(string value) => _inspectDark = value == nameof(MokaThemeStudioView.Dark);
+	private void SetInspected(MokaThemeStudioView view) => _inspectDark = view == MokaThemeStudioView.Dark;
 
 	private void SetSearchText(string value) => _searchText = value;
 

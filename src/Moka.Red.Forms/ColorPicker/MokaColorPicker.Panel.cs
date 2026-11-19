@@ -651,9 +651,9 @@ public partial class MokaColorPicker
 		}
 	}
 
-	private async Task SelectFormatAsync(string? name)
+	private async Task SelectFormatAsync(MokaColorFormat format)
 	{
-		if (!Enum.TryParse(name, out MokaColorFormat format) || format == _format)
+		if (format == _format)
 		{
 			return;
 		}

@@ -11,14 +11,14 @@ public class MokaSegmentedControlStackTests : BunitContext
 {
 	private const string Css = "MokaSegmentedControl.razor.css";
 
-	private IRenderedComponent<MokaSegmentedControl> Control(Action<ComponentParameterCollectionBuilder<MokaSegmentedControl>> extra) =>
-		Render<MokaSegmentedControl>(p =>
+	private IRenderedComponent<MokaSegmentedControl<string>> Control(Action<ComponentParameterCollectionBuilder<MokaSegmentedControl<string>>> extra) =>
+		Render<MokaSegmentedControl<string>>(p =>
 		{
 			p.Add(x => x.Value, "add");
 			extra(p);
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "add").Add(x => x.Text, "Add this device"));
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "invite").Add(x => x.Text, "I have an invite"));
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "restore").Add(x => x.Text, "Restore a backup"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "add").Add(x => x.Text, "Add this device"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "invite").Add(x => x.Text, "I have an invite"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "restore").Add(x => x.Text, "Restore a backup"));
 		});
 
 	[Fact]

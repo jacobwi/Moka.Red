@@ -364,7 +364,7 @@
 		: @<MokaButton Size="MokaSize.Sm" StartIcon="MokaIcons.Action.Upload" OnClick="PickFilesAsync">@Text.Upload</MokaButton>;
 
 	private RenderFragment SortChoice => @<text>
-		<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="@Text.SortLabel" Value="@_view.SortBy" ValueChanged="SortByAsync">
+		<MokaSegmentedControl TValue="string" Size="MokaSize.Sm" AriaLabel="@Text.SortLabel" Value="@_view.SortBy" ValueChanged="SortByAsync">
 			<MokaSegment Value="@MokaFileSort.Name" Text="@Text.SortName"/>
 			@if (Shows(MokaFileSort.Modified))
 			{
@@ -391,9 +391,9 @@
 		}
 	</span>;
 
-	private RenderFragment GroupByChoice => @<MokaSegmentedControl Size="MokaSize.Sm" AriaLabel="@Text.GroupByLabel" Value="@GroupByValue" ValueChanged="SetGroupByAsync">
-		<MokaSegment Value="kind" Text="@Text.GroupKind"/>
-		<MokaSegment Value="date" Text="@Text.GroupDate"/>
+	private RenderFragment GroupByChoice => @<MokaSegmentedControl TValue="MokaFileGroupBy" Size="MokaSize.Sm" AriaLabel="@Text.GroupByLabel" Value="@GroupByValue" ValueChanged="SetGroupByAsync">
+		<MokaSegment Value="MokaFileGroupBy.Kind" Text="@Text.GroupKind"/>
+		<MokaSegment Value="MokaFileGroupBy.Date" Text="@Text.GroupDate"/>
 	</MokaSegmentedControl>;
 
 	private RenderFragment PreviewButton => @<span class="moka-file-browser__preview-control">

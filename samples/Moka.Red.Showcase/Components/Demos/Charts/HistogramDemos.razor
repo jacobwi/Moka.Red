@@ -3,9 +3,9 @@
 
 <DemoSection Id="basics" Title="Basics" Description="Raw values, a bucket size, percentile lines.">
 	<div style="display: flex; gap: var(--moka-spacing-md); align-items: center;">
-		<MokaSegmentedControl Value="@(_million ? "million" : "hour")" ValueChanged="SetMillion" AriaLabel="How many values">
-			<MokaSegment Value="hour" Text="4,200 values"/>
-			<MokaSegment Value="million" Text="1,000,000 values"/>
+		<MokaSegmentedControl TValue="string" Value="@(_million ? "million" : "hour")" ValueChanged="SetMillion" AriaLabel="How many values">
+			<MokaSegment Value="@("hour")" Text="4,200 values"/>
+			<MokaSegment Value="@("million")" Text="1,000,000 values"/>
 		</MokaSegmentedControl>
 	</div>
 	<MokaHistogram Values="@(_million ? _millionTimes : _responseTimes)" DataVersion="@(_million ? 2 : 1)" BucketSize="@(_million ? null : 25)"

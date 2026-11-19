@@ -13,7 +13,7 @@
 	<div class="dock-pattern__bar">
 		<div class="dock-pattern__control">
 			<span class="moka-micro-label" aria-hidden="true">Look</span>
-			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look" Size="MokaSize.Sm">
 				@foreach (MokaDockLook look in Looks)
 				{
 					<MokaSegment @key="look" Value="@look.ToString()" Text="@look.ToString()"/>
@@ -22,7 +22,7 @@
 		</div>
 		<div class="dock-pattern__control">
 			<span class="moka-micro-label" aria-hidden="true">Tabs</span>
-			<MokaSegmentedControl Value="@_tabStyle.ToString()" ValueChanged="SetTabStyle" AriaLabel="Tab style" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_tabStyle.ToString()" ValueChanged="SetTabStyle" AriaLabel="Tab style" Size="MokaSize.Sm">
 				@foreach (MokaDockTabStyle style in TabStyles)
 				{
 					<MokaSegment @key="style" Value="@style.ToString()" Text="@style.ToString()"/>
@@ -31,7 +31,7 @@
 		</div>
 		<div class="dock-pattern__control">
 			<span class="moka-micro-label" aria-hidden="true">Drop</span>
-			<MokaSegmentedControl Value="@_drop.ToString()" ValueChanged="SetDrop" AriaLabel="Drop indicator" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_drop.ToString()" ValueChanged="SetDrop" AriaLabel="Drop indicator" Size="MokaSize.Sm">
 				@foreach (MokaDockDropIndicator drop in Drops)
 				{
 					<MokaSegment @key="drop" Value="@drop.ToString()" Text="@drop.ToString()"/>
@@ -40,11 +40,11 @@
 		</div>
 		<div class="dock-pattern__control">
 			<span class="moka-micro-label" aria-hidden="true">Width</span>
-			<MokaSegmentedControl Value="@(_narrow ? "narrow" : "full")" ValueChanged="SetWidth" AriaLabel="Layout width" Size="MokaSize.Sm">
-				<MokaSegment Value="full" Text="Full"/>
-				<MokaSegment Value="narrow" Text="Narrow"/>
+			<MokaSegmentedControl TValue="string" Value="@(_narrow ? "narrow" : "full")" ValueChanged="SetWidth" AriaLabel="Layout width" Size="MokaSize.Sm">
+				<MokaSegment Value="@("full")" Text="Full"/>
+				<MokaSegment Value="@("narrow")" Text="Narrow"/>
 			</MokaSegmentedControl>
-			<MokaSegmentedControl Value="@_narrowMode.ToString()" ValueChanged="SetNarrowMode" AriaLabel="Narrow mode" Size="MokaSize.Sm" Disabled="@(!_narrow)">
+			<MokaSegmentedControl TValue="string" Value="@_narrowMode.ToString()" ValueChanged="SetNarrowMode" AriaLabel="Narrow mode" Size="MokaSize.Sm" Disabled="@(!_narrow)">
 				@foreach (MokaDockNarrowMode mode in NarrowModes)
 				{
 					<MokaSegment @key="mode" Value="@mode.ToString()" Text="@mode.ToString()"/>

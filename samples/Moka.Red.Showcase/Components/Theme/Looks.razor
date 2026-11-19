@@ -157,8 +157,8 @@
 	}
 
 	private RenderFragment LookPicker<TLook>(string label, TLook? value, Action<TLook?> apply) where TLook : struct, Enum =>
-		@<MokaSegmentedControl Value="@(value?.ToString() ?? "Theme")" ValueChanged="v => Pick(v, apply)" Size="MokaSize.Xs" AriaLabel="@label">
-			<MokaSegment Value="Theme" Text="Theme"/>
+		@<MokaSegmentedControl TValue="string" Value="@(value?.ToString() ?? "Theme")" ValueChanged="v => Pick(v, apply)" Size="MokaSize.Xs" AriaLabel="@label">
+			<MokaSegment Value="@("Theme")" Text="Theme"/>
 			@foreach (TLook look in Enum.GetValues<TLook>())
 			{
 				<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>

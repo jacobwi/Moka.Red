@@ -255,7 +255,7 @@ public class OneWayBindingTests : BunitContext
 	[Fact]
 	public async Task SegmentedControl_KeepsTheChoice_WhenTheParentPassesTheSameValue()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderSegmentedControl();
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderSegmentedControl();
 
 		await cut.FindAll("input[type=radio]")[1].ChangeAsync(new ChangeEventArgs { Value = "b" });
 		cut.Render(p => p.Add(x => x.Value, "a"));
@@ -266,7 +266,7 @@ public class OneWayBindingTests : BunitContext
 	[Fact]
 	public async Task SegmentedControl_FollowsANewValueFromTheParent()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderSegmentedControl();
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderSegmentedControl();
 
 		await cut.FindAll("input[type=radio]")[1].ChangeAsync(new ChangeEventArgs { Value = "b" });
 		cut.Render(p => p.Add(x => x.Value, "c"));
@@ -335,9 +335,9 @@ public class OneWayBindingTests : BunitContext
 		return cut;
 	}
 
-	private IRenderedComponent<MokaSegmentedControl> RenderSegmentedControl() => Render<MokaSegmentedControl>(p => p
+	private IRenderedComponent<MokaSegmentedControl<string>> RenderSegmentedControl() => Render<MokaSegmentedControl<string>>(p => p
 		.Add(x => x.Value, "a")
-		.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
-		.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
-		.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C")));
+		.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
+		.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
+		.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C")));
 }

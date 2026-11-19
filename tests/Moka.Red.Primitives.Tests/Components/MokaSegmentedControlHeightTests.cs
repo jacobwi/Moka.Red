@@ -12,18 +12,18 @@ public partial class MokaSegmentedControlHeightTests : BunitContext
 {
 	private const string Css = "MokaSegmentedControl.razor.css";
 
-	private IRenderedComponent<MokaSegmentedControl> Control(bool match, MokaSize size = MokaSize.Sm) =>
-		Render<MokaSegmentedControl>(p => p
+	private IRenderedComponent<MokaSegmentedControl<string>> Control(bool match, MokaSize size = MokaSize.Sm) =>
+		Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Size, size)
 			.Add(x => x.MatchControlHeight, match)
 			.Add(x => x.Value, "a")
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Day"))
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "Week")));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Day"))
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "Week")));
 
 	[Fact]
 	public void TheDefault_KeepsTodaysClasses()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Control(false);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Control(false);
 
 		Assert.Equal("moka-segmented moka-segmented--sm", cut.Find(".moka-segmented").ClassName);
 	}
@@ -31,7 +31,7 @@ public partial class MokaSegmentedControlHeightTests : BunitContext
 	[Fact]
 	public void MatchControlHeight_IsAClassOnTheTrack()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Control(true);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Control(true);
 
 		Assert.Equal("moka-segmented moka-segmented--sm moka-segmented--control-height", cut.Find(".moka-segmented").ClassName);
 	}

@@ -242,7 +242,7 @@ public sealed class MokaTableFilterControlsTests : BunitContext
 	{
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.QuickFilters, Quick));
 
-		IReadOnlyList<IRenderedComponent<MokaSegment>> segments = cut.FindComponents<MokaSegment>();
+		IReadOnlyList<IRenderedComponent<MokaSegment<string>>> segments = cut.FindComponents<MokaSegment<string>>();
 		Assert.Equal(["All", "Engineering", "Over 40"], segments.Select(s => s.Instance.Text));
 		Assert.Equal([4, 2, 2], segments.Select(s => s.Instance.Count ?? -1));
 	}
@@ -253,7 +253,7 @@ public sealed class MokaTableFilterControlsTests : BunitContext
 		MokaTableState? raised = null;
 		IRenderedComponent<MokaTable<Person>> cut = Table(p => p.Add(t => t.QuickFilters, Quick).Add(t => t.StateChanged, s => raised = s));
 
-		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl>().Instance.ValueChanged.InvokeAsync("Over 40"));
+		await cut.InvokeAsync(() => cut.FindComponent<MokaSegmentedControl<string>>().Instance.ValueChanged.InvokeAsync("Over 40"));
 
 		Assert.Equal(["Grace", "Alan"], ColumnTexts(cut, 0));
 		Assert.Equal("Over 40", raised!.QuickFilter);
@@ -330,7 +330,7 @@ public sealed class MokaTableFilterControlsTests : BunitContext
 		cut.WaitForAssertion(() => Assert.Equal(["25", "15"], cut.FindAll(".moka-table-facet-count").Select(e => e.TextContent)));
 		Assert.Equal(["Team"], requests[0].Facets);
 		Assert.Equal(Quick, requests[0].QuickFilterCounts);
-		Assert.Equal([40, 25, 9], cut.FindComponents<MokaSegment>().Select(s => s.Instance.Count ?? -1));
+		Assert.Equal([40, 25, 9], cut.FindComponents<MokaSegment<string>>().Select(s => s.Instance.Count ?? -1));
 	}
 
 	[Fact]

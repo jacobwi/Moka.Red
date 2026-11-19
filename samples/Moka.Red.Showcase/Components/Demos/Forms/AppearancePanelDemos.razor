@@ -21,7 +21,7 @@
 				<MokaSwitch @bind-Value="_showReset" Label="A reset button"/>
 				<MokaCaption Micro>Color mode row</MokaCaption>
 				<MokaSegmentedControl @bind-Value="_modeLook" AriaLabel="Color mode row" Size="MokaSize.Sm">
-					<MokaSegment Value="" Text="Cards"/>
+					<MokaSegment Value="@("")" Text="Cards"/>
 					@foreach (MokaThemeToggleLook look in Enum.GetValues<MokaThemeToggleLook>())
 					{
 						<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>

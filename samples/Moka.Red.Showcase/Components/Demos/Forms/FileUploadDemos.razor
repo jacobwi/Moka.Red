@@ -46,7 +46,7 @@
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
 			<MokaCaption Micro="true">Look</MokaCaption>
-			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="v => _look = Enum.Parse<MokaFileUploadLook>(v)" AriaLabel="Look" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_look.ToString()" ValueChanged="v => _look = Enum.Parse<MokaFileUploadLook>(v)" AriaLabel="Look" Size="MokaSize.Sm">
 				@foreach (MokaFileUploadLook look in Enum.GetValues<MokaFileUploadLook>())
 				{
 					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
@@ -55,7 +55,7 @@
 		</div>
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
 			<MokaCaption Micro="true">While dragging</MokaCaption>
-			<MokaSegmentedControl Value="@_dragLook.ToString()" ValueChanged="v => _dragLook = Enum.Parse<MokaFileUploadDragLook>(v)" AriaLabel="Drag look" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_dragLook.ToString()" ValueChanged="v => _dragLook = Enum.Parse<MokaFileUploadDragLook>(v)" AriaLabel="Drag look" Size="MokaSize.Sm">
 				@foreach (MokaFileUploadDragLook look in Enum.GetValues<MokaFileUploadDragLook>())
 				{
 					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
@@ -64,7 +64,7 @@
 		</div>
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
 			<MokaCaption Micro="true">File list</MokaCaption>
-			<MokaSegmentedControl Value="@_listLook.ToString()" ValueChanged="v => _listLook = Enum.Parse<MokaFileUploadListLook>(v)" AriaLabel="List look" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_listLook.ToString()" ValueChanged="v => _listLook = Enum.Parse<MokaFileUploadListLook>(v)" AriaLabel="List look" Size="MokaSize.Sm">
 				@foreach (MokaFileUploadListLook look in Enum.GetValues<MokaFileUploadListLook>())
 				{
 					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>

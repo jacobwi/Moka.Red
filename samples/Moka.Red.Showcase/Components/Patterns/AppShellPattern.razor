@@ -39,10 +39,10 @@
 
 			<MokaCard Title="Rail">
 				<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
-					<MokaSegmentedControl Value="@_rail.ToString()" ValueChanged="SetRail" AriaLabel="Rail">
-						<MokaSegment Value="Automatic" Text="Automatic"/>
-						<MokaSegment Value="Expanded" Text="Expanded"/>
-						<MokaSegment Value="Collapsed" Text="Collapsed"/>
+					<MokaSegmentedControl TValue="string" Value="@_rail.ToString()" ValueChanged="SetRail" AriaLabel="Rail">
+						<MokaSegment Value="@("Automatic")" Text="Automatic"/>
+						<MokaSegment Value="@("Expanded")" Text="Expanded"/>
+						<MokaSegment Value="@("Collapsed")" Text="Collapsed"/>
 					</MokaSegmentedControl>
 					<span>
 						Automatic is the rail below 1280 px. Press <MokaKbd>[</MokaKbd> outside a text field to flip it for this
@@ -56,15 +56,15 @@
 
 			<MokaCard Title="Theme">
 				<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
-					<MokaSegmentedControl Value="@_themeName" ValueChanged="SetTheme" AriaLabel="Theme">
+					<MokaSegmentedControl TValue="string" Value="@_themeName" ValueChanged="SetTheme" AriaLabel="Theme">
 						@foreach (string name in Themes.Keys)
 						{
 							<MokaSegment Value="@name" Text="@name"/>
 						}
 					</MokaSegmentedControl>
-					<MokaSegmentedControl Value="@_place.ToString()" ValueChanged="v => _place = Enum.Parse<MokaCurrentPlace>(v)" AriaLabel="Current page">
-						<MokaSegment Value="Ring" Text="Current page: ring"/>
-						<MokaSegment Value="Solid" Text="Current page: solid"/>
+					<MokaSegmentedControl TValue="string" Value="@_place.ToString()" ValueChanged="v => _place = Enum.Parse<MokaCurrentPlace>(v)" AriaLabel="Current page">
+						<MokaSegment Value="@("Ring")" Text="Current page: ring"/>
+						<MokaSegment Value="@("Solid")" Text="Current page: solid"/>
 					</MokaSegmentedControl>
 				</MokaFlexbox>
 			</MokaCard>

@@ -15,7 +15,7 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void IsARadioGroup_WithANativeRadioPerSegment()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("a", _ => { });
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl("a", _ => { });
 
 		Assert.Equal("radiogroup", cut.Find(".moka-segmented").GetAttribute("role"));
 		Assert.Empty(cut.FindAll("[role=tablist], [role=tab]"));
@@ -26,8 +26,8 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void Radios_ShareOneName_ThatAnotherControlDoesNotUse()
 	{
-		IRenderedComponent<MokaSegmentedControl> first = RenderControl("a", _ => { });
-		IRenderedComponent<MokaSegmentedControl> second = RenderControl("a", _ => { });
+		IRenderedComponent<MokaSegmentedControl<string>> first = RenderControl("a", _ => { });
+		IRenderedComponent<MokaSegmentedControl<string>> second = RenderControl("a", _ => { });
 
 		IReadOnlyList<IElement> radios = first.FindAll("input[type=radio]");
 		string? name = radios[0].GetAttribute("name");
@@ -39,7 +39,7 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void SelectedSegment_HasTheCheckedRadio()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("b", _ => { });
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl("b", _ => { });
 
 		Assert.Equal([false, true, false], cut.FindAll("input[type=radio]").Select(r => r.HasAttribute("checked")));
 		Assert.Contains("moka-segment--active", cut.FindAll(".moka-segment")[1].ClassList);
@@ -50,7 +50,7 @@ public class MokaSegmentedControlTests : BunitContext
 	public async Task Change_SelectsTheSegment_AndRaisesValueChanged()
 	{
 		string? chosen = null;
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("a", value => chosen = value);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl("a", value => chosen = value);
 
 		await cut.FindAll("input[type=radio]")[2].ChangeAsync(new ChangeEventArgs { Value = "c" });
 
@@ -62,9 +62,9 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void AriaLabel_NamesTheGroup()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.AriaLabel, "Time range")
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "day").Add(x => x.Text, "Day")));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "day").Add(x => x.Text, "Day")));
 
 		Assert.Equal("Time range", cut.Find("[role=radiogroup]").GetAttribute("aria-label"));
 	}
@@ -73,7 +73,7 @@ public class MokaSegmentedControlTests : BunitContext
 	public async Task DisabledControl_DisablesEveryRadio_AndIgnoresChange()
 	{
 		string? chosen = null;
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("a", value => chosen = value, disabled: true);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl("a", value => chosen = value, disabled: true);
 
 		await cut.FindAll("input[type=radio]")[1].ChangeAsync(new ChangeEventArgs { Value = "b" });
 
@@ -87,11 +87,11 @@ public class MokaSegmentedControlTests : BunitContext
 	public async Task DisabledSegment_IsADisabledRadio_AndIgnoresChange()
 	{
 		string? chosen = null;
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Value, "a")
 			.Add(x => x.ValueChanged, value => chosen = value)
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B").Add(x => x.Disabled, true)));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B").Add(x => x.Disabled, true)));
 
 		IElement disabled = cut.FindAll("input[type=radio]")[1];
 		await disabled.ChangeAsync(new ChangeEventArgs { Value = "b" });
@@ -105,9 +105,9 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void IconOnlySegment_PassesAriaLabelAndTitleToTheRadio()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Value, "dense")
-			.AddChildContent<MokaSegment>(s => s
+			.AddChildContent<MokaSegment<string>>(s => s
 				.Add(x => x.Value, "dense")
 				.Add(x => x.Icon, MokaIcons.Content.RowsDense)
 				.AddUnmatched("aria-label", "Dense rows")
@@ -122,7 +122,7 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void WithoutCount_NoCountIsDrawn()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl("a", _ => { });
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl("a", _ => { });
 
 		Assert.Empty(cut.FindAll(".moka-segment__count"));
 	}
@@ -131,10 +131,10 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void Count_FollowsTheText_InsideTheLabelThatNamesTheRadio()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Value, "on")
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 3))
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "off").Add(x => x.Text, "Off").Add(x => x.Count, 12)));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 3))
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "off").Add(x => x.Text, "Off").Add(x => x.Count, 12)));
 
 		IReadOnlyList<IElement> segments = cut.FindAll("label.moka-segment");
 		Assert.Equal(["moka-segment__input", "moka-segment__text", "moka-segment__count"],
@@ -147,8 +147,8 @@ public class MokaSegmentedControlTests : BunitContext
 	[Fact]
 	public void ACountOfZero_IsDrawn()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 0)));
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "on").Add(x => x.Text, "On").Add(x => x.Count, 0)));
 
 		Assert.Equal("0", cut.Find(".moka-segment__count").TextContent);
 	}
@@ -169,12 +169,12 @@ public class MokaSegmentedControlTests : BunitContext
 		Assert.Empty(ScopedCss.Declarations(css, ".moka-gate .moka-segmented ::deep .moka-segment__count"));
 	}
 
-	private IRenderedComponent<MokaSegmentedControl> RenderControl(string value, Action<string> changed, bool disabled = false) =>
-		Render<MokaSegmentedControl>(p => p
+	private IRenderedComponent<MokaSegmentedControl<string>> RenderControl(string value, Action<string> changed, bool disabled = false) =>
+		Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Value, value)
 			.Add(x => x.ValueChanged, changed)
 			.Add(x => x.Disabled, disabled)
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C")));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C")));
 }

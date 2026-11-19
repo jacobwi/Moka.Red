@@ -27,11 +27,11 @@
 
 <DemoSection Id="large-charts" Title="Large charts" Description="Marks are placed in time quanta, so a window that slides leaves them alone and a tick sends only what changed.">
 	<div class="state-charts__row">
-		<MokaSegmentedControl Value="@_large" ValueChanged="SetLarge" AriaLabel="Large chart">
-			<MokaSegment Value="none" Text="Off"/>
-			<MokaSegment Value="calm" Text="50 rows, 24 spans each"/>
-			<MokaSegment Value="wide" Text="50 rows, 2,000 spans each"/>
-			<MokaSegment Value="tall" Text="1,000 rows"/>
+		<MokaSegmentedControl TValue="string" Value="@_large" ValueChanged="SetLarge" AriaLabel="Large chart">
+			<MokaSegment Value="@("none")" Text="Off"/>
+			<MokaSegment Value="@("calm")" Text="50 rows, 24 spans each"/>
+			<MokaSegment Value="@("wide")" Text="50 rows, 2,000 spans each"/>
+			<MokaSegment Value="@("tall")" Text="1,000 rows"/>
 		</MokaSegmentedControl>
 		<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="NextMinute" Disabled="@(_large == "none")">Next minute, one row in ten changes</MokaButton>
 		<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="Slide" Disabled="@(_large == "none")">Next minute, nothing changes</MokaButton>

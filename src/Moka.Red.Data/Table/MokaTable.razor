@@ -1575,7 +1575,7 @@
 				}
 				else
 				{
-					<MokaSegmentedControl Value="@(_quickFilter ?? AllQuickKey)" ValueChanged="PickQuickSegmentAsync"
+					<MokaSegmentedControl TValue="string" Value="@(_quickFilter ?? AllQuickKey)" ValueChanged="PickQuickSegmentAsync"
 					                      AriaLabel="@Words.QuickFilters" Controlled="true">
 						<MokaSegment Value="@AllQuickKey" Text="@Words.AllRows" Count="AllRowsCount"/>
 						@foreach (var quick in quickFilters)

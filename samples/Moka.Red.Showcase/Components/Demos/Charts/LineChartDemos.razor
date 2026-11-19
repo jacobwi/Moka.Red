@@ -78,19 +78,19 @@
 
 <DemoSection Id="points-and-areas" Title="Points and areas">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
-		<MokaSegmentedControl Value="@_points.ToString()" ValueChanged="@(v => _points = Enum.Parse<MokaChartPoints>(v))" AriaLabel="Points">
+		<MokaSegmentedControl TValue="string" Value="@_points.ToString()" ValueChanged="@(v => _points = Enum.Parse<MokaChartPoints>(v))" AriaLabel="Points">
 			@foreach (MokaChartPoints option in Enum.GetValues<MokaChartPoints>())
 			{
 				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
 			}
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@_area.ToString()" ValueChanged="@(v => _area = Enum.Parse<MokaChartArea>(v))" AriaLabel="Area">
+		<MokaSegmentedControl TValue="string" Value="@_area.ToString()" ValueChanged="@(v => _area = Enum.Parse<MokaChartArea>(v))" AriaLabel="Area">
 			@foreach (MokaChartArea option in Enum.GetValues<MokaChartArea>())
 			{
 				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
 			}
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@_curve.ToString()" ValueChanged="@(v => _curve = Enum.Parse<MokaLineCurve>(v))" AriaLabel="Curve">
+		<MokaSegmentedControl TValue="string" Value="@_curve.ToString()" ValueChanged="@(v => _curve = Enum.Parse<MokaLineCurve>(v))" AriaLabel="Curve">
 			@foreach (MokaLineCurve option in Enum.GetValues<MokaLineCurve>())
 			{
 				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
@@ -103,7 +103,7 @@
 
 <DemoSection Id="tooltips-and-keys" Title="Tooltips and keys" Description="Point, or Tab in and use the arrows; Enter pins.">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
-		<MokaSegmentedControl Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))" AriaLabel="Tooltip">
+		<MokaSegmentedControl TValue="string" Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))" AriaLabel="Tooltip">
 			@foreach (MokaChartTooltip option in Enum.GetValues<MokaChartTooltip>())
 			{
 				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
@@ -127,19 +127,19 @@
 
 <DemoSection Id="scale" Title="Scale" Description="A day of samples per series: zoom by brush, Ctrl and the wheel, or the strip.">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
-		<MokaSegmentedControl Value="@_size.ToString(CultureInfo.InvariantCulture)" ValueChanged="SizeChosen" AriaLabel="Points per series">
+		<MokaSegmentedControl TValue="string" Value="@_size.ToString(CultureInfo.InvariantCulture)" ValueChanged="SizeChosen" AriaLabel="Points per series">
 			@foreach (int size in Sizes)
 			{
 				<MokaSegment Value="@size.ToString(CultureInfo.InvariantCulture)" Text="@size.ToString("N0", CultureInfo.InvariantCulture)"/>
 			}
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@(_labelled ? "labels" : "times")" ValueChanged="AxisChosen" AriaLabel="X axis">
-			<MokaSegment Value="times" Text="Times"/>
-			<MokaSegment Value="labels" Text="Labels"/>
+		<MokaSegmentedControl TValue="string" Value="@(_labelled ? "labels" : "times")" ValueChanged="AxisChosen" AriaLabel="X axis">
+			<MokaSegment Value="@("times")" Text="Times"/>
+			<MokaSegment Value="@("labels")" Text="Labels"/>
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@_downsample.ToString()" ValueChanged="@(v => _downsample = Enum.Parse<MokaDownsample>(v))" AriaLabel="Downsample">
-			<MokaSegment Value="Auto" Text="MinMax"/>
-			<MokaSegment Value="Lttb" Text="LTTB"/>
+		<MokaSegmentedControl TValue="string" Value="@_downsample.ToString()" ValueChanged="@(v => _downsample = Enum.Parse<MokaDownsample>(v))" AriaLabel="Downsample">
+			<MokaSegment Value="@("Auto")" Text="MinMax"/>
+			<MokaSegment Value="@("Lttb")" Text="LTTB"/>
 		</MokaSegmentedControl>
 		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_timing</span>
 	</div>
@@ -151,15 +151,15 @@
 
 <DemoSection Id="compared-with-last-week-with-a-trend" Title="Compared with last week, with a trend" Description="CompareTo draws last week faint and dashed in this week's color; Trend adds a moving average or a straight line.">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
-		<MokaSegmentedControl Value="@_trend.ToString()" ValueChanged="@(v => _trend = Enum.Parse<MokaChartTrend>(v))" AriaLabel="Trend">
+		<MokaSegmentedControl TValue="string" Value="@_trend.ToString()" ValueChanged="@(v => _trend = Enum.Parse<MokaChartTrend>(v))" AriaLabel="Trend">
 			@foreach (MokaChartTrend option in Enum.GetValues<MokaChartTrend>())
 			{
 				<MokaSegment Value="@option.ToString()" Text="@option.ToString()"/>
 			}
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@_trendWindow.ToString(CultureInfo.InvariantCulture)" ValueChanged="@(v => _trendWindow = int.Parse(v, CultureInfo.InvariantCulture))" AriaLabel="Average over">
-			<MokaSegment Value="6" Text="6 hours"/>
-			<MokaSegment Value="24" Text="A day"/>
+		<MokaSegmentedControl TValue="string" Value="@_trendWindow.ToString(CultureInfo.InvariantCulture)" ValueChanged="@(v => _trendWindow = int.Parse(v, CultureInfo.InvariantCulture))" AriaLabel="Average over">
+			<MokaSegment Value="@("6")" Text="6 hours"/>
+			<MokaSegment Value="@("24")" Text="A day"/>
 		</MokaSegmentedControl>
 	</div>
 	<MokaLineChart Title="Requests this week" Subtitle="Per hour" Look="MokaChartLook.Quiet" Times="WeekTimes" Series="ThisAndLastWeek"
@@ -169,15 +169,15 @@
 
 <DemoSection Id="streaming" Title="Streaming" Description="One sample a second into a long window: only what arrived is read.">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-lg); align-items: center;">
-		<MokaSegmentedControl Value="@_streamSize.ToString(CultureInfo.InvariantCulture)" ValueChanged="StreamSizeChosen" AriaLabel="Window">
+		<MokaSegmentedControl TValue="string" Value="@_streamSize.ToString(CultureInfo.InvariantCulture)" ValueChanged="StreamSizeChosen" AriaLabel="Window">
 			@foreach (int size in StreamSizes)
 			{
 				<MokaSegment Value="@size.ToString(CultureInfo.InvariantCulture)" Text="@size.ToString("N0", CultureInfo.InvariantCulture)"/>
 			}
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@(_streamSlides ? "slide" : "grow")" ValueChanged="@(v => _streamSlides = v == "slide")" AriaLabel="Window moves">
-			<MokaSegment Value="slide" Text="Slides"/>
-			<MokaSegment Value="grow" Text="Grows"/>
+		<MokaSegmentedControl TValue="string" Value="@(_streamSlides ? "slide" : "grow")" ValueChanged="@(v => _streamSlides = v == "slide")" AriaLabel="Window moves">
+			<MokaSegment Value="@("slide")" Text="Slides"/>
+			<MokaSegment Value="@("grow")" Text="Grows"/>
 		</MokaSegmentedControl>
 		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">@_streamTiming</span>
 	</div>
@@ -198,10 +198,10 @@
 	</MokaLineChart>
 	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
 		<MokaSegmentedControl @bind-Value="_state" AriaLabel="State to show" Size="MokaSize.Sm">
-			<MokaSegment Value="Auto" Text="Data"/>
-			<MokaSegment Value="Loading" Text="Loading"/>
-			<MokaSegment Value="Empty" Text="Empty"/>
-			<MokaSegment Value="Error" Text="Error"/>
+			<MokaSegment Value="@("Auto")" Text="Data"/>
+			<MokaSegment Value="@("Loading")" Text="Loading"/>
+			<MokaSegment Value="@("Empty")" Text="Empty"/>
+			<MokaSegment Value="@("Error")" Text="Error"/>
 		</MokaSegmentedControl>
 		<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" OnClick="ExportCsv">Save the values from outside the chart</MokaButton>
 		<span style="font-family: var(--moka-font-family-mono); font-size: var(--moka-font-size-xs);">
@@ -248,7 +248,7 @@
 
 <DemoSection Id="tooltip-modes" Title="Tooltip modes" Description="Point at the chart, or Tab to it and use the arrow keys.">
 	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
-		<MokaSegmentedControl Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))"
+		<MokaSegmentedControl TValue="string" Value="@_tooltip.ToString()" ValueChanged="@(v => _tooltip = Enum.Parse<MokaChartTooltip>(v))"
 		                      AriaLabel="Tooltip">
 			@foreach (MokaChartTooltip option in Modes)
 			{
@@ -322,9 +322,9 @@
 
 <DemoSection Id="time-axis" Title="Time axis" Description="Times, not strings: steps by the clock, marks each day.">
 	<MokaSegmentedControl @bind-Value="_span" AriaLabel="Span">
-		<MokaSegment Value="6h" Text="6 h"/>
-		<MokaSegment Value="48h" Text="48 h"/>
-		<MokaSegment Value="30d" Text="30 d"/>
+		<MokaSegment Value="@("6h")" Text="6 h"/>
+		<MokaSegment Value="@("48h")" Text="48 h"/>
+		<MokaSegment Value="@("30d")" Text="30 d"/>
 	</MokaSegmentedControl>
 	<MokaLineChart Series="@TimeSeries" Times="@TimesFor" Unit="MokaChartUnit.BitsPerSecond" Look="MokaChartLook.Quiet"
 	               Label="Download"/>

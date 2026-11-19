@@ -22,7 +22,7 @@ public sealed class MokaSegmentedControlControlledTests : BunitContext
 	public async Task ARefusedClick_SendsTheBrowsersRadio_ThenChecksTheOldOneAgain()
 	{
 		string? asked = null;
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl(p => p
 			.Add(x => x.Value, "a")
 			.Add(x => x.ValueChanged, value => asked = value));
 		List<(bool[] Checked, bool[] Drawn)> renders = [];
@@ -67,7 +67,7 @@ public sealed class MokaSegmentedControlControlledTests : BunitContext
 	[Fact]
 	public async Task WithoutValueChanged_TheChoiceStays()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl(p => p.Add(x => x.Value, "a"));
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl(p => p.Add(x => x.Value, "a"));
 
 		await cut.FindAll("input[type=radio]")[1].ChangeAsync(new ChangeEventArgs { Value = "b" });
 
@@ -78,7 +78,7 @@ public sealed class MokaSegmentedControlControlledTests : BunitContext
 	[Fact]
 	public async Task TheParentsValue_Wins_EvenWhenItDidNotChange()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = RenderControl(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = RenderControl(p => p
 			.Add(x => x.Value, "a")
 			.Add(x => x.ValueChanged, _ => { }));
 
@@ -140,15 +140,15 @@ public sealed class MokaSegmentedControlControlledTests : BunitContext
 			[.. page.QuerySelectorAll(".moka-segment").Select(s => s.ClassList.Contains("moka-segment--active"))]);
 	}
 
-	private IRenderedComponent<MokaSegmentedControl> RenderControl(
-		Action<ComponentParameterCollectionBuilder<MokaSegmentedControl>> parameters) =>
-		Render<MokaSegmentedControl>(p =>
+	private IRenderedComponent<MokaSegmentedControl<string>> RenderControl(
+		Action<ComponentParameterCollectionBuilder<MokaSegmentedControl<string>>> parameters) =>
+		Render<MokaSegmentedControl<string>>(p =>
 		{
 			p.Add(x => x.Controlled, true);
 			parameters(p);
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
-				.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
-				.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "A"))
+				.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "B"))
+				.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "c").Add(x => x.Text, "C"));
 		});
 
 	private sealed class SegmentHost : ComponentBase
@@ -173,18 +173,18 @@ public sealed class MokaSegmentedControlControlledTests : BunitContext
 
 		protected override void BuildRenderTree(RenderTreeBuilder builder)
 		{
-			builder.OpenComponent<MokaSegmentedControl>(0);
-			builder.AddComponentParameter(1, nameof(MokaSegmentedControl.Controlled), Controlled);
-			builder.AddComponentParameter(2, nameof(MokaSegmentedControl.Value), Value);
-			builder.AddComponentParameter(3, nameof(MokaSegmentedControl.ValueChanged),
+			builder.OpenComponent<MokaSegmentedControl<string>>(0);
+			builder.AddComponentParameter(1, nameof(MokaSegmentedControl<string>.Controlled), Controlled);
+			builder.AddComponentParameter(2, nameof(MokaSegmentedControl<string>.Value), Value);
+			builder.AddComponentParameter(3, nameof(MokaSegmentedControl<string>.ValueChanged),
 				EventCallback.Factory.Create<string>(this, Changed));
-			builder.AddComponentParameter(4, nameof(MokaSegmentedControl.ChildContent), (RenderFragment)(segments =>
+			builder.AddComponentParameter(4, nameof(MokaSegmentedControl<string>.ChildContent), (RenderFragment)(segments =>
 			{
 				foreach (string value in Values)
 				{
-					segments.OpenComponent<MokaSegment>(5);
-					segments.AddComponentParameter(6, nameof(MokaSegment.Value), value);
-					segments.AddComponentParameter(7, nameof(MokaSegment.Text), value.ToUpperInvariant());
+					segments.OpenComponent<MokaSegment<string>>(5);
+					segments.AddComponentParameter(6, nameof(MokaSegment<string>.Value), value);
+					segments.AddComponentParameter(7, nameof(MokaSegment<string>.Text), value.ToUpperInvariant());
 					segments.CloseComponent();
 				}
 			}));

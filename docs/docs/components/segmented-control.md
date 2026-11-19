@@ -6,14 +6,16 @@ order: 72
 
 # Segmented Control
 
-`MokaSegmentedControl` renders a row of connected segments for picking one option out of a few, such as a view mode or a time range. Each option is a `MokaSegment` with a string `Value`, and the control binds the selected one with `@bind-Value`. Underneath it is a radio group, so the keyboard works like any set of radio buttons. For multiple selection, use `MokaToggleGroup`.
+`MokaSegmentedControl<TValue>` renders a row of connected segments for picking one option out of a few, such as a view mode or a time range. Each option is a `MokaSegment<TValue>` with a `Value` of the control's type (a string, an enum, a number or a record), and the control binds the selected one with `@bind-Value`. Underneath it is a radio group, so the keyboard works like any set of radio buttons. For multiple selection, use `MokaToggleGroup`.
+
+`TValue` is inferred from `Value` or `@bind-Value`, and the segments written inside the control take it from there. Since Razor reads a value of a generic type as C#, a string literal is written `Value="@("week")"`, and an enum member as itself: `Value="Period.Week"`. See [Typed Values](#typed-values).
 
 ## MokaSegmentedControl Parameters
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Value` | `string?` | -- | Value of the selected segment. Two-way bindable with `@bind-Value` |
-| `ValueChanged` | `EventCallback<string>` | -- | Raised with the new value when a segment is selected |
+| `Value` | `TValue?` | -- | Value of the selected segment. Two-way bindable with `@bind-Value`. A segment is selected when its value is equal by `EqualityComparer<TValue>.Default` |
+| `ValueChanged` | `EventCallback<TValue>` | -- | Raised with the new value when a segment is selected. With a method group, such as `ValueChanged="SetPlan"`, pass `TValue` too: Razor can't infer a type from a method group |
 | `Controlled` | `bool` | `false` | After raising its change callback, the control shows what the parent passes back, so a refused change reverts. See [Controlled](#controlled) |
 | `AriaLabel` | `string?` | -- | Accessible name of the group, such as `"Time range"`. To use visible text instead, pass `aria-labelledby` with the id of that text |
 | `FullWidth` | `bool` | `false` | Stretches the control across its container, with any margin inside it. Segments share the width equally |
@@ -22,7 +24,7 @@ order: 72
 | `Wrap` | `bool` | `true` | Segments that don't fit move to another row, and no label is ever cut. `false` keeps one row and cuts the labels. See [One Row](#one-row) |
 | `StackBelow` | `string?` | -- | A CSS length, such as `"30rem"`. Below it a `FullWidth` control stacks its segments one per row, every label whole. See [Stacking on a Phone](#stacking-on-a-phone) |
 | `Disabled` | `bool` | `false` | Disables every segment |
-| `ChildContent` | `RenderFragment?` | -- | `MokaSegment` elements |
+| `ChildContent` | `RenderFragment?` | -- | `MokaSegment<TValue>` elements |
 | `Rounded` / `RoundedValue` | `MokaRounding?` / `string?` | -- | Corner radius of the track. The segments take the same corners, so `Full` gives a pill track with pill segments |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Margin around the control |
 | `Padding` / `PaddingValue` | `MokaSpacingScale?` / `string?` | -- | Space between the track's edge and the segments. Replaces the default 3px |
@@ -31,8 +33,8 @@ order: 72
 
 ```razor
 <MokaSegmentedControl @bind-Value="_range" AriaLabel="Time range" Rounded="MokaRounding.Full">
-    <MokaSegment Value="day" Text="Day" />
-    <MokaSegment Value="week" Text="Week" />
+    <MokaSegment Value="@("day")" Text="Day" />
+    <MokaSegment Value="@("week")" Text="Week" />
 </MokaSegmentedControl>
 ```
 
@@ -42,7 +44,7 @@ Without `Rounded` the segments keep their own, slightly smaller corners. Up to 0
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Value` | `string` | `""` | Value reported when this segment is selected. Give every segment its own value |
+| `Value` | `TValue` | required | Value reported when this segment is selected, of the control's type. Give every segment its own value |
 | `Text` | `string?` | -- | Label |
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the label, at 14px |
 | `Count` | `int?` | -- | A number after the label, muted and in mono with tabular figures. Part of the radio's accessible name |
@@ -52,15 +54,17 @@ Without `Rounded` the segments keep their own, slightly smaller corners. Up to 0
 
 Each segment is a `<label>` around a radio input. `Class` and `Style` go on the label, which draws the segment. `Id` and any other attribute you pass, such as `aria-label` or `title`, go on the radio.
 
+A segment must be inside a `MokaSegmentedControl` of the same `TValue`, and throws when it renders without one, as Blazor's `InputRadio` does without its group.
+
 ## Basic
 
 ```blazor-preview
 <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
     <MokaSegmentedControl @bind-Value="_range" AriaLabel="Time range">
-        <MokaSegment Value="day" Text="Day" />
-        <MokaSegment Value="week" Text="Week" />
-        <MokaSegment Value="month" Text="Month" />
-        <MokaSegment Value="year" Text="Year" />
+        <MokaSegment Value="@("day")" Text="Day" />
+        <MokaSegment Value="@("week")" Text="Week" />
+        <MokaSegment Value="@("month")" Text="Month" />
+        <MokaSegment Value="@("year")" Text="Year" />
     </MokaSegmentedControl>
     <span style="font-size:var(--moka-font-size-xs);color:var(--moka-color-on-surface-variant)">Showing: @_range</span>
 </div>
@@ -70,13 +74,63 @@ Each segment is a `<label>` around a radio input. `Class` and `Style` go on the 
 }
 ```
 
+## Typed Values
+
+The values don't have to be strings. Bind an enum, and each segment's `Value` is the member itself, so there is no
+`ToString` on the way in and no parse on the way out.
+
+```blazor-preview
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <MokaSegmentedControl @bind-Value="_format" AriaLabel="Report format">
+        <MokaSegment Value="ReportFormat.Pdf" Text="PDF" />
+        <MokaSegment Value="ReportFormat.Spreadsheet" Text="Spreadsheet" />
+        <MokaSegment Value="ReportFormat.Text" Text="Text" />
+    </MokaSegmentedControl>
+    <span style="font-size:var(--moka-font-size-xs);color:var(--moka-color-on-surface-variant)">Format: @_format</span>
+</div>
+
+@code {
+    private enum ReportFormat { Pdf, Spreadsheet, Text }
+
+    private ReportFormat _format = ReportFormat.Pdf;
+}
+```
+
+Numbers work the same way, `Value="25"` in a control bound to an `int`, and so do records, which match by their
+contents rather than by reference.
+
+A segment infers its type from its own `Value` first and only then from the control, so the two can differ:
+
+- An enum's default is its first member, so a control bound to an enum always shows a choice. To start with none, bind
+  the nullable type (`ReportFormat?`) and give each segment that type too, as `Value="ReportFormat.Pdf"` alone makes a
+  `MokaSegment<ReportFormat>`.
+- In a control of `long`, `double` or `decimal`, `Value="10"` is an `int`. Write `10L`, `10.0` or `10m`, or set the
+  segment's `TValue`.
+
+A segment that ends up a different type from its control throws when it renders, with the fix in the message.
+
+```razor
+<MokaSegmentedControl @bind-Value="_export" AriaLabel="Export format">
+    <MokaSegment TValue="ReportFormat?" Value="ReportFormat.Pdf" Text="PDF" />
+    <MokaSegment TValue="ReportFormat?" Value="ReportFormat.Spreadsheet" Text="Spreadsheet" />
+</MokaSegmentedControl>
+
+@code {
+    private ReportFormat? _export;
+}
+```
+
+Up to 0.9 `Value` was a string on both components. A literal such as `Value="week"` now reads as C#, so it becomes
+`Value="@("week")"`, and a control whose `ValueChanged` is a method group or a lambda with an untyped parameter needs
+`TValue="string"`.
+
 ## With Icons
 
 ```blazor-preview
 <MokaSegmentedControl @bind-Value="_view">
-    <MokaSegment Value="list" Text="List" Icon="MokaIcons.Content.RowsDense" />
-    <MokaSegment Value="board" Text="Board" Icon="MokaIcons.Content.Columns" />
-    <MokaSegment Value="files" Text="Files" Icon="MokaIcons.File.Folder" />
+    <MokaSegment Value="@("list")" Text="List" Icon="MokaIcons.Content.RowsDense" />
+    <MokaSegment Value="@("board")" Text="Board" Icon="MokaIcons.Content.Columns" />
+    <MokaSegment Value="@("files")" Text="Files" Icon="MokaIcons.File.Folder" />
 </MokaSegmentedControl>
 
 @code {
@@ -90,9 +144,9 @@ Each segment is a `<label>` around a radio input. `Class` and `Style` go on the 
 
 ```razor
 <MokaSegmentedControl @bind-Value="_filter" AriaLabel="Rules">
-    <MokaSegment Value="all" Text="All" Count="12" />
-    <MokaSegment Value="on" Text="On" Count="3" />
-    <MokaSegment Value="off" Text="Off" Count="9" />
+    <MokaSegment Value="@("all")" Text="All" Count="12" />
+    <MokaSegment Value="@("on")" Text="On" Count="3" />
+    <MokaSegment Value="@("off")" Text="Off" Count="9" />
 </MokaSegmentedControl>
 
 @code {
@@ -106,8 +160,8 @@ A segment without text has no accessible name, because its icon is hidden from a
 
 ```blazor-preview
 <MokaSegmentedControl @bind-Value="_density" Size="MokaSize.Sm" AriaLabel="Row density">
-    <MokaSegment Value="comfortable" Icon="MokaIcons.Content.RowsComfortable" aria-label="Comfortable rows" title="Comfortable rows" />
-    <MokaSegment Value="dense" Icon="MokaIcons.Content.RowsDense" aria-label="Dense rows" title="Dense rows" />
+    <MokaSegment Value="@("comfortable")" Icon="MokaIcons.Content.RowsComfortable" aria-label="Comfortable rows" title="Comfortable rows" />
+    <MokaSegment Value="@("dense")" Icon="MokaIcons.Content.RowsDense" aria-label="Dense rows" title="Dense rows" />
 </MokaSegmentedControl>
 
 @code {
@@ -122,9 +176,9 @@ A segment without text has no accessible name, because its icon is hidden from a
     @foreach (var size in new[] { MokaSize.Xs, MokaSize.Sm, MokaSize.Md, MokaSize.Lg })
     {
         <MokaSegmentedControl Size="size" @bind-Value="_value">
-            <MokaSegment Value="a" Text="@size.ToString()" />
-            <MokaSegment Value="b" Text="Option" />
-            <MokaSegment Value="c" Text="Option" />
+            <MokaSegment Value="@("a")" Text="@size.ToString()" />
+            <MokaSegment Value="@("b")" Text="Option" />
+            <MokaSegment Value="@("c")" Text="Option" />
         </MokaSegmentedControl>
     }
 </div>
@@ -148,8 +202,8 @@ every segmented control, button and toggle group with the fields, set
     <MokaTextField Size="MokaSize.Sm" Placeholder="Filter" aria-label="Filter" />
     <MokaSelect TValue="string" Size="MokaSize.Sm" Items="_kinds" Placeholder="Kind" aria-label="Kind" />
     <MokaSegmentedControl Size="MokaSize.Sm" MatchControlHeight @bind-Value="_view" AriaLabel="View">
-        <MokaSegment Value="list" Text="List" />
-        <MokaSegment Value="tiles" Text="Tiles" />
+        <MokaSegment Value="@("list")" Text="List" />
+        <MokaSegment Value="@("tiles")" Text="Tiles" />
     </MokaSegmentedControl>
 </MokaToolbar>
 
@@ -171,10 +225,10 @@ shows whole.
 ```razor
 <div style="max-width: 300px">
     <MokaSegmentedControl Wrap="false" @bind-Value="_range" AriaLabel="Range" FullWidth>
-        <MokaSegment Value="today" Text="Today" />
-        <MokaSegment Value="week" Text="This week" />
-        <MokaSegment Value="month" Text="This month" />
-        <MokaSegment Value="year" Text="This year" />
+        <MokaSegment Value="@("today")" Text="Today" />
+        <MokaSegment Value="@("week")" Text="This week" />
+        <MokaSegment Value="@("month")" Text="This month" />
+        <MokaSegment Value="@("year")" Text="This year" />
     </MokaSegmentedControl>
 </div>
 
@@ -195,9 +249,9 @@ own to compare and the parameter does nothing there. A value that isn't a CSS le
 
 ```razor
 <MokaSegmentedControl Wrap="false" StackBelow="30rem" FullWidth @bind-Value="_start" AriaLabel="How to start">
-    <MokaSegment Value="add" Text="Add this device" />
-    <MokaSegment Value="invite" Text="I have an invite" />
-    <MokaSegment Value="restore" Text="Restore a backup" />
+    <MokaSegment Value="@("add")" Text="Add this device" />
+    <MokaSegment Value="@("invite")" Text="I have an invite" />
+    <MokaSegment Value="@("restore")" Text="Restore a backup" />
 </MokaSegmentedControl>
 
 @code {
@@ -212,9 +266,9 @@ Pick a width a little wider than the labels need on one row, so they stack befor
 ```blazor-preview
 <div style="width:100%;max-width:420px">
     <MokaSegmentedControl @bind-Value="_billing" FullWidth AriaLabel="Billing period">
-        <MokaSegment Value="monthly" Text="Monthly" />
-        <MokaSegment Value="yearly" Text="Yearly" />
-        <MokaSegment Value="lifetime" Text="Lifetime" Disabled />
+        <MokaSegment Value="@("monthly")" Text="Monthly" />
+        <MokaSegment Value="@("yearly")" Text="Yearly" />
+        <MokaSegment Value="@("lifetime")" Text="Lifetime" Disabled />
     </MokaSegmentedControl>
 </div>
 
@@ -226,10 +280,10 @@ Pick a width a little wider than the labels need on one row, so they stack befor
 ## Disabled Control
 
 ```blazor-preview
-<MokaSegmentedControl Value="week" Disabled AriaLabel="Time range">
-    <MokaSegment Value="day" Text="Day" />
-    <MokaSegment Value="week" Text="Week" />
-    <MokaSegment Value="month" Text="Month" />
+<MokaSegmentedControl Value="@("week")" Disabled AriaLabel="Time range">
+    <MokaSegment Value="@("day")" Text="Day" />
+    <MokaSegment Value="@("week")" Text="Week" />
+    <MokaSegment Value="@("month")" Text="Month" />
 </MokaSegmentedControl>
 ```
 
@@ -238,18 +292,20 @@ Pick a width a little wider than the labels need on one row, so they stack befor
 By default the control shows the user's pick at once and follows the parent only when it passes a different value, so a `ValueChanged` handler that says no can't take the pick back: the parent's `Value` hasn't changed, so there is nothing new to follow. With `Controlled` the control always shows `Value`. A click raises `ValueChanged` with the segment picked and changes nothing on its own; the parent decides by setting `Value` or not. A parent that awaits before deciding, a confirmation or a save, keeps the old choice on screen until it sets the value.
 
 ```razor
-<MokaSegmentedControl Controlled Value="@_plan" ValueChanged="SetPlan" AriaLabel="Plan">
-    <MokaSegment Value="free" Text="Free" />
-    <MokaSegment Value="team" Text="Team" />
-    <MokaSegment Value="enterprise" Text="Enterprise" />
+<MokaSegmentedControl TValue="Plan" Controlled Value="@_plan" ValueChanged="SetPlan" AriaLabel="Plan">
+    <MokaSegment Value="Plan.Free" Text="Free" />
+    <MokaSegment Value="Plan.Team" Text="Team" />
+    <MokaSegment Value="Plan.Enterprise" Text="Enterprise" />
 </MokaSegmentedControl>
 
 @code {
-    private string _plan = "free";
+    private enum Plan { Free, Team, Enterprise }
 
-    private async Task SetPlan(string plan)
+    private Plan _plan = Plan.Free;
+
+    private async Task SetPlan(Plan plan)
     {
-        if (plan == "enterprise")
+        if (plan == Plan.Enterprise)
         {
             return; // Refused: Free stays chosen, radio and all.
         }
@@ -260,6 +316,8 @@ By default the control shows the user's pick at once and follows the parent only
 }
 ```
 
+`ValueChanged` is a method group here, so the control names its `TValue`.
+
 The segments are native radios, so the browser checks the one clicked before .NET hears of it. The control sends that radio checked to the page once, on its own, so it has something to change back: a refused pick leaves the old radio checked and the old segment drawn as chosen, and the refused segment is never drawn as chosen, not even for a moment. Focus stays where the click or arrow key put it.
 
 `MokaToggleGroup` and `MokaChip` take the same `Controlled`, with the same meaning.
@@ -268,7 +326,8 @@ The segments are native radios, so the browser checks the one clicked before .NE
 
 - One segment is selected at a time. Clicking the selected segment again does nothing, so the selection cannot be cleared from the UI.
 - While the control wraps (the default), a segment is never narrower than its label: segments share a row equally, and one that doesn't fit moves to the next row whole. Only `Wrap="false"` cuts labels.
-- Values match with an ordinal, case-sensitive comparison. When `Value` matches no segment, none is selected.
+- Values match by `EqualityComparer<TValue>.Default`: strings ordinally and case-sensitive, records by their contents. When `Value` matches no segment, none is selected.
+- The control isn't a form field. Its radios share a generated name and carry no `value`, so a form post doesn't include the choice; each radio's own change handler holds its segment's typed value.
 - The selected segment is raised onto the background color with a small shadow.
 - `Disabled` on the control disables every segment, and `Disabled` on a segment disables that one. Disabled segments are dimmed and ignore clicks and keys.
 

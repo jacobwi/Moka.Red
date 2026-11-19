@@ -154,7 +154,7 @@
 </div>
 
 @code {
-	private RenderFragment LayoutSwitch => @<MokaSegmentedControl Value="@_layout" ValueChanged="PickLayout"
+	private RenderFragment LayoutSwitch => @<MokaSegmentedControl TValue="string" Value="@_layout" ValueChanged="PickLayout"
 	                                                              AriaLabel="Overview layout" Size="MokaSize.Sm">
 		<MokaSegment Value="@FrontDoorLayout" Text="Front door"/>
 		<MokaSegment Value="@LauncherLayout" Text="Launcher"/>

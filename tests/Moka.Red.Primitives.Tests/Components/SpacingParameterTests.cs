@@ -130,7 +130,7 @@ public class SpacingParameterTests : BunitContext
 		["Paragraph"] = new(typeof(MokaParagraph),
 			"font-size: var(--moka-font-size-base); line-height: var(--moka-line-height-relaxed)"),
 		["Ribbon"] = new(typeof(MokaRibbon), "", ("Text", "NEW")),
-		["SegmentedControl"] = new(typeof(MokaSegmentedControl), ""),
+		["SegmentedControl"] = new(typeof(MokaSegmentedControl<string>), ""),
 		["SelectionArea"] = new(typeof(MokaSelectionArea), ""),
 		["SelectionAction"] = new(typeof(MokaSelectionAction), "", ("Text", "Delete")),
 		["SelectionBar"] = new(typeof(MokaSelectionBar), IconStyle("16px"), ("Count", 3)) { Root = ".moka-selection-bar" },
@@ -222,8 +222,8 @@ public class SpacingParameterTests : BunitContext
 	[Fact]
 	public void SegmentedControl_WithRounded_LetsTheSegmentsFollowTheTrack()
 	{
-		IRenderedComponent<MokaSegmentedControl> plain = Render<MokaSegmentedControl>();
-		IRenderedComponent<MokaSegmentedControl> rounded = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> plain = Render<MokaSegmentedControl<string>>();
+		IRenderedComponent<MokaSegmentedControl<string>> rounded = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Rounded, MokaRounding.Full));
 
 		Assert.DoesNotContain("moka-segmented--rounded", plain.Find(".moka-segmented").ClassList);

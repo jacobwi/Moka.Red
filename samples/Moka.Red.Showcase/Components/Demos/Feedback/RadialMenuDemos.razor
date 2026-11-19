@@ -51,7 +51,7 @@
 <DemoSection Id="shape-look-and-choices" Title="Shape, look and choices" Description="Right click, Shift+F10 or a long press opens the menu around the row. Point around it, flick toward a button with the right button held, or use the arrows, Tab, digits, Enter and Escape. Share holds three choices. The theme's look follows the theme's popup look.">
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
 		<MokaCaption Micro>Shape</MokaCaption>
-		<MokaSegmentedControl Value="@_shape.ToString()" ValueChanged="v => _shape = Enum.Parse<MokaRadialShape>(v)" AriaLabel="Shape">
+		<MokaSegmentedControl TValue="string" Value="@_shape.ToString()" ValueChanged="v => _shape = Enum.Parse<MokaRadialShape>(v)" AriaLabel="Shape">
 			@foreach (MokaRadialShape shape in Enum.GetValues<MokaRadialShape>())
 			{
 				<MokaSegment Value="@shape.ToString()" Text="@shape.ToString()"/>
@@ -59,7 +59,7 @@
 		</MokaSegmentedControl>
 
 		<MokaCaption Micro>Look</MokaCaption>
-		<MokaSegmentedControl Value="@(_look?.ToString() ?? FollowTheme)" ValueChanged="SetLook" AriaLabel="Look">
+		<MokaSegmentedControl TValue="string" Value="@(_look?.ToString() ?? FollowTheme)" ValueChanged="SetLook" AriaLabel="Look">
 			<MokaSegment Value="@FollowTheme" Text="Theme's"/>
 			@foreach (MokaRadialLook look in Enum.GetValues<MokaRadialLook>())
 			{
@@ -68,7 +68,7 @@
 		</MokaSegmentedControl>
 
 		<MokaCaption Micro>Choices</MokaCaption>
-		<MokaSegmentedControl Value="@_choices.ToString()" ValueChanged="v => _choices = Enum.Parse<MokaRadialChoiceStyle>(v)" AriaLabel="Choices">
+		<MokaSegmentedControl TValue="string" Value="@_choices.ToString()" ValueChanged="v => _choices = Enum.Parse<MokaRadialChoiceStyle>(v)" AriaLabel="Choices">
 			@foreach (MokaRadialChoiceStyle style in Enum.GetValues<MokaRadialChoiceStyle>())
 			{
 				<MokaSegment Value="@style.ToString()" Text="@style.ToString()"/>

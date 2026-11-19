@@ -10,8 +10,8 @@ public class MokaSegmentedControlOneRowTests : BunitContext
 {
 	private const string Css = "MokaSegmentedControl.razor.css";
 
-	private IRenderedComponent<MokaSegmentedControl> Control(bool? wrap) =>
-		Render<MokaSegmentedControl>(p =>
+	private IRenderedComponent<MokaSegmentedControl<string>> Control(bool? wrap) =>
+		Render<MokaSegmentedControl<string>>(p =>
 		{
 			p.Add(x => x.Value, "a");
 			if (wrap is { } value)
@@ -19,16 +19,16 @@ public class MokaSegmentedControlOneRowTests : BunitContext
 				p.Add(x => x.Wrap, value);
 			}
 
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Everything"));
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "Unread"));
-			p.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "c").Add(x => x.Icon, Moka.Red.Icons.MokaIcons.Action.Search)
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Everything"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "b").Add(x => x.Text, "Unread"));
+			p.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "c").Add(x => x.Icon, Moka.Red.Icons.MokaIcons.Action.Search)
 				.AddUnmatched("aria-label", "Search"));
 		});
 
 	[Fact]
 	public void TheDefault_WrapsAndKeepsTodaysMarkup()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Control(null);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Control(null);
 
 		Assert.Equal("moka-segmented moka-segmented--md", cut.Find(".moka-segmented").ClassName);
 		Assert.All(cut.FindAll(".moka-segment__input"), input => Assert.Null(input.GetAttribute("title")));
@@ -41,7 +41,7 @@ public class MokaSegmentedControlOneRowTests : BunitContext
 	[Fact]
 	public void WrapFalse_TitlesEachLabelThatCanBeCut()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Control(false);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Control(false);
 		var inputs = cut.FindAll(".moka-segment__input");
 
 		Assert.Equal("Everything", inputs[0].GetAttribute("title"));
@@ -52,9 +52,9 @@ public class MokaSegmentedControlOneRowTests : BunitContext
 	[Fact]
 	public void AnAppsOwnTitle_Wins()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>(p => p
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>(p => p
 			.Add(x => x.Wrap, false)
-			.AddChildContent<MokaSegment>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Day").AddUnmatched("title", "Today only")));
+			.AddChildContent<MokaSegment<string>>(s => s.Add(x => x.Value, "a").Add(x => x.Text, "Day").AddUnmatched("title", "Today only")));
 
 		Assert.Equal("Today only", cut.Find(".moka-segment__input").GetAttribute("title"));
 	}
@@ -62,7 +62,7 @@ public class MokaSegmentedControlOneRowTests : BunitContext
 	[Fact]
 	public void TurningWrapBackOn_DropsTheTitles()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Control(false);
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Control(false);
 
 		cut.Render(p => p.Add(x => x.Wrap, true));
 

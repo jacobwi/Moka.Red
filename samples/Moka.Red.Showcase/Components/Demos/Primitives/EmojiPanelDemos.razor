@@ -4,7 +4,7 @@
 	<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Lg" Wrap>
 		<div>
 			<MokaCaption Micro>Shape</MokaCaption>
-			<MokaSegmentedControl Value="@_options.Shape.ToString()" AriaLabel="Shape"
+			<MokaSegmentedControl TValue="string" Value="@_options.Shape.ToString()" AriaLabel="Shape"
 			                      ValueChanged="@(v => _options = _options with { Shape = Enum.Parse<MokaEmojiShape>(v) })">
 				@foreach (MokaEmojiShape shape in Enum.GetValues<MokaEmojiShape>())
 				{
@@ -14,7 +14,7 @@
 		</div>
 		<div>
 			<MokaCaption Micro>Groups</MokaCaption>
-			<MokaSegmentedControl Value="@_options.Navigation.ToString()" AriaLabel="Groups"
+			<MokaSegmentedControl TValue="string" Value="@_options.Navigation.ToString()" AriaLabel="Groups"
 			                      ValueChanged="@(v => _options = _options with { Navigation = Enum.Parse<MokaEmojiNavigation>(v) })">
 				@foreach (MokaEmojiNavigation navigation in Enum.GetValues<MokaEmojiNavigation>())
 				{
@@ -24,11 +24,11 @@
 		</div>
 		<div>
 			<MokaCaption Micro>Newest version</MokaCaption>
-			<MokaSegmentedControl Value="@VersionKey" ValueChanged="SetVersion" AriaLabel="Newest version">
-				<MokaSegment Value="auto" Text="This system"/>
-				<MokaSegment Value="13" Text="13.0"/>
-				<MokaSegment Value="15.1" Text="15.1"/>
-				<MokaSegment Value="99" Text="All"/>
+			<MokaSegmentedControl TValue="string" Value="@VersionKey" ValueChanged="SetVersion" AriaLabel="Newest version">
+				<MokaSegment Value="@("auto")" Text="This system"/>
+				<MokaSegment Value="@("13")" Text="13.0"/>
+				<MokaSegment Value="@("15.1")" Text="15.1"/>
+				<MokaSegment Value="@("99")" Text="All"/>
 			</MokaSegmentedControl>
 		</div>
 	</MokaFlexbox>

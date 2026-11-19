@@ -72,7 +72,7 @@
 	<div style="@Choices">
 		<MokaCaption Micro>Fade</MokaCaption>
 		<MokaSegmentedControl @bind-Value="_fade" AriaLabel="Fade">
-			<MokaSegment Value="" Text="Unset"/>
+			<MokaSegment Value="@("")" Text="Unset"/>
 			@foreach (MokaGridFade fade in Enum.GetValues<MokaGridFade>())
 			{
 				<MokaSegment Value="@fade.ToString()" Text="@fade.ToString()"/>
@@ -81,7 +81,7 @@
 
 		<MokaCaption Micro>Glow</MokaCaption>
 		<MokaSegmentedControl @bind-Value="_glow" AriaLabel="Glow">
-			<MokaSegment Value="" Text="None"/>
+			<MokaSegment Value="@("")" Text="None"/>
 			@foreach (MokaGridGlow glow in Enum.GetValues<MokaGridGlow>())
 			{
 				<MokaSegment Value="@glow.ToString()" Text="@glow.ToString()"/>

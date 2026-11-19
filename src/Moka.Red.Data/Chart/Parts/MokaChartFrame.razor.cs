@@ -150,8 +150,6 @@ public sealed partial class MokaChartFrame : ComponentBase
 
 	private IReadOnlyList<string> TableHeaders => Chart?.TableModel?.Headers ?? [];
 
-	private string ViewValue => Chart?.CurrentView == MokaChartView.Table ? "table" : "chart";
-
 	private string EmptyText => Chart?.EmptyText ?? Chart?.Words.NoData ?? string.Empty;
 
 	private string ErrorText => Chart?.ErrorText ?? Chart?.Words.LoadFailed ?? MokaChartText.Default.LoadFailed;
@@ -218,8 +216,7 @@ public sealed partial class MokaChartFrame : ComponentBase
 	private Task HiddenChosenAsync(IReadOnlyCollection<string> hidden) =>
 		Chart?.SetHiddenAsync(hidden) ?? Task.CompletedTask;
 
-	private Task ViewChosen(string? value) =>
-		Chart?.SetViewAsync(value == "table" ? MokaChartView.Table : MokaChartView.Chart) ?? Task.CompletedTask;
+	private Task ViewChosen(MokaChartView view) => Chart?.SetViewAsync(view) ?? Task.CompletedTask;
 
 	private Task ToggleViewAsync() =>
 		Chart?.SetViewAsync(Chart.CurrentView == MokaChartView.Table ? MokaChartView.Chart : MokaChartView.Table)

@@ -13,7 +13,7 @@
 	<MokaCard Title="Choose">
 		<div class="chart-looks__choices">
 			<MokaCaption Micro>Preset</MokaCaption>
-			<MokaSegmentedControl Value="@_preset" ValueChanged="SetPreset" AriaLabel="Preset">
+			<MokaSegmentedControl TValue="string" Value="@_preset" ValueChanged="SetPreset" AriaLabel="Preset">
 				@foreach (string preset in Presets)
 				{
 					<MokaSegment Value="@preset" Text="@preset"/>
@@ -21,17 +21,17 @@
 			</MokaSegmentedControl>
 
 			<MokaCaption Micro>Accent</MokaCaption>
-			<MokaSegmentedControl Value="@_accent" ValueChanged="SetAccent" AriaLabel="Accent">
-				<MokaSegment Value="own" Text="Preset's own"/>
+			<MokaSegmentedControl TValue="string" Value="@_accent" ValueChanged="SetAccent" AriaLabel="Accent">
+				<MokaSegment Value="@("own")" Text="Preset's own"/>
 				@foreach (MokaAccent accent in MokaAccent.Presets)
 				{
 					<MokaSegment Value="@accent.Id" Text="@accent.Name"/>
 				}
-				<MokaSegment Value="custom" Text="Custom (hue 150)"/>
+				<MokaSegment Value="@("custom")" Text="Custom (hue 150)"/>
 			</MokaSegmentedControl>
 
 			<MokaCaption Micro>Look</MokaCaption>
-			<MokaSegmentedControl Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look">
+			<MokaSegmentedControl TValue="string" Value="@_look.ToString()" ValueChanged="SetLook" AriaLabel="Look">
 				@foreach (MokaChartLook look in Looks)
 				{
 					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>
@@ -39,7 +39,7 @@
 			</MokaSegmentedControl>
 
 			<MokaCaption Micro>Series colors</MokaCaption>
-			<MokaSegmentedControl Value="@_palette.ToString()" ValueChanged="SetPalette" AriaLabel="Series colors">
+			<MokaSegmentedControl TValue="string" Value="@_palette.ToString()" ValueChanged="SetPalette" AriaLabel="Series colors">
 				@foreach (MokaChartPalette palette in Palettes)
 				{
 					<MokaSegment Value="@palette.ToString()" Text="@palette.ToString()"/>
@@ -47,7 +47,7 @@
 			</MokaSegmentedControl>
 
 			<MokaCaption Micro>Texture</MokaCaption>
-			<MokaSegmentedControl Value="@_texture.ToString()" ValueChanged="SetTexture" AriaLabel="Texture">
+			<MokaSegmentedControl TValue="string" Value="@_texture.ToString()" ValueChanged="SetTexture" AriaLabel="Texture">
 				@foreach (MokaChartTexture texture in Enum.GetValues<MokaChartTexture>())
 				{
 					<MokaSegment Value="@texture.ToString()" Text="@texture.ToString()"/>
@@ -55,7 +55,7 @@
 			</MokaSegmentedControl>
 
 			<MokaCaption Micro>Print and forced colors</MokaCaption>
-			<MokaSegmentedControl Value="@_print.ToString()" ValueChanged="SetPrint" AriaLabel="Print and forced colors">
+			<MokaSegmentedControl TValue="string" Value="@_print.ToString()" ValueChanged="SetPrint" AriaLabel="Print and forced colors">
 				@foreach (MokaChartPrint print in Enum.GetValues<MokaChartPrint>())
 				{
 					<MokaSegment Value="@print.ToString()" Text="@print.ToString()"/>

@@ -85,22 +85,20 @@ A fixed `CardStyle` keeps one look whatever the card type.
 ```blazor-preview
 <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:var(--moka-spacing-md)">
     <MokaSegmentedControl @bind-Value="_style" FullWidth>
-        <MokaSegment Value="Dark" Text="Dark" />
-        <MokaSegment Value="Neon" Text="Neon" />
-        <MokaSegment Value="Gold" Text="Gold" />
-        <MokaSegment Value="Ocean" Text="Ocean" />
-        <MokaSegment Value="Minimal" Text="Minimal" />
+        <MokaSegment Value="MokaCardStyle.Dark" Text="Dark" />
+        <MokaSegment Value="MokaCardStyle.Neon" Text="Neon" />
+        <MokaSegment Value="MokaCardStyle.Gold" Text="Gold" />
+        <MokaSegment Value="MokaCardStyle.Ocean" Text="Ocean" />
+        <MokaSegment Value="MokaCardStyle.Minimal" Text="Minimal" />
     </MokaSegmentedControl>
-    <MokaCreditCardInput CardStyle="@CardLook" Label="@null"
+    <MokaCreditCardInput CardStyle="@_style" Label="@null"
                          CardNumber="4242 4242 4242 4242"
                          ExpiryDate="09/29"
                          CardholderName="Ada Lovelace" />
 </div>
 
 @code {
-    private string? _style = "Dark";
-
-    private MokaCardStyle CardLook => Enum.Parse<MokaCardStyle>(_style ?? "Dark");
+    private MokaCardStyle _style = MokaCardStyle.Dark;
 }
 ```
 

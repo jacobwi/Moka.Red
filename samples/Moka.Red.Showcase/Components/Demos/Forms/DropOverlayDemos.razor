@@ -25,7 +25,7 @@
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg);">
 		<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
 			<MokaCaption Micro="true">Look</MokaCaption>
-			<MokaSegmentedControl Value="@_overlayLook.ToString()" ValueChanged="v => _overlayLook = Enum.Parse<MokaDropOverlayLook>(v)" AriaLabel="Overlay look" Size="MokaSize.Sm">
+			<MokaSegmentedControl TValue="string" Value="@_overlayLook.ToString()" ValueChanged="v => _overlayLook = Enum.Parse<MokaDropOverlayLook>(v)" AriaLabel="Overlay look" Size="MokaSize.Sm">
 				@foreach (MokaDropOverlayLook look in Enum.GetValues<MokaDropOverlayLook>())
 				{
 					<MokaSegment Value="@look.ToString()" Text="@look.ToString()"/>

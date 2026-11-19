@@ -9,10 +9,10 @@
 	<div class="moka-theme-import-export__section">
 		<div class="moka-theme-import-export__bar">
 			<MokaHeading Level="3" Micro>@Text.ExportHeading</MokaHeading>
-			<MokaSegmentedControl Value="@FormatValue" ValueChanged="SetFormatAsync" AriaLabel="@Text.FormatLabel" Size="MokaSize.Sm">
-				<MokaSegment Value="@nameof(MokaThemeExportFormat.CSharp)" Text="@Text.CSharp"/>
-				<MokaSegment Value="@nameof(MokaThemeExportFormat.Json)" Text="@Text.Json"/>
-				<MokaSegment Value="@nameof(MokaThemeExportFormat.Css)" Text="@Text.Css"/>
+			<MokaSegmentedControl TValue="MokaThemeExportFormat" Value="@_format" ValueChanged="SetFormatAsync" AriaLabel="@Text.FormatLabel" Size="MokaSize.Sm">
+				<MokaSegment Value="MokaThemeExportFormat.CSharp" Text="@Text.CSharp"/>
+				<MokaSegment Value="MokaThemeExportFormat.Json" Text="@Text.Json"/>
+				<MokaSegment Value="MokaThemeExportFormat.Css" Text="@Text.Css"/>
 			</MokaSegmentedControl>
 		</div>
 

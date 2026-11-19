@@ -5,15 +5,23 @@ using Moka.Red.Core.Utilities;
 namespace Moka.Red.Primitives.SegmentedControl;
 
 /// <summary>
-///     A single segment within a <see cref="MokaSegmentedControl" />: a label around a native radio
+///     A single segment within a <see cref="MokaSegmentedControl{TValue}" />: a label around a native radio
 ///     button. <c>Id</c> and unmatched attributes such as <c>aria-label</c> and <c>title</c> go on the
 ///     radio; <c>Class</c> and <c>Style</c> go on the label that draws the segment.
 /// </summary>
-public partial class MokaSegment
+/// <typeparam name="TValue">
+///     The type of <see cref="Value" />, the same as the control's. Written inside the control's markup, a segment takes it
+///     from the control.
+/// </typeparam>
+public partial class MokaSegment<TValue>
 {
-	/// <summary>The value identifying this segment. Required.</summary>
+	/// <summary>
+	///     The value identifying this segment, of the control's type. A string literal needs the C# form,
+	///     <c>Value="@("week")"</c>, since Razor reads a value of a generic type as C#.
+	/// </summary>
 	[Parameter]
-	public string Value { get; set; } = string.Empty;
+	[EditorRequired]
+	public TValue Value { get; set; } = default!;
 
 	/// <summary>Display text for the segment.</summary>
 	[Parameter]
@@ -34,9 +42,12 @@ public partial class MokaSegment
 	[Parameter]
 	public bool Disabled { get; set; }
 
-	/// <summary>Parent segmented control.</summary>
+	/// <summary>
+	///     Parent segmented control, of the same <typeparamref name="TValue" />. A segment without one throws when it
+	///     renders, as Blazor's <c>InputRadio</c> does without its group.
+	/// </summary>
 	[CascadingParameter]
-	public MokaSegmentedControl? Parent { get; set; }
+	public MokaSegmentedControl<TValue>? Parent { get; set; }
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-segment";
@@ -58,6 +69,26 @@ public partial class MokaSegment
 
 	/// <summary>Active state depends on parent, so always re-render.</summary>
 	protected override bool ShouldRender() => true;
+
+	/// <inheritdoc />
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		// A segment infers its type from its own Value before the control's, so Value="Period.Week" in a control of
+		// Period? is a MokaSegment<Period> that no control cascades to. Without this it would draw a radio that does nothing.
+		if (Parent is null)
+		{
+			string type = TypeName(typeof(TValue));
+			throw new InvalidOperationException(
+				$"MokaSegment<{type}> must be inside a MokaSegmentedControl<{type}>. A segment takes its type from its own " +
+				"Value first, so in a control of a nullable type, such as MokaSegmentedControl<Period?>, set the segment's " +
+				"type too: <MokaSegment TValue=\"Period?\" Value=\"Period.Week\" />.");
+		}
+	}
+
+	private static string TypeName(Type type) =>
+		Nullable.GetUnderlyingType(type) is { } underlying ? $"{underlying.Name}?" : type.Name;
 
 	// A radio raises change only when it becomes checked: a click on the segment or an arrow key.
 	private async Task HandleChange()

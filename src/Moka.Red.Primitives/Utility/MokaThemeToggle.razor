@@ -5,19 +5,19 @@
 
 @if (Look is MokaThemeToggleLook.Segmented or MokaThemeToggleLook.IconsAndWords)
 {
-	<MokaSegmentedControl Class="@CssClass" Style="@CssStyle" Id="@Id" Size="Size" Disabled="Disabled"
-	                      Value="@ShownMode.ToString()" ValueChanged="PickAsync" AriaLabel="@GroupLabel"
+	<MokaSegmentedControl TValue="MokaColorMode" Class="@CssClass" Style="@CssStyle" Id="@Id" Size="Size" Disabled="Disabled"
+	                      Value="@ShownMode" ValueChanged="SetModeAsync" AriaLabel="@GroupLabel"
 	                      @attributes="AdditionalAttributes">
 		@foreach (MokaColorMode mode in Modes)
 		{
 			@if (Look == MokaThemeToggleLook.IconsAndWords)
 			{
-				<MokaSegment @key="mode" Value="@mode.ToString()" Text="@WordFor(mode)" Icon="IconFor(mode)"/>
+				<MokaSegment @key="mode" Value="@mode" Text="@WordFor(mode)" Icon="IconFor(mode)"/>
 			}
 			else
 			{
 				<MokaTooltip @key="mode" Text="@WordFor(mode)" Position="TooltipPosition">
-					<MokaSegment Value="@mode.ToString()" Icon="IconFor(mode)" aria-label="@WordFor(mode)"/>
+					<MokaSegment Value="@mode" Icon="IconFor(mode)" aria-label="@WordFor(mode)"/>
 				</MokaTooltip>
 			}
 		}

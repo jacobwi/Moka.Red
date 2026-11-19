@@ -145,9 +145,9 @@
 
 						<div class="moka-theme-studio__field">
 							<MokaCaption Micro>@Text.Contrast</MokaCaption>
-							<MokaSegmentedControl Value="@CurrentContrast.ToString()" ValueChanged="SetContrastAsync" AriaLabel="@Text.Contrast" Size="MokaSize.Sm">
-								<MokaSegment Value="@nameof(MokaSeedContrast.Standard)" Text="@Text.ContrastStandard"/>
-								<MokaSegment Value="@nameof(MokaSeedContrast.More)" Text="@Text.ContrastMore"/>
+							<MokaSegmentedControl TValue="MokaSeedContrast" Value="@CurrentContrast" ValueChanged="SetContrastAsync" AriaLabel="@Text.Contrast" Size="MokaSize.Sm">
+								<MokaSegment Value="MokaSeedContrast.Standard" Text="@Text.ContrastStandard"/>
+								<MokaSegment Value="MokaSeedContrast.More" Text="@Text.ContrastMore"/>
 							</MokaSegmentedControl>
 						</div>
 
@@ -190,10 +190,10 @@
 				</div>
 				<div class="moka-theme-studio__stage-tools">
 					<MokaSwitch Label="@Text.ShowChanges" Value="_showChanges" ValueChanged="SetShowChangesAsync"/>
-					<MokaSegmentedControl Value="@_view.ToString()" ValueChanged="SetViewAsync" AriaLabel="@Text.ViewLabel" Size="MokaSize.Sm">
-						<MokaSegment Value="@nameof(MokaThemeStudioView.Dark)" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
-						<MokaSegment Value="@nameof(MokaThemeStudioView.Light)" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
-						<MokaSegment Value="@nameof(MokaThemeStudioView.Both)" Text="@Text.Both"/>
+					<MokaSegmentedControl TValue="MokaThemeStudioView" Value="@_view" ValueChanged="SetViewAsync" AriaLabel="@Text.ViewLabel" Size="MokaSize.Sm">
+						<MokaSegment Value="MokaThemeStudioView.Dark" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
+						<MokaSegment Value="MokaThemeStudioView.Light" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
+						<MokaSegment Value="MokaThemeStudioView.Both" Text="@Text.Both"/>
 					</MokaSegmentedControl>
 				</div>
 			</header>
@@ -235,10 +235,10 @@
 
 				@if (_view == MokaThemeStudioView.Both)
 				{
-					<MokaSegmentedControl Value="@(_inspectDark ? nameof(MokaThemeStudioView.Dark) : nameof(MokaThemeStudioView.Light))" ValueChanged="SetInspected"
+					<MokaSegmentedControl TValue="MokaThemeStudioView" Value="@(_inspectDark ? MokaThemeStudioView.Dark : MokaThemeStudioView.Light)" ValueChanged="SetInspected"
 					                      AriaLabel="@Text.InspectLabel" Size="MokaSize.Sm" FullWidth>
-						<MokaSegment Value="@nameof(MokaThemeStudioView.Dark)" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
-						<MokaSegment Value="@nameof(MokaThemeStudioView.Light)" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
+						<MokaSegment Value="MokaThemeStudioView.Dark" Text="@Text.Dark" Icon="MokaIcons.Action.Moon"/>
+						<MokaSegment Value="MokaThemeStudioView.Light" Text="@Text.Light" Icon="MokaIcons.Action.Sun"/>
 					</MokaSegmentedControl>
 				}
 

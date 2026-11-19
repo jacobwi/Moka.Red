@@ -187,8 +187,6 @@ public partial class MokaThemeToggle
 
 	private Task Toggle() => SetModeAsync(NextMode);
 
-	private Task PickAsync(string mode) => SetModeAsync(Enum.Parse<MokaColorMode>(mode));
-
 	private async Task SetModeAsync(MokaColorMode mode)
 	{
 		// The disabled attribute stops clicks in the browser; this also covers events raised another way.

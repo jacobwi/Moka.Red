@@ -191,7 +191,7 @@
 			return;
 		}
 
-		<MokaSegmentedControl Value="@Chart.ShownPreset" ValueChanged="PresetChosen" AriaLabel="@Chart.Words.RangeLabel"
+		<MokaSegmentedControl TValue="string" Value="@Chart.ShownPreset" ValueChanged="PresetChosen" AriaLabel="@Chart.Words.RangeLabel"
 		                      Size="MokaSize.Sm" Class="moka-chart-frame__segments">
 			@foreach (MokaChartRangePreset preset in Chart.Presets)
 			{
@@ -215,10 +215,10 @@
 			return;
 		}
 
-		<MokaSegmentedControl Value="@ViewValue" ValueChanged="ViewChosen" AriaLabel="@Chart.Words.ViewLabel"
+		<MokaSegmentedControl TValue="MokaChartView" Value="@Chart.CurrentView" ValueChanged="ViewChosen" AriaLabel="@Chart.Words.ViewLabel"
 		                      Size="MokaSize.Sm" Class="moka-chart-frame__segments">
-			<MokaSegment Value="chart" Text="@Chart.Words.ChartView"/>
-			<MokaSegment Value="table" Text="@Chart.Words.TableView"/>
+			<MokaSegment Value="MokaChartView.Chart" Text="@Chart.Words.ChartView"/>
+			<MokaSegment Value="MokaChartView.Table" Text="@Chart.Words.TableView"/>
 		</MokaSegmentedControl>
 	};
 

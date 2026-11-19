@@ -32,9 +32,9 @@
 		</MokaFlexbox>
 	</MokaCard>
 
-	<MokaSegmentedControl Value="@_appearance.ToString()" ValueChanged="v => _appearance = Enum.Parse<MokaSettingsAppearance>(v)" AriaLabel="Form">
-		<MokaSegment Value="Plain" Text="Plain form"/>
-		<MokaSegment Value="Cards" Text="Cards"/>
+	<MokaSegmentedControl TValue="string" Value="@_appearance.ToString()" ValueChanged="v => _appearance = Enum.Parse<MokaSettingsAppearance>(v)" AriaLabel="Form">
+		<MokaSegment Value="@("Plain")" Text="Plain form"/>
+		<MokaSegment Value="@("Cards")" Text="Cards"/>
 	</MokaSegmentedControl>
 
 	<MokaSettingsLayout Sections="_sections" Entries="_entries" Active="general">
@@ -51,9 +51,9 @@
 		                  OnReset="PutBack">
 			<NowContent>this router is <strong>@_savedHostName</strong>, on <strong>@_savedZone</strong> time.</NowContent>
 			<HeaderActions>
-				<MokaSegmentedControl Value="@_detail" ValueChanged="v => _detail = v" Size="MokaSize.Xs" AriaLabel="Detail">
-					<MokaSegment Value="simple" Text="Simple"/>
-					<MokaSegment Value="detailed" Text="Detailed"/>
+				<MokaSegmentedControl TValue="string" Value="@_detail" ValueChanged="v => _detail = v" Size="MokaSize.Xs" AriaLabel="Detail">
+					<MokaSegment Value="@("simple")" Text="Simple"/>
+					<MokaSegment Value="@("detailed")" Text="Detailed"/>
 				</MokaSegmentedControl>
 			</HeaderActions>
 			<ChildContent>

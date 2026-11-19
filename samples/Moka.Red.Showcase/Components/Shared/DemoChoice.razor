@@ -1,7 +1,7 @@
 @typeparam TValue where TValue : struct, Enum
 
 <DemoControl Label="@Label">
-	<MokaSegmentedControl Value="@Value.ToString()" ValueChanged="PickAsync" AriaLabel="@Label">
+	<MokaSegmentedControl TValue="string" Value="@Value.ToString()" ValueChanged="PickAsync" AriaLabel="@Label">
 		@foreach (TValue option in Options)
 		{
 			<MokaSegment @key="option" Value="@option.ToString()" Text="@option.ToString()"/>

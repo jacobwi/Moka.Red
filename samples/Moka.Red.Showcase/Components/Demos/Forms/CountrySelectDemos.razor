@@ -6,7 +6,7 @@
 	<MokaFlexbox Direction="MokaDirection.Column" Gap="MokaSpacingScale.Md">
 		<div>
 			<MokaCaption Micro>Shape</MokaCaption>
-			<MokaSegmentedControl Value="@_shape.ToString()" ValueChanged="@(v => _shape = Enum.Parse<MokaCountrySelectShape>(v))"
+			<MokaSegmentedControl TValue="string" Value="@_shape.ToString()" ValueChanged="@(v => _shape = Enum.Parse<MokaCountrySelectShape>(v))"
 			                      AriaLabel="Shape" Size="MokaSize.Sm">
 				@foreach (MokaCountrySelectShape shape in Enum.GetValues<MokaCountrySelectShape>())
 				{
@@ -16,7 +16,7 @@
 		</div>
 		<div>
 			<MokaCaption Micro>Each row shows</MokaCaption>
-			<MokaSegmentedControl Value="@_rows.ToString()" ValueChanged="@(v => _rows = Enum.Parse<MokaCountryRowContent>(v))"
+			<MokaSegmentedControl TValue="string" Value="@_rows.ToString()" ValueChanged="@(v => _rows = Enum.Parse<MokaCountryRowContent>(v))"
 			                      AriaLabel="Each row shows" Size="MokaSize.Sm">
 				@foreach (MokaCountryRowContent rows in Enum.GetValues<MokaCountryRowContent>())
 				{
@@ -26,7 +26,7 @@
 		</div>
 		<div>
 			<MokaCaption Micro>Order</MokaCaption>
-			<MokaSegmentedControl Value="@_order.ToString()" ValueChanged="@(v => _order = Enum.Parse<MokaCountryOrder>(v))"
+			<MokaSegmentedControl TValue="string" Value="@_order.ToString()" ValueChanged="@(v => _order = Enum.Parse<MokaCountryOrder>(v))"
 			                      AriaLabel="Order" Size="MokaSize.Sm">
 				@foreach (MokaCountryOrder order in Enum.GetValues<MokaCountryOrder>())
 				{

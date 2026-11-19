@@ -54,9 +54,9 @@
 <DemoSection Id="items-redraw-their-owner" Title="Items redraw their owner">
 	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
 		<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
-			<MokaSegmentedControl Value="@(_passOwner ? "this" : "none")" ValueChanged="@(v => _passOwner = v == "this")" AriaLabel="Owner">
-				<MokaSegment Value="this" Text="Owner: this"/>
-				<MokaSegment Value="none" Text="No owner"/>
+			<MokaSegmentedControl TValue="string" Value="@(_passOwner ? "this" : "none")" ValueChanged="@(v => _passOwner = v == "this")" AriaLabel="Owner">
+				<MokaSegment Value="@("this")" Text="Owner: this"/>
+				<MokaSegment Value="@("none")" Text="No owner"/>
 			</MokaSegmentedControl>
 			<MokaCaption>
 				Right click a file, or focus it and press Shift+F10. With no owner the list keeps the old name until

@@ -530,7 +530,7 @@ public class MokaTablePhaseThreeTests : BunitContext
 
 		cut.Render(p => p.Add(t => t.QuickFilters, quick));
 
-		Assert.Equal([4, 2, 2], cut.FindComponents<MokaSegment>().Select(static s => s.Instance.Count ?? -1));
+		Assert.Equal([4, 2, 2], cut.FindComponents<MokaSegment<string>>().Select(static s => s.Instance.Count ?? -1));
 	}
 
 	[Fact]

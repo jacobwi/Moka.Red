@@ -10,7 +10,7 @@
 <DemoSection Id="looks" Title="Looks">
 	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-lg);">
 		<span>Panel the popups open</span>
-		<MokaSegmentedControl Value="@_popupLayout.ToString()" ValueChanged="@(v => _popupLayout = Enum.Parse<MokaColorPickerLayout>(v))"
+		<MokaSegmentedControl TValue="string" Value="@_popupLayout.ToString()" ValueChanged="@(v => _popupLayout = Enum.Parse<MokaColorPickerLayout>(v))"
 		                      AriaLabel="Panel the popups open">
 			@foreach (MokaColorPickerLayout option in Enum.GetValues<MokaColorPickerLayout>())
 			{

@@ -79,8 +79,8 @@
 		{
 			<MokaButton Variant="MokaVariant.Outlined" OnClick="ChangeLarge">Change the data</MokaButton>
 			<MokaSegmentedControl @bind-Value="_largeAs" AriaLabel="Drawn as">
-				<MokaSegment Value="chart" Text="As a chart"/>
-				<MokaSegment Value="plain" Text="Without the chart frame"/>
+				<MokaSegment Value="@("chart")" Text="As a chart"/>
+				<MokaSegment Value="@("plain")" Text="Without the chart frame"/>
 			</MokaSegmentedControl>
 		}
 	</div>

@@ -52,7 +52,7 @@
 
 		case CompareView:
 			<div class="tk-compare-pick">
-				<MokaSegmentedControl Value="@_compare" ValueChanged="PickCompare" AriaLabel="Compare" Size="MokaSize.Sm">
+				<MokaSegmentedControl TValue="string" Value="@_compare" ValueChanged="PickCompare" AriaLabel="Compare" Size="MokaSize.Sm">
 					<MokaSegment Value="@ComparePresets" Text="Two presets"/>
 					<MokaSegment Value="@CompareModes" Text="Dark and light"/>
 				</MokaSegmentedControl>
@@ -153,7 +153,7 @@
 			<div class="tk-filters">
 				<MokaSearchInput Value="@_filter" ValueChanged="SetFilter" Debounce="0" Clearable
 				                 Label="Filter tokens" HideLabel Placeholder="Filter by name or value" autocomplete="off"/>
-				<MokaSegmentedControl Value="@_kind" ValueChanged="SetKind" AriaLabel="Kind" Size="MokaSize.Sm">
+				<MokaSegmentedControl TValue="string" Value="@_kind" ValueChanged="SetKind" AriaLabel="Kind" Size="MokaSize.Sm">
 					<MokaSegment Value="@AllKinds" Text="All" Count="@_tokens.Count"/>
 					@foreach (TokenKind kind in KindsPresent)
 					{
@@ -202,7 +202,7 @@
 </div>
 
 @code {
-	private RenderFragment ViewSwitch => @<MokaSegmentedControl Value="@_view" ValueChanged="PickView" AriaLabel="Token view" Size="MokaSize.Sm">
+	private RenderFragment ViewSwitch => @<MokaSegmentedControl TValue="string" Value="@_view" ValueChanged="PickView" AriaLabel="Token view" Size="MokaSize.Sm">
 		<MokaSegment Value="@TableView" Text="Table"/>
 		<MokaSegment Value="@PurposeView" Text="By purpose"/>
 		<MokaSegment Value="@CompareView" Text="Side by side"/>

@@ -4,7 +4,7 @@
 
 <div class="showcase-rows">
 	<MokaAppearanceRow Label="Look control" Hint="What the Look button opens">
-		<MokaSegmentedControl Value="@Look.Settings.LookControl.ToString()" ValueChanged="PickControl" AriaLabel="Look control" Size="MokaSize.Sm" FullWidth>
+		<MokaSegmentedControl TValue="string" Value="@Look.Settings.LookControl.ToString()" ValueChanged="PickControl" AriaLabel="Look control" Size="MokaSize.Sm" FullWidth>
 			@foreach ((ShowcaseLookControl control, string text) in Controls)
 			{
 				<MokaSegment Value="@control.ToString()" Text="@text"/>

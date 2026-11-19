@@ -14,9 +14,9 @@
 </DemoSection>
 
 <DemoSection Id="many-points" Title="Many points" Description="Past 2,000 points a series keeps one dot per 2 px cell; brush or Ctrl and the wheel to zoom.">
-	<MokaSegmentedControl Value="@_points.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetPoints" AriaLabel="Points">
-		<MokaSegment Value="1000" Text="1,000 points"/>
-		<MokaSegment Value="100000" Text="100,000"/>
+	<MokaSegmentedControl TValue="string" Value="@_points.ToString(CultureInfo.InvariantCulture)" ValueChanged="SetPoints" AriaLabel="Points">
+		<MokaSegment Value="@("1000")" Text="1,000 points"/>
+		<MokaSegment Value="@("100000")" Text="100,000"/>
 	</MokaSegmentedControl>
 	<MokaScatterChart Title="Requests by size and time" Series="@_bigScatter" XName="KB" YName="response time"
 	                  Unit="MokaChartUnit.Milliseconds" DataVersion="@_points" Zoom="MokaChartZoom.Brush | MokaChartZoom.Wheel"

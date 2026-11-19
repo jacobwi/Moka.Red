@@ -30,7 +30,7 @@ public class FillWidthTests : BunitContext
 			["VideoEmbed"] = (typeof(MokaVideoEmbed), [("Src", "clip.mp4")], "MokaVideoEmbed.razor.css",
 				".moka-video-embed"),
 			["Steps"] = (typeof(MokaSteps), [("Steps", new[] { "One", "Two" })], "MokaSteps.razor.css", ".moka-steps"),
-			["SegmentedControlFullWidth"] = (typeof(MokaSegmentedControl), [("FullWidth", true)],
+			["SegmentedControlFullWidth"] = (typeof(MokaSegmentedControl<string>), [("FullWidth", true)],
 				"MokaSegmentedControl.razor.css", ".moka-segmented--full-width"),
 			["ButtonFullWidth"] = (typeof(MokaButton), [("FullWidth", true)], "MokaButton.razor.css",
 				".moka-btn--full-width"),
@@ -67,7 +67,7 @@ public class FillWidthTests : BunitContext
 	[Fact]
 	public void TheDefaultSegmentedControl_KeepsItsOwnWidth()
 	{
-		IRenderedComponent<MokaSegmentedControl> cut = Render<MokaSegmentedControl>();
+		IRenderedComponent<MokaSegmentedControl<string>> cut = Render<MokaSegmentedControl<string>>();
 
 		Assert.DoesNotContain("moka-fill-width", cut.Find(".moka-segmented").ClassList);
 	}

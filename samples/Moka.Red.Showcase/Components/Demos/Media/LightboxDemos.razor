@@ -39,11 +39,11 @@
 	<ChildContent>
 		<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md);">
 			<MokaSegmentedControl @bind-Value="_look" AriaLabel="Theme for this lightbox">
-				<MokaSegment Value="page" Text="This page"/>
-				<MokaSegment Value="glow" Text="Glow"/>
-				<MokaSegment Value="line" Text="Line"/>
-				<MokaSegment Value="ember" Text="Ember"/>
-				<MokaSegment Value="compact" Text="Compact"/>
+				<MokaSegment Value="@("page")" Text="This page"/>
+				<MokaSegment Value="@("glow")" Text="Glow"/>
+				<MokaSegment Value="@("line")" Text="Line"/>
+				<MokaSegment Value="@("ember")" Text="Ember"/>
+				<MokaSegment Value="@("compact")" Text="Compact"/>
 			</MokaSegmentedControl>
 			@{
 				RenderFragment gallery =

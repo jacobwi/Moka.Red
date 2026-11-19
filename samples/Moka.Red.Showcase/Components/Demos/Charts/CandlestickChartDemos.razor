@@ -3,13 +3,13 @@
 
 <DemoSection Id="candlestick" Title="Candlestick" Description="Hollow up, filled down; neighbours merge past three pixels each.">
 	<div style="display: flex; flex-wrap: wrap; gap: var(--moka-spacing-md); align-items: center;">
-		<MokaSegmentedControl Value="@(_longCandles ? "long" : "short")" ValueChanged="SetCandles" AriaLabel="How many days">
-			<MokaSegment Value="short" Text="20 days"/>
-			<MokaSegment Value="long" Text="2,000 days"/>
+		<MokaSegmentedControl TValue="string" Value="@(_longCandles ? "long" : "short")" ValueChanged="SetCandles" AriaLabel="How many days">
+			<MokaSegment Value="@("short")" Text="20 days"/>
+			<MokaSegment Value="@("long")" Text="2,000 days"/>
 		</MokaSegmentedControl>
-		<MokaSegmentedControl Value="@(_gapless ? "gapless" : "time")" ValueChanged="SetGapless" AriaLabel="Days without trading">
-			<MokaSegment Value="gapless" Text="Gapless"/>
-			<MokaSegment Value="time" Text="Keep weekends"/>
+		<MokaSegmentedControl TValue="string" Value="@(_gapless ? "gapless" : "time")" ValueChanged="SetGapless" AriaLabel="Days without trading">
+			<MokaSegment Value="@("gapless")" Text="Gapless"/>
+			<MokaSegment Value="@("time")" Text="Keep weekends"/>
 		</MokaSegmentedControl>
 	</div>
 	<MokaCandlestickChart Candles="@(_longCandles ? _manyCandles : _candles)" Gapless="_gapless" ShowVolume

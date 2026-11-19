@@ -1,9 +1,11 @@
 @namespace Moka.Red.Primitives.SegmentedControl
 @inherits MokaComponentBase
+@typeparam TValue
 
 @* The radio is the real control. It covers the whole segment, invisible, so it takes the clicks, the
    focus and the arrow keys, and attributes passed to the segment land on it: an aria-label names an
-   icon-only segment and a title shows as its tooltip. *@
+   icon-only segment and a title shows as its tooltip. It has no value attribute: its own change handler
+   knows the segment's typed value, and the generated group name means a form post carries nothing. *@
 <label class="@CssClass" style="@CssStyle">
 	<input type="radio"
 	       class="moka-segment__input"
