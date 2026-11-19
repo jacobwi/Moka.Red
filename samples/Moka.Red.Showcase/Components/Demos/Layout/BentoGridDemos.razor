@@ -65,7 +65,37 @@
 	</MokaBentoGrid>
 </DemoSection>
 
+<DemoSection Id="cards-in-their-order" Title="Cards in their order" Description="Flow Rows keeps a board's cards in the order they were put in, and the cards of a row grow to fill it, so a hidden card or a wide one that doesn't fit leaves no hole. Dense, the default, fills a hole by moving a later card up: there Uptime jumps ahead of Traffic. Customize the board, hide a card or change its size, and switch the flow to compare.">
+	<DemoChoice TValue="MokaBoardFlow" Label="Flow" Options="Flows" @bind-Value="_flow"/>
+	<MokaSwitch @bind-Value="_orderCustomizing" Label="Customize"/>
+	<MokaBentoGrid Board="_orderBoard" BoardChanged="board => _orderBoard = board" Flow="_flow"
+	               @bind-Customizing="_orderCustomizing" DefaultBoard="OrderDefaults">
+		<CardTemplate Context="card">
+			<MokaBentoItem Card="card" Title="@card.Id">
+				<MokaText Size="MokaSize.Sm">@card.Size</MokaText>
+			</MokaBentoItem>
+		</CardTemplate>
+	</MokaBentoGrid>
+</DemoSection>
+
 @code {
+	private static readonly MokaBoardFlow[] Flows = Enum.GetValues<MokaBoardFlow>();
+
+	private static readonly IReadOnlyList<MokaBoardCard> OrderDefaults =
+	[
+		new("Internet", MokaBoardSize.Wide),
+		new("Devices", MokaBoardSize.Small, Hidden: true),
+		new("Security", MokaBoardSize.Small),
+		new("Traffic", MokaBoardSize.Wide),
+		new("Alerts", MokaBoardSize.Wide),
+		new("Uptime", MokaBoardSize.Small),
+		new("Plugins", MokaBoardSize.Small)
+	];
+
+	private MokaBoardFlow _flow = MokaBoardFlow.Rows;
+	private bool _orderCustomizing;
+	private IReadOnlyList<MokaBoardCard> _orderBoard = OrderDefaults;
+
 	private bool _stretch = true;
 
 	private IReadOnlyList<MokaBoardCard> _board =

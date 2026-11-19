@@ -21,16 +21,45 @@
 	gap: var(--moka-card-gap);
 }
 
-/* Small cards take one column, wide ones two, full ones a row. Dense packing fills the holes they leave. */
+/* Small cards take one column, wide ones two, full ones a row. Dense packing fills the holes they leave. The column
+   count and the gap are private variables, so Flow Rows works out its shares from the same values. */
 .moka-bento-grid__cards {
+	--_board-columns: 4;
+	--_board-gap: var(--moka-grid-gap);
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(var(--_board-columns), minmax(0, 1fr));
 	grid-auto-flow: dense;
 	align-items: start;
-	gap: var(--moka-grid-gap);
+	gap: var(--_board-gap);
 }
 
-/* StretchCards: every card in a row as tall as the row. */
+/* Flow Rows: the cards keep their order in a wrapping row. Each starts from its size's share of the columns, the gaps
+   between them taken out, so four small cards fill a row exactly, and grows into what its row leaves in proportion to
+   that share. A row that ends early, because the next card doesn't fit or a card is hidden, is filled by the cards
+   already in it. Each card is an item of this row through the slot, which has no box. Content wider than a card is cut
+   at its edge, as on the grid. The board's script reads a card's flex-grow as its share, to work out where a dragged
+   card will land, so the grow has to stay the share. */
+.moka-bento-grid--rows > .moka-bento-grid__cards {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.moka-bento-grid--rows > .moka-bento-grid__cards > .moka-bento-grid__slot ::deep > * {
+	--_board-span: 1;
+	--_board-share: min(var(--_board-span), var(--_board-columns));
+	flex: var(--_board-share) 1 calc((100% - (var(--_board-columns) - 1) * var(--_board-gap)) * var(--_board-share) / var(--_board-columns) + (var(--_board-share) - 1) * var(--_board-gap));
+	min-width: 0;
+}
+
+.moka-bento-grid--rows > .moka-bento-grid__cards > .moka-bento-grid__slot ::deep > .moka-bento-item--wide {
+	--_board-span: 2;
+}
+
+.moka-bento-grid--rows > .moka-bento-grid__cards > .moka-bento-grid__slot ::deep > .moka-bento-item--full {
+	--_board-span: var(--_board-columns);
+}
+
+/* StretchCards: every card in a row as tall as the row. The same rule lines up a grid row and a flex row. */
 .moka-bento-grid--stretch > .moka-bento-grid__cards {
 	align-items: stretch;
 }
@@ -81,11 +110,11 @@
 }
 
 @media (max-width: 1180px) {
-	.moka-bento-grid__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.moka-bento-grid__cards { --_board-columns: 2; }
 }
 
 @media (max-width: 720px) {
-	.moka-bento-grid__cards { grid-template-columns: minmax(0, 1fr); }
+	.moka-bento-grid__cards { --_board-columns: 1; }
 	.moka-bento-grid__actions { width: 100%; }
 	.moka-bento-grid__actions ::deep .moka-btn { flex: 1; }
 }

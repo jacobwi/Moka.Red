@@ -47,6 +47,7 @@ export function bindBoard(root, dotnet) {
 
 		drag = {
 			grip, item, ghost, marker, cards,
+			flow: root.classList.contains('moka-bento-grid--rows') ? flowOf(cards) : null,
 			pointer: e.pointerId,
 			columnGap: parseFloat(gaps.columnGap) || 0,
 			rowGap: parseFloat(gaps.rowGap) || 0,
@@ -90,8 +91,20 @@ export function bindBoard(root, dotnet) {
 
 		// Cards side by side take the place left or right of the one under the pointer; full rows, above or below.
 		const r = over.getBoundingClientRect();
-		const sideways = r.width < drag.cards.clientWidth * 0.6;
-		const before = sideways ? drag.x < r.left + r.width / 2 : drag.y < r.top + r.height / 2;
+		let sideways = r.width < drag.cards.clientWidth * 0.6;
+		let before = sideways ? drag.x < r.left + r.width / 2 : drag.y < r.top + r.height / 2;
+		// In rows that flow every card grows to fill its row, so its width says nothing. A card with others in its row
+		// takes the place left or right of it, one alone in its row above or below, and the bar then shows the row the
+		// dragged card will land in: beside the card when it joins that row, above or below it when it won't.
+		if (drag.flow?.share.has(over)) {
+			const { items, share, columns, rows } = drag.flow;
+			const alone = items.every(i => i === over || rows.get(i) !== rows.get(over));
+			before = alone ? drag.y < r.top + r.height / 2 : drag.x < r.left + r.width / 2;
+			const order = items.filter(i => i !== drag.item);
+			order.splice(order.indexOf(over) + (before ? 0 : 1), 0, drag.item);
+			const landed = rowsOf(order, share, columns);
+			sideways = landed.get(drag.item) === landed.get(over);
+		}
 		drag.target = over;
 		drag.before = before;
 		marker.display = 'block';
@@ -190,6 +203,33 @@ export function focusBoard(root, card, part) {
 		target = wanted && !wanted.disabled ? wanted : tool('grip');
 	}
 	target?.focus();
+}
+
+// Rows that flow, read once when a drag starts. A slot has no box, so its children are the rows' items, in the board's
+// order. The stylesheet gives each item its share of the columns as its flex-grow, and items whose shares add up to
+// the columns fill a row exactly, so the rows break where those shares pass the column count.
+function flowOf(cards) {
+	const items = [...cards.children].flatMap(slot => [...slot.children]);
+	const share = new Map(items.map(item => [item, parseFloat(getComputedStyle(item).flexGrow) || 1]));
+	const columns = parseFloat(getComputedStyle(cards).getPropertyValue('--_board-columns')) || 1;
+	return { items, share, columns, rows: rowsOf(items, share, columns) };
+}
+
+// The row each item falls in, counted from 0.
+function rowsOf(items, share, columns) {
+	const rows = new Map();
+	let row = 0;
+	let used = 0;
+	for (const item of items) {
+		const takes = share.get(item);
+		if (used > 0 && used + takes > columns) {
+			row++;
+			used = 0;
+		}
+		used += takes;
+		rows.set(item, row);
+	}
+	return rows;
 }
 
 function copyOf(item, rect) {

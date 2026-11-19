@@ -67,6 +67,15 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 	[Parameter]
 	public bool StretchCards { get; set; }
 
+	/// <summary>
+	///     How a board lays out its cards. Default <see cref="MokaBoardFlow.Dense" />: on a grid of columns, where a
+	///     later card moves up into a hole. <see cref="MokaBoardFlow.Rows" /> keeps the cards in their order and lets
+	///     the cards of each row grow to fill it, so a hidden card leaves no hole. Both use the board's columns: 4, 2
+	///     below 1180 px and 1 on a phone. Not used without a <see cref="Board" />.
+	/// </summary>
+	[Parameter]
+	public MokaBoardFlow Flow { get; set; }
+
 	/// <summary>Gap between cells. Default Md. Not used on a board.</summary>
 	[Parameter]
 	public MokaSpacingScale Gap { get; set; } = MokaSpacingScale.Md;
@@ -148,6 +157,7 @@ public partial class MokaBentoGrid : MokaVisualComponentBase
 		.AddClass("moka-bento-grid--board", _board is not null)
 		.AddClass("moka-bento-grid--customizing", IsCustomizing)
 		.AddClass("moka-bento-grid--stretch", _board is not null && StretchCards)
+		.AddClass("moka-bento-grid--rows", _board is not null && Flow == MokaBoardFlow.Rows)
 		.AddClass("moka-bento-grid--fit", FitsColumns)
 		.AddClass(Class)
 		.Build();

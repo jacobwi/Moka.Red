@@ -38,6 +38,7 @@ order: 86
 | `TrayLabel` | `string` | `"Hidden"` | The label over the tray of hidden cards |
 | `TrayEmptyText` | `string` | `"Nothing hidden"` | What the tray says when no card is hidden |
 | `StretchCards` | `bool` | `false` | On a board, cards in one row are as tall as the tallest of them. Off, each card is as tall as its content |
+| `Flow` | `MokaBoardFlow` | `Dense` | How a board lays out its cards: `Dense` on a grid, where a later card moves up into a hole, or `Rows`, which keeps their order and lets the cards of a row grow to fill it. Not used without a board |
 
 `MokaBentoGrid` inherits from `MokaVisualComponentBase` (see [Base Classes](../api/base-classes)). `Class`, `Style`, `Id`, other attributes, `Margin`, `Padding` and `Rounded` land on the grid, on a board too. `Size`, `SizeValue`, `Color`, `Variant` and `Disabled` have no effect on it.
 
@@ -131,7 +132,7 @@ A clickable item is a button to the keyboard and to screen readers. It joins the
 
 ## Board customizing
 
-A board is a page of cards each person arranges for themselves: in what order, how big, and which ones show. Give the grid a `Board` and a `CardTemplate`, and it draws the shown cards in that order on 4 columns, 2 below 1180 px and 1 on a phone. A `Small` card takes one column, `Wide` two and `Full` a row, packed so they leave no holes.
+A board is a page of cards each person arranges for themselves: in what order, how big, and which ones show. Give the grid a `Board` and a `CardTemplate`, and it draws the shown cards in that order on 4 columns, 2 below 1180 px and 1 on a phone. A `Small` card takes one column, `Wide` two and `Full` a row, packed so they leave no holes. How they are packed is `Flow` (see [Cards in their order](#cards-in-their-order)).
 
 A board is a list of `MokaBoardCard(Id, Size, Hidden)` records, hidden cards included, so it can be stored as it is. Storing it is the app's job: every change draws at once and is raised through `BoardChanged` with the whole new layout.
 
@@ -182,13 +183,31 @@ While `Customizing` is on, each card gets a dashed ring and a row of tools: a gr
 
 ### Dragging and the keyboard
 
-Dragging a card by its grip, with a mouse, a pen or a finger, never moves the page's own elements. A copy of the card follows the pointer and a bar marks where it would land: beside a card in a row, above or below a card that takes the whole row. Only the drop reaches .NET. Escape cancels a drag, and near the edge of whatever scrolls, it scrolls.
+Dragging a card by its grip, with a mouse, a pen or a finger, never moves the page's own elements. A copy of the card follows the pointer and a bar marks where it would land: beside a card in a row, above or below a card that takes the whole row. With `Flow` set to `Rows` the bar goes by the row the card will land in (see [Cards in their order](#cards-in-their-order)). Only the drop reaches .NET. Escape cancels a drag, and near the edge of whatever scrolls, it scrolls.
 
 On the grip, the arrow keys move the card one place, Left and Up earlier, Right and Down later. After any move, focus goes back to the tool that did it on the moved card, or to its grip when that tool is now disabled. Hiding a card moves focus to its place in the tray, and putting it back moves focus to its grip.
 
 ### Putting a refused change back
 
 The board keeps the change it drew until the app passes a layout whose cards differ from the last one it passed. So an app that sets its field to the new layout before saving puts a refused change back by setting the field to the one it had, as `SaveAsync` above does. An app that never changes the field it passes has to pass a new list to put one back.
+
+### Cards in their order
+
+By default a board is a dense grid: when a card is hidden, or a wide card doesn't fit at the end of a row, a later card that fits moves up into the hole. The board has no holes, but a card can show ahead of one that comes before it.
+
+`Flow="MokaBoardFlow.Rows"` keeps the cards in their order instead. They fill rows one after another, and each card starts from its size's share of a row: a quarter for `Small`, half for `Wide`, the whole row for `Full`, on the same 4 columns, 2 below 1180 px and 1 on a phone. A row takes cards while they fit, and its cards then grow into the room it has left, in proportion to their shares, so a wide card stays about twice as wide as a small one beside it. A hidden card, or one that doesn't fit and starts the next row, leaves no hole and moves no card ahead of another.
+
+```razor
+<MokaBentoGrid Board="_board" BoardChanged="SaveAsync" Flow="MokaBoardFlow.Rows">
+    ...
+</MokaBentoGrid>
+```
+
+A card alone in its row grows to fill it, wherever on the board that row is. That is the point of `Rows`: a row ends early because the next card doesn't fit, and anything less would leave the hole `Rows` is there to remove. So a small card followed by a full one, or the last card on the board, can be as wide as the board. A page that wants it narrower can make that card `Wide`, or put another card beside it.
+
+The rows are a wrapping flexbox, so the cards are as tall as their content, or as tall as their row with `StretchCards`, as on the grid. While dragging, the bar shows where the card will land: beside a card when it will join that card's row, above or below it when it won't fit there. Over a card with others in its row the pointer's left or right half picks the side; over a card alone in its row, the upper or lower half.
+
+`Flow` applies to a board only. A plain grid already keeps its children in their order, and its row spans and start positions have no meaning in a row.
 
 ### Cards of one height
 

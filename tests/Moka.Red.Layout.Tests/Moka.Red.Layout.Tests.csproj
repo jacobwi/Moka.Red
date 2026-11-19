@@ -53,4 +53,9 @@
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
 	</ItemGroup>
 
+	<!-- Runs a component's script in Node.js for the tests that check what it does in the browser. -->
+	<ItemGroup>
+		<Compile Include="..\Shared\ScriptRunner.cs" Link="Shared\ScriptRunner.cs" />
+	</ItemGroup>
+
 </Project>
