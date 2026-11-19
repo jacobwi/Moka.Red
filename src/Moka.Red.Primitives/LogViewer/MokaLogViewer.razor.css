@@ -108,12 +108,44 @@
 	color: var(--moka-color-error);
 }
 
+/* The lowest level shown, under LevelFilter AtLeast. A native list, so the keys and a phone's picker are the
+   browser's own. */
+.moka-log-viewer__minimum {
+	padding: var(--moka-spacing-xxs) var(--moka-spacing-xs);
+	border: var(--moka-border-width) solid var(--moka-color-outline);
+	border-radius: var(--moka-radius-sm);
+	background-color: var(--moka-color-surface);
+	font-family: var(--moka-font-family);
+	font-size: var(--moka-font-size-xs);
+	color: var(--moka-color-on-surface);
+	cursor: pointer;
+}
+
+.moka-log-viewer__minimum:focus-visible {
+	outline: var(--moka-focus-width) solid var(--moka-color-primary);
+	outline-offset: calc(-1 * var(--moka-focus-width));
+}
+
 /* Log body. The containing block of what the rows position absolutely, so it scrolls with them: Virtualize measures
    its rows with a range that counts the text inside, and text left in place by the scroll threw the row size off. */
 .moka-log-viewer__body {
 	position: relative;
 	overflow-y: auto;
 	background-color: color-mix(in srgb, var(--moka-color-surface) 95%, black);
+}
+
+/* Rows drawn above the reader's are moved past by the viewer's script, which counts them. The browser's own scroll
+   anchoring would move the list a second time, or, when Blazor writes new text into the rows already there, not at
+   all. */
+.moka-log-viewer--anchored .moka-log-viewer__body {
+	overflow-anchor: none;
+}
+
+/* The button that pages in older lines, at the old end of the list. */
+.moka-log-viewer__older {
+	display: flex;
+	justify-content: center;
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
 }
 
 /* Empty state */
@@ -126,9 +158,11 @@
 	opacity: 0.4;
 }
 
-/* Log row */
+/* Log row. It wraps only when the message would have less than its flex-basis beside the time, level and source: the
+   message then takes a line of its own. Where it has room, the row is one line as before. */
 .moka-log-viewer__row {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: baseline;
 	gap: var(--moka-spacing-sm);
 	padding: 1px var(--moka-spacing-md);
@@ -198,17 +232,18 @@
 	font-weight: var(--moka-font-weight-bold);
 }
 
-/* Source */
+/* Source. One line while it fits the row; a name longer than the row breaks rather than pushing past it. */
 .moka-log-viewer__source {
 	flex-shrink: 0;
+	max-width: 100%;
 	color: var(--moka-color-primary);
 	opacity: 0.7;
-	white-space: nowrap;
+	overflow-wrap: anywhere;
 }
 
 /* Message */
 .moka-log-viewer__message {
-	flex: 1;
+	flex: 1 1 16em;
 	min-width: 0;
 	color: var(--moka-color-on-surface);
 	word-break: break-word;
@@ -225,13 +260,26 @@
 	box-sizing: border-box;
 	height: var(--_log-row-height);
 	flex-shrink: 0;
+	flex-wrap: nowrap;
 	align-items: center;
 	padding-block: 0;
 	overflow: hidden;
 	white-space: nowrap;
 }
 
+/* A one-line row can't give the message a line of its own, so the message keeps at least this much of the row and a
+   longer source gives way, cut at the end with its whole name in the title. Where the message has that much, nothing
+   is cut. */
+.moka-log-viewer--virtual .moka-log-viewer__source {
+	flex-shrink: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .moka-log-viewer--virtual .moka-log-viewer__message {
+	flex-basis: 0%;
+	min-width: min(16em, 30%);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	word-break: normal;
@@ -251,7 +299,8 @@
 }
 
 .moka-log-viewer__toggle,
-.moka-log-viewer__close {
+.moka-log-viewer__close,
+.moka-log-viewer__submit {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -271,6 +320,7 @@
 
 .moka-log-viewer__toggle:hover,
 .moka-log-viewer__close:hover,
+.moka-log-viewer__submit:hover,
 .moka-log-viewer__toggle[aria-expanded="true"] {
 	opacity: 1;
 	background-color: color-mix(in srgb, var(--moka-color-on-surface) 8%, transparent);
@@ -278,7 +328,8 @@
 
 /* Inside a clipped row or pane, so the ring is drawn inside the button. */
 .moka-log-viewer__toggle:focus-visible,
-.moka-log-viewer__close:focus-visible {
+.moka-log-viewer__close:focus-visible,
+.moka-log-viewer__submit:focus-visible {
 	opacity: 1;
 	outline: var(--moka-focus-width) solid var(--moka-color-primary);
 	outline-offset: calc(-1 * var(--moka-focus-width));
@@ -355,6 +406,7 @@
 
 .moka-log-viewer__pane-title {
 	display: flex;
+	flex-wrap: wrap;
 	flex: 1;
 	align-items: baseline;
 	gap: var(--moka-spacing-sm);
@@ -474,8 +526,26 @@
 	outline: var(--moka-focus-width) solid transparent;
 }
 
+.moka-gate .moka-log-viewer__minimum {
+	min-height: var(--moka-button-height-sm);
+	padding: 0 var(--moka-button-padding-sm);
+	border-radius: var(--moka-radius-md);
+	background-color: var(--moka-color-surface-2);
+	font-size: var(--moka-font-size-sm);
+	transition: border-color var(--moka-transition-normal), box-shadow var(--moka-transition-normal);
+}
+
+.moka-gate .moka-log-viewer__minimum:hover:not(:focus-visible) { border-color: var(--moka-color-outline-strong); }
+
+.moka-gate .moka-log-viewer__minimum:focus-visible {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
+}
+
 .moka-gate .moka-log-viewer__toggle,
-.moka-gate .moka-log-viewer__close {
+.moka-gate .moka-log-viewer__close,
+.moka-gate .moka-log-viewer__submit {
 	color: var(--moka-color-on-surface-tertiary);
 	opacity: 1;
 	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal);
@@ -483,6 +553,7 @@
 
 .moka-gate .moka-log-viewer__toggle:hover,
 .moka-gate .moka-log-viewer__close:hover,
+.moka-gate .moka-log-viewer__submit:hover,
 .moka-gate .moka-log-viewer__toggle[aria-expanded="true"] {
 	color: var(--moka-color-on-surface);
 	background-color: var(--moka-color-surface-raised);

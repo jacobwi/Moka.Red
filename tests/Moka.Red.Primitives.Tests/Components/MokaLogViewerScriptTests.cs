@@ -4,7 +4,8 @@ using Moka.Red.Tests.Shared;
 namespace Moka.Red.Primitives.Tests.Components;
 
 /// <summary>
-///     How MokaLogViewer.razor.js keeps the newest row in view, run in Node.js over a stand-in for a scrolling list
+///     How MokaLogViewer.razor.js keeps the newest row in view, at the bottom or the top, and keeps the reader's place when
+///     rows arrive above them, run in Node.js over a stand-in for a scrolling list
 ///     (<c>Script/log-follow.mjs</c>): a list 100 px tall over 1,000 px of rows. Skipped where Node.js isn't installed.
 /// </summary>
 public sealed class MokaLogViewerScriptTests
@@ -63,4 +64,54 @@ public sealed class MokaLogViewerScriptTests
 	[Fact]
 	public void AZoomedPagesFractionalBottom_StillFollows() =>
 		Assert.Equal(910, Json().GetProperty("zoomed").GetDouble());
+
+	[Fact]
+	public void NewestFirst_StartsAtTheTop_AndStaysThereAsRowsArrive()
+	{
+		JsonElement json = Json();
+
+		Assert.Equal(0, json.GetProperty("newestStart").GetDouble());
+		Assert.Equal(0, json.GetProperty("newestAtTop").GetDouble());
+	}
+
+	// Two 24 px rows arrive above a reader 300 px down, who stays on the row they were reading.
+	[Fact]
+	public void NewestFirst_ScrolledDown_TheReaderKeepsTheirPlace() =>
+		Assert.Equal(348, Json().GetProperty("newestKeptPlace").GetDouble());
+
+	[Fact]
+	public void TheCountOfRowsAbove_IsReadOncePerArrival() =>
+		Assert.Equal(348, Json().GetProperty("newestCountReadOnce").GetDouble());
+
+	[Fact]
+	public void NewestFirst_BackAtTheTop_FollowsAgain() =>
+		Assert.Equal(0, Json().GetProperty("newestBackAtTop").GetDouble());
+
+	// Measured rows: the two drawn above the old first row are 70 px together, so a reader at the top moves down by them.
+	[Fact]
+	public void OlderLinesPagedInAboveTheTop_LeaveTheReaderOnTheirRow() =>
+		Assert.Equal(70, Json().GetProperty("pagedKeptPlace").GetDouble());
+
+	[Fact]
+	public void WithoutFollowing_ThePlaceIsStillKept_AndTheListDoesntJump()
+	{
+		JsonElement json = Json();
+
+		Assert.Equal(200, json.GetProperty("stillStart").GetDouble());
+		Assert.Equal(272, json.GetProperty("stillKeptPlace").GetDouble());
+	}
+
+	// The browser snaps each move to a device pixel; the place kept is the exact one, so the error never adds up.
+	[Fact]
+	public void ManyArrivals_DontLetTheReadersRowCreep() =>
+		Assert.InRange(Json().GetProperty("snapped").GetDouble(), 532.5, 533.5);
+
+	[Fact]
+	public void TurningFollowingOnLater_GoesToTheNewestEnd_OnTheSameWatch()
+	{
+		JsonElement json = Json();
+
+		Assert.Equal(0, json.GetProperty("stillFollowing").GetDouble());
+		Assert.Equal(1, json.GetProperty("stillWatchers").GetInt32());
+	}
 }

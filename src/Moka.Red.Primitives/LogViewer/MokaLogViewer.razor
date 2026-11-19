@@ -1,13 +1,33 @@
 @namespace Moka.Red.Primitives.LogViewer
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Moka.Red.Feedback.Loading
+@using Moka.Red.Primitives.Button
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
 	@if (ShowSearch || ShowLevelFilter)
 	{
 		<div class="moka-log-viewer__toolbar">
-			@if (ShowSearch)
+			@if (ShowSearch && SubmitsSearch)
+			{
+				<form class="moka-log-viewer__search" role="search" @onsubmit="SubmitSearchAsync" @onsubmit:preventDefault>
+					<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
+					<input type="text"
+					       class="moka-log-viewer__search-input"
+					       placeholder="@Words.SearchPlaceholder"
+					       aria-label="@Words.SearchLabel"
+					       enterkeyhint="search"
+					       @bind:get="_typed"
+					       @bind:set="OnSearchTypedAsync"
+					       @bind:event="oninput"/>
+					<MokaTooltip Text="@Words.SearchButton" Position="MokaTooltipPosition.BottomEnd">
+						<button type="submit" class="moka-log-viewer__submit" aria-label="@Words.SearchButton">
+							<MokaIcon Icon="MokaIcons.Navigation.ArrowRight" SizeValue="12px"/>
+						</button>
+					</MokaTooltip>
+				</form>
+			}
+			else if (ShowSearch)
 			{
 				<div class="moka-log-viewer__search">
 					<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
@@ -15,12 +35,22 @@
 					       class="moka-log-viewer__search-input"
 					       placeholder="@Words.SearchPlaceholder"
 					       aria-label="@Words.SearchLabel"
-					       @bind:get="_searchText"
-					       @bind:set="OnSearchChangedAsync"
+					       @bind:get="_typed"
+					       @bind:set="OnSearchTypedAsync"
 					       @bind:event="oninput"/>
 				</div>
 			}
-			@if (ShowLevelFilter)
+			@if (ShowLevelFilter && Thresholds)
+			{
+				<select class="moka-log-viewer__minimum" aria-label="@Words.MinimumLevelLabel"
+				        @bind:get="_minimum" @bind:set="PickMinimumAsync">
+					@foreach (MokaLogLevel level in AllLevels)
+					{
+						<option value="@level.ToString()">@Words.AtLeast(level)</option>
+					}
+				</select>
+			}
+			else if (ShowLevelFilter)
 			{
 				<div class="moka-log-viewer__filters">
 					@foreach (var level in Enum.GetValues<MokaLogLevel>())
@@ -39,12 +69,17 @@
 
 	@* Under Virtualize the list is a tab stop of its own, so the keyboard can scroll rows that hold no control. *@
 	<div class="moka-log-viewer__body" style="@BodyStyle" @ref="_body"
-	     tabindex="@(Virtualizes ? "0" : null)"
+	     tabindex="@BodyTabIndex"
 	     role="@(Virtualizes ? "region" : null)"
-	     aria-label="@(Virtualizes ? Words.EntriesLabel : null)">
+	     aria-label="@(Virtualizes ? Words.EntriesLabel : null)"
+	     data-moka-above="@_aboveToken">
+		@if (HasOlder && !NewestFirst)
+		{
+			@OlderButton
+		}
 		@if (ItemsProvider is not null)
 		{
-			<Virtualize @ref="_virtualize" TItem="MokaLogEntry" ItemsProvider="ItemsProvider" ItemContent="VirtualRow"
+			<Virtualize @ref="_virtualize" TItem="MokaLogEntry" ItemsProvider="Provide" ItemContent="VirtualRow"
 			            Placeholder="PlaceholderRow" EmptyContent="EmptyState" ItemSize="VirtualRowHeight"/>
 		}
 		else if (Entries is null or { Count: 0 })
@@ -78,6 +113,10 @@
 				}
 			}
 		}
+		@if (HasOlder && NewestFirst)
+		{
+			@OlderButton
+		}
 	</div>
 
 	@if (_paneEntry is { } paneEntry)
@@ -85,7 +124,7 @@
 		<section class="moka-log-viewer__pane" id="@PaneId" style="@PaneStyle" aria-label="@PaneLabel(paneEntry)">
 			<div class="moka-log-viewer__pane-head">
 				<span class="moka-log-viewer__pane-title">
-					<span class="moka-log-viewer__timestamp">@FormatTimestamp(paneEntry.Timestamp)</span>
+					@Timestamp(paneEntry.Timestamp)
 					<span class="@LevelClass(paneEntry.Level)">@LevelToLabel(paneEntry.Level)</span>
 					@if (paneEntry.Source is not null)
 					{
@@ -126,12 +165,32 @@
 
 	private RenderFragment EmptyState => @<div class="moka-log-viewer__empty">@Words.NoEntries</div>;
 
-	// A virtualized row is one line, so its message carries the whole text in a title.
+	// At the old end of the list, inside it, so the reader reaches it by scrolling to the oldest line they have.
+	private RenderFragment OlderButton =>
+		@<div class="moka-log-viewer__older">
+			<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm"
+			            StartIcon="@(NewestFirst ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronUp)"
+			            Loading="_loadingOlder" LoadingText="@Words.LoadingOlder" OnClick="LoadOlderAsync">@Words.ShowOlder</MokaButton>
+		</div>;
+
+	// A time element only for a timestamp written the app's way, so the default markup stays as it was.
+	private RenderFragment Timestamp(DateTime at) =>
+		@<text>@if (WritesOwnTimes)
+		{
+			<time class="moka-log-viewer__timestamp" datetime="@MachineTime(at)">@WriteTimestamp(at)</time>
+		}
+		else
+		{
+			<span class="moka-log-viewer__timestamp">@WriteTimestamp(at)</span>
+		}</text>;
+
+	// A virtualized row is one line, so its message carries the whole text in a title, and its source too, which a
+	// narrow row cuts.
 	private RenderFragment Cells(MokaLogEntry entry, bool oneLine) =>
 		@<text>
 			@if (ShowTimestamp)
 			{
-				<span class="moka-log-viewer__timestamp">@FormatTimestamp(entry.Timestamp)</span>
+				@Timestamp(entry.Timestamp)
 			}
 			@if (ShowLevel)
 			{
@@ -139,7 +198,7 @@
 			}
 			@if (entry.Source is not null)
 			{
-				<span class="moka-log-viewer__source">@entry.Source</span>
+				<span class="moka-log-viewer__source" title="@(oneLine ? entry.Source : null)">@entry.Source</span>
 			}
 			<span class="moka-log-viewer__message" title="@(oneLine ? entry.Message : null)">@entry.Message</span></text>;
 

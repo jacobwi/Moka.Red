@@ -269,9 +269,16 @@ public static class MokaTimeTicks
 		return kept;
 	}
 
-	// A culture's time pattern moved onto the clock asked for: H and HH become h with an AM or PM designator, or h
-	// becomes HH and the designator goes. Quoted text, such as the 'h' in Canadian French's HH 'h' mm, stays.
-	private static string WithClock(string pattern, bool? hour12)
+	/// <summary>
+	///     A .NET date format moved onto the clock asked for: <c>H</c> and <c>HH</c> become <c>h</c> with an AM or PM
+	///     designator, or <c>h</c> becomes <c>HH</c> and the designator goes with the space before it. Quoted text, such as
+	///     the <c>'h'</c> in Canadian French's <c>HH 'h' mm</c>, stays. A format that writes no hour, or already writes the
+	///     clock asked for, comes back as it is.
+	/// </summary>
+	/// <param name="pattern">The format, such as <c>HH:mm:ss</c>.</param>
+	/// <param name="hour12">True for a 12-hour clock, false for a 24-hour one, null to keep the format's own.</param>
+	/// <returns>The format on that clock.</returns>
+	public static string WithClock(string pattern, bool? hour12)
 	{
 		if (hour12 is not { } twelve || WritesHour12(pattern) is not { } current || current == twelve)
 		{

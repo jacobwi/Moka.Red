@@ -27,6 +27,57 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="timestamps" Title="Timestamps"
+             Description="TimestampFormat adds the date, Hour12 picks the clock and TimeZone the zone. Entries here are in UTC.">
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaSegmentedControl TValue="bool" @bind-Value="_twelveHour" AriaLabel="Clock">
+			<MokaSegment Value="false" Text="24-hour"/>
+			<MokaSegment Value="true" Text="12-hour"/>
+		</MokaSegmentedControl>
+		<MokaSegmentedControl TValue="bool" @bind-Value="_inUtc" AriaLabel="Zone">
+			<MokaSegment Value="true" Text="UTC"/>
+			<MokaSegment Value="false" Text="This machine's zone"/>
+		</MokaSegmentedControl>
+	</div>
+	<MokaLogViewer Entries="_weekEntries" TimestampFormat="ddd d MMM HH:mm:ss" Hour12="_twelveHour"
+	               TimeZone="@(_inUtc ? TimeZoneInfo.Utc : TimeZoneInfo.Local)" MaxHeight="220px"/>
+</DemoSection>
+
+<DemoSection Id="newest-first-and-older-lines" Title="Newest first and older lines"
+             Description="Order picks the end the newest line is at. Show older lines pages in twenty more at the other end, after a simulated 600 ms round trip, and the line you were reading stays put.">
+	<MokaSegmentedControl TValue="MokaLogOrder" @bind-Value="_order" AriaLabel="Order">
+		<MokaSegment Value="MokaLogOrder.OldestFirst" Text="Oldest first"/>
+		<MokaSegment Value="MokaLogOrder.NewestFirst" Text="Newest first"/>
+	</MokaSegmentedControl>
+	<MokaLogViewer Entries="_paged" Order="_order" HasOlder="@(_oldestPaged > 0)" OnLoadOlder="LoadOlderAsync" MaxHeight="260px"/>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="AddPagedLine">Add a new line</MokaButton>
+		<span>@_paged.Count lines, @_oldestPaged older ones left to load.</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="level-threshold" Title="Level threshold"
+             Description="LevelFilter AtLeast shows one level and every worse one, picked from a single list.">
+	<MokaLogViewer Entries="_logEntries" LevelFilter="MokaLogLevelFilter.AtLeast" @bind-MinimumLevel="_minimum" MaxHeight="220px"/>
+	<p>Showing @_minimum and above.</p>
+</DemoSection>
+
+<DemoSection Id="search-timing" Title="Search timing"
+             Description="SearchDebounce waits for typing to pause; SearchMode OnSubmit waits for Enter or the search button.">
+	<MokaLogViewer Entries="_logEntries" SearchDebounce="TimeSpan.FromMilliseconds(400)" @bind-SearchText="_debouncedSearch" MaxHeight="180px"/>
+	<p>Debounced, searched for "@_debouncedSearch".</p>
+	<MokaLogViewer Entries="_logEntries" SearchMode="MokaLogSearchMode.OnSubmit" @bind-SearchText="_sentSearch" MaxHeight="180px"/>
+	<p>On submit, searched for "@_sentSearch".</p>
+</DemoSection>
+
+<DemoSection Id="narrow-widths" Title="Narrow widths"
+             Description="With a long source in a narrow box, the message takes a line of its own; a virtualized row cuts the source instead.">
+	<div style="display: grid; gap: var(--moka-spacing-md); max-width: 22rem;">
+		<MokaLogViewer Entries="_longSources" ShowSearch="false" ShowLevelFilter="false" MaxHeight="220px"/>
+		<MokaLogViewer Entries="_longSources" Virtualize="true" ShowSearch="false" ShowLevelFilter="false" MaxHeight="120px"/>
+	</div>
+</DemoSection>
+
 <DemoSection Id="loaded-on-demand" Title="Loaded on demand"
              Description="ItemsProvider asks for the rows in view with the bound search and levels, after a simulated 150 ms round trip.">
 	<MokaLogViewer ItemsProvider="LoadRemoteAsync" @bind-SearchText="_remoteSearch" @bind-Levels="_remoteLevels" MaxHeight="300px"/>
@@ -76,6 +127,40 @@
 
 	private int _remoteRequests;
 
+	private static readonly IReadOnlyList<MokaLogEntry> _weekEntries =
+	[
+		new(DateTime.UtcNow.Date.AddDays(-6).AddHours(2), MokaLogLevel.Info, "Nightly backup finished", "Backup"),
+		new(DateTime.UtcNow.Date.AddDays(-4).AddHours(14.5), MokaLogLevel.Warning, "Disk 81% full", "Host"),
+		new(DateTime.UtcNow.Date.AddDays(-1).AddHours(23.75), MokaLogLevel.Error, "Certificate renewal failed", "Certificates"),
+		new(DateTime.UtcNow, MokaLogLevel.Info, "Nightly backup finished", "Backup")
+	];
+
+	private static readonly IReadOnlyList<MokaLogEntry> _longSources =
+	[
+		new(DateTime.Today.AddHours(9), MokaLogLevel.Info, "Invoice 4711 saved", "Shop.Billing.Infrastructure.Persistence.InvoiceRepository"),
+		new(DateTime.Today.AddHours(9).AddSeconds(2), MokaLogLevel.Warning, "Retrying the payment gateway after a timeout",
+			"Shop.Payments.Gateway.Resilience.RetryPolicy"),
+		new(DateTime.Today.AddHours(9).AddSeconds(5), MokaLogLevel.Info, "Done", "Worker")
+	];
+
+	private readonly List<MokaLogEntry> _paged = [.. Enumerable.Range(180, 20).Select(PagedLine)];
+
+	private bool _twelveHour;
+
+	private bool _inUtc = true;
+
+	private MokaLogOrder _order = MokaLogOrder.NewestFirst;
+
+	private int _oldestPaged = 180;
+
+	private int _newestPaged = 199;
+
+	private MokaLogLevel _minimum = MokaLogLevel.Warning;
+
+	private string? _debouncedSearch;
+
+	private string? _sentSearch;
+
 	private string LevelsText => _levels is null ? "all" : string.Join(", ", _levels.Order());
 
 	private static MokaLogEntry Line(int i) =>
@@ -98,6 +183,19 @@
 		_search = string.Empty;
 		_levels = null;
 	}
+
+	private static MokaLogEntry PagedLine(int i) =>
+		new(DateTime.Today.AddMinutes(i), i % 9 == 0 ? MokaLogLevel.Warning : MokaLogLevel.Info, $"Job step {i} done", "Jobs");
+
+	private async Task LoadOlderAsync()
+	{
+		await Task.Delay(600);
+		int from = Math.Max(0, _oldestPaged - 20);
+		_paged.InsertRange(0, Enumerable.Range(from, _oldestPaged - from).Select(PagedLine));
+		_oldestPaged = from;
+	}
+
+	private void AddPagedLine() => _paged.Add(PagedLine(++_newestPaged));
 
 	private void Append(int count)
 	{

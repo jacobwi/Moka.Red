@@ -451,8 +451,12 @@ public sealed class MokaLogViewerTests : BunitContext
 		string body = BodyReference(cut);
 		cut.Render(p => p.Add(x => x.Entries, Many(3)));
 
-		JSRuntimeInvocation follow = _module.VerifyInvoke("follow");
-		Assert.Equal(body, Assert.IsType<ElementReference>(follow.Arguments[0]).Id);
+		JSRuntimeInvocation watch = _module.VerifyInvoke("watch");
+		Assert.Equal(body, Assert.IsType<ElementReference>(watch.Arguments[0]).Id);
+		Dictionary<string, object?> options = Assert.IsType<Dictionary<string, object?>>(watch.Arguments[1]);
+		Assert.Equal(true, options["follow"]);
+		Assert.Equal(false, options["newestFirst"]);
+		Assert.Equal(0f, options["rowHeight"]);
 	}
 
 	// bUnit writes the reference's id into the markup of the render that captured it, the first one.
@@ -480,7 +484,7 @@ public sealed class MokaLogViewerTests : BunitContext
 
 		cut.Render(p => p.Add(x => x.AutoScroll, false));
 
-		_module.VerifyInvoke("unfollow");
+		_module.VerifyInvoke("unwatch");
 	}
 
 	[Fact]
@@ -490,7 +494,7 @@ public sealed class MokaLogViewerTests : BunitContext
 
 		await DisposeComponentsAsync();
 
-		_module.VerifyInvoke("unfollow");
+		_module.VerifyInvoke("unwatch");
 	}
 
 	[Fact]

@@ -55,6 +55,7 @@
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
 		<Compile Include="..\Shared\FakeFilePicker.cs" Link="Shared\FakeFilePicker.cs" />
 		<Compile Include="..\Shared\ScriptRunner.cs" Link="Shared\ScriptRunner.cs" />
+		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
 	</ItemGroup>
 
 	<!-- The emoji data generator's parsing, tested on small copies of its sources. -->

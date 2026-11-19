@@ -26,4 +26,27 @@ public sealed record MokaLogViewerText
 
 	/// <summary>Names the button that closes the detail pane under <see cref="MokaLogViewer.Virtualize" />.</summary>
 	public string CloseDetails { get; init; } = "Close details";
+
+	/// <summary>Names the search button, under <see cref="MokaLogSearchMode.OnSubmit" />, and its tooltip.</summary>
+	public string SearchButton { get; init; } = "Search";
+
+	/// <summary>Names the level list under <see cref="MokaLogLevelFilter.AtLeast" />, which has no visible label.</summary>
+	public string MinimumLevelLabel { get; init; } = "Minimum level";
+
+	/// <summary>
+	///     The text of each choice in the level list under <see cref="MokaLogLevelFilter.AtLeast" />, given the lowest level
+	///     it shows. English: "All levels", "Debug and above" up to "Fatal only".
+	/// </summary>
+	public Func<MokaLogLevel, string> AtLeast { get; init; } = level => level switch
+	{
+		MokaLogLevel.Trace => "All levels",
+		MokaLogLevel.Fatal => "Fatal only",
+		_ => $"{level} and above"
+	};
+
+	/// <summary>The button at the old end of the list while <see cref="MokaLogViewer.HasOlder" /> is set.</summary>
+	public string ShowOlder { get; init; } = "Show older lines";
+
+	/// <summary>Said to screen readers while older lines load.</summary>
+	public string LoadingOlder { get; init; } = "Loading older lines";
 }
