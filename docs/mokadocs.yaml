@@ -72,6 +72,8 @@ nav:
         path: /components/forms
       - label: Settings Form
         path: /components/settings-form
+      - label: Schema Form
+        path: /components/schema-form
       - label: Select
         path: /components/select
       - label: Native Select

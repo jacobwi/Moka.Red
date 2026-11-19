@@ -162,6 +162,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.RangeBar
 @using Moka.Red.Forms.Rating
 @using Moka.Red.Forms.SchedulePicker
+@using Moka.Red.Forms.SchemaForm
 @using Moka.Red.Forms.SearchInput
 @using Moka.Red.Forms.Cascader
 @using Moka.Red.Forms.SelectField

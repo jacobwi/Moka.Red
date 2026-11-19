@@ -27,6 +27,7 @@ using Moka.Red.Forms.PinInput;
 using Moka.Red.Forms.RadioGroup;
 using Moka.Red.Forms.RangeBar;
 using Moka.Red.Forms.Rating;
+using Moka.Red.Forms.SchemaForm;
 using Moka.Red.Forms.SearchInput;
 using Moka.Red.Forms.Cascader;
 using Moka.Red.Forms.SelectField;
@@ -119,6 +120,11 @@ public class SpacingParameterTests : BunitContext
 			Box = ".moka-settings-form__body", RadiusOn = ".moka-settings-form"
 		},
 		["SettingsGroup"] = new(typeof(MokaSettingsGroup), "", ("Title", "Name")),
+		// The schema form is a settings form, so its spacing lands where the settings form puts it.
+		["SchemaForm"] = new(typeof(MokaSchemaForm), "")
+		{
+			Box = ".moka-settings-form__body", RadiusOn = ".moka-settings-form"
+		},
 		["SettingsLayout"] = new(typeof(MokaSettingsLayout), IconStyle("14px")),
 		["CreditCardInput"] = new(typeof(MokaCreditCardInput), "") { RadiusOn = ".moka-creditcard-input" },
 		// The group takes the padding and the track the radius.

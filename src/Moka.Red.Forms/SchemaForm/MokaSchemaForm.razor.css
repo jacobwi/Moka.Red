@@ -1,0 +1,5 @@
+.moka-schema-form__empty {
+	margin: 0;
+	color: var(--moka-color-on-surface-variant);
+	font-size: var(--moka-font-size-sm);
+}

@@ -1,0 +1,155 @@
+@namespace Moka.Red.Forms.SchemaForm
+@inherits MokaVisualComponentBase
+@using Microsoft.AspNetCore.Components.Forms
+@using Moka.Red.Forms.NativeSelect
+@using Moka.Red.Forms.NumericField
+@using Moka.Red.Forms.PasswordField
+@using Moka.Red.Forms.SettingsForm
+@using Moka.Red.Forms.Switch
+@using Moka.Red.Forms.TextArea
+@using Moka.Red.Forms.TextField
+@using Moka.Red.Primitives.Button
+
+<MokaSettingsForm Title="@ResolvedTitle"
+                  Lead="@(Lead ?? _schema?.Description)"
+                  Icon="Icon"
+                  Status="Status"
+                  HeaderActions="HeaderActions"
+                  Appearance="Appearance"
+                  Dirty="_dirty"
+                  CanSave="!Disabled"
+                  Saving="_saving"
+                  Refusal="@FormMessage"
+                  OnSave="SaveAsync"
+                  OnReset="PutBackAsync"
+                  ShowAdvanced="_showAdvanced"
+                  ShowAdvancedChanged="AdvancedShown"
+                  UnsavedText="@Words.Unsaved"
+                  DirtyText="@Words.Dirty"
+                  ResetText="@Words.Reset"
+                  SaveText="@Words.Save"
+                  SavingText="@Words.Saving"
+                  ShowAdvancedText="@Words.ShowAdvanced"
+                  HideAdvancedText="@Words.HideAdvanced"
+                  Id="@Id"
+                  Class="@CssClass"
+                  Style="@Style"
+                  Margin="Margin"
+                  MarginValue="@MarginValue"
+                  Padding="Padding"
+                  PaddingValue="@PaddingValue"
+                  Rounded="Rounded"
+                  RoundedValue="@RoundedValue"
+                  @attributes="AdditionalAttributes">
+	<CascadingValue TValue="EditContext" Value="_fieldContext" IsFixed="true">
+		@if (_slots.Count == 0)
+		{
+			<p class="moka-schema-form__empty">@Words.Empty</p>
+		}
+		@if (_main.Count > 0)
+		{
+			<MokaSettingsGroup Title="@Words.GroupTitle" Columns="Columns">
+				@foreach (FieldSlot slot in _main)
+				{
+					@Field(slot)
+				}
+			</MokaSettingsGroup>
+		}
+		@if (_advanced.Count > 0)
+		{
+			<MokaSettingsGroup Title="@Words.AdvancedGroupTitle" Advanced="true" AdvancedText="@Words.AdvancedTag" Columns="Columns">
+				@foreach (FieldSlot slot in _advanced)
+				{
+					@Field(slot)
+				}
+			</MokaSettingsGroup>
+		}
+	</CascadingValue>
+</MokaSettingsForm>
+
+@code {
+	private RenderFragment Field(FieldSlot slot) => slot.Field switch
+	{
+		{ WriteOnly: true } => SecretField(slot),
+		{ Kind: MokaSchemaFieldKind.Toggle } =>
+			@<MokaSwitch @key="slot.Token" Id="@IdOf(slot)" Value="ToggleOf(slot)" ValueChanged="slot.SetToggle"
+			             Label="@slot.Field.Title" HelperText="@slot.Field.Description" ErrorText="@ErrorTextOf(slot)"
+			             Disabled="@(Disabled || slot.Field.ReadOnly)"/>,
+		{ Kind: MokaSchemaFieldKind.Choice, ReadOnly: true } =>
+			@<MokaTextField @key="slot.Token" Id="@IdOf(slot)" Value="@ChoiceTextOf(slot)" ReadOnly="true"
+			                Label="@slot.Field.Title" HelperText="@slot.Field.Description" Disabled="Disabled"/>,
+		{ Kind: MokaSchemaFieldKind.Choice } =>
+			@<MokaNativeSelect @key="slot.Token" Id="@IdOf(slot)" Items="slot.ChoiceItems"
+			                   TextSelector="slot.ChoiceText" Value="ChoiceOf(slot)" ValueChanged="slot.SetChoice"
+			                   Placeholder="@(slot.Field.Required ? Words.Choose : null)" Required="slot.Field.Required"
+			                   Label="@slot.Field.Title" HelperText="@slot.Field.Description" ErrorText="@ErrorTextOf(slot)"
+			                   Disabled="Disabled"/>,
+		{ Kind: MokaSchemaFieldKind.WholeNumber } =>
+			@<MokaNumericField @key="slot.Token" @ref="slot.WholeInput" TValue="long?" Id="@IdOf(slot)" Value="WholeOf(slot)"
+			                   ValueChanged="slot.SetWhole" OnBlur="slot.Left" Min="slot.Field.WholeMinimum"
+			                   Max="slot.Field.WholeMaximum" Step="slot.Field.WholeStep" Mono="true"
+			                   Placeholder="@slot.Field.Placeholder" Required="slot.Field.Required" ReadOnly="slot.Field.ReadOnly"
+			                   Label="@slot.Field.Title" HelperText="@slot.Field.Description" ErrorText="@ErrorTextOf(slot)"
+			                   Disabled="Disabled"/>,
+		{ Kind: MokaSchemaFieldKind.Number } =>
+			@<MokaNumericField @key="slot.Token" @ref="slot.NumberInput" TValue="double?" Id="@IdOf(slot)" Value="NumberOf(slot)"
+			                   ValueChanged="slot.SetNumber" OnBlur="slot.Left" Min="slot.Field.Minimum" Max="slot.Field.Maximum"
+			                   Step="slot.Field.MultipleOf" Mono="true" Placeholder="@slot.Field.Placeholder"
+			                   Required="slot.Field.Required" ReadOnly="slot.Field.ReadOnly" Label="@slot.Field.Title"
+			                   HelperText="@slot.Field.Description" ErrorText="@ErrorTextOf(slot)" Disabled="Disabled"/>,
+		{ Multiline: true } =>
+			@<MokaTextArea @key="slot.Token" Id="@IdOf(slot)" Value="@TextOf(slot)" ValueChanged="slot.SetText" OnBlur="slot.Left"
+			               AutoResize="true" Placeholder="@slot.Field.Placeholder" Required="slot.Field.Required"
+			               ReadOnly="slot.Field.ReadOnly" Label="@slot.Field.Title" HelperText="@slot.Field.Description"
+			               ErrorText="@ErrorTextOf(slot)" Disabled="Disabled"/>,
+		_ =>
+			@<MokaTextField @key="slot.Token" Id="@IdOf(slot)" Value="@TextOf(slot)" ValueChanged="slot.SetText" OnBlur="slot.Left"
+			                InputType="@slot.Field.InputType" Mono="slot.Field.Mono" Placeholder="@slot.Field.Placeholder"
+			                Required="slot.Field.Required" ReadOnly="slot.Field.ReadOnly" Label="@slot.Field.Title"
+			                HelperText="@slot.Field.Description" ErrorText="@ErrorTextOf(slot)" Disabled="Disabled"/>
+	};
+
+	// A write-only setting shows whether it's set, never its value. Change, Clear and Keep swap the field, and move focus
+	// to the one that takes its place, since the button pressed is gone.
+	private RenderFragment SecretField(FieldSlot slot)
+	{
+		MokaSchemaField field = slot.Field;
+		bool set = _setSecrets.Contains(field.Name);
+		SecretMode mode = SecretOf(slot).Mode;
+		if (mode == SecretMode.Clear)
+		{
+			return @<MokaTextField @key="slot.Token" Id="@IdOf(slot)" Value="@Words.SecretCleared" ReadOnly="true"
+			                       StartIcon="MokaIcons.Toggle.Unlock" Label="@field.Title" HelperText="@field.Description"
+			                       ErrorText="@ErrorTextOf(slot)" Disabled="Disabled" Actions="KeepAction(slot)"/>;
+		}
+
+		if (set && mode == SecretMode.Keep)
+		{
+			return @<MokaTextField @key="slot.Token" Id="@IdOf(slot)" Value="@Words.SecretSet" ReadOnly="true"
+			                       StartIcon="MokaIcons.Toggle.Lock" Label="@field.Title" HelperText="@field.Description"
+			                       ErrorText="@ErrorTextOf(slot)" Disabled="Disabled" Actions="@(Disabled ? null : SetActions(slot))"/>;
+		}
+
+		return @<MokaPasswordField @key="slot.Token" Id="@IdOf(slot)" Value="@SecretOf(slot).Text" ValueChanged="slot.TypeSecret"
+		                           OnBlur="slot.Left" Placeholder="@field.Placeholder" Required="@(field.Required && !set)"
+		                           Label="@field.Title" HelperText="@(field.Description ?? Words.SecretHint)"
+		                           ErrorText="@ErrorTextOf(slot)" Disabled="Disabled" autocomplete="new-password"
+		                           Actions="@(set && !Disabled ? KeepAction(slot) : null)"/>;
+	}
+
+	private RenderFragment SetActions(FieldSlot slot) =>
+		@<text>
+			<MokaButton Variant="MokaVariant.Outlined" Size="MokaSize.Sm" OnClick="slot.ChangeSecret">
+				@Words.Change<span class="moka-visually-hidden">@($" {slot.Field.Title}")</span>
+			</MokaButton>
+			@if (!slot.Field.Required)
+			{
+				<MokaButton Variant="MokaVariant.Text" Color="MokaColor.Error" Size="MokaSize.Sm" OnClick="slot.ClearSecret">
+					@Words.Clear<span class="moka-visually-hidden">@($" {slot.Field.Title}")</span>
+				</MokaButton>
+			}
+		</text>;
+
+	private RenderFragment KeepAction(FieldSlot slot) =>
+		@<MokaButton Variant="MokaVariant.Text" Size="MokaSize.Sm" Disabled="Disabled" OnClick="slot.KeepSecret">@Words.KeepSaved</MokaButton>;
+}

@@ -1,0 +1,125 @@
+@using System.Text.Json.Nodes
+@using Moka.Red.Forms.SchemaForm
+@using Moka.Red.Forms.SettingsForm
+
+<DemoSection Id="a-form-from-a-json-schema" Title="A form from a JSON Schema" Description="Each property of the schema becomes a field, checked once it's left and again before Save. The password is write-only: the form says it's set and offers Change and Clear, and never sees the saved one. Save with the host down.example.com to see a problem come back from the server.">
+	<MokaSchemaForm Schema="_mailSchema" @bind-Value="_mail" SetSecrets="_mailSecrets" Problems="_mailProblems"
+	                Refusal="@_mailRefusal" OnSave="SaveMailAsync" Icon="MokaIcons.Content.Server"/>
+</DemoSection>
+
+<DemoSection Id="cards-and-labelled-choices" Title="Cards and labelled choices" Description="oneOf with const and title gives a choice its label, x-multiline draws a text area, and x-advanced moves a setting under Show advanced. Appearance draws the form as cards.">
+	<MokaSchemaForm Schema="_backupSchema" @bind-Value="_backup" Appearance="MokaSettingsAppearance.Cards"
+	                Icon="MokaIcons.File.Archive" OnSave="SaveBackupAsync"/>
+</DemoSection>
+
+<DemoSection Id="a-schema-the-form-cant-show" Title="A schema the form can't show" Description="Parse never throws on a bad schema. It names every problem, and gives no schema at all, so no setting is quietly dropped.">
+	<MokaCallout Title="This schema was refused" Type="MokaCalloutType.Warning">
+		<ul>
+			@foreach (string problem in _refused.Problems)
+			{
+				<li>@problem</li>
+			}
+		</ul>
+	</MokaCallout>
+</DemoSection>
+
+@code {
+	private const string MailServerSchema = """
+		{
+			"type": "object",
+			"title": "Mail server",
+			"description": "Where reports are sent from.",
+			"required": ["host", "from"],
+			"properties": {
+				"host": { "type": "string", "title": "Host", "format": "hostname", "examples": ["mail.example.com"] },
+				"port": { "type": "integer", "title": "Port", "minimum": 1, "maximum": 65535, "default": 587 },
+				"from": { "type": "string", "title": "From address", "format": "email", "examples": ["reports@example.com"] },
+				"security": {
+					"type": "string",
+					"title": "Security",
+					"default": "starttls",
+					"oneOf": [
+						{ "const": "none", "title": "None" },
+						{ "const": "starttls", "title": "STARTTLS" },
+						{ "const": "tls", "title": "TLS from the start" }
+					]
+				},
+				"user": { "type": "string", "title": "User name" },
+				"password": { "type": "string", "title": "Password", "writeOnly": true },
+				"timeout": { "type": "number", "title": "Timeout in seconds", "exclusiveMinimum": 0, "default": 30, "x-advanced": true }
+			}
+		}
+		""";
+
+	private const string BackupJobSchema = """
+		{
+			"type": "object",
+			"title": "Backup job",
+			"description": "What gets copied and how long copies stay.",
+			"properties": {
+				"target": { "type": "string", "title": "Target", "format": "uri", "description": "Where copies go.", "examples": ["https://storage.example.com/backups"] },
+				"schedule": { "enum": ["hourly", "daily", "weekly"], "title": "Schedule", "default": "daily" },
+				"keep": { "type": "integer", "title": "Copies to keep", "minimum": 1, "maximum": 90, "default": 14 },
+				"compress": { "type": "boolean", "title": "Compress copies", "default": true },
+				"exclude": { "type": "string", "title": "Leave out", "description": "One path per line.", "x-multiline": true },
+				"bandwidth": { "type": "integer", "title": "Bandwidth limit in MB/s", "minimum": 1, "x-advanced": true }
+			}
+		}
+		""";
+
+	private const string RefusedSchema = """
+		{
+			"type": "object",
+			"properties": {
+				"servers": { "type": "array", "items": { "type": "string" } },
+				"proxy": { "$ref": "#/$defs/proxy" },
+				"retries": { "type": "integer", "minimum": "three" }
+			}
+		}
+		""";
+
+	private readonly MokaFormSchema _mailSchema = MokaFormSchema.Parse(MailServerSchema).Schema!;
+	private readonly MokaFormSchema _backupSchema = MokaFormSchema.Parse(BackupJobSchema).Schema!;
+	private readonly MokaSchemaParseResult _refused = MokaFormSchema.Parse(RefusedSchema);
+
+	private JsonObject _mail = new() { ["host"] = "mail.example.com", ["from"] = "reports@example.com", ["user"] = "reports" };
+	private HashSet<string> _mailSecrets = ["password"];
+	private IReadOnlyDictionary<string, string>? _mailProblems;
+	private string? _mailRefusal;
+
+	private JsonObject _backup = new() { ["target"] = "https://storage.example.com/backups" };
+
+	private async Task SaveMailAsync(MokaSchemaFormSave save)
+	{
+		_mailProblems = null;
+		_mailRefusal = null;
+		await Task.Delay(400);
+		if (save.Values["host"]?.GetValue<string>() == "down.example.com")
+		{
+			_mailProblems = new Dictionary<string, string> { ["host"] = "Nothing answers at that address." };
+			return;
+		}
+
+		HashSet<string> secrets = [.. _mailSecrets];
+		foreach ((string name, MokaSecretChange change) in save.Secrets)
+		{
+			if (change.Edit == MokaSecretEdit.Set)
+			{
+				secrets.Add(name);
+			}
+			else if (change.Edit == MokaSecretEdit.Cleared)
+			{
+				secrets.Remove(name);
+			}
+		}
+
+		_mailSecrets = secrets;
+		_mail = save.Values;
+	}
+
+	private async Task SaveBackupAsync(MokaSchemaFormSave save)
+	{
+		await Task.Delay(400);
+		_backup = save.Values;
+	}
+}
