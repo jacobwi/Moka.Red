@@ -10,7 +10,7 @@ namespace Moka.Red.Forms.SchemaForm;
 /// <remarks>
 ///     A schema from a plugin or a connector is untrusted input, so reading one is bounded: at most
 ///     <see cref="MaxJsonLength" /> characters nested <see cref="MaxDepth" /> deep, <see cref="MaxProperties" /> properties,
-///     <see cref="MaxChoices" /> choices each, names of <see cref="MaxNameLength" /> characters, texts of
+///     <see cref="MaxChoices" /> choices and <see cref="MaxFormats" /> formats each, names of <see cref="MaxNameLength" /> characters, texts of
 ///     <see cref="MaxTextLength" />, and patterns of <see cref="MaxPatternLength" /> that run without backtracking and stop
 ///     after <see cref="PatternTimeout" />. Past any limit the schema is refused with a problem; nothing throws.
 /// </remarks>
@@ -27,6 +27,12 @@ public sealed class MokaFormSchema
 
 	/// <summary>The most choices one property may have.</summary>
 	public const int MaxChoices = 250;
+
+	/// <summary>
+	///     The most formats one setting's <c>anyOf</c> may list. A value that fits none gets a message naming each, and the
+	///     form checks six formats.
+	/// </summary>
+	public const int MaxFormats = 8;
 
 	/// <summary>The longest property name.</summary>
 	public const int MaxNameLength = 128;

@@ -7,6 +7,10 @@
 	                Refusal="@_mailRefusal" OnSave="SaveMailAsync" Icon="MokaIcons.Content.Server"/>
 </DemoSection>
 
+<DemoSection Id="a-host-name-or-an-address" Title="A host name or an address" Description="The hostname format leaves IP addresses out, so the server lists the formats it takes in anyOf: a host name, an IPv4 address or an IPv6 address. It's one text field. Type 2001:db8::25 and it fits; type a name with a space, leave the field, and the message names everything it takes.">
+	<MokaSchemaForm Schema="_relaySchema" @bind-Value="_relay" OnSave="SaveRelayAsync" Icon="MokaIcons.Content.Server"/>
+</DemoSection>
+
 <DemoSection Id="cards-and-labelled-choices" Title="Cards and labelled choices" Description="oneOf with const and title gives a choice its label, x-multiline draws a text area, and x-advanced moves a setting under Show advanced. Appearance draws the form as cards.">
 	<MokaSchemaForm Schema="_backupSchema" @bind-Value="_backup" Appearance="MokaSettingsAppearance.Cards"
 	                Icon="MokaIcons.File.Archive" OnSave="SaveBackupAsync"/>
@@ -51,6 +55,25 @@
 		}
 		""";
 
+	private const string MailRelaySchema = """
+		{
+			"type": "object",
+			"title": "Mail relay",
+			"description": "Where alerts are handed over for delivery.",
+			"required": ["server"],
+			"properties": {
+				"server": {
+					"type": "string",
+					"title": "Server",
+					"description": "The relay's name or its address.",
+					"examples": ["relay.example.com"],
+					"anyOf": [ { "format": "hostname" }, { "format": "ipv4" }, { "format": "ipv6" } ]
+				},
+				"port": { "type": "integer", "title": "Port", "minimum": 1, "maximum": 65535, "default": 25 }
+			}
+		}
+		""";
+
 	private const string BackupJobSchema = """
 		{
 			"type": "object",
@@ -79,6 +102,7 @@
 		""";
 
 	private readonly MokaFormSchema _mailSchema = MokaFormSchema.Parse(MailServerSchema).Schema!;
+	private readonly MokaFormSchema _relaySchema = MokaFormSchema.Parse(MailRelaySchema).Schema!;
 	private readonly MokaFormSchema _backupSchema = MokaFormSchema.Parse(BackupJobSchema).Schema!;
 	private readonly MokaSchemaParseResult _refused = MokaFormSchema.Parse(RefusedSchema);
 
@@ -86,6 +110,8 @@
 	private HashSet<string> _mailSecrets = ["password"];
 	private IReadOnlyDictionary<string, string>? _mailProblems;
 	private string? _mailRefusal;
+
+	private JsonObject _relay = new() { ["server"] = "192.0.2.25" };
 
 	private JsonObject _backup = new() { ["target"] = "https://storage.example.com/backups" };
 
@@ -115,6 +141,12 @@
 
 		_mailSecrets = secrets;
 		_mail = save.Values;
+	}
+
+	private async Task SaveRelayAsync(MokaSchemaFormSave save)
+	{
+		await Task.Delay(400);
+		_relay = save.Values;
 	}
 
 	private async Task SaveBackupAsync(MokaSchemaFormSave save)

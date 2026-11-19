@@ -57,9 +57,18 @@ public sealed class MokaSchemaField
 
 	/// <summary>
 	///     The property's <c>format</c>. <c>email</c>, <c>uri</c>, <c>hostname</c>, <c>ipv4</c>, <c>ipv6</c> and
-	///     <c>uuid</c> are checked; any other is kept as written and not checked.
+	///     <c>uuid</c> are checked; any other is kept as written and not checked. Null when the formats come from an
+	///     <c>anyOf</c>, which <see cref="Formats" /> lists.
 	/// </summary>
 	public string? Format { get; internal init; }
+
+	/// <summary>
+	///     Every format the text may take, in the order the schema writes them; it has to fit one. That is the property's
+	///     <see cref="Format" /> alone, or the <c>format</c> of each item of an <c>anyOf</c> such as
+	///     <c>[ { "format": "hostname" }, { "format": "ipv4" }, { "format": "ipv6" } ]</c>, the standard way to take a host
+	///     name or an IP address. Empty when the property names no format. A format the form doesn't check fits every text.
+	/// </summary>
+	public IReadOnlyList<string> Formats { get; internal init; } = [];
 
 	/// <summary>The property's <c>pattern</c>, a regular expression the text has to match somewhere.</summary>
 	public string? Pattern { get; internal init; }
@@ -105,9 +114,9 @@ public sealed class MokaSchemaField
 
 	internal decimal? ExactMultipleOf { get; init; }
 
-	internal string InputType => MokaSchemaFormats.InputType(Format);
+	internal string InputType => MokaSchemaFormats.InputType(Formats);
 
-	internal bool Mono => MokaSchemaFormats.IsMono(Format);
+	internal bool Mono => MokaSchemaFormats.IsMono(Formats);
 
 	// The inclusive bounds a whole-number field can take, for the number field's own limits.
 	internal long? WholeMinimum => WholeBound(Minimum, ExclusiveMinimum, true);
@@ -158,7 +167,7 @@ public sealed class MokaSchemaField
 			return words.NoMatch(Title);
 		}
 
-		return MokaSchemaFormats.Problem(Format, text, Title, words);
+		return MokaSchemaFormats.Problem(Formats, text, Title, words);
 	}
 
 	private string? NumberProblem(JsonNode value, MokaSchemaFormText words)

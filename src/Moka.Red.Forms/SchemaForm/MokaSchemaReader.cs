@@ -28,6 +28,10 @@ internal static class MokaSchemaReader
 
 	private static readonly HashSet<string> ChoiceKeywords = new(["const", "title", "description"], StringComparer.Ordinal);
 
+	private static readonly HashSet<string> FormatKeywords = new(["format", "title", "description"], StringComparer.Ordinal);
+
+	private static readonly string[] BesideAnyFormat = ["format", "oneOf", "enum"];
+
 	internal static MokaSchemaParseResult Read(string json)
 	{
 		if (json.Length > MokaFormSchema.MaxJsonLength)
@@ -212,8 +216,14 @@ internal static class MokaSchemaReader
 		}
 
 		int beforeChoices = problems.Count;
-		List<MokaSchemaChoice>? choices = ReadChoices(where, property, problems);
+		List<string>? anyFormat = ReadAnyFormat(where, property, problems);
+		List<MokaSchemaChoice>? choices = anyFormat is null ? ReadChoices(where, property, problems) : null;
 		MokaSchemaFieldKind? kind = problems.Count > beforeChoices ? null : KindOf(where, type ?? InferType(choices), choices, problems);
+		if (anyFormat is not null && kind is not (null or MokaSchemaFieldKind.Text))
+		{
+			problems.Add($"{where}: formats in \"anyOf\" are for text, \"type\": \"string\".");
+		}
+
 		bool writeOnly = ReadFlag(property, "writeOnly", where, problems);
 		bool readOnly = ReadFlag(property, "readOnly", where, problems);
 		bool multiline = ReadFlag(property, MokaFormSchema.MultilineKeyword, where, problems);
@@ -249,20 +259,25 @@ internal static class MokaSchemaReader
 			problems.Add($"{where}: \"multipleOf\" is more than 0.");
 		}
 
+		string? description = ReadText(property, "description", where, problems);
+		bool advanced = ReadFlag(property, MokaFormSchema.AdvancedKeyword, where, problems);
+		string? placeholder = ReadPlaceholder(property, where, problems);
+		string? format = text ? ReadText(property, "format", where, problems) : null;
 		MokaSchemaField field = new()
 		{
 			Name = name,
 			Title = string.IsNullOrEmpty(title) ? name : title,
-			Description = ReadText(property, "description", where, problems),
+			Description = description,
 			Kind = kind ?? MokaSchemaFieldKind.Text,
 			TakesNumberText = numberText && numeric,
 			Required = required,
 			ReadOnly = readOnly,
 			WriteOnly = writeOnly,
-			Advanced = ReadFlag(property, MokaFormSchema.AdvancedKeyword, where, problems),
+			Advanced = advanced,
 			Multiline = multiline,
-			Placeholder = ReadPlaceholder(property, where, problems),
-			Format = text ? ReadText(property, "format", where, problems) : null,
+			Placeholder = placeholder,
+			Format = format,
+			Formats = anyFormat ?? (format is null ? [] : [format]),
 			Pattern = pattern,
 			PatternRegex = ReadPattern(pattern, where, problems),
 			MinLength = minLength,
@@ -359,6 +374,87 @@ internal static class MokaSchemaReader
 		return false;
 	}
 
+	// An "anyOf" of formats, [ { "format": "hostname" }, { "format": "ipv4" } ], is text that fits any one of them (core
+	// spec, section 10.2.1.2): the standard way to take a host name or an IP address, since "hostname" leaves addresses
+	// out. Null when neither applicator lists a format, so the items are read as choices. A list, maybe empty, when one
+	// does, whatever the problems, so they aren't also read as choices.
+	private static List<string>? ReadAnyFormat(string where, JsonObject property, List<string> problems)
+	{
+		string? keyword = ListsFormats(property["anyOf"]) ? "anyOf" : ListsFormats(property["oneOf"]) ? "oneOf" : null;
+		if (keyword is null)
+		{
+			return null;
+		}
+
+		JsonArray items = property[keyword]!.AsArray();
+		List<string> formats = [];
+		if (items.Any(item => item is JsonObject entry && entry.ContainsKey("const")))
+		{
+			problems.Add($"{where}: \"{keyword}\" mixes labelled choices and formats. A setting takes one or the other.");
+			return formats;
+		}
+
+		// oneOf passes text that fits exactly one item. Format checks are each implementation's best effort (validation
+		// spec, section 7.2) and overlap, so the same text could pass one validator and fail another.
+		if (keyword == "oneOf")
+		{
+			problems.Add($"{where}: \"oneOf\" of formats takes text that fits exactly one, and formats overlap: 192.0.2.10 is " +
+			             "a host name too. Give them as \"anyOf\", which takes text that fits any one.");
+			return formats;
+		}
+
+		if (BesideAnyFormat.FirstOrDefault(property.ContainsKey) is { } beside)
+		{
+			problems.Add(beside == "format"
+				? $"{where}: give the formats as \"format\" or \"anyOf\", not both."
+				: $"{where}: \"anyOf\" lists formats, so the setting is text and has no \"{beside}\".");
+			return formats;
+		}
+
+		if (items.Count > MokaFormSchema.MaxFormats)
+		{
+			problems.Add(Invariant($"{where}: \"anyOf\" lists {items.Count} formats; a setting takes at most {MokaFormSchema.MaxFormats}."));
+			return formats;
+		}
+
+		foreach (JsonNode? item in items)
+		{
+			if (item is not JsonObject entry || !entry.ContainsKey("format") || entry.Any(pair => !FormatKeywords.Contains(pair.Key)))
+			{
+				problems.Add($"{where}: \"anyOf\" of formats takes items like {{ \"format\": \"hostname\" }}, with a \"title\" " +
+				             "or \"description\" at most.");
+				return formats;
+			}
+
+			int before = problems.Count;
+			string? format = ReadText(entry, "format", where, problems);
+			if (format is null && problems.Count == before)
+			{
+				problems.Add($"{where}: \"format\" is text.");
+			}
+
+			ReadText(entry, "title", where, problems);
+			ReadText(entry, "description", where, problems);
+			if (problems.Count > before || format is null)
+			{
+				return formats;
+			}
+
+			if (formats.Contains(format, StringComparer.Ordinal))
+			{
+				problems.Add($"{where}: \"anyOf\" lists the format {Quote(format)} twice.");
+				return formats;
+			}
+
+			formats.Add(format);
+		}
+
+		return formats;
+	}
+
+	private static bool ListsFormats(JsonNode? node) =>
+		node is JsonArray items && items.Any(item => item is JsonObject entry && entry.ContainsKey("format") && !entry.ContainsKey("const"));
+
 	private static List<MokaSchemaChoice>? ReadChoices(string where, JsonObject property, List<string> problems)
 	{
 		bool hasEnum = property.ContainsKey("enum");
@@ -446,7 +542,10 @@ internal static class MokaSchemaReader
 	{
 		if (item is not JsonObject choice || !choice.ContainsKey("const") || choice.Any(entry => !ChoiceKeywords.Contains(entry.Key)))
 		{
-			problems.Add($"{where}: \"{keyword}\" is read as labelled choices only: {{ \"const\": value, \"title\": \"Label\" }}.");
+			problems.Add(keyword == "anyOf"
+				? $"{where}: \"anyOf\" is read as labelled choices, {{ \"const\": value, \"title\": \"Label\" }}, or as formats, " +
+				  "{ \"format\": \"hostname\" }."
+				: $"{where}: \"{keyword}\" is read as labelled choices only: {{ \"const\": value, \"title\": \"Label\" }}.");
 			return null;
 		}
 

@@ -134,6 +134,38 @@ public sealed record MokaSchemaFormText
 	/// <summary>Text that isn't a UUID (<c>"format": "uuid"</c>).</summary>
 	public Func<string, string> NotUuid { get; init; } = title => $"{title} is a UUID, like 123e4567-e89b-12d3-a456-426614174000.";
 
+	/// <summary>
+	///     Text that fits none of the formats an <c>anyOf</c> lists. Gets the setting's title and the formats' names, such as
+	///     <see cref="HostNameFormatName" />, in the schema's order.
+	/// </summary>
+	public Func<string, IReadOnlyList<string>, string> NotAnyFormat { get; init; } = (title, formats) =>
+		$"{title} is {JoinWithOr(formats)}.";
+
+	/// <summary>The <c>email</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string EmailFormatName { get; init; } = "an email address";
+
+	/// <summary>The <c>uri</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string FullAddressFormatName { get; init; } = "a full address";
+
+	/// <summary>The <c>hostname</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string HostNameFormatName { get; init; } = "a host name";
+
+	/// <summary>The <c>ipv4</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string Ipv4FormatName { get; init; } = "an IPv4 address";
+
+	/// <summary>The <c>ipv6</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string Ipv6FormatName { get; init; } = "an IPv6 address";
+
+	/// <summary>The <c>uuid</c> format's name in <see cref="NotAnyFormat" />.</summary>
+	public string UuidFormatName { get; init; } = "a UUID";
+
 	/// <summary>A property the schema doesn't name, when it sets <c>"additionalProperties": false</c>. Gets the property's name.</summary>
 	public Func<string, string> NotAllowed { get; init; } = name => $"There's no setting called {name}.";
+
+	private static string JoinWithOr(IReadOnlyList<string> names) => names.Count switch
+	{
+		0 => string.Empty,
+		1 => names[0],
+		_ => $"{string.Join(", ", names.Take(names.Count - 1))} or {names[^1]}"
+	};
 }

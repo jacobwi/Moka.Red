@@ -102,7 +102,7 @@ Read the schema once and keep it. A schema read again from the same JSON counts 
 | `WithDefaults(values)` | A copy where each setting that isn't set takes its `default` |
 | `Check(values, setSecrets, text)` | What's wrong, by property name, with the form's rules and words, for checking what a server is sent |
 
-`MokaSchemaField` carries what the property said: `Name`, `Title`, `Description`, `Kind` (`Text`, `WholeNumber`, `Number`, `Toggle`, `Choice`), `Required`, `ReadOnly`, `WriteOnly`, `Advanced`, `Multiline`, `Default`, `Placeholder`, `Format`, `Pattern`, `MinLength`, `MaxLength`, `Minimum`, `Maximum`, `ExclusiveMinimum`, `ExclusiveMaximum`, `MultipleOf` and `Choices` (each a `MokaSchemaChoice` with its `Value` and `Label`).
+`MokaSchemaField` carries what the property said: `Name`, `Title`, `Description`, `Kind` (`Text`, `WholeNumber`, `Number`, `Toggle`, `Choice`), `Required`, `ReadOnly`, `WriteOnly`, `Advanced`, `Multiline`, `Default`, `Placeholder`, `Format`, `Pattern`, `MinLength`, `MaxLength`, `Minimum`, `Maximum`, `ExclusiveMinimum`, `ExclusiveMaximum`, `MultipleOf` and `Choices` (each a `MokaSchemaChoice` with its `Value` and `Label`). `Formats` lists every format the text may take, in order: the property's own `Format`, or each one an `anyOf` lists.
 
 ### MokaSchemaFormSave
 
@@ -118,7 +118,7 @@ The root is an object schema: `"type": "object"` (or `["object", "null"]`, as .N
 
 | Property | Becomes |
 |----------|---------|
-| `"type": "string"` | A text field. `"format": "email"` and `"uri"` set the input's type; `x-multiline` makes it a text area |
+| `"type": "string"` | A text field. `"format": "email"` and `"uri"` set the input's type; `x-multiline` makes it a text area. An `anyOf` of formats takes text in any one of them: see [a host name or an address](#a-host-name-or-an-address) |
 | `"type": "integer"` | A number field that takes whole numbers, with arrow keys that step by `multipleOf`, else 1 |
 | `"type": "number"` | A number field |
 | `"type": "boolean"` | A switch. With no value and no default it shows off and is saved as `false` |
@@ -135,6 +135,7 @@ A type may also be a list of one type and `"null"`, as .NET exports a nullable p
 | `minLength`, `maxLength` | Characters, counted as Unicode code points as JSON Schema does, so an emoji is one |
 | `pattern` | A regular expression the text has to match somewhere. It runs without backtracking, so lookarounds and backreferences are refused when the schema is read |
 | `format` | `email`, `uri`, `hostname`, `ipv4`, `ipv6` and `uuid` are checked. Any other format is kept as written and not checked, as the format-annotation vocabulary has it |
+| `anyOf` of formats | Text that fits any one of the formats listed, such as a host name or an IP address |
 | `minimum`, `maximum` | Inclusive limits; the number field holds to them as it's typed |
 | `exclusiveMinimum`, `exclusiveMaximum` | The limit itself, as 2020-12 writes it. Draft 4's `true` is refused |
 | `multipleOf` | Checked in decimal, so 0.3 is a multiple of 0.1 |
@@ -144,6 +145,30 @@ A type may also be a list of one type and `"null"`, as .NET exports a nullable p
 Keywords the form doesn't know are ignored, `$schema`, `$id`, `$comment`, `deprecated` and other `x-` keywords included. Keywords that change what a value may be and that a form can't honour are problems, so no rule is dropped quietly: nested objects, arrays, `$ref`, `allOf`, `not`, `if`, `then`, `else`, `const` on its own and the other object and array keywords.
 
 `x-advanced` and `x-multiline` are this library's extension keywords (`MokaFormSchema.AdvancedKeyword` and `MultilineKeyword`). JSON Schema has none for either, and the `x-` prefix keeps them apart from any it may get.
+
+## A host name or an address
+
+The `hostname` format leaves IP addresses out, so a setting that takes a server's name or its address lists the formats it takes in `anyOf`, JSON Schema's way to say "any one of these". The form shows one text field, and text that fits any one of the formats passes.
+
+```json
+"server": {
+    "type": "string",
+    "title": "Server",
+    "description": "The mail server's name or address.",
+    "examples": ["mail.example.com"],
+    "anyOf": [ { "format": "hostname" }, { "format": "ipv4" }, { "format": "ipv6" } ]
+}
+```
+
+Text that fits none is told what the setting takes: "Server is a host name, an IPv4 address or an IPv6 address." `Check` applies the same rule on a server, and `MokaSchemaField.Formats` lists the formats in the order written. A list of one keeps that format's own message, with its example.
+
+- Each item holds a `format`, and a `title` or `description` at most. A `pattern`, `minLength` or `maxLength` goes on the property, where it applies to the text whatever its format.
+- An item with `const` is a labelled choice, so an `anyOf` that mixes choices and formats is refused.
+- `oneOf` of formats is refused, with a problem that suggests `anyOf`. `oneOf` takes text that fits exactly one item, and formats overlap: RFC 1123 lets a host name be all digits, so 192.0.2.10 is a host name and an IPv4 address both. Each validator checks formats its own best-effort way, so the same text could pass one and fail another.
+- A `format` on the property beside an `anyOf` of formats is refused: both would apply, so the text would have to fit the property's own format too, which is rarely what's meant. An `enum` or a `oneOf` beside it is refused as well.
+- A format the form doesn't check fits every text, as an annotation does, so an `anyOf` that lists one takes any text.
+- The text box is monospace when every format is a host name, an address or a UUID, and an email or URL box only when every format is that one.
+- An `anyOf` lists at most `MaxFormats` (8) formats, and a format once.
 
 ## Secrets
 
@@ -212,6 +237,7 @@ A schema from a plugin or a connector is untrusted input, so reading one is boun
 | `MaxDepth` | 16 levels of nesting |
 | `MaxProperties` | 100 settings |
 | `MaxChoices` | 250 choices a setting |
+| `MaxFormats` | 8 formats in a setting's `anyOf` |
 | `MaxNameLength` | 128 characters a property name, with no control characters |
 | `MaxTextLength` | 4,000 characters a title, description, example, default or choice |
 | `MaxPatternLength` | 1,000 characters a pattern |
@@ -222,6 +248,8 @@ A repeated property name is refused too, rather than the last one quietly winnin
 ## Words
 
 `MokaSchemaFormText` holds every word: the group headings ("General", "More settings"), the secret buttons, the footer's, and the problems, which are functions of the setting's title (and the limit, written in the current culture).
+
+Text that fits none of an `anyOf`'s formats gets `NotAnyFormat`, which takes the title and each format's name (`HostNameFormatName`, `Ipv4FormatName`, `Ipv6FormatName`, `EmailFormatName`, `FullAddressFormatName`, `UuidFormatName`) in the schema's order, so a translation decides how the list reads.
 
 ```razor
 <MokaSchemaForm Schema="_schema" @bind-Value="_settings"
