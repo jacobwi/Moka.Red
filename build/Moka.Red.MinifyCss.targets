@@ -1,0 +1,127 @@
+<Project>
+
+	<!-- Release builds of the packages minify their CSS. ASP.NET Core has no minifier of its own, and its docs ask for
+	     minified files in production and the originals in development, so Debug keeps the stylesheets as written.
+	     -p:MokaMinifyCss=false turns it off. Only comments and whitespace go, so every rule stays as written. -->
+	<PropertyGroup>
+		<MokaMinifyCss Condition="'$(MokaMinifyCss)' == '' and '$(Configuration)' == 'Release' and '$(IsPackable)' == 'true'">true</MokaMinifyCss>
+		<ResolveCoreStaticWebAssetsDependsOn>$(ResolveCoreStaticWebAssetsDependsOn);MokaDefineMinifiedStaticCss</ResolveCoreStaticWebAssetsDependsOn>
+	</PropertyGroup>
+
+	<UsingTask TaskName="MokaMinifyCss" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<Task>
+			<Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)MokaMinifyCss.cs" />
+		</Task>
+	</UsingTask>
+
+	<Target Name="_MokaMinifyCssPaths">
+		<PropertyGroup>
+			<_MokaMinifyCssFolder>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'mokacss'))</_MokaMinifyCssFolder>
+			<_MokaMinifyCssInputs>$(MSBuildThisFileFullPath);$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', 'MokaMinifyCss.cs'))</_MokaMinifyCssInputs>
+			<_MokaScopedCssStamp>$([MSBuild]::NormalizePath('$(_MokaMinifyCssFolder)', 'scoped.stamp'))</_MokaScopedCssStamp>
+			<_MokaStaticCssRoot>$([MSBuild]::NormalizeDirectory('$(_MokaMinifyCssFolder)', 'wwwroot'))</_MokaStaticCssRoot>
+		</PropertyGroup>
+	</Target>
+
+	<!-- Scoped CSS: the SDK writes each component's rewritten stylesheet (*.rz.scp.css, scope attributes applied), then
+	     concatenates them into the project bundle, which is fingerprinted, hashed and compressed once it exists.
+	     Minifying the rewritten files in between means every later step sees the minified bytes. -->
+	<Target Name="MokaMinifyScopedCss"
+	        BeforeTargets="BundleScopedCssFiles"
+	        DependsOnTargets="_MokaMinifyCssPaths"
+	        Condition="'$(MokaMinifyCss)' == 'true' and '@(_ScopedCss)' != ''"
+	        Inputs="@(_ScopedCss->'%(OutputFile)')"
+	        Outputs="$(_MokaScopedCssStamp)">
+		<MokaMinifyCss Files="@(_ScopedCss->'%(OutputFile)')" />
+		<MakeDir Directories="$(_MokaMinifyCssFolder)" />
+		<Touch Files="$(_MokaScopedCssStamp)" AlwaysCreate="true" />
+		<ItemGroup>
+			<FileWrites Include="$(_MokaScopedCssStamp)" />
+		</ItemGroup>
+	</Target>
+
+	<!-- The SDK rewrites a scoped stylesheet only when its source changes, so the files an earlier build minified go back
+	     to it to be written again from source: when minifying is turned off, and when the minifier itself changed. -->
+	<Target Name="MokaRestoreScopedCss"
+	        AfterTargets="ResolveScopedCssOutputs"
+	        DependsOnTargets="_MokaMinifyCssPaths"
+	        Condition="'$(MokaMinifyCss)' != 'true' and '$(NoBuild)' != 'true'">
+		<Delete Files="@(_ScopedCss->'%(OutputFile)');$(_MokaScopedCssStamp)" Condition="Exists('$(_MokaScopedCssStamp)')" />
+	</Target>
+
+	<Target Name="MokaRefreshScopedCss"
+	        AfterTargets="ResolveScopedCssOutputs"
+	        DependsOnTargets="_MokaMinifyCssPaths"
+	        Condition="'$(MokaMinifyCss)' == 'true' and '$(NoBuild)' != 'true' and '@(_ScopedCss)' != ''"
+	        Inputs="$(_MokaMinifyCssInputs)"
+	        Outputs="$(_MokaScopedCssStamp)">
+		<Delete Files="@(_ScopedCss->'%(OutputFile)');$(_MokaScopedCssStamp)" />
+	</Target>
+
+	<!-- Global stylesheets in wwwroot: the minified copy in obj becomes a computed static web asset at the same path, in
+	     place of the discovered source file, so the source stays as written and the asset's hash is that of the bytes it
+	     serves. -->
+	<Target Name="_MokaCollectStaticCss" DependsOnTargets="_MokaMinifyCssPaths" Condition="'$(MokaMinifyCss)' == 'true' and '$(NoBuild)' != 'true'">
+		<ItemGroup>
+			<_MokaStaticCss Include="wwwroot\**\*.css" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+			<_MokaStaticCss>
+				<MinifiedFile>$([MSBuild]::NormalizePath('$(_MokaStaticCssRoot)', '%(RecursiveDir)', '%(Filename)%(Extension)'))</MinifiedFile>
+			</_MokaStaticCss>
+		</ItemGroup>
+	</Target>
+
+	<Target Name="MokaRemoveStaticCssFromContent"
+	        BeforeTargets="ResolveProjectStaticWebAssets"
+	        DependsOnTargets="_MokaCollectStaticCss"
+	        Condition="'$(MokaMinifyCss)' == 'true' and '$(NoBuild)' != 'true'">
+		<ItemGroup>
+			<Content Remove="@(_MokaStaticCss)" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="MokaMinifyStaticCss"
+	        DependsOnTargets="_MokaCollectStaticCss"
+	        Condition="'$(MokaMinifyCss)' == 'true' and '$(NoBuild)' != 'true'"
+	        Inputs="@(_MokaStaticCss);$(_MokaMinifyCssInputs)"
+	        Outputs="@(_MokaStaticCss->'%(MinifiedFile)')">
+		<MokaMinifyCss Files="@(_MokaStaticCss)" />
+		<ItemGroup>
+			<FileWrites Include="@(_MokaStaticCss->'%(MinifiedFile)')" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="MokaDefineMinifiedStaticCss"
+	        DependsOnTargets="ResolveStaticWebAssetsConfiguration;MokaMinifyStaticCss"
+	        Condition="'$(MokaMinifyCss)' == 'true' and '$(NoBuild)' != 'true'">
+		<DefineStaticWebAssets
+			Condition="'@(_MokaStaticCss)' != ''"
+			CandidateAssets="@(_MokaStaticCss->'%(MinifiedFile)')"
+			SourceId="$(PackageId)"
+			SourceType="Computed"
+			ContentRoot="$(_MokaStaticCssRoot)"
+			BasePath="$(StaticWebAssetBasePath)"
+			AssetKind="All"
+			AssetMode="All"
+			AssetRole="Primary"
+			AssetMergeSource="$(StaticWebAssetMergeTarget)"
+			FingerprintCandidates="$(StaticWebAssetsFingerprintContent)"
+			FingerprintPatterns="@(StaticWebAssetFingerprintPattern)"
+			CopyToOutputDirectory="Never"
+			CopyToPublishDirectory="PreserveNewest">
+			<Output TaskParameter="Assets" ItemName="_MokaMinifiedStaticCssAsset" />
+		</DefineStaticWebAssets>
+
+		<DefineStaticWebAssetEndpoints
+			Condition="'@(_MokaMinifiedStaticCssAsset)' != ''"
+			CandidateAssets="@(_MokaMinifiedStaticCssAsset)"
+			ExistingEndpoints="@(StaticWebAssetEndpoint)"
+			ContentTypeMappings="@(StaticWebAssetContentTypeMapping)">
+			<Output TaskParameter="Endpoints" ItemName="StaticWebAssetEndpoint" />
+		</DefineStaticWebAssetEndpoints>
+
+		<ItemGroup>
+			<StaticWebAsset Include="@(_MokaMinifiedStaticCssAsset)" />
+		</ItemGroup>
+	</Target>
+
+</Project>

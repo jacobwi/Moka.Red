@@ -49,4 +49,10 @@
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
 	</ItemGroup>
 
+	<!-- The CSS minifier the Release build runs as an inline MSBuild task, compiled here to be tested. -->
+	<ItemGroup>
+		<Compile Include="..\..\build\MokaMinifyCss.cs" Link="Build\MokaMinifyCss.cs" />
+		<PackageReference Include="Microsoft.Build.Utilities.Core" />
+	</ItemGroup>
+
 </Project>

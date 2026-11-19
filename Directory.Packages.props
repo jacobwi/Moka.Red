@@ -24,6 +24,8 @@
 		<!-- QR tests decode the generated grids, so the encoder is proven against a real reader
 		     rather than its own structure. Test-only; nothing in the library ships it. -->
 		<PackageVersion Include="ZXing.Net" Version="0.16.11" />
+		<!-- Core tests compile build/MokaMinifyCss.cs, the inline task that minifies CSS in Release, to test it. -->
+		<PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
 	</ItemGroup>
 
 	<!-- Benchmark dependencies -->

@@ -43,4 +43,6 @@
 		</ItemGroup>
 	</Target>
 
+	<Import Project="$(MSBuildThisFileDirectory)build\Moka.Red.MinifyCss.targets" />
+
 </Project>

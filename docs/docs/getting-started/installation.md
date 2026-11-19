@@ -160,6 +160,14 @@ Just make sure your `App.razor` (or `index.html`) includes the standard Blazor s
 
 > **Note:** Replace `MyApp` with your application's assembly name.
 
+### Minified stylesheets
+
+The packages ship their CSS minified: `moka.css`, `moka-fonts.css`, `moka-flags.css`, `moka-boot.css` and each package's scoped bundle, the one your `{AppName}.styles.css` imports. Only comments and whitespace are removed, so every rule is the one in the source, and an app sees the same files at the same paths. About a third less CSS reaches the browser (scoped styles of every package together: 277 KB gzipped before, 184 KB after).
+
+Nothing changes in an app. `MapStaticAssets` fingerprints, hashes and compresses the minified files like any other static web asset. To read a stylesheet in the browser, use the dev tools' pretty-print, or the source on GitHub.
+
+Building Moka.Red from source, a Debug build keeps the stylesheets as written and a Release build minifies them. `-p:MokaMinifyCss=false` turns minifying off.
+
 ## Theme Setup
 
 Wrap your layout content with `MokaThemeProvider`. It cascades the theme to all components and renders the Moka stylesheet link:
