@@ -33,6 +33,13 @@ public partial class MokaMenuBarItem : MokaVisualComponentBase
 	[Parameter]
 	public string? Shortcut { get; set; }
 
+	/// <summary>
+	///     Draws the item in the error color, its icon too, on a red tint when it is hovered or highlighted, for a command
+	///     such as Delete. The look only: ask before anything that can't be undone.
+	/// </summary>
+	[Parameter]
+	public bool Danger { get; set; }
+
 	/// <summary>Runs when the item is chosen, after the menu has closed.</summary>
 	[Parameter]
 	public EventCallback OnClick { get; set; }
@@ -46,6 +53,7 @@ public partial class MokaMenuBarItem : MokaVisualComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-menubar-item--highlighted", Menu?.IsHighlighted(this) == true)
+		.AddClass("moka-menubar-item--danger", Danger)
 		.AddClass(Class)
 		.Build();
 

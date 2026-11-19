@@ -38,7 +38,10 @@ The dropdown's own root element takes no part in the layout (`display: contents`
 | `Text` | `string?` | -- | Text label |
 | `Icon` | `MokaIconDefinition?` | -- | Icon displayed before the text |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Enter and Space raise it too |
-| `Disabled` | `bool` | `false` | Whether the item is disabled. The arrow keys skip it and a click on it does nothing |
+| `Disabled` | `bool` | `false` | Whether the item is disabled. The arrow keys skip it and a click on it does nothing. A link loses its address |
+| `Href` | `string?` | -- | An address, so the item is a link: an `a` element with `role="menuitem"`. A `javascript:`, `vbscript:` or `data:` address is not rendered and the item stays a plain one. See [Links](#links) |
+| `Target` | `string?` | -- | Where the link opens, such as `"_blank"`. Only used with `Href` |
+| `Danger` | `bool` | `false` | Draws the item in the error color, on a red tint while it's hovered or focused. See [Danger items](#danger-items) |
 | `Divider` | `bool` | `false` | Renders as a horizontal divider instead of an item |
 | `Class` | `string?` | -- | Additional CSS classes |
 
@@ -79,6 +82,46 @@ The dropdown's own root element takes no part in the layout (`display: contents`
 <MokaText>Last action: @_lastAction</MokaText>
 ```
 
+## Links
+
+An item with `Href` is a link, an `a` element with `role="menuitem"` as in the WAI-ARIA menu button with links. The browser's own link handling works: a middle click or Ctrl+click opens it in a new tab, the link's context menu can copy or open it, and a `download` attribute (passed through to the link) makes it a download. Choosing it still closes the dropdown and raises `OnClick`. Enter and Space follow the link like a click.
+
+```razor
+<MokaDropdown>
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">Report</MokaButton>
+    </ChildContent>
+    <Items>
+        <MokaDropdownItem Text="Open" Href="/reports/q3" Icon="MokaIcons.Navigation.ChevronRight" />
+        <MokaDropdownItem Text="Open in a new tab" Href="/reports/q3" Target="_blank" Icon="MokaIcons.Content.ExternalLink" />
+        <MokaDropdownItem Text="Download PDF" Href="/reports/q3.pdf" download="q3-report.pdf" Icon="MokaIcons.Action.Download" />
+        <MokaDropdownItem Text="Archived" Href="/reports/q3/archive" Disabled />
+    </Items>
+</MokaDropdown>
+```
+
+A disabled link has no `href` or `target`, so it goes nowhere, and keeps `aria-disabled="true"`. An address the library won't render (`javascript:`, `vbscript:`, `data:`) leaves a plain item, as `MokaButton` and `MokaMenuItem` do.
+
+## Danger items
+
+`Danger` marks an item that destroys or removes something, such as Delete. The item and its icon are drawn in the error color, and a hovered or focused item keeps that color over a red tint. On the new design the color is the popup look's danger color when it has one (the Contrast look lightens it), else `--moka-color-error-soft`, the error color meant for text. The context menu (`MokaContextMenuItem.Danger`) and the menu bar (`MokaMenuBarItem.Danger`) draw it the same way.
+
+```razor
+<MokaDropdown>
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">Actions</MokaButton>
+    </ChildContent>
+    <Items>
+        <MokaDropdownItem Text="Edit" Icon="MokaIcons.Action.Edit" />
+        <MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy" />
+        <MokaDropdownItem Divider />
+        <MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete" Danger OnClick="DeleteAsync" />
+    </Items>
+</MokaDropdown>
+```
+
+It's the look only: ask before anything that can't be undone. Without `Danger` an item looks as it always has.
+
 ## Match Width
 
 ```blazor-preview
@@ -102,7 +145,7 @@ The dropdown follows the WAI-ARIA menu button pattern. The menu button is the fi
 
 | Key | On the menu button | In the menu |
 |-----|--------------------|-------------|
-| Enter / Space | Open the menu on its first item | Activate the item |
+| Enter / Space | Open the menu on its first item | Activate the item. A link item follows its address |
 | Down Arrow | Open the menu on its first item | Move to the next item, wrapping at the end |
 | Up Arrow | Open the menu on its last item | Move to the previous item, wrapping at the start |
 | Home / End | | Move to the first or last item |
@@ -117,6 +160,8 @@ Escape in an open dropdown closes only the dropdown, not a `MokaDialog` around i
 
 - The menu button gets `aria-haspopup="menu"`, `aria-expanded` as `"true"` or `"false"`, `aria-controls` while the menu is open, and an `id` when it has none.
 - The menu has `role="menu"` and is labelled by the menu button. Items have `role="menuitem"`, a disabled item has `aria-disabled="true"`, and a divider has `role="separator"`.
+- An item with `Href` is an `a` element with `role="menuitem"`, so screen readers announce it as a menu item and the browser still treats it as a link.
+- `Danger` is color only. Name the action in its text ("Delete"), since the color alone doesn't say it.
 
 A one-way `Open` sets the starting state and applies again only when its value changes, so a menu the user opened stays open when the parent re-renders. Use `@bind-Open` to track it.
 

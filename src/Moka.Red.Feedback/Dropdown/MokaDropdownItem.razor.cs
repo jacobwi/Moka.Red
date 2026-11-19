@@ -8,7 +8,7 @@ namespace Moka.Red.Feedback.Dropdown;
 
 /// <summary>
 ///     An individual item within a <see cref="MokaDropdown" />.
-///     Supports text, icon, click handler, disabled state, and divider mode.
+///     Supports text, icon, click handler, a link, disabled and danger states, and divider mode.
 /// </summary>
 public partial class MokaDropdownItem : MokaComponentBase
 {
@@ -31,9 +31,33 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>Whether the item is disabled. The arrow keys skip a disabled item.</summary>
+	/// <summary>
+	///     Whether the item is disabled. The arrow keys skip a disabled item, and a link loses its address, so it goes
+	///     nowhere.
+	/// </summary>
 	[Parameter]
 	public bool Disabled { get; set; }
+
+	/// <summary>
+	///     An address, so the item is a link (an <c>a</c> element with <c>role="menuitem"</c>). The browser's own link
+	///     handling works: a middle click or Ctrl+click opens it in a new tab, the link's context menu offers to copy
+	///     or open it, and a <c>download</c> attribute makes it a download. Choosing it still closes the dropdown and
+	///     raises <see cref="OnClick" />. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> address is not
+	///     rendered: the item stays a plain menu item.
+	/// </summary>
+	[Parameter]
+	public string? Href { get; set; }
+
+	/// <summary>Where the link opens, such as <c>_blank</c>. Only used with <see cref="Href" />.</summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     Draws the item in the error color, on a red tint when it is hovered or has keyboard focus, for an action
+	///     such as Delete. The look only: ask before anything that can't be undone.
+	/// </summary>
+	[Parameter]
+	public bool Danger { get; set; }
 
 	/// <summary>When true, renders as a horizontal divider instead of a menu item.</summary>
 	[Parameter]
@@ -47,8 +71,13 @@ public partial class MokaDropdownItem : MokaComponentBase
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-dropdown-item--disabled", Disabled)
+		.AddClass("moka-dropdown-item--danger", Danger)
 		.AddClass(Class)
 		.Build();
+
+	private string? LinkHref => string.IsNullOrEmpty(Href) ? null : UrlValues.SafeHref(Href);
+
+	private bool IsLink => LinkHref is not null;
 
 	private async Task HandleClick(MouseEventArgs e)
 	{

@@ -50,6 +50,7 @@ No service registration, and no host component.
 | `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+N"`, drawn as one key cap per key. A label only: see [Shortcuts](#shortcuts) |
 | `OnClick` | `EventCallback` | - | Runs when the item is chosen, after the menu has closed |
 | `Disabled` | `bool` | `false` | Dimmed, cannot be chosen, and skipped by the arrow keys |
+| `Danger` | `bool` | `false` | Draws the item and its icon in the error color, on a red tint while it's hovered or highlighted. See [Danger items](#danger-items) |
 
 ## Basic Usage
 
@@ -67,6 +68,20 @@ No service registration, and no host component.
     </MokaMenuBarMenu>
 </MokaMenuBar>
 ```
+
+## Danger items
+
+`Danger` marks a command that destroys or removes something. The item and its icon are drawn in the error color, and a hovered or highlighted item keeps that color over a red tint. On the new design the color is the popup look's danger color when it has one, else `--moka-color-error-soft`; the original design uses `--moka-color-error`. `MokaDropdownItem.Danger` and `MokaContextMenuItem.Danger` draw the same.
+
+```razor
+<MokaMenuBarMenu Label="File">
+    <MokaMenuBarItem Text="Save" Shortcut="Ctrl+S" OnClick="Save" />
+    <MokaMenuBarDivider />
+    <MokaMenuBarItem Text="Delete file" Icon="MokaIcons.Action.Delete" Danger OnClick="DeleteAsync" />
+</MokaMenuBarMenu>
+```
+
+It's the look only: ask before anything that can't be undone. Name the action in its text, since the color alone doesn't say it.
 
 ## Keyboard
 

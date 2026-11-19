@@ -25,6 +25,21 @@
 	box-shadow: inset 0 0 0 1px var(--moka-color-primary-border);
 }
 
+/* An item with an address is a link. It reads as a row like the rest. */
+a.moka-dropdown-item {
+	text-decoration: none;
+}
+
+/* Danger: the row in the error color, its icon too, over the error tint while it is hovered or focused. */
+.moka-dropdown-item--danger {
+	color: var(--moka-color-error);
+}
+
+.moka-dropdown-item--danger:hover:not(.moka-dropdown-item--disabled),
+.moka-dropdown-item--danger:focus-visible {
+	background: var(--moka-color-error-dim);
+}
+
 /* No pointer-events: none, so the click lands on the item, which ignores it. It used to fall
    through to the menu and close it. */
 .moka-dropdown-item--disabled {
@@ -83,4 +98,20 @@
 .moka-gate .moka-dropdown-divider {
 	margin: var(--moka-spacing-xs) 0;
 	background: var(--moka-popup-divider, var(--moka-color-outline-variant));
+}
+
+.moka-gate .moka-dropdown-item--danger,
+.moka-gate .moka-dropdown-item--danger ::deep .moka-dropdown-item-icon {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-dropdown-item--danger:hover:not(.moka-dropdown-item--disabled),
+.moka-gate .moka-dropdown-item--danger:focus-visible {
+	background: var(--moka-color-error-dim);
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-dropdown-item--danger:hover:not(.moka-dropdown-item--disabled) ::deep .moka-dropdown-item-icon,
+.moka-gate .moka-dropdown-item--danger:focus-visible ::deep .moka-dropdown-item-icon {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
 }

@@ -374,6 +374,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private string ItemClass(MokaContextMenuItem item, int actionIndex) => new CssBuilder("moka-ctx-item")
 		.AddClass("moka-ctx-item--disabled", item.Disabled)
 		.AddClass("moka-ctx-item--focused", actionIndex == _focusedIndex)
+		.AddClass("moka-ctx-item--danger", item.Danger)
 		.AddClass(item.CssClass)
 		.Build();
 

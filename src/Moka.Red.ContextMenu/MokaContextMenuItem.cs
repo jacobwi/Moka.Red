@@ -32,6 +32,13 @@ public sealed class MokaContextMenuItem
 	/// <summary>Whether this item is disabled.</summary>
 	public bool Disabled { get; init; }
 
+	/// <summary>
+	///     Draws the item in the error color, its icon too, on a red tint when it is hovered or lit by the keyboard, for an
+	///     action such as Delete. A colored icon (<see cref="Label" />, <see cref="ColorValue" />) keeps its color. The look
+	///     only: ask before anything that can't be undone.
+	/// </summary>
+	public bool Danger { get; init; }
+
 	/// <summary>Whether to show a divider line before this item.</summary>
 	public bool DividerBefore { get; init; }
 

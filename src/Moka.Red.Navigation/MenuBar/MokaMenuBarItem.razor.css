@@ -29,6 +29,16 @@
 	box-shadow: var(--moka-focus-ring);
 }
 
+/* Danger: the row in the error color, its icon too, over the error tint while it is hovered or highlighted. */
+.moka-menubar-item--danger {
+	color: var(--moka-color-error);
+}
+
+.moka-menubar-item--danger:hover:not(:disabled),
+.moka-menubar-item--danger.moka-menubar-item--highlighted:not(:disabled) {
+	background: var(--moka-color-error-dim);
+}
+
 .moka-menubar-item:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
@@ -82,4 +92,14 @@
 .moka-gate .moka-menubar-item__shortcut ::deep kbd {
 	color: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
 	border-color: var(--moka-popup-divider, var(--moka-color-outline-strong));
+}
+
+.moka-gate .moka-menubar-item--danger {
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-menubar-item--danger:hover:not(:disabled),
+.moka-gate .moka-menubar-item--danger.moka-menubar-item--highlighted:not(:disabled) {
+	background: var(--moka-color-error-dim);
+	color: var(--moka-popup-danger, var(--moka-color-error-soft));
 }

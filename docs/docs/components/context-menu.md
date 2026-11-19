@@ -46,6 +46,7 @@ Place one `MokaContextMenuHost` in the layout, next to the other hosts:
 | `ColorValue` | `string?` | - | Any CSS color for the swatch or icon, such as `"#ff8800"` or `"var(--moka-color-primary)"`. Wins over `Label`; a value that isn't a color is ignored |
 | `Checked` | `bool` | `false` | Shows a check mark in place of the icon, or beside the color in a menu that has colors |
 | `Disabled` | `bool` | `false` | Dimmed, can't be chosen, skipped by the arrow keys |
+| `Danger` | `bool` | `false` | Draws the item and its icon in the error color, on a red tint while it's the lit row. See [Danger items](#danger-items) |
 | `DividerBefore` | `bool` | `false` | Draws a divider above the item |
 | `Children` | `IReadOnlyList<MokaContextMenuItem>?` | - | Submenu items. An item with children opens its submenu instead of running an action |
 | `CssClass` | `string?` | - | Extra CSS class on the item row |
@@ -312,6 +313,21 @@ IReadOnlyList<MokaContextMenuItem> ColorMenu(FileEntry file) =>
 The check usually takes the icon's place. In a menu that holds a color and a checked item, every row gets a column for
 the check before the icon's, so a checked color shows both and the names still line up. Menus without colors look as
 they always have. The swatch is hidden from screen readers, so let `Text` name the color.
+
+## Danger items
+
+`Danger` marks an item that destroys or removes something. The row and its icon are drawn in the error color, and the lit row, under the mouse or the keyboard's, keeps that color over a red tint, so it never turns the accent color. The menu is drawn by the one host, where an app's own scoped CSS can't reach a row, so the look comes from the menu's stylesheet through the class `moka-ctx-item--danger`.
+
+```csharp
+IReadOnlyList<MokaContextMenuItem> FileMenu(FileEntry file) =>
+[
+    new() { Text = "Rename", Icon = MokaIcons.Action.Edit, OnClickSync = () => Rename(file) },
+    new() { Text = "Duplicate", Icon = MokaIcons.Content.Copy, OnClick = () => DuplicateAsync(file) },
+    new() { Text = "Delete", Icon = MokaIcons.Action.Delete, Danger = true, DividerBefore = true, OnClick = () => DeleteAsync(file) }
+];
+```
+
+On the new design the color is the popup look's danger color when it has one (the Contrast look lightens it), else `--moka-color-error-soft`; the original design uses `--moka-color-error`. A colored item (`Label`, `ColorValue`) keeps its icon's color. It's the look only: ask before anything that can't be undone. `MokaDropdownItem.Danger` and `MokaMenuBarItem.Danger` draw the same.
 
 ## Actions That Open a Dialog
 

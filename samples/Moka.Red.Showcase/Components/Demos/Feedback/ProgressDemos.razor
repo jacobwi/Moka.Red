@@ -35,3 +35,17 @@
 <DemoSection Id="circular-indeterminate" Title="Circular - indeterminate">
 	<MokaProgress ProgressType="MokaProgressType.Circular"/>
 </DemoSection>
+
+<DemoSection Id="colors" Title="Colors" Description="Color colors the bar and the ring, on both designs. Unset is the primary color, as before.">
+	<div style="max-width: 400px; display: flex; flex-direction: column; gap: var(--moka-spacing-sm);">
+		<MokaProgress Value="92" Color="MokaColor.Success" ShowValue="true"/>
+		<MokaProgress Value="64" Color="MokaColor.Warning" ShowValue="true" Striped="true"/>
+		<MokaProgress Value="18" Color="MokaColor.Error" Thin="true"/>
+		<MokaProgress Color="MokaColor.Info"/>
+	</div>
+	<div class="button-row" style="margin-top: var(--moka-spacing-md);">
+		<MokaProgress Value="92" ProgressType="MokaProgressType.Circular" Color="MokaColor.Success" ShowValue="true"/>
+		<MokaProgress Value="40" ProgressType="MokaProgressType.Circular" Color="MokaColor.Secondary" ShowValue="true"/>
+		<MokaProgress ProgressType="MokaProgressType.Circular" Color="MokaColor.Error"/>
+	</div>
+</DemoSection>

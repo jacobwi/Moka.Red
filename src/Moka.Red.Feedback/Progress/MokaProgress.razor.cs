@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Feedback.Progress;
@@ -70,12 +71,21 @@ public partial class MokaProgress : MokaVisualComponentBase
 		.AddStyle("margin", ResolvedMargin)
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding, ProgressType != MokaProgressType.Linear)
+		.AddStyle("--_progress-color", ProgressColor)
 		.AddStyle(Style)
 		.Build();
 
 	private string? TrackStyle => new StyleBuilder()
 		.AddStyle("border-radius", ResolvedRounding)
 		.Build();
+
+	// Surface would draw the bar in the color behind it, so it takes the ink on that color, as MokaIcon does.
+	private string? ProgressColor => Color switch
+	{
+		null => null,
+		MokaColor.Surface => "var(--moka-color-on-surface)",
+		{ } color => $"var(--moka-color-{ColorToKebab(color)})"
+	};
 
 	private bool HasSegments => Segments is not null && ProgressType == MokaProgressType.Linear;
 

@@ -22,6 +22,22 @@
 	<p class="page-desc">Chosen: <code>@(_menuBarRan ?? "nothing yet")</code></p>
 </DemoSection>
 
+<DemoSection Id="danger" Title="Danger items" Description="Danger draws a command and its icon in the error color, and a hovered or highlighted item keeps it over a red tint.">
+	<MokaMenuBar AriaLabel="Danger demo menu">
+		<MokaMenuBarMenu Label="File">
+			<MokaMenuBarItem Text="Save" Icon="MokaIcons.Action.Save" Shortcut="Ctrl+S" OnClick="@(() => _dangerRan = "Save")"/>
+			<MokaMenuBarItem Text="Close" OnClick="@(() => _dangerRan = "Close")"/>
+			<MokaMenuBarDivider/>
+			<MokaMenuBarItem Text="Delete file" Icon="MokaIcons.Action.Delete" Danger OnClick="@(() => _dangerRan = "Delete file")"/>
+			<MokaMenuBarItem Text="Delete all versions" Danger Disabled/>
+		</MokaMenuBarMenu>
+	</MokaMenuBar>
+
+	<p class="page-desc">Chosen: <code>@(_dangerRan ?? "nothing yet")</code></p>
+</DemoSection>
+
 @code {
+	private string? _dangerRan;
+
 	private string? _menuBarRan;
 }

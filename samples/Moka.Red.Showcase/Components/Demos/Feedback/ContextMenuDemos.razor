@@ -14,6 +14,14 @@
 	</MokaContextMenuTrigger>
 </DemoSection>
 
+<DemoSection Id="danger-items" Title="Danger items" Description="Danger draws an item and its icon in the error color, and the lit row keeps it over a red tint. The menu writes the class from the item, since the host draws it where an app's CSS can't reach.">
+	<MokaContextMenuTrigger Items="_dangerItems" Trigger="MokaContextMenuTriggerType.Both">
+		<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;">
+			Right-click or click a file
+		</div>
+	</MokaContextMenuTrigger>
+</DemoSection>
+
 <DemoSection Id="quiet-rows" Title="Quiet rows" Description="ItemStyle Quiet draws rows in regular weight and the softer ink until a row is lit.">
 	<p class="page-desc">
 		Open a menu with a right click, or from the keyboard with the button, then move to Color with the arrows or the mouse.
@@ -131,6 +139,22 @@
 			]
 		},
 		new() { Text = "Properties", OnClickSync = () => { } }
+	];
+
+	private static readonly MokaContextMenuItem[] _dangerItems =
+	[
+		new() { Text = "Open", Icon = MokaIcons.File.FolderOpen, OnClickSync = () => { } },
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", OnClickSync = () => { } },
+		new()
+		{
+			Text = "Share", Icon = MokaIcons.Action.Share, Children =
+			[
+				new MokaContextMenuItem { Text = "Copy link", OnClickSync = () => { } },
+				new MokaContextMenuItem { Text = "Revoke all links", Danger = true, DividerBefore = true, OnClickSync = () => { } }
+			]
+		},
+		new() { Text = "Move to trash", Icon = MokaIcons.Action.Delete, Danger = true, DividerBefore = true, OnClickSync = () => { } },
+		new() { Text = "Delete forever", Icon = MokaIcons.Action.Delete, Shortcut = "Shift+Delete", Danger = true, Disabled = true }
 	];
 
 	private const string Columns = "display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--moka-grid-gap);";

@@ -7,25 +7,48 @@
 }
 else
 {
+	RenderFragment content =
+		@<text>
+			@if (Icon is not null)
+			{
+				<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-dropdown-item-icon"/>
+			}
+			@if (ChildContent is not null)
+			{
+				@ChildContent
+			}
+			else if (!string.IsNullOrEmpty(Text))
+			{
+				<span class="moka-dropdown-item-text">@Text</span>
+			}
+		</text>;
+
 	@* The dropdown's script moves focus between items, so an enabled item takes focus without
 	   joining the tab order. A disabled item is skipped and swallows its click, so it cannot
 	   close the menu either. *@
-	<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
-	     tabindex="@(Disabled ? null : "-1")"
-	     aria-disabled="@(Disabled ? "true" : null)"
-	     @onclick="HandleClick"
-	     @onclick:stopPropagation="Disabled">
-		@if (Icon is not null)
-		{
-			<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-dropdown-item-icon"/>
-		}
-		@if (ChildContent is not null)
-		{
-			@ChildContent
-		}
-		else if (!string.IsNullOrEmpty(Text))
-		{
-			<span class="moka-dropdown-item-text">@Text</span>
-		}
-	</div>
+	if (IsLink)
+	{
+		@* WAI-ARIA's menu button with links: an a element with role="menuitem", so the browser's own link
+		   handling (a middle click, opening in a new tab, a download) still works. A disabled link has no
+		   href, so it goes nowhere. *@
+		<a @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
+		   href="@(Disabled ? null : LinkHref)"
+		   target="@(Disabled ? null : Target)"
+		   tabindex="@(Disabled ? null : "-1")"
+		   aria-disabled="@(Disabled ? "true" : null)"
+		   @onclick="HandleClick"
+		   @onclick:stopPropagation="Disabled">
+			@content
+		</a>
+	}
+	else
+	{
+		<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
+		     tabindex="@(Disabled ? null : "-1")"
+		     aria-disabled="@(Disabled ? "true" : null)"
+		     @onclick="HandleClick"
+		     @onclick:stopPropagation="Disabled">
+			@content
+		</div>
+	}
 }

@@ -25,6 +25,7 @@ A progress indicator supporting linear and circular modes with determinate and i
 | `RoundedEnds` | `bool` | `true` | Rounded bar ends (linear only) |
 | `Thin` | `bool` | `false` | A 6px round bar for inside a card or a list row (linear only) |
 | `Segments` | `IReadOnlyList<MokaProgressSegment>?` | -- | Several colored parts side by side, each a percentage of the whole bar. They win over `Value` (linear only) |
+| `Color` | `MokaColor?` | -- | Color of the bar or the ring. Unset uses the primary color. `Surface` draws in the on-surface color. Segments keep their own colors |
 | `Margin` / `MarginValue` | `MokaSpacingScale?` / `string?` | -- | Space around the bar. A linear bar still fills its container, with the margin inside |
 | `Class` | `string?` | -- | Additional CSS classes |
 | `Style` | `string?` | -- | Additional inline styles |
@@ -57,6 +58,18 @@ When `Value` is null, the bar shows an animated indeterminate state.
     <MokaProgress ProgressType="MokaProgressType.Circular" />
 </div>
 ```
+
+### Colors
+
+`Color` colors the bar and the ring on both designs. It's written on the root as `--_progress-color`, which the bar and the ring read with the primary color as the fallback, so a progress without a `Color` renders exactly as before.
+
+```razor
+<MokaProgress Value="92" Color="MokaColor.Success" ShowValue />
+<MokaProgress Value="18" Color="MokaColor.Error" Thin />
+<MokaProgress ProgressType="MokaProgressType.Circular" Value="65" Color="MokaColor.Warning" ShowValue />
+```
+
+Up to 0.9.1 `Color` was accepted and ignored: every bar and ring was drawn in the primary color.
 
 ### Thin, with Segments
 

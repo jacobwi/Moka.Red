@@ -1,4 +1,5 @@
-/* Linear progress. The width comes from moka-fill-width, so a margin stays inside the container. */
+/* Linear progress. The width comes from moka-fill-width, so a margin stays inside the container. Color writes
+   --_progress-color on the root, which the bar and the ring read; segments keep their own colors. */
 .moka-progress--linear {
 	display: flex;
 	align-items: center;
@@ -34,7 +35,7 @@
 
 .moka-progress-bar {
 	height: 100%;
-	background: var(--moka-color-primary);
+	background: var(--_progress-color, var(--moka-color-primary));
 	border-radius: inherit;
 	transition: width 0.3s ease;
 }
@@ -85,7 +86,7 @@
 }
 
 .moka-progress-circle-bar {
-	stroke: var(--moka-color-primary);
+	stroke: var(--_progress-color, var(--moka-color-primary));
 	transition: stroke-dashoffset 0.3s ease;
 }
 

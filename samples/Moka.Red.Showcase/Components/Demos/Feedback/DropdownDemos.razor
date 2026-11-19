@@ -25,3 +25,33 @@
 		</MokaDropdown>
 	</MokaFlexbox>
 </DemoSection>
+
+<DemoSection Id="links" Title="Links" Description="An item with Href is a link with role menuitem, so a middle click opens it in a new tab, the browser's link menu works, and a download attribute downloads. A disabled link has no address.">
+	<MokaDropdown>
+		<ChildContent>
+			<MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">Go to</MokaButton>
+		</ChildContent>
+		<Items>
+			<MokaDropdownItem Text="Button" Href="/components/button" Icon="MokaIcons.Navigation.ChevronRight"/>
+			<MokaDropdownItem Text="Progress in a new tab" Href="/components/progress" Target="_blank" Icon="MokaIcons.Content.ExternalLink"/>
+			<MokaDropdownItem Text="Download the icon" Href="/favicon.svg" download="favicon.svg" Icon="MokaIcons.Action.Download"/>
+			<MokaDropdownItem Divider/>
+			<MokaDropdownItem Text="Archived" Href="/components/dropdown" Disabled/>
+		</Items>
+	</MokaDropdown>
+</DemoSection>
+
+<DemoSection Id="danger" Title="Danger items" Description="Danger draws an item and its icon in the error color, on a red tint while it is hovered or focused. The context menu and the menu bar draw it the same way.">
+	<MokaDropdown>
+		<ChildContent>
+			<MokaButton EndIcon="MokaIcons.Navigation.ChevronDown">File</MokaButton>
+		</ChildContent>
+		<Items>
+			<MokaDropdownItem Text="Rename" Icon="MokaIcons.Action.Edit"/>
+			<MokaDropdownItem Text="Duplicate" Icon="MokaIcons.Content.Copy"/>
+			<MokaDropdownItem Divider/>
+			<MokaDropdownItem Text="Delete" Icon="MokaIcons.Action.Delete" Danger="true"/>
+			<MokaDropdownItem Text="Delete forever" Icon="MokaIcons.Action.Delete" Danger="true" Disabled="true"/>
+		</Items>
+	</MokaDropdown>
+</DemoSection>
