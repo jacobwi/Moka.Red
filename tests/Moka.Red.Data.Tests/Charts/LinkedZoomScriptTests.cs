@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Charts;
 

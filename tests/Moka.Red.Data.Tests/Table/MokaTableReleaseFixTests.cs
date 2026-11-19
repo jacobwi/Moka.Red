@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Data.Table;
+using Moka.Red.Tests.Shared;
 using static Moka.Red.Data.Tests.Components.TableKit;
 
 namespace Moka.Red.Data.Tests.Table;

@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace Moka.Red.Data.Tests;
+namespace Moka.Red.Tests.Shared;
 
 /// <summary>
 ///     Runs a test script in Node.js against one of the package's real scripts and reads the JSON it prints. Answers null
-///     where Node.js isn't installed, and the test skips.
+///     where Node.js isn't installed, and the test skips. Linked into the test projects that need it.
 /// </summary>
 internal static class ScriptRunner
 {

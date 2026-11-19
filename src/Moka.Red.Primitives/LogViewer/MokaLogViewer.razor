@@ -1,4 +1,6 @@
 @namespace Moka.Red.Primitives.LogViewer
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Moka.Red.Feedback.Loading
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
@@ -11,9 +13,10 @@
 					<MokaIcon Icon="MokaIcons.Action.Search" SizeValue="14px"/>
 					<input type="text"
 					       class="moka-log-viewer__search-input"
-					       placeholder="Search logs..."
+					       placeholder="@Words.SearchPlaceholder"
+					       aria-label="@Words.SearchLabel"
 					       @bind:get="_searchText"
-					       @bind:set="OnSearchChanged"
+					       @bind:set="OnSearchChangedAsync"
 					       @bind:event="oninput"/>
 				</div>
 			}
@@ -24,7 +27,8 @@
 					{
 						var lvl = level;
 						<button class="moka-log-viewer__filter-btn moka-log-viewer__filter-btn--@LevelToCssClass(lvl) @(IsLevelEnabled(lvl) ? "moka-log-viewer__filter-btn--active" : "")"
-						        @onclick="() => ToggleLevel(lvl)">
+						        aria-pressed="@(IsLevelEnabled(lvl) ? "true" : "false")"
+						        @onclick="() => ToggleLevelAsync(lvl)">
 							@LevelToLabel(lvl)
 						</button>
 					}
@@ -33,31 +37,149 @@
 		</div>
 	}
 
-	<div class="moka-log-viewer__body" style="@BodyStyle">
-		@if (Entries is null or { Count: 0 })
+	@* Under Virtualize the list is a tab stop of its own, so the keyboard can scroll rows that hold no control. *@
+	<div class="moka-log-viewer__body" style="@BodyStyle" @ref="_body"
+	     tabindex="@(Virtualizes ? "0" : null)"
+	     role="@(Virtualizes ? "region" : null)"
+	     aria-label="@(Virtualizes ? Words.EntriesLabel : null)">
+		@if (ItemsProvider is not null)
 		{
-			<div class="moka-log-viewer__empty">No log entries</div>
+			<Virtualize @ref="_virtualize" TItem="MokaLogEntry" ItemsProvider="ItemsProvider" ItemContent="VirtualRow"
+			            Placeholder="PlaceholderRow" EmptyContent="EmptyState" ItemSize="VirtualRowHeight"/>
+		}
+		else if (Entries is null or { Count: 0 })
+		{
+			@EmptyState
+		}
+		else if (Virtualizes)
+		{
+			<Virtualize @ref="_virtualize" TItem="MokaLogEntry" Items="_shown" ItemContent="VirtualRow"
+			            ItemSize="VirtualRowHeight"/>
 		}
 		else
 		{
-			@foreach (var entry in FilteredEntries)
+			int position = 0;
+			@foreach (MokaLogEntry entry in _shown)
 			{
-				<div class="moka-log-viewer__row moka-log-viewer__row--@LevelToCssClass(entry.Level)">
-					@if (ShowTimestamp)
+				int index = position++;
+				bool open = _open.Contains(entry);
+				<div class="@RowClass(entry, open)">
+					@Cells(entry, false)
+					@if (entry.HasDetail)
 					{
-						<span class="moka-log-viewer__timestamp">@FormatTimestamp(entry.Timestamp)</span>
+						@DetailToggle(entry, open, DetailId(index))
 					}
-					@if (ShowLevel)
-					{
-						<span class="moka-log-viewer__level moka-log-viewer__level--@LevelToCssClass(entry.Level)">@LevelToLabel(entry.Level)</span>
-					}
-					@if (entry.Source is not null)
-					{
-						<span class="moka-log-viewer__source">@entry.Source</span>
-					}
-					<span class="moka-log-viewer__message">@entry.Message</span>
 				</div>
+				@if (open)
+				{
+					<div class="moka-log-viewer__detail" id="@DetailId(index)">
+						@DetailContent(entry, false)
+					</div>
+				}
 			}
 		}
 	</div>
+
+	@if (_paneEntry is { } paneEntry)
+	{
+		<section class="moka-log-viewer__pane" id="@PaneId" style="@PaneStyle" aria-label="@PaneLabel(paneEntry)">
+			<div class="moka-log-viewer__pane-head">
+				<span class="moka-log-viewer__pane-title">
+					<span class="moka-log-viewer__timestamp">@FormatTimestamp(paneEntry.Timestamp)</span>
+					<span class="@LevelClass(paneEntry.Level)">@LevelToLabel(paneEntry.Level)</span>
+					@if (paneEntry.Source is not null)
+					{
+						<span class="moka-log-viewer__source">@paneEntry.Source</span>
+					}
+				</span>
+				<MokaTooltip Text="@Words.CloseDetails" Position="MokaTooltipPosition.BottomEnd">
+					<button type="button" class="moka-log-viewer__close" aria-label="@Words.CloseDetails"
+					        @onclick="ClosePaneAsync">
+						<MokaIcon Icon="MokaIcons.Navigation.Close" SizeValue="12px"/>
+					</button>
+				</MokaTooltip>
+			</div>
+			<div class="moka-log-viewer__pane-body">
+				@DetailContent(paneEntry, true)
+			</div>
+		</section>
+	}
 </div>
+
+@code {
+	// Templates, not local functions: rows render inside Virtualize, and a local function would write the markup into
+	// this component's own render tree instead. Virtualize takes VirtualRow as a method group, so its rows share one
+	// builder.
+	private RenderFragment VirtualRow(MokaLogEntry entry) =>
+		@<div class="@RowClass(entry, IsInPane(entry))">
+			@Cells(entry, true)
+			@if (entry.HasDetail)
+			{
+				@DetailToggle(entry, IsInPane(entry), PaneId)
+			}
+		</div>;
+
+	private RenderFragment PlaceholderRow(PlaceholderContext _) =>
+		@<div class="moka-log-viewer__row moka-log-viewer__row--loading" aria-hidden="true">
+			<MokaSkeleton Width="60%"/>
+		</div>;
+
+	private RenderFragment EmptyState => @<div class="moka-log-viewer__empty">@Words.NoEntries</div>;
+
+	// A virtualized row is one line, so its message carries the whole text in a title.
+	private RenderFragment Cells(MokaLogEntry entry, bool oneLine) =>
+		@<text>
+			@if (ShowTimestamp)
+			{
+				<span class="moka-log-viewer__timestamp">@FormatTimestamp(entry.Timestamp)</span>
+			}
+			@if (ShowLevel)
+			{
+				<span class="@LevelClass(entry.Level)">@LevelToLabel(entry.Level)</span>
+			}
+			@if (entry.Source is not null)
+			{
+				<span class="moka-log-viewer__source">@entry.Source</span>
+			}
+			<span class="moka-log-viewer__message" title="@(oneLine ? entry.Message : null)">@entry.Message</span></text>;
+
+	private RenderFragment DetailToggle(MokaLogEntry entry, bool open, string controls) =>
+		@<MokaTooltip Text="@ToggleLabel(open)" Position="MokaTooltipPosition.BottomEnd" Class="moka-log-viewer__toggle-tip">
+			<button type="button" class="moka-log-viewer__toggle"
+			        aria-expanded="@(open ? "true" : "false")"
+			        aria-controls="@(open ? controls : null)"
+			        aria-label="@ToggleLabel(open)"
+			        @onclick="() => ToggleDetail(entry)">
+				<MokaIcon Icon="@(open ? MokaIcons.Navigation.ChevronDown : MokaIcons.Navigation.ChevronRight)" SizeValue="12px"/>
+			</button>
+		</MokaTooltip>;
+
+	private RenderFragment DetailContent(MokaLogEntry entry, bool withMessage) =>
+		@<div class="moka-log-viewer__detail-content">
+			@if (withMessage)
+			{
+				<p class="moka-log-viewer__detail-message">@entry.Message</p>
+			}
+			@if (DetailTemplate is not null)
+			{
+				@DetailTemplate(entry)
+			}
+			else
+			{
+				@if (!string.IsNullOrEmpty(entry.Exception))
+				{
+					<pre class="moka-log-viewer__exception">@entry.Exception</pre>
+				}
+				@if (entry.Properties is { Count: > 0 } properties)
+				{
+					<dl class="moka-log-viewer__properties">
+						@foreach (KeyValuePair<string, string> property in properties)
+						{
+							<dt>@property.Key</dt>
+							<dd>@property.Value</dd>
+						}
+					</dl>
+				}
+			}
+		</div>;
+}

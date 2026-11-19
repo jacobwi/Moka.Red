@@ -40,12 +40,16 @@
 		<None Include="..\..\src\Moka.Red.Data\**\*.razor.css;..\..\src\Moka.Red.Data\**\*.razor.js"
 		      Exclude="..\..\src\Moka.Red.Data\bin\**;..\..\src\Moka.Red.Data\obj\**"
 		      Link="Css\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<!-- Virtualizes outside this package, for the check that what Virtualize measures in holds its rows. -->
+		<None Include="..\..\src\Moka.Red.Primitives\LogViewer\MokaLogViewer.razor.css"
+		      Link="Css\MokaLogViewer.razor.css" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Include="..\Shared\BunitWaits.cs" Link="Shared\BunitWaits.cs" />
 		<Compile Include="..\Shared\FakeFilePicker.cs" Link="Shared\FakeFilePicker.cs" />
 		<Compile Include="..\Shared\FakeClock.cs" Link="Shared\FakeClock.cs" />
+		<Compile Include="..\Shared\ScriptRunner.cs" Link="Shared\ScriptRunner.cs" />
 	</ItemGroup>
 
 </Project>

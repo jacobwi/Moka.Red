@@ -13,6 +13,7 @@ public sealed class VirtualizedScrollerTests
 	[InlineData("MokaVirtualList.razor.css", ".moka-virtual-list")]
 	[InlineData("MokaFileBrowser.razor.css", ".moka-file-browser__list")]
 	[InlineData("MokaChartPlot.razor.css", ".moka-chart-plot__rbody")]
+	[InlineData("MokaLogViewer.razor.css", ".moka-log-viewer__body")]
 	public void WhatVirtualizedItemsScrollIn_HoldsWhatTheyPositionAbsolutely(string file, string selector) =>
 		Assert.Equal("relative", ScopedCss.Declarations(file, selector)["position"]);
 }

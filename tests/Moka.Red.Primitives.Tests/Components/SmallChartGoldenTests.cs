@@ -140,8 +140,10 @@ public sealed partial class SmallChartGoldenTests : BunitContext
 		}
 	}
 
+	// bUnit writes each element reference as an attribute with a new id on every run; the browser gets Blazor's own.
 	private static string Normalize(string markup) =>
-		ScopeAttribute().Replace(markup, string.Empty).Replace("\r\n", "\n", StringComparison.Ordinal);
+		ElementReference().Replace(ScopeAttribute().Replace(markup, string.Empty), string.Empty)
+			.Replace("\r\n", "\n", StringComparison.Ordinal);
 
 	private static string GoldenFolder()
 	{
@@ -161,4 +163,7 @@ public sealed partial class SmallChartGoldenTests : BunitContext
 
 	[GeneratedRegex(@" b-[a-z0-9]{10}(="""")?")]
 	private static partial Regex ScopeAttribute();
+
+	[GeneratedRegex(@" blazor:elementReference=""[^""]*""")]
+	private static partial Regex ElementReference();
 }

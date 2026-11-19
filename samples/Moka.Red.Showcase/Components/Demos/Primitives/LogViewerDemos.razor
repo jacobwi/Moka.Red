@@ -1,8 +1,41 @@
+@using System.Globalization
+
 <DemoSection Id="basics" Title="Basics" Description="Log entries with levels, search and a level filter.">
 	<MokaLogViewer Entries="_logEntries" MaxHeight="300px"/>
 </DemoSection>
 
+<DemoSection Id="row-detail" Title="Row detail" Description="A row with an exception or named values opens to show them.">
+	<MokaLogViewer Entries="_detailEntries" MaxHeight="300px"/>
+</DemoSection>
+
+<DemoSection Id="keeping-the-search-and-levels" Title="Keeping the search and levels"
+             Description="SearchText and Levels bind both ways, to set the filter from the page or save it.">
+	<MokaLogViewer Entries="_logEntries" @bind-SearchText="_search" @bind-Levels="_levels" MaxHeight="220px"/>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="ShowProblems">Only problems</MokaButton>
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="ShowAll">Everything</MokaButton>
+		<span>Search "@_search", levels: @LevelsText</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="virtualized-100k-lines" Title="Virtualized (100K lines)"
+             Description="Only the rows in view are drawn. An opened row shows in a pane under the list.">
+	<MokaLogViewer Entries="_streamed" Virtualize="true" MaxHeight="320px"/>
+	<div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--moka-spacing-md);">
+		<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Secondary" Size="MokaSize.Sm" OnClick="() => Append(50)">Add 50 lines</MokaButton>
+		<span>@_streamed.Count.ToString("N0", CultureInfo.CurrentCulture) lines. Scrolled to the bottom, the list follows new lines; scrolled up, it stays put.</span>
+	</div>
+</DemoSection>
+
+<DemoSection Id="loaded-on-demand" Title="Loaded on demand"
+             Description="ItemsProvider asks for the rows in view with the bound search and levels, after a simulated 150 ms round trip.">
+	<MokaLogViewer ItemsProvider="LoadRemoteAsync" @bind-SearchText="_remoteSearch" @bind-Levels="_remoteLevels" MaxHeight="300px"/>
+	<p>Requests so far: @_remoteRequests.</p>
+</DemoSection>
+
 @code {
+	private static readonly string[] Sources = ["Api", "Worker", "Database", "Cache"];
+
 	private static readonly IReadOnlyList<MokaLogEntry> _logEntries =
 	[
 		new(DateTime.Now.AddSeconds(-30), MokaLogLevel.Info, "Application started.", "Host"),
@@ -11,4 +44,78 @@
 		new(DateTime.Now.AddSeconds(-5), MokaLogLevel.Error, "Connection refused: db-primary:5432", "Database"),
 		new(DateTime.Now, MokaLogLevel.Info, "Retry succeeded, connected to db-replica.", "Database")
 	];
+
+	private static readonly IReadOnlyList<MokaLogEntry> _detailEntries =
+	[
+		new(DateTime.Now.AddSeconds(-4), MokaLogLevel.Info, "Charging order 4711", "Payments")
+		{
+			Properties = [new("OrderId", "4711"), new("Amount", "129.00 EUR"), new("TraceId", "4bf92f3577b34da6")]
+		},
+		new(DateTime.Now.AddSeconds(-2), MokaLogLevel.Warning, "Gateway slow to answer", "Payments"),
+		new(DateTime.Now, MokaLogLevel.Error, "Payment failed", "Payments")
+		{
+			Exception = "System.TimeoutException: The gateway did not answer in 30 seconds.\n" +
+			            "   at Payments.Gateway.ChargeAsync(Order order)\n" +
+			            "   at Payments.Checkout.CompleteAsync(Order order)",
+			Properties = [new("OrderId", "4711"), new("Attempt", "3")]
+		}
+	];
+
+	private static readonly IReadOnlySet<MokaLogLevel> Problems =
+		new HashSet<MokaLogLevel> { MokaLogLevel.Warning, MokaLogLevel.Error, MokaLogLevel.Fatal };
+
+	private readonly List<MokaLogEntry> _streamed = [.. Enumerable.Range(0, 100_000).Select(Line)];
+
+	private string? _search;
+
+	private IReadOnlySet<MokaLogLevel>? _levels;
+
+	private string? _remoteSearch;
+
+	private IReadOnlySet<MokaLogLevel>? _remoteLevels;
+
+	private int _remoteRequests;
+
+	private string LevelsText => _levels is null ? "all" : string.Join(", ", _levels.Order());
+
+	private static MokaLogEntry Line(int i) =>
+		new(DateTime.Today.AddMilliseconds(i * 250L),
+			i % 97 == 0 ? MokaLogLevel.Error : i % 13 == 0 ? MokaLogLevel.Warning : MokaLogLevel.Info,
+			$"Handled request {i:N0} in {i % 400} ms", Sources[i % Sources.Length])
+		{
+			Exception = i % 97 == 0 ? $"System.InvalidOperationException: Request {i} failed.\n   at Worker.Handle()" : null,
+			Properties = i % 97 == 0 ? [new("Request", i.ToString(CultureInfo.InvariantCulture))] : null
+		};
+
+	private void ShowProblems()
+	{
+		_search = string.Empty;
+		_levels = Problems;
+	}
+
+	private void ShowAll()
+	{
+		_search = string.Empty;
+		_levels = null;
+	}
+
+	private void Append(int count)
+	{
+		int start = _streamed.Count;
+		_streamed.AddRange(Enumerable.Range(start, count).Select(Line));
+	}
+
+	private async ValueTask<ItemsProviderResult<MokaLogEntry>> LoadRemoteAsync(ItemsProviderRequest request)
+	{
+		await Task.Delay(150, request.CancellationToken);
+		_remoteRequests++;
+
+		// A real provider sends the search and levels to the server. Here they filter the lines of the demo above.
+		List<MokaLogEntry> matches = [.. _streamed.Where(Wanted)];
+		return new ItemsProviderResult<MokaLogEntry>(matches.Skip(request.StartIndex).Take(request.Count), matches.Count);
+	}
+
+	private bool Wanted(MokaLogEntry entry) =>
+		(_remoteLevels is null || _remoteLevels.Contains(entry.Level)) &&
+		(string.IsNullOrWhiteSpace(_remoteSearch) || entry.Message.Contains(_remoteSearch, StringComparison.OrdinalIgnoreCase));
 }

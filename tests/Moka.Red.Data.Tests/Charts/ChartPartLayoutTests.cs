@@ -4,6 +4,7 @@ using System.Text.Json;
 using Bunit;
 using Moka.Red.Core.Theming;
 using Moka.Red.Data.Chart;
+using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Charts;
 

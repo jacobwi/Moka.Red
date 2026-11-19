@@ -108,8 +108,10 @@
 	color: var(--moka-color-error);
 }
 
-/* Log body */
+/* Log body. The containing block of what the rows position absolutely, so it scrolls with them: Virtualize measures
+   its rows with a range that counts the text inside, and text left in place by the scroll threw the row size off. */
 .moka-log-viewer__body {
+	position: relative;
 	overflow-y: auto;
 	background-color: color-mix(in srgb, var(--moka-color-surface) 95%, black);
 }
@@ -210,6 +212,157 @@
 	min-width: 0;
 	color: var(--moka-color-on-surface);
 	word-break: break-word;
+}
+
+/* Virtualized rows. Virtualize places every row at one height, so a row is exactly as tall as the component says
+   (border included) and its message is cut to one line. Flex is a block-level box, as Virtualize asks of its rows. */
+.moka-log-viewer--virtual .moka-log-viewer__body:focus-visible {
+	outline: var(--moka-focus-width) solid var(--moka-color-primary);
+	outline-offset: calc(-1 * var(--moka-focus-width));
+}
+
+.moka-log-viewer--virtual .moka-log-viewer__row {
+	box-sizing: border-box;
+	height: var(--_log-row-height);
+	flex-shrink: 0;
+	align-items: center;
+	padding-block: 0;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.moka-log-viewer--virtual .moka-log-viewer__message {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: normal;
+}
+
+/* Opened rows and their detail */
+.moka-log-viewer__row--open {
+	background-color: color-mix(in srgb, var(--moka-color-primary) 8%, transparent);
+}
+
+.moka-log-viewer__row ::deep > .moka-log-viewer__toggle-tip {
+	align-self: flex-start;
+}
+
+.moka-log-viewer--virtual .moka-log-viewer__row ::deep > .moka-log-viewer__toggle-tip {
+	align-self: center;
+}
+
+.moka-log-viewer__toggle,
+.moka-log-viewer__close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	inline-size: calc(1em * var(--moka-line-height-relaxed));
+	block-size: calc(1em * var(--moka-line-height-relaxed));
+	padding: 0;
+	border: none;
+	border-radius: var(--moka-radius-sm);
+	background: none;
+	font: inherit;
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+	cursor: pointer;
+	transition: opacity var(--moka-transition-fast), background-color var(--moka-transition-fast);
+}
+
+.moka-log-viewer__toggle:hover,
+.moka-log-viewer__close:hover,
+.moka-log-viewer__toggle[aria-expanded="true"] {
+	opacity: 1;
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 8%, transparent);
+}
+
+/* Inside a clipped row or pane, so the ring is drawn inside the button. */
+.moka-log-viewer__toggle:focus-visible,
+.moka-log-viewer__close:focus-visible {
+	opacity: 1;
+	outline: var(--moka-focus-width) solid var(--moka-color-primary);
+	outline-offset: calc(-1 * var(--moka-focus-width));
+}
+
+.moka-log-viewer__detail {
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md) var(--moka-spacing-sm);
+	border-bottom: 1px solid color-mix(in srgb, var(--moka-color-outline) 15%, transparent);
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 3%, transparent);
+}
+
+.moka-log-viewer__detail-content {
+	display: grid;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+	color: var(--moka-color-on-surface);
+}
+
+.moka-log-viewer__detail-message {
+	margin: 0;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.moka-log-viewer__exception {
+	margin: 0;
+	font-family: var(--moka-font-family-mono);
+	font-size: inherit;
+	line-height: var(--moka-line-height-base);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	color: var(--moka-color-error);
+}
+
+.moka-log-viewer__properties {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: var(--moka-spacing-xxs) var(--moka-spacing-md);
+	margin: 0;
+}
+
+.moka-log-viewer__properties dt {
+	color: var(--moka-color-on-surface);
+	opacity: 0.6;
+}
+
+.moka-log-viewer__properties dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.moka-log-viewer--mono .moka-log-viewer__detail-message,
+.moka-log-viewer--mono .moka-log-viewer__properties dd {
+	font-family: var(--moka-font-family-mono);
+}
+
+/* The pane an opened row's detail shows in under Virtualize, which rows of one height can't hold. */
+.moka-log-viewer__pane {
+	overflow-y: auto;
+	border-top: 1px solid var(--moka-color-outline);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-log-viewer__pane-head {
+	position: sticky;
+	top: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-xs) var(--moka-spacing-md);
+	border-bottom: 1px solid color-mix(in srgb, var(--moka-color-outline) 15%, transparent);
+	background-color: inherit;
+}
+
+.moka-log-viewer__pane-title {
+	display: flex;
+	flex: 1;
+	align-items: baseline;
+	gap: var(--moka-spacing-sm);
+	min-width: 0;
+}
+
+.moka-log-viewer__pane-body {
+	padding: var(--moka-spacing-sm) var(--moka-spacing-md);
 }
 
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
@@ -320,3 +473,35 @@
 	box-shadow: var(--moka-focus-ring);
 	outline: var(--moka-focus-width) solid transparent;
 }
+
+.moka-gate .moka-log-viewer__toggle,
+.moka-gate .moka-log-viewer__close {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+	transition: color var(--moka-transition-normal), background-color var(--moka-transition-normal);
+}
+
+.moka-gate .moka-log-viewer__toggle:hover,
+.moka-gate .moka-log-viewer__close:hover,
+.moka-gate .moka-log-viewer__toggle[aria-expanded="true"] {
+	color: var(--moka-color-on-surface);
+	background-color: var(--moka-color-surface-raised);
+}
+
+.moka-gate .moka-log-viewer__row--open { background-color: var(--moka-color-primary-row); }
+
+.moka-gate .moka-log-viewer__detail {
+	border-bottom-color: var(--moka-color-outline-variant);
+	background-color: var(--moka-color-surface);
+}
+
+.moka-gate .moka-log-viewer__exception { color: var(--moka-color-error-ink); }
+
+.moka-gate .moka-log-viewer__properties dt {
+	color: var(--moka-color-on-surface-tertiary);
+	opacity: 1;
+}
+
+.moka-gate .moka-log-viewer__pane { border-top-color: var(--moka-color-outline); }
+
+.moka-gate .moka-log-viewer__pane-head { border-bottom-color: var(--moka-color-outline-variant); }
