@@ -10,7 +10,12 @@ namespace Moka.Red.ThemeGen.Tests.Components;
 
 public sealed class MokaAppearanceCustomColorsTests : BunitContext
 {
-	public MokaAppearanceCustomColorsTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public MokaAppearanceCustomColorsTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Server", true));
+	}
 
 	[Fact]
 	public void ACustomAccent_TintsThePalette_AsWithAccentDoes()

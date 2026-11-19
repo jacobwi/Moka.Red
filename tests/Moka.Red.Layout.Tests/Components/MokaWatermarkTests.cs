@@ -16,6 +16,9 @@ namespace Moka.Red.Layout.Tests.Components;
 // never read, the tile was a fixed 300 by 200 that cut long text off, and the text had no font.
 public partial class MokaWatermarkTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public MokaWatermarkTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private static readonly XNamespace Svg = "http://www.w3.org/2000/svg";
 
 	private static readonly string[] TileElements = ["svg", "text"];

@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Extensions;
 using Moka.Red.Core.Theming;
@@ -7,7 +8,12 @@ namespace Moka.Red.Core.Tests.Theming;
 
 public class DefaultThemeTests : BunitContext
 {
-	public DefaultThemeTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public DefaultThemeTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Server", true));
+	}
 
 	[Fact]
 	public void TheDefault_IsRed()

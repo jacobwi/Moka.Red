@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.Primitives.Button;
 using Moka.Red.Tests.Shared;
@@ -13,6 +14,9 @@ namespace Moka.Red.Primitives.Tests.Components;
 /// </summary>
 public sealed partial class MokaButtonLookTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public MokaButtonLookTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private const string ButtonCss = "MokaButton.razor.css";
 
 	private static readonly string[] Looks = ["raised", "soft", "pill", "glow", "offset", "gradient", "ghost"];

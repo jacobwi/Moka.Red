@@ -71,6 +71,7 @@ public class ThemeCascadeTests : BunitContext
 	[Fact]
 	public void TheNearestProvider_Wins()
 	{
+		UseInteractiveRenderer();
 		IRenderedComponent<MokaThemeProvider> outer = Render<MokaThemeProvider>(p => p
 			.Add(x => x.Theme, MokaTheme.Dark)
 			.Add(x => x.ChildContent, (RenderFragment)(b =>
@@ -127,14 +128,21 @@ public class ThemeCascadeTests : BunitContext
 		Assert.Same(MokaTheme.Gate, reader.Theme);
 	}
 
-	private IRenderedComponent<MokaThemeProvider> RenderProvider<TChild>(MokaTheme theme) where TChild : IComponent =>
-		Render<MokaThemeProvider>(p => p
+	private IRenderedComponent<MokaThemeProvider> RenderProvider<TChild>(MokaTheme theme) where TChild : IComponent
+	{
+		UseInteractiveRenderer();
+		return Render<MokaThemeProvider>(p => p
 			.Add(x => x.Theme, theme)
 			.Add(x => x.ChildContent, (RenderFragment)(b =>
 			{
 				b.OpenComponent<TChild>(0);
 				b.CloseComponent();
 			})));
+	}
+
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer. Set per test, since setting
+	// it starts the service provider and one test registers services first.
+	private void UseInteractiveRenderer() => SetRendererInfo(new RendererInfo("Server", true));
 
 	public sealed class CountingComponent : MokaComponentBase
 	{

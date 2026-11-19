@@ -148,6 +148,7 @@ public sealed class MokaThemePreviewTests : BunitContext
 		using BunitContext context = new();
 		context.JSInterop.Mode = JSRuntimeMode.Loose;
 		context.Services.AddMokaFeedback();
+		context.SetRendererInfo(new RendererInfo("Server", true));
 		IRenderedComponent<MokaThemePreview> cut = context.Render<MokaThemePreview>();
 
 		cut.FindAll("button").First(button => button.TextContent.Trim() == new MokaThemePreviewText().ShowToast).Click(new MouseEventArgs());

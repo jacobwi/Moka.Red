@@ -92,8 +92,6 @@ A fixed appearance passes the same theme as both. The provider then has nothing 
 
 The first render weighs about what one theme did. A provider used to write its tokens twice, on `:root` and on its root, and now writes each theme once for both: 27.3 KB in place of 26.8 KB for the Red pair.
 
-A provider that follows the OS reads `RendererInfo`, since a static render writes its rules as markup and an interactive one as text. In a bUnit test, call `SetRendererInfo` before rendering one.
-
 ### Content Security Policy
 
 The provider needs no `'unsafe-eval'`. By default the subtree's tokens go in an inline `style` attribute, which a policy without `'unsafe-inline'` for styles blocks. Pass the nonce your host puts in its `Content-Security-Policy` header, and every style element the provider writes carries it, with the subtree's tokens moved into a nonced style element scoped to the provider:
@@ -105,6 +103,19 @@ The provider needs no `'unsafe-eval'`. By default the subtree's tokens go in an 
 ```
 
 The nonce covers what the provider writes. Component stylesheets (`{AssemblyName}.styles.css` and `moka.css`) load under `style-src 'self'`, but some components set inline `style` attributes for computed sizes and positions, which a policy without `'unsafe-inline'` also blocks. Allow those with `style-src-attr 'unsafe-inline'` if you use them.
+
+### Testing with bUnit
+
+The provider writes its token styles one way on a static render and another on an interactive one, so it reads `RendererInfo`. Blazor's static renderer HTML-encodes text, and a style element never decodes it, so on prerendered and static pages the styles go out as markup. An interactive render writes them as text, which reaches the page as written. bUnit throws when a component reads `RendererInfo` that a test didn't set, so a test that renders a `MokaThemeProvider`, or a component holding one, sets it first:
+
+```csharp
+public class MyPageTests : BunitContext
+{
+    public MyPageTests() => SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+}
+```
+
+Setting it starts bUnit's service provider, so register services before calling it.
 
 ## Colors and Style
 

@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Tests.Shared;
@@ -10,6 +11,9 @@ namespace Moka.Red.Core.Tests.Theming;
 // variables moka.css hangs off those classes.
 public class TooltipChoiceTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public TooltipChoiceTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private const string MokaCss = "moka.css";
 
 	private static readonly string[] LookVariables =

@@ -1,5 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.Tests.Shared;
 
@@ -10,6 +11,9 @@ namespace Moka.Red.Core.Tests.Theming;
 // toggle groups and segmented controls a field's height at every size, from one set of tokens the fields already used.
 public class ControlHeightTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public ControlHeightTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	[Fact]
 	public void ControlHeights_AreStandard_UntilAnAppSaysOtherwise()
 	{

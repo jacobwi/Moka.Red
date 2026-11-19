@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.ThemeGen.Serialization;
 
@@ -9,7 +10,12 @@ public sealed class CssRootClassesTests : BunitContext
 {
 	private const string Marker = "/* Root classes: ";
 
-	public CssRootClassesTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public CssRootClassesTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Server", true));
+	}
 
 	public static TheoryData<string, MokaTheme> Themes => new()
 	{

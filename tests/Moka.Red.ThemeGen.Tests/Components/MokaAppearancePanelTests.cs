@@ -28,7 +28,12 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 		"Tooltip size", "Disabled buttons", "Control heights", "Callouts", "Switches", "Settings headers"
 	];
 
-	public MokaAppearancePanelTests() => JSInterop.Mode = JSRuntimeMode.Loose;
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public MokaAppearancePanelTests()
+	{
+		JSInterop.Mode = JSRuntimeMode.Loose;
+		SetRendererInfo(new RendererInfo("Server", true));
+	}
 
 	public static TheoryData<MokaAppearanceRows, string, string, MokaAppearance> Picks => new()
 	{

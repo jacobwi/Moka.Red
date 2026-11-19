@@ -21,6 +21,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	private readonly MokaThemeSource _themeSource = new();
 	private readonly RenderFragment _pageRules;
 	private readonly RenderFragment _schemeRules;
+	private readonly RenderFragment _scopedRules;
 	private string _rootClass = "moka-root";
 	private string? _pageStyle;
 	private bool _disposed;
@@ -39,6 +40,7 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	{
 		_pageRules = WritePageRules;
 		_schemeRules = WriteSchemeRules;
+		_scopedRules = WriteScopedRules;
 	}
 
 	[Inject] private IJSRuntime JsRuntime { get; set; } = default!;
@@ -259,29 +261,42 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	{
 		if (_schemeStyle is not null)
 		{
-			WriteSchemeRules(builder);
+			AddRules(builder, 5, _schemeStyle);
 			return;
 		}
 
-		builder.AddContent(0, ":root { ");
-		builder.AddContent(1, _rootStyle);
-		builder.AddContent(2, " ");
-		builder.AddContent(3, _pageStyle);
-		builder.AddContent(4, " }");
+		AddRules(builder, 0, ":root { ");
+		AddRules(builder, 1, _rootStyle);
+		AddRules(builder, 2, " ");
+		AddRules(builder, 3, _pageStyle);
+		AddRules(builder, 4, " }");
+	}
+
+	private void WriteSchemeRules(RenderTreeBuilder builder) => AddRules(builder, 0, _schemeStyle);
+
+	// A nested root's tokens, or with a nonce any root's, in a style element scoped to it.
+	private void WriteScopedRules(RenderTreeBuilder builder)
+	{
+		AddRules(builder, 0, ".moka-root[data-moka-theme=\"");
+		AddRules(builder, 1, _scopeId);
+		AddRules(builder, 2, "\"] { ");
+		AddRules(builder, 3, _themeStyle);
+		AddRules(builder, 4, " }");
 	}
 
 	// The static renderer HTML-encodes text, quotes and plus signs included, and a style element never decodes it, so
 	// there the rules go out as markup. An interactive render sets text, which reaches the page as written, while
-	// markup would go through innerHTML, which a Trusted Types policy refuses.
-	private void WriteSchemeRules(RenderTreeBuilder builder)
+	// markup would go through innerHTML, which a Trusted Types policy refuses. A renderer is one or the other for good,
+	// so both share a sequence number.
+	private void AddRules(RenderTreeBuilder builder, int sequence, string? css)
 	{
 		if (RendererInfo.IsInteractive)
 		{
-			builder.AddContent(5, _schemeStyle);
+			builder.AddContent(sequence, css);
 		}
 		else
 		{
-			builder.AddMarkupContent(6, _schemeStyle);
+			builder.AddMarkupContent(sequence, css);
 		}
 	}
 

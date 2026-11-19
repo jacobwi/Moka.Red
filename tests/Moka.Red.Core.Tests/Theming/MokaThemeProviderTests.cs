@@ -9,7 +9,7 @@ namespace Moka.Red.Core.Tests.Theming;
 
 public class MokaThemeProviderTests : BunitContext
 {
-	// A provider that follows the OS writes its rules as text or as markup depending on the renderer.
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
 	public MokaThemeProviderTests() => SetRendererInfo(new RendererInfo("Server", true));
 
 	[Fact]
@@ -272,6 +272,47 @@ public class MokaThemeProviderTests : BunitContext
 		Assert.All(styles, style => Assert.Equal("abc123", style.GetAttribute("nonce")));
 		IElement scoped = Assert.Single(styles, style => style.TextContent.Contains($"[data-moka-theme=\"{scope}\"]", StringComparison.Ordinal));
 		Assert.Contains("--moka-color-primary", scoped.TextContent, StringComparison.Ordinal);
+	}
+
+	// The static renderer HTML-encodes text, and a style element never decodes it, so a prerendered or static page lost
+	// every token with a quote in it (the font families) or a plus sign (the calc() heights), and with a nonce the
+	// quoted scope in the root's selector too.
+	[Theory]
+	[InlineData(null)]
+	[InlineData("abc123")]
+	public async Task AStaticRender_WritesEveryTokenStyleAsWritten(string? nonce)
+	{
+		RenderFragment nested = builder =>
+		{
+			builder.OpenComponent<MokaThemeProvider>(0);
+			builder.AddComponentParameter(1, nameof(MokaThemeProvider.Theme), MokaTheme.Light);
+			builder.AddComponentParameter(2, nameof(MokaThemeProvider.Nonce), nonce);
+			builder.CloseComponent();
+		};
+
+		string html = await StaticProviderHtml.RenderAsync(new()
+		{
+			[nameof(MokaThemeProvider.Theme)] = MokaTheme.Red,
+			[nameof(MokaThemeProvider.Nonce)] = nonce,
+			[nameof(MokaThemeProvider.ChildContent)] = nested
+		});
+
+		IReadOnlyList<string> styles = StaticProviderHtml.Styles(html);
+		Assert.Equal(nonce is null ? 1 : 3, styles.Count);
+		Assert.Contains("--moka-font-family-mono: 'JetBrains Mono',", styles[0], StringComparison.Ordinal);
+		Assert.Contains("calc(var(--moka-control-height) + var(--moka-spacing-md))", styles[0], StringComparison.Ordinal);
+		foreach (string css in styles)
+		{
+			Assert.DoesNotContain("&#x27;", css, StringComparison.Ordinal);
+			Assert.DoesNotContain("&#x2B;", css, StringComparison.Ordinal);
+			Assert.DoesNotContain("&quot;", css, StringComparison.Ordinal);
+			Assert.DoesNotContain("&amp;", css, StringComparison.Ordinal);
+		}
+
+		foreach (string scoped in styles.Skip(1))
+		{
+			Assert.Matches("^\\.moka-root\\[data-moka-theme=\"moka-theme-[0-9a-f]{32}\"\\] \\{ --moka-", scoped);
+		}
 	}
 
 	[Fact]

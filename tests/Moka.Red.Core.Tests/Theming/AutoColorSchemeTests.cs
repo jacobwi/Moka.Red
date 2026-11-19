@@ -2,11 +2,6 @@ using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Web.HtmlRendering;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.JSInterop;
 using Moka.Red.Core.Theming;
 using Moka.Red.Tests.Shared;
 
@@ -106,20 +101,9 @@ public sealed partial class AutoColorSchemeTests : BunitContext
 	[Fact]
 	public async Task TheStaticRenderer_WritesTheRulesAsWritten()
 	{
-		await using ServiceProvider services = new ServiceCollection()
-			.AddLogging()
-			.AddSingleton<IJSRuntime>(new NoJs())
-			.BuildServiceProvider();
-		await using HtmlRenderer renderer = new(services, NullLoggerFactory.Instance);
+		string html = await StaticProviderHtml.RenderAsync(new() { [nameof(MokaThemeProvider.AutoDetectColorScheme)] = true });
 
-		string html = await renderer.Dispatcher.InvokeAsync(async () =>
-		{
-			HtmlRootComponent root = await renderer.RenderComponentAsync<MokaThemeProvider>(ParameterView.FromDictionary(
-				new Dictionary<string, object?> { [nameof(MokaThemeProvider.AutoDetectColorScheme)] = true }));
-			return root.ToHtmlString();
-		});
-
-		string css = html[html.IndexOf("<style", StringComparison.Ordinal)..html.IndexOf("</style>", StringComparison.Ordinal)];
+		string css = Assert.Single(StaticProviderHtml.Styles(html));
 		Assert.Contains("'JetBrains Mono'", css, StringComparison.Ordinal);
 		Assert.Contains("calc(var(--moka-control-height) + var(--moka-spacing-md))", css, StringComparison.Ordinal);
 		Assert.Matches("\\.moka-root\\[data-moka-theme=\"moka-theme-[0-9a-f]{32}\"\\] \\{", css);
@@ -213,6 +197,7 @@ public sealed partial class AutoColorSchemeTests : BunitContext
 	[Fact]
 	public void WithoutAutoDetect_NothingFollowsTheOs()
 	{
+		SetRendererInfo(Interactive);
 		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
 			.Add(x => x.DarkTheme, MokaTheme.Gate)
 			.Add(x => x.LightTheme, MokaTheme.GateLight));
@@ -336,13 +321,5 @@ public sealed partial class AutoColorSchemeTests : BunitContext
 		[Parameter] public Action<MokaTheme?>? OnThemeReceived { get; set; }
 
 		protected override void OnParametersSet() => OnThemeReceived?.Invoke(Theme);
-	}
-
-	private sealed class NoJs : IJSRuntime
-	{
-		public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => new(default(TValue)!);
-
-		public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
-			new(default(TValue)!);
 	}
 }

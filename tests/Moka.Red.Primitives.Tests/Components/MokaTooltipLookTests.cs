@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
@@ -14,6 +15,9 @@ namespace Moka.Red.Primitives.Tests.Components;
 // root's, and its rich content (an icon or a dot, a title, the text and key caps) renders in that order.
 public sealed partial class MokaTooltipLookTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public MokaTooltipLookTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private const string Css = "MokaTooltip.razor.css";
 	private const string GateMarker = "/* Gate look.";
 

@@ -1,6 +1,7 @@
 using System.Text;
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Core.Tests.Theming;
@@ -13,6 +14,9 @@ namespace Moka.Red.Core.Tests.Theming;
 /// </summary>
 public sealed class ThemeGoldenTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public ThemeGoldenTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private static readonly Dictionary<string, Func<MokaTheme>> Cases = new(StringComparer.Ordinal)
 	{
 		["red"] = () => MokaTheme.Default,

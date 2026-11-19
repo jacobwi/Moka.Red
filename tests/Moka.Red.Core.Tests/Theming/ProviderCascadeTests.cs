@@ -1,6 +1,7 @@
 using System.Text;
 using AngleSharp.Dom;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Theming;
 using Moka.Red.Tests.Shared;
 
@@ -11,6 +12,9 @@ namespace Moka.Red.Core.Tests.Theming;
 // var() resolved where it is declared) and check every token lands on the theme's own value.
 public sealed class ProviderCascadeTests : BunitContext
 {
+	// MokaThemeProvider writes its token styles as text or as markup, depending on the renderer.
+	public ProviderCascadeTests() => SetRendererInfo(new RendererInfo("Server", true));
+
 	private static readonly Dictionary<string, MokaTheme> Themes = new(StringComparer.Ordinal)
 	{
 		["Red"] = MokaTheme.Red,
