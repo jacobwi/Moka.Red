@@ -5,6 +5,19 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.2] - 2026-11-20
+
+### Added
+- `MokaContextMenuItem.Href` and `Target`. An item with an address is a link (`<a role="menuitem">`), so a middle click,
+  Ctrl+click and the browser's "copy link" work on it; focus stays on the menu, so it isn't a tab stop. With a `Target`
+  that opens another tab it gets `rel="noopener noreferrer"`, an external-link mark and ", opens in a new tab" for
+  screen readers (`NewTabText` on `MokaContextMenu`, `MokaContextMenuHost` and `MokaContextMenuTrigger`). Enter or Space
+  opens the tab before `OnClick` runs, as the command palette does; an item for the app's own pages is followed after
+  `OnClick`. An item with `Children` ignores its address, and items without one are drawn as before.
+
+### Changed
+- The command palette's `openTab` lives in Core's new `moka-links.js`, which the palette and the context menu share.
+
 ## [0.11.1] - 2026-11-20
 
 ### Added
