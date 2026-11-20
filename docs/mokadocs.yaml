@@ -464,7 +464,7 @@ plugins:
       # The scaffolded files are yours to edit thereafter - mokadocs never overwrites
       # them. Add your library-specific services in preview-host/Program.cs and your
       # CSS links in preview-host/wwwroot/index.html.
-      library: Moka.Red@0.10.2
+      library: Moka.Red@0.11.0
       usings:
         - Moka.Red.Core.Enums
         - Moka.Red.Core.Theming
@@ -581,7 +581,9 @@ plugins:
         - Moka.Red.Feedback.Toast
         - Moka.Red.Feedback.Banner
         - Moka.Red.Feedback.SystemNotification
-        - Moka.Red.Feedback.Tooltip
+        - Moka.Red.Primitives.Tooltip
+        - Moka.Red.Primitives.Skeleton
+        - Moka.Red.Primitives.Sparkline
         - Moka.Red.Feedback.Alert
         - Moka.Red.Feedback.Drawer
         - Moka.Red.Feedback.Loading
