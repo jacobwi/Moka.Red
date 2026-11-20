@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 
 namespace Moka.Red.ThemeGen.Serialization;
 
@@ -93,10 +92,8 @@ internal abstract class ThemeChoice(string property, string withMethod)
 
 	public abstract void ChooseIn(ThemeRecipe recipe, MokaTheme target);
 
-	// The C# for a value of an enum. The code is written for a file that imports Moka.Red.Core.Theming alone, so an enum
-	// kept under another namespace, as the table's are, is written in full.
-	public static string Code<TChoice>(TChoice value) where TChoice : struct, Enum =>
-		typeof(TChoice).Namespace == typeof(MokaTheme).Namespace ? $"{typeof(TChoice).Name}.{value}" : $"{typeof(TChoice).FullName}.{value}";
+	// The C# for a value of an enum, for a file that imports Moka.Red.Core.Theming alone.
+	public static string Code<TChoice>(TChoice value) where TChoice : struct, Enum => $"{typeof(TChoice).Name}.{value}";
 
 	private static ThemeChoice<TChoice> Of<TChoice>(string property, string withMethod, Func<MokaTheme, TChoice> get,
 		Func<MokaTheme, TChoice, MokaTheme> set, Func<MokaTheme, TChoice, MokaTheme> with)

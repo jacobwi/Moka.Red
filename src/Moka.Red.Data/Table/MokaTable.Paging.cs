@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Data.Pagination;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Data.Table;
 

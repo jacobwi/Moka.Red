@@ -1,7 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Data.Pagination;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Components;

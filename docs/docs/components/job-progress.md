@@ -14,6 +14,8 @@ order: 149
 @using Moka.Red.Feedback.JobProgress
 ```
 
+`MokaByteUnits` is in `Moka.Red.Core.Utilities`.
+
 ## Parameters
 
 | Name | Type | Default | Description |

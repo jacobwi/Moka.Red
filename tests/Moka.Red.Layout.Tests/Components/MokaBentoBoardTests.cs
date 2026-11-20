@@ -4,9 +4,9 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Layout.BentoGrid;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Layout.Tests.Components;

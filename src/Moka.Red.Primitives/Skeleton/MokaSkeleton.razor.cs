@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
 
-namespace Moka.Red.Feedback.Loading;
+namespace Moka.Red.Primitives.Skeleton;
 
 /// <summary>
 ///     Shimmer placeholder shapes for content that is loading.

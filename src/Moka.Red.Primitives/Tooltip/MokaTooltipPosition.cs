@@ -1,4 +1,4 @@
-namespace Moka.Red.Feedback.Tooltip;
+namespace Moka.Red.Primitives.Tooltip;
 
 /// <summary>
 ///     Position of the tooltip relative to its trigger element.

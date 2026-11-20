@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Keys;
 using Moka.Red.Core.Theming;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.Media;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

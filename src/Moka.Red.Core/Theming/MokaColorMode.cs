@@ -1,6 +1,4 @@
-// In Core since MokaThemeToggle in Primitives needs it and Primitives cannot reference ThemeGen. The namespace is the one
-// it always had, with a TypeForwardedTo in ThemeGen, so code written or compiled against the older packages keeps working.
-namespace Moka.Red.ThemeGen.Appearance;
+namespace Moka.Red.Core.Theming;
 
 /// <summary>Whether an app is light, dark, or follows the device.</summary>
 public enum MokaColorMode

@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

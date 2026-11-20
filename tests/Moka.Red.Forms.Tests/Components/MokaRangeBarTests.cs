@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.RangeBar;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Forms.Tests.Components;
 

@@ -5,7 +5,6 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 using Moka.Red.Primitives.ColorSwatch;
 using Moka.Red.Primitives.Utility;
 using Moka.Red.ThemeGen.Appearance;
@@ -733,10 +732,6 @@ public sealed partial class MokaAppearancePanelTests : BunitContext
 	[Fact]
 	public void EveryDensity_IsOffered() =>
 		Assert.Equal(Enum.GetNames<MokaDensity>(), OptionsIn(RenderPanel(), "Density"));
-
-	[Fact]
-	public void TheColorMode_IsForwardedFromThisPackage() =>
-		Assert.Contains(typeof(MokaColorMode), typeof(MokaAppearance).Assembly.GetForwardedTypes());
 
 	[Fact]
 	public void TheStatusBarRow_IsPictureCards_OfRealBars()

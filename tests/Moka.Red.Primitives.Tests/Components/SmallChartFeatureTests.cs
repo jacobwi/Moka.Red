@@ -2,8 +2,8 @@ using System.Globalization;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Moka.Red.Data.Chart;
 using Moka.Red.Primitives.Meter;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Primitives.Stat;
 using Moka.Red.Tests.Shared;
 

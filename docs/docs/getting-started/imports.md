@@ -85,7 +85,9 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.SegmentedControl
 @using Moka.Red.Primitives.SelectionArea
 @using Moka.Red.Primitives.SelectionBar
+@using Moka.Red.Primitives.Skeleton
 @using Moka.Red.Primitives.Sortable
+@using Moka.Red.Primitives.Sparkline
 @using Moka.Red.Primitives.SplitButton
 @using Moka.Red.Primitives.Stat
 @using Moka.Red.Primitives.StatusDot
@@ -95,6 +97,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Primitives.Terminal
 @using Moka.Red.Primitives.ThemeSwitcher
 @using Moka.Red.Primitives.Timeline
+@using Moka.Red.Primitives.Tooltip
 @using Moka.Red.Primitives.TransferList
 @using Moka.Red.Primitives.Tree
 @using Moka.Red.Primitives.Typography
@@ -177,7 +180,7 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Forms.ToggleGroup
 @using Moka.Red.Forms.TreeSelect
 
-@* ── Feedback: dialogs, toasts, tooltips, popovers, loading, etc. ── *@
+@* ── Feedback: dialogs, toasts, popovers, loading, etc. ── *@
 @using Moka.Red.Feedback.ActionBar
 @using Moka.Red.Feedback.Alert
 @using Moka.Red.Feedback.Banner
@@ -206,7 +209,6 @@ If you reference the **Moka.Red** meta-package, copy this block into your `_Impo
 @using Moka.Red.Feedback.SlashMenu
 @using Moka.Red.Feedback.SystemNotification
 @using Moka.Red.Feedback.Toast
-@using Moka.Red.Feedback.Tooltip
 @using Moka.Red.Feedback.Wizard
 
 @* ── Data: table, pagination, virtual list ── *@
@@ -285,16 +287,16 @@ Then add the sections that correspond to the packages you installed. For example
 | `Moka.Red.Core.Icons` | `MokaIconDefinition` struct for defining custom icons |
 | `Moka.Red.Core.Interactions` | `MokaItemContextMenuArgs<T>`, the argument of right-click hooks such as `MokaTable`'s `OnRowContextMenu` |
 | `Moka.Red.Core.Layout` | `MokaBreakpoint` record for responsive overrides |
-| `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing`, and the style choices such as `MokaTooltipLook`, `MokaTooltipMotion` and `MokaTooltipSize` |
-| `Moka.Red.Core.Utilities` | `CssBuilder`, `StyleBuilder` for composing CSS classes and inline styles, `CssValues` for checking values before they go into CSS or SVG, `UrlValues` for checking link targets, `MokaByteFormat` for writing a byte count in a string |
+| `Moka.Red.Core.Theming` | `MokaTheme`, `MokaThemeProvider`, `MokaPalette`, `MokaTypography`, `MokaSpacing`, `MokaColorMode`, and the style choices such as `MokaTooltipLook`, `MokaTableLook` and `MokaTableDensity` |
+| `Moka.Red.Core.Utilities` | `CssBuilder`, `StyleBuilder` for composing CSS classes and inline styles, `CssValues` for checking values before they go into CSS or SVG, `UrlValues` for checking link targets, `MokaByteFormat` for writing a byte count in a string, with `MokaByteUnits` |
 | `Moka.Red.Icons` | `MokaIcons` static class with 78 built-in SVG icon definitions (Action, Navigation, Status, Content, Toggle, File) |
-| `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, Flag, QRCode, QRScanner, Bytes, RelativeTime, etc. |
+| `Moka.Red.Primitives.*` | Individual component namespaces: Button, Icon, Typography, Avatar, Badge, Chip, Callout, List, Image, Kanban, KeyValue, Meter, Steps, Tag, Terminal, TransferList, DataList, Fab, Marquee, NumberTicker, Gauge, Confetti, CodeBlock, SwipeActions, Flag, QRCode, QRScanner, Bytes, RelativeTime, Tooltip, Skeleton, Sparkline, etc. |
 | `Moka.Red.Layout.*` | Grid, Flexbox, Card, Paper, Panel, Accordion, AppBar, Toolbar, Container, Divider, DockLayout, SplitPane, etc. |
 | `Moka.Red.Forms.Base` | `MokaToggleBase`, `MokaTextInputBase`, `MokaSelectBase` -- needed when referencing base class types (e.g., `MokaToggleBase.LabelPosition`) |
 | `Moka.Red.Forms.*` | TextField, PasswordField, NumericField, Checkbox, Switch, SelectField, DatePicker, TimePicker, ColorPicker, ColorWheel, ColorInput, TreeSelect, PinInput, PasswordStrength, Slider, Rating, Calendar, InputGroup, FormBuilder, CodeEditor, DropOverlay, CountrySelect, etc. |
-| `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Tooltip, Popover, Dropdown, Progress, Loading (Spinner/Skeleton/Overlay), CommandPalette, Cheatsheet, Notification, Banner, SystemNotification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
+| `Moka.Red.Feedback.*` | Alert, Dialog, Drawer, Toast, Popover, Dropdown, Progress, Loading (Spinner, Overlay), CommandPalette, Cheatsheet, Notification, Banner, SystemNotification, EmptyState, BottomSheet, Wizard, CookieConsent, Onboarding |
 | `Moka.Red.Feedback.Extensions` | `AddMokaFeedback()` service registration for dialog and toast services |
-| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaTablePager`, the column kinds such as `MokaNumberColumn<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaSparkline`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaRadarChart`, `MokaHeatmap` |
+| `Moka.Red.Data.*` | `MokaTable<TItem>`, `MokaTablePager`, the column kinds such as `MokaNumberColumn<TItem>`, `MokaPagination`, `MokaVirtualList<TItem>`, `MokaInfiniteScroll`, `MokaLineChart`, `MokaBarChart`, `MokaDonutChart`, `MokaRadarChart`, `MokaHeatmap` |
 | `Moka.Red.Navigation.*` | Menu, Breadcrumb, Sidebar, Stepper, CommandBar, Tabs (`MokaTabStrip`, `MokaTabContainer`) |
 | `Moka.Red.Navigation.Tabs.Models` | `TabInfo<TValue>`, `TabGroupInfo`, `TabBadgeInfo`, `TabTheme` and the tab event args |
 | `Moka.Red.Navigation.Tabs.Services` | `IMokaTabSessionState<TValue>`, `ITabStorageProvider`, `MokaBrowserTabStorageProvider` |

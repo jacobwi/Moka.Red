@@ -14,10 +14,9 @@ The list only shows what it's given. A button raises a callback, and the app cha
 
 ```razor
 @using Moka.Red.Feedback.JobList
-@using Moka.Red.Feedback.JobProgress
 ```
 
-The second one is only for `MokaByteUnits`.
+`MokaByteUnits` is in `Moka.Red.Core.Utilities`.
 
 ## Basic
 

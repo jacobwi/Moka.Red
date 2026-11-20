@@ -4,9 +4,9 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.ColorInput;
 using Moka.Red.Forms.ColorPicker;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;

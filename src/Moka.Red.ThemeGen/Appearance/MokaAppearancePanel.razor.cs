@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Data.Table;
 using Moka.Red.Primitives.Utility;
 
 namespace Moka.Red.ThemeGen.Appearance;

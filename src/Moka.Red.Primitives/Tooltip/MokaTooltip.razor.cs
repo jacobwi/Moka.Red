@@ -5,7 +5,7 @@ using Moka.Red.Core.Icons;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 
-namespace Moka.Red.Feedback.Tooltip;
+namespace Moka.Red.Primitives.Tooltip;
 
 /// <summary>
 ///     A pure CSS tooltip that appears on hover or on keyboard focus.

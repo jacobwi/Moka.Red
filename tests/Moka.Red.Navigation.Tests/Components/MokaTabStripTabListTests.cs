@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Feedback.Dropdown;
 using Moka.Red.Feedback.Popover;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Navigation.Extensions;
 using Moka.Red.Navigation.Tabs;
 using Moka.Red.Navigation.Tabs.Models;
 using Moka.Red.Navigation.Tabs.Services;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;

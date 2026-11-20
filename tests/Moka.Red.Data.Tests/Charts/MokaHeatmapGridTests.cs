@@ -485,13 +485,4 @@ public sealed class SmallChartsSpacingTests : BunitContext
 
 		Assert.Equal(spacing.DefaultStyles, SpacingCase.Styles(cut));
 	}
-
-	[Fact]
-	public void MokaSparkline_IsForwardedFromData_ToPrimitives()
-	{
-		Type? forwarded = Type.GetType("Moka.Red.Data.Chart.MokaSparkline, Moka.Red.Data");
-
-		Assert.Same(typeof(MokaSparkline), forwarded);
-		Assert.Equal("Moka.Red.Primitives", typeof(MokaSparkline).Assembly.GetName().Name);
-	}
 }

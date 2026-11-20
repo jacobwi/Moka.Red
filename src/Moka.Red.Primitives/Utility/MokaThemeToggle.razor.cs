@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
-using Moka.Red.ThemeGen.Appearance;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Primitives.Utility;
 

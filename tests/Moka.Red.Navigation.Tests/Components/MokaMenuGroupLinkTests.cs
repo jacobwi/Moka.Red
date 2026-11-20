@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Navigation.Menu;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;

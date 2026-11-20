@@ -2,7 +2,6 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.JobProgress;
 
 namespace Moka.Red.Data.Table;
 

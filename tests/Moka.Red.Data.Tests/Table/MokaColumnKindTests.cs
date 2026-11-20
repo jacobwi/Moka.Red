@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.ContextMenu;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Utilities;
 using Moka.Red.Data.Table;
-using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Icons;
 
 #pragma warning disable BL0005, CA2000 // The value, text and export tests read a kind's own hooks on an instance made for them, never mounted.

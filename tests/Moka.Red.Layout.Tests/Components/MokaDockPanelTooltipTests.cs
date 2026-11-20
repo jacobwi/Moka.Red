@@ -1,8 +1,8 @@
 using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Core.Enums;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Layout.DockLayout;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Layout.Tests.Components;

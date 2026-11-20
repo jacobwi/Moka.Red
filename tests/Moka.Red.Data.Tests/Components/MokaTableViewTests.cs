@@ -4,7 +4,7 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Data.Table;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 using static Moka.Red.Data.Tests.Components.TableKit;
 

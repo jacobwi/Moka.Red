@@ -1,4 +1,4 @@
-namespace Moka.Red.Feedback.Loading;
+namespace Moka.Red.Primitives.Skeleton;
 
 /// <summary>Animation type for skeleton placeholders.</summary>
 public enum MokaSkeletonAnimation

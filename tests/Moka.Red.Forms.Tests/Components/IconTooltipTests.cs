@@ -3,7 +3,6 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.AutoComplete;
 using Moka.Red.Forms.Calendar;
 using Moka.Red.Forms.ColorPicker;
@@ -18,6 +17,7 @@ using Moka.Red.Forms.TagInput;
 using Moka.Red.Forms.TextField;
 using Moka.Red.Forms.TimePicker;
 using Moka.Red.Forms.TreeSelect;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;

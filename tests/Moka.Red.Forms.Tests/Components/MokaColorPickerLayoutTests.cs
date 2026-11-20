@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Clipboard;
 using Moka.Red.Core.Theming;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.ColorPicker;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Forms.Tests.Components;

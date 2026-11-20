@@ -71,7 +71,7 @@ public sealed class MokaTablePagerTests : BunitContext
 
 		cut.Find(".moka-table-pager-jump-input").Change("nine");
 		Assert.Equal("3", cut.Find(".moka-table-pager-jump-input").GetAttribute("value"));
-		IconTooltip.AssertNamed(cut.Find(".moka-table-pager--jump .moka-table-pager-btn"), "Previous page", Moka.Red.Feedback.Tooltip.MokaTooltipPosition.Top);
+		IconTooltip.AssertNamed(cut.Find(".moka-table-pager--jump .moka-table-pager-btn"), "Previous page", Moka.Red.Primitives.Tooltip.MokaTooltipPosition.Top);
 	}
 
 	[Fact]

@@ -2,7 +2,7 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Data.Chart;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Data.Tests.Charts;
 

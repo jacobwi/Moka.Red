@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Diagnostics.Components;
 using Moka.Red.Diagnostics.Extensions;
 using Moka.Red.Diagnostics.Services;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Diagnostics.Tests.Components;

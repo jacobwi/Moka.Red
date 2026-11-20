@@ -1,3 +1,5 @@
+using Moka.Red.Core.Theming;
+
 namespace Moka.Red.ThemeGen.Appearance;
 
 /// <summary>How <see cref="MokaAppearancePanel" /> offers one option.</summary>

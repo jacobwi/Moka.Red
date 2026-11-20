@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Feedback.Loading;
+using Moka.Red.Primitives.Skeleton;
 
 namespace Moka.Red.Feedback.Tests.Components;
 

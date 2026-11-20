@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Primitives.Utility;
 
 namespace Moka.Red.Primitives.KeyValue;

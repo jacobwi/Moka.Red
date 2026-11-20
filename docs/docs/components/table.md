@@ -1251,7 +1251,7 @@ MokaTheme theme = MokaTheme.Red
     .WithTableDensity(MokaTableDensity.Standard);
 ```
 
-Both are style choices of the new design: on `MokaTheme.Dark` and `Light` they return the same theme and tables keep drawing `Lined`. `MokaTableLook` and `MokaTableDensity` live in the Core package so the theme can name them. Their namespace is still `Moka.Red.Data.Table`, and the table package forwards them, so code built against an earlier version keeps working.
+Both are style choices of the new design: on `MokaTheme.Dark` and `Light` they return the same theme and tables keep drawing `Lined`. `MokaTableLook` and `MokaTableDensity` live in the Core package, in `Moka.Red.Core.Theming`, so the theme can name them.
 
 ## Words
 
@@ -1781,4 +1781,4 @@ Keys should be unique. A key that more than one row returns cannot tell those ro
 - **Exports reach the browser as a stream.** The `downloadCsv` script function is now `downloadFile`, taking the file name and a `DotNetStreamReference`. An export writes the columns in the order on screen, pinned columns first.
 - **`MokaTableText.Unnamed` is gone.** A column with no title is named for what its kind shows, or by its place: `ColumnNumber` and `ColumnMenuAt`.
 
-`MokaTableLook` and `MokaTableDensity` moved to the Core package with their namespace kept and a type forward in place, which breaks nothing.
+`MokaTableLook` and `MokaTableDensity` moved to the Core package with their namespace kept and a type forward in place, which broke nothing. 0.11.0 moved them to `Moka.Red.Core.Theming`.

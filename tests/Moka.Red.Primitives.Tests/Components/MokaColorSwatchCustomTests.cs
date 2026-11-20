@@ -2,8 +2,8 @@ using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Primitives.ColorSwatch;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

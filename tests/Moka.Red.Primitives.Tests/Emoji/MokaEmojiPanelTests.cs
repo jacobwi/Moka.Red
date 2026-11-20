@@ -311,7 +311,7 @@ public sealed class MokaEmojiPanelTests : BunitContext
 		ElementReference anchor = new("emoji-anchor");
 		IRenderedComponent<MokaEmojiPanel> cut = Render<MokaEmojiPanel>(p => p
 			.Add(x => x.Anchor, anchor)
-			.Add(x => x.Placement, Moka.Red.Feedback.Tooltip.MokaTooltipPosition.TopEnd));
+			.Add(x => x.Placement, Moka.Red.Primitives.Tooltip.MokaTooltipPosition.TopEnd));
 		IElement root = cut.Find(".moka-emoji-panel");
 
 		Assert.Equal("dialog", root.GetAttribute("role"));

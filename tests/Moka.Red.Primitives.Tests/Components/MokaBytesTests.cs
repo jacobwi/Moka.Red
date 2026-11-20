@@ -3,7 +3,6 @@ using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Primitives.Bytes;
 using Moka.Red.Tests.Shared;
 

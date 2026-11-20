@@ -1,6 +1,4 @@
-// In Core since MokaTheme.WithTables and WithTableDensity name them and Core cannot reference Moka.Red.Data. The namespace
-// is the table's own, with a TypeForwardedTo in Moka.Red.Data, so code compiled against the table package keeps working.
-namespace Moka.Red.Data.Table;
+namespace Moka.Red.Core.Theming;
 
 /// <summary>
 ///     How a <c>MokaTable</c> draws its rows. Every look but <see cref="Lined" /> and <see cref="List" /> is drawn on the

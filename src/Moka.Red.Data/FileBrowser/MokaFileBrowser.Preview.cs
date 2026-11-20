@@ -160,7 +160,7 @@ public partial class MokaFileBrowser<TItem>
 
 	private string TerminalSize(MokaFileRow<TItem> row) => row.Info.IsFolder || row.Info.Size is not { } size
 		? "-"
-		: ByteFormatter is { } format ? format(size) : ShortSize(size, ByteUnits == Feedback.JobProgress.MokaByteUnits.Binary);
+		: ByteFormatter is { } format ? format(size) : ShortSize(size, ByteUnits == MokaByteUnits.Binary);
 
 	// As ls writes it: the month and day, then the time within half a year and the year before that.
 	private string TerminalDate(DateTimeOffset? modified)
@@ -182,6 +182,6 @@ public partial class MokaFileBrowser<TItem>
 	private string TerminalTotal()
 	{
 		long bytes = FilesBytes(ListedRows, out _);
-		return ShortSize(bytes, ByteUnits == Feedback.JobProgress.MokaByteUnits.Binary);
+		return ShortSize(bytes, ByteUnits == MokaByteUnits.Binary);
 	}
 }

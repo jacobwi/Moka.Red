@@ -74,7 +74,7 @@ The segmented looks are a `MokaSegmentedControl`, so they follow its sizes and i
 }
 ```
 
-`MokaColorMode` is the same type `MokaAppearance.Mode` holds, in the namespace `Moka.Red.ThemeGen.Appearance`. It ships in `Moka.Red.Core`, so you don't need ThemeGen to use it.
+`MokaColorMode` is the same type `MokaAppearance.Mode` holds, in the namespace `Moka.Red.Core.Theming`. It ships in `Moka.Red.Core`, so you don't need ThemeGen to use it.
 
 With three states the `Icon` look goes Light, Dark, System and shows the current state, because the page can't show that it's following the device. With two it keeps showing what a click gives.
 

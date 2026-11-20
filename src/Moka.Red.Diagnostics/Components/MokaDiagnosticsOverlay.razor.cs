@@ -7,8 +7,8 @@ using Moka.Red.Core.Icons;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Diagnostics.Services;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Diagnostics.Components;
 

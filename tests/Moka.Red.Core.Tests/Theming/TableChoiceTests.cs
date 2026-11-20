@@ -1,5 +1,4 @@
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 
 namespace Moka.Red.Core.Tests.Theming;
 
@@ -37,14 +36,5 @@ public sealed class TableChoiceTests
 	{
 		Assert.Equal(MokaTheme.Red.ToCssVariables(), MokaTheme.Red.WithTables(MokaTableLook.Sheet).ToCssVariables());
 		Assert.Equal(MokaTheme.Red.ToCssVariables(), MokaTheme.Red.WithTableDensity(MokaTableDensity.Comfortable).ToCssVariables());
-	}
-
-	// The enums moved to Core with a forward in the table's package, so code built against it still finds them.
-	[Fact]
-	public void TheEnums_LiveInCore_UnderTheTablesNamespace()
-	{
-		Assert.Equal(typeof(MokaTheme).Assembly, typeof(MokaTableLook).Assembly);
-		Assert.Equal(typeof(MokaTheme).Assembly, typeof(MokaTableDensity).Assembly);
-		Assert.Equal("Moka.Red.Data.Table", typeof(MokaTableLook).Namespace);
 	}
 }

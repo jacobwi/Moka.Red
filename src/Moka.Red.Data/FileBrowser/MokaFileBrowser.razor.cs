@@ -8,7 +8,6 @@ using Moka.Red.Core.Enums;
 using Moka.Red.Core.Files;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.JobProgress;
 using Moka.Red.Icons;
 
 namespace Moka.Red.Data.FileBrowser;

@@ -62,7 +62,7 @@ public sealed class MokaEmojiPickerTests : BunitContext
 		string? value = null;
 		IRenderedComponent<MokaEmojiPicker> cut = Render<MokaEmojiPicker>(p => p
 			.Add(x => x.Id, "status")
-			.Add(x => x.Placement, Moka.Red.Feedback.Tooltip.MokaTooltipPosition.BottomEnd)
+			.Add(x => x.Placement, Moka.Red.Primitives.Tooltip.MokaTooltipPosition.BottomEnd)
 			.Add(x => x.ValueChanged, v => value = v));
 		IElement button = cut.Find(".moka-emoji-picker__button");
 		string? anchorId = button.GetAttribute("blazor:elementReference");

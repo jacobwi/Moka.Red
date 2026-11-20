@@ -2,8 +2,8 @@ using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Primitives.ColorSwatch;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

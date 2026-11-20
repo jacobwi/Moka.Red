@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.Button;
 using Moka.Red.Primitives.SelectionBar;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Enums;
-using Moka.Red.Data.Chart;
 using Moka.Red.Icons;
 using Moka.Red.Primitives.Meter;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Primitives.Stat;
 
 namespace Moka.Red.Primitives.Tests.Components;

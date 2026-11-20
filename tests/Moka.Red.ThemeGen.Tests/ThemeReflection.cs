@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Reflection;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 
 namespace Moka.Red.ThemeGen.Tests;
 

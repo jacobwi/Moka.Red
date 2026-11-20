@@ -10,9 +10,8 @@ order: 21
 
 A button that keeps focus after a mouse click does not keep its tooltip: only focus the keyboard put there (`:focus-visible`) shows it, so the tooltip goes when the mouse leaves and does not come back when a menu or dialog hands focus back to its button. `Delay` applies to showing only; hiding never waits.
 
-Since 0.1.20 `MokaTooltip` ships in the `Moka.Red.Primitives` package, under the namespace it always had
-(`Moka.Red.Feedback.Tooltip`, forwarded from `Moka.Red.Feedback`), and every icon-only control the library draws names
-itself with it rather than with a `title`: dock panel and tab buttons, close and clear buttons, arrows, toggles and
+`MokaTooltip` ships in the `Moka.Red.Primitives` package, in the namespace `Moka.Red.Primitives.Tooltip`, and every
+icon-only control the library draws names itself with it rather than with a `title`: dock panel and tab buttons, close and clear buttons, arrows, toggles and
 swatches. Their names show on hover and on keyboard focus, in the same box as an app's own tooltips.
 
 ## Parameters

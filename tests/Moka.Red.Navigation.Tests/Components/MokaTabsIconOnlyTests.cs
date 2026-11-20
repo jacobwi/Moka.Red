@@ -4,10 +4,10 @@ using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Navigation.Tabs;
 using Moka.Red.Primitives.Badge;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Navigation.Tests.Components;

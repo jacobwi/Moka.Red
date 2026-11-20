@@ -2,7 +2,6 @@ using System.Numerics;
 using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 using Moka.Red.ThemeGen.Appearance;
 
 namespace Moka.Red.ThemeGen.Tests.Components;

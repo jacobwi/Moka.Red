@@ -1,7 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Moka.Red.Core.Enums;
-using Moka.Red.Feedback.Loading;
+using Moka.Red.Primitives.Skeleton;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Feedback.Tests.Components;

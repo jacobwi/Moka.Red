@@ -5,16 +5,15 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Charts;
 using Moka.Red.Core.Utilities;
 
-namespace Moka.Red.Data.Chart;
+namespace Moka.Red.Primitives.Sparkline;
 
 /// <summary>
 ///     A small inline line chart, the kind that sits beside a number in a dashboard card. Draws a
 ///     polyline over its values with an optional area fill and a dot on the last point.
 /// </summary>
 /// <remarks>
-///     Lives in Moka.Red.Primitives under the namespace it always had, so <c>MokaStat</c> can draw one; Moka.Red.Data
-///     forwards the type. A series longer than 480 values is drawn from the lowest and the highest value of each of 240
-///     equal runs, which keeps every peak and trough at a fraction of the markup.
+///     A series longer than 480 values is drawn from the lowest and the highest value of each of 240 equal runs, which
+///     keeps every peak and trough at a fraction of the markup.
 /// </remarks>
 public partial class MokaSparkline : MokaVisualComponentBase
 {

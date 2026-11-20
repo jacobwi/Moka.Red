@@ -111,5 +111,5 @@ counts of values. A week of minute samples costs about the same as a day of hour
 
 ## Where it lives
 
-`MokaSparkline` sits in the `Moka.Red.Primitives` package, under the namespace it always had (`Moka.Red.Data.Chart`),
-so `MokaStat` can draw one. `Moka.Red.Data` forwards the type, so code built against an older version keeps working.
+`MokaSparkline` sits in the `Moka.Red.Primitives` package, in the namespace `Moka.Red.Primitives.Sparkline`, so
+`MokaStat` can draw one.

@@ -1,4 +1,4 @@
-namespace Moka.Red.Feedback.Loading;
+namespace Moka.Red.Primitives.Skeleton;
 
 /// <summary>Shape of the skeleton placeholder.</summary>
 public enum MokaSkeletonShape

@@ -3,8 +3,8 @@ using Bunit;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Data.Table;
 using Moka.Red.Feedback.EmptyState;
-using Moka.Red.Feedback.Loading;
 using Moka.Red.Icons;
+using Moka.Red.Primitives.Skeleton;
 using Moka.Red.Tests.Shared;
 using static Moka.Red.Data.Tests.Components.TableKit;
 

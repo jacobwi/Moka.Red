@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Theming;
 
 namespace Moka.Red.Data.Table;
 

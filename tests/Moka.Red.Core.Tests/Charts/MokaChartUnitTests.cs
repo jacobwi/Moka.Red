@@ -1,7 +1,6 @@
 using System.Globalization;
 using Moka.Red.Core.Charts;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.JobProgress;
 
 namespace Moka.Red.Core.Tests.Charts;
 

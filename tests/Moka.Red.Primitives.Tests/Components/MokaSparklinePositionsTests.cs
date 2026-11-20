@@ -1,6 +1,6 @@
 using Bunit;
 using Moka.Red.Core.Charts;
-using Moka.Red.Data.Chart;
+using Moka.Red.Primitives.Sparkline;
 
 namespace Moka.Red.Primitives.Tests.Components;
 

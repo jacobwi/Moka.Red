@@ -68,7 +68,7 @@ Its menus go through `MokaContextMenuHost` when the layout has one. Without one 
 | `KeepListOnLoadFailure` | `bool` | Keeps the list on screen when a folder can't be read, and shows an alert. Off, the problem replaces the list |
 | `ReselectOnReturn` | `bool` | Going Back, Forward or Up selects the folder just left |
 | `FitWidths` | `MokaFileFitWidths?` | Where `Medium` and `Wide` columns start, in rem. Null is 36 and 52 |
-| `ByteUnits` | `MokaByteUnits` | How sizes are counted in the column, the tiles and the status bar. In `Moka.Red.Feedback.JobProgress` |
+| `ByteUnits` | `MokaByteUnits` | How sizes are counted in the column, the tiles and the status bar. In `Moka.Red.Core.Utilities` |
 | `ByteFormatter` | `Func<double, string>?` | Writes a size, unit included. Wins over `ByteUnits` |
 | `DragText` | `Func<TItem, string>?` | The text a dragged item carries to other apps and other parts of the page. Null is the row's text |
 | `BoxSelect` | `bool` | Lets a mouse press on the list's empty space draw a box that selects every item it touches, rows that aren't drawn included. Default off |

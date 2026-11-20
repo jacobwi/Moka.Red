@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Moka.Red.Data.Chart;
 using Moka.Red.Data.Heatmap;
 using Moka.Red.Data.VirtualList;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Components;

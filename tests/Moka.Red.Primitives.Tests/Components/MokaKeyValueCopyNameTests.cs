@@ -1,8 +1,8 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components.Rendering;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Primitives.KeyValue;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Primitives.Tests.Components;
 

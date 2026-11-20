@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Primitives.Skeleton;
 
 namespace Moka.Red.Feedback.Loading;
 

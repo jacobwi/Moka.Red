@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Icons;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Navigation.Breadcrumb;
 

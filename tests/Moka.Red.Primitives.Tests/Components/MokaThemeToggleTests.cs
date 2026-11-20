@@ -4,11 +4,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Theming;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Primitives.Utility;
 using Moka.Red.Tests.Shared;
-using Moka.Red.ThemeGen.Appearance;
 
 namespace Moka.Red.Primitives.Tests.Components;
 
@@ -74,13 +73,6 @@ public class MokaThemeToggleTests : BunitContext
 	[Fact]
 	public void TheDefaultLook_IsTheIcon() =>
 		Assert.Equal(MokaThemeToggleLook.Icon, Render<MokaThemeToggle>().Instance.Look);
-
-	[Fact]
-	public void TheColorMode_LivesInCore_UnderItsOldNamespace()
-	{
-		Assert.Equal(typeof(MokaTheme).Assembly, typeof(MokaColorMode).Assembly);
-		Assert.Equal("Moka.Red.ThemeGen.Appearance", typeof(MokaColorMode).Namespace);
-	}
 
 	[Fact]
 	public async Task TheIcon_WithThreeStates_CyclesAndShowsTheCurrentOne()

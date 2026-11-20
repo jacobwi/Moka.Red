@@ -1,6 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Feedback.Tests.Components;
 

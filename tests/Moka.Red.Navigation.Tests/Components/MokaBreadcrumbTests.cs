@@ -1,9 +1,9 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Icons;
 using Moka.Red.Navigation.Breadcrumb;
+using Moka.Red.Primitives.Tooltip;
 using Moka.Red.Primitives.Utility;
 using Moka.Red.Tests.Shared;
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Moka.Red.Core.Theming;
 using Moka.Red.Data.Table;
 
 namespace Moka.Red.Data.Tests.Components;

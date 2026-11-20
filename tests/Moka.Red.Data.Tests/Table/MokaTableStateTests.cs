@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Moka.Red.Core.Theming;
 using Moka.Red.Data.Table;
 using static Moka.Red.Data.Tests.Components.TableKit;
 

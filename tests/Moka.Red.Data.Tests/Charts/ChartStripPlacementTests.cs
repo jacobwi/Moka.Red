@@ -3,6 +3,7 @@ using Bunit;
 using Moka.Red.Core.Charts;
 using Moka.Red.Core.Theming;
 using Moka.Red.Data.Chart;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Tests.Shared;
 using static Moka.Red.Data.Tests.Charts.MokaLineChartTestKit;
 

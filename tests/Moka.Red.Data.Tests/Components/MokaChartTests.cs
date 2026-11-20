@@ -2,6 +2,7 @@ using System.Globalization;
 using Bunit;
 using Moka.Red.Core.Enums;
 using Moka.Red.Data.Chart;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Data.Tests.Components;

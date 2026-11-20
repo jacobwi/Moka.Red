@@ -1,6 +1,6 @@
 using AngleSharp.Dom;
 using Bunit;
-using Moka.Red.Data.Chart;
+using Moka.Red.Primitives.Sparkline;
 using Moka.Red.Tests.Shared;
 
 namespace Moka.Red.Primitives.Tests.Components;

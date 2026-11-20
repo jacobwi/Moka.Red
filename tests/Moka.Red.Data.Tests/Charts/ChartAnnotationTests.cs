@@ -4,7 +4,7 @@ using Bunit;
 using Moka.Red.Core.Charts;
 using Moka.Red.Core.Enums;
 using Moka.Red.Data.Chart;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Data.Tests.Charts;
 

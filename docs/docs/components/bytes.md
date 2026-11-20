@@ -16,7 +16,7 @@ order: 154
 @using Moka.Red.Primitives.Bytes
 ```
 
-`MokaByteUnits` needs `@using Moka.Red.Feedback.JobProgress`. The enum started out on `MokaJobProgress` and kept its namespace when it moved to `Moka.Red.Core`, so it's there with any Moka.Red package.
+`MokaByteUnits` is in `Moka.Red.Core.Utilities`, so it comes with any Moka.Red package.
 
 ## Parameters
 

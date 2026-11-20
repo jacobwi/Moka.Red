@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 using Moka.Red.ThemeGen.Serialization;
 
 namespace Moka.Red.ThemeGen.Tests.Serialization;
@@ -478,8 +477,7 @@ public class MokaThemeSerializerTests
 		Assert.Equal("docks must be one of Classic, Ide, Cards, Minimal, Terminal.", error);
 	}
 
-	// The table choices are null until a theme sets them, so the JSON carries them only then, and the C# names their
-	// enums in full: they keep the table's namespace, which a file importing Moka.Red.Core.Theming alone doesn't have.
+	// The table choices are null until a theme sets them, so the JSON carries them only then.
 	[Fact]
 	public async Task TheTableChoices_AreWrittenOnlyWhenSet_AndCompileBack()
 	{
@@ -491,7 +489,7 @@ public class MokaThemeSerializerTests
 		Assert.Equal(theme, MokaThemeSerializer.FromJson(MokaThemeSerializer.ToJson(theme)));
 
 		string code = MokaThemeSerializer.ToCSharp(theme);
-		Assert.Contains(".WithTables(Moka.Red.Data.Table.MokaTableLook.Sheet)", code, StringComparison.Ordinal);
+		Assert.Contains(".WithTables(MokaTableLook.Sheet)", code, StringComparison.Ordinal);
 		MokaTheme restored = await CSharpScript.EvaluateAsync<MokaTheme>(code, ScriptOptions.Default
 			.AddReferences(typeof(MokaTheme).Assembly)
 			.AddImports("Moka.Red.Core.Theming"), cancellationToken: TestContext.Current.CancellationToken);

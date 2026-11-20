@@ -8,7 +8,7 @@ using Moka.Red.Core.Utilities;
 using Moka.Red.Feedback.Internal;
 using Moka.Red.Feedback.Notification;
 using Moka.Red.Feedback.Popover;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Feedback.NotificationBell;
 

@@ -1,6 +1,5 @@
 using Moka.Red.Core.Colors;
 using Moka.Red.Core.Theming;
-using Moka.Red.Data.Table;
 
 namespace Moka.Red.ThemeGen.Appearance;
 

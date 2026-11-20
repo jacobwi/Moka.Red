@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
 using Moka.Red.Forms.Common;
 using Moka.Red.Primitives.Emoji;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Forms.EmojiPicker;
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Icons;
+using Moka.Red.Core.Theming;
 using Moka.Red.Icons;
 
 namespace Moka.Red.Data.Table;

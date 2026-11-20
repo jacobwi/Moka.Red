@@ -5,7 +5,7 @@ using Moka.Red.Core.Base;
 using Moka.Red.Core.Interactions;
 using Moka.Red.Core.Theming;
 using Moka.Red.Core.Utilities;
-using Moka.Red.Feedback.Tooltip;
+using Moka.Red.Primitives.Tooltip;
 
 namespace Moka.Red.Data.Table;
 
