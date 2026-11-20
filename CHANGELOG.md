@@ -5,6 +5,21 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-11-20
+
+### Added
+- `MokaMenuItem.Target` and `MokaNavEntry.Target` open a link in another tab (`_blank` or a window's name), for a page
+  outside the app such as another service's own web page. The link gets `rel="noopener noreferrer"`, an external-link
+  mark after its text (hidden on a rail of icons), and ", opens in a new tab" for screen readers (`NewTabText` on the
+  item and on `MokaAppShell`). A click on a group's link that opens another tab always opens it. `_self`, `_parent` and
+  `_top` render as given and change nothing else.
+- `MokaCommand.Target` does the same in the command palette. Such a command's row is a link, so a click, Ctrl+click
+  and a middle click are the browser's own, and Enter opens the tab as soon as the palette hears the key, before the
+  command's action runs: browsers let a page open a tab for five seconds after a key press, in Chromium, Firefox and
+  WebKit alike. `MokaCommandPalette.NewTabText` sets the words screen readers hear. Commands without a `Target` are
+  drawn and run as before.
+- `UrlValues.OpensNewTab(target)` and `UrlValues.RelFor(target)`, the rule the menu and the palette share.
+
 ## [0.11.0] - 2026-11-20
 
 ### Changed (breaking)
