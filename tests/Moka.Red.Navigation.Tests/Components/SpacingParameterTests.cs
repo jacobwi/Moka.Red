@@ -30,7 +30,7 @@ public class SpacingParameterTests : BunitContext
 			$"{SpacingCase.IconStyle("18px")} | width: var(--_moka-shell-nav) | {SpacingCase.IconStyle("16px")}"),
 		["AccountCard"] = new(
 			typeof(MokaAccountCard),
-			"width: 1.75rem; height: 1.75rem; background-color: var(--moka-label-cyan-bg); color: var(--moka-label-cyan-ink); border-radius: var(--moka-radius-full); background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2) | "
+			"width: 1.75rem; height: 1.75rem; --_avatar-size: 1.75rem; background-color: var(--moka-label-cyan-bg); color: var(--moka-label-cyan-ink); border-radius: var(--moka-radius-full); background-color: var(--moka-color-neutral-bg); color: var(--moka-color-on-surface-2) | "
 			+ SpacingCase.IconStyle("14px"),
 			("Name", "BC")) { Box = ".moka-account-card__card" },
 		["Breadcrumb"] = new(typeof(MokaBreadcrumb), ""),
