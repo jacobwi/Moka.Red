@@ -100,6 +100,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	[Inject]
 	private IServiceProvider Services { get; set; } = default!;
 
+	[Inject]
+	private NavigationManager Navigation { get; set; } = default!;
+
 	// An app can register its own clock. A test does, so no test waits on a real hover delay.
 	private TimeProvider Clock => Services.GetService<TimeProvider>() ?? TimeProvider.System;
 
@@ -187,6 +190,13 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public MokaContextMenuItemStyle ItemStyle { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the text of an item whose <see cref="MokaContextMenuItem.Target" /> opens another
+	///     tab, after a comma. The row shows an external-link mark. A menu passes it on to its sub-menus.
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     The component that redraws after an item runs. Each item's <see cref="MokaContextMenuItem.OnClick" /> runs
@@ -464,11 +474,24 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 
 	#region Interaction
 
-	private async Task HandleItemClick(MokaContextMenuItem item)
+	// Navigating to a javascript: URL would run it, and so would a link to one.
+	private static string? LinkOf(MokaContextMenuItem item) =>
+		item.HasChildren || string.IsNullOrEmpty(item.Href) ? null : UrlValues.SafeHref(item.Href);
+
+	// A click on a row with an address was the link's own. From the keyboard the menu follows it: another tab first,
+	// while the browser still counts the key press, and the page last, after the action.
+	private async Task HandleItemClick(MokaContextMenuItem item, bool byKeyboard)
 	{
 		if (item.Disabled || item.HasChildren)
 		{
 			return;
+		}
+
+		string? href = byKeyboard ? LinkOf(item) : null;
+		bool newTab = href is not null && UrlValues.OpensNewTab(item.Target);
+		if (newTab)
+		{
+			await TryInvokeVoidAsync("openTab", href, item.Target);
 		}
 
 		// Close first. The menu used to wait for the action, so an action that opened a dialog left
@@ -482,6 +505,11 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 		if (action is not null)
 		{
 			await new EventCallback(Owner, action).InvokeAsync();
+		}
+
+		if (href is not null && !newTab)
+		{
+			Navigation.NavigateTo(href);
 		}
 	}
 
@@ -600,7 +628,7 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 					}
 					else
 					{
-						await HandleItemClick(activated);
+						await HandleItemClick(activated, true);
 					}
 				}
 

@@ -65,6 +65,14 @@ public partial class MokaContextMenuTrigger : ComponentBase, IAsyncDisposable
 	[Parameter]
 	public IHandleEvent? Owner { get; set; }
 
+	/// <summary>
+	///     What screen readers hear after the text of an item that opens another tab, when the trigger draws its own menu.
+	///     With a <see cref="MokaContextMenuHost" /> in the layout the host's <see cref="MokaContextMenuHost.NewTabText" />
+	///     applies.
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
 	private IHandleEvent MenuOwner => Owner ?? this;
 
 	private bool PreventDefault =>

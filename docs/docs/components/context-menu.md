@@ -52,6 +52,8 @@ Place one `MokaContextMenuHost` in the layout, next to the other hosts:
 | `CssClass` | `string?` | - | Extra CSS class on the item row |
 | `OnClick` | `Func<Task>?` | - | Runs when the item is chosen, through the menu's owner when it has one (see [Redrawing the page](#redrawing-the-page)) |
 | `OnClickSync` | `Action?` | - | Runs when the item is chosen and `OnClick` is not set |
+| `Href` | `string?` | - | The address the item opens. The row is a link, so a middle click and "copy link" work. A `javascript:`, `vbscript:` or `data:` address is never used, and an item with `Children` ignores it. See [Links](#links) |
+| `Target` | `string?` | - | Where `Href` opens: `_blank` for a new tab, or a window's name. See [Links](#links) |
 
 `MokaContextMenuItems.Divider()` returns a divider item, and an item with an empty `Text` and no children renders as one too. The menu drops dividers at the start and end and merges repeated ones, so a list built from conditions needs no cleanup.
 
@@ -329,6 +331,21 @@ IReadOnlyList<MokaContextMenuItem> FileMenu(FileEntry file) =>
 
 On the new design the color is the popup look's danger color when it has one (the Contrast look lightens it), else `--moka-color-error-soft`; the original design uses `--moka-color-error`. A colored item (`Label`, `ColorValue`) keeps its icon's color. It's the look only: ask before anything that can't be undone. `MokaDropdownItem.Danger` and `MokaMenuBarItem.Danger` draw the same.
 
+## Links
+
+An item with `Href` is a link (`<a role="menuitem">`), so a middle click, Ctrl+click and the browser's "copy link" work on it, and a click follows it. Focus stays on the menu, so the link isn't a tab stop. The menu closes and the item's `OnClick` still runs.
+
+`Target="_blank"` (or a window's name) opens it in another tab: the row gets `rel="noopener noreferrer"`, an external-link mark, and ", opens in a new tab" for screen readers (`NewTabText` on the host, the trigger or the menu). Enter or Space opens the tab before `OnClick` runs. The menu keeps its highlight in .NET and opens the tab as soon as it hears the key, and browsers allow that for five seconds after a key press (Chromium, Firefox and WebKit alike), so the popup blocker doesn't stop it. An item for the app's own pages, with no `Target`, is followed after `OnClick`.
+
+```csharp
+IReadOnlyList<MokaContextMenuItem> AppMenu(App app) =>
+[
+    new() { Text = "Open", Icon = MokaIcons.Content.ExternalLink, Href = app.Address, Target = "_blank" },
+    new() { Text = "Details", Icon = MokaIcons.Status.Info, Href = $"apps/{app.Id}" },
+    new() { Text = "Restart", Icon = MokaIcons.Action.Refresh, DividerBefore = true, OnClick = () => RestartAsync(app) }
+];
+```
+
 ## Actions That Open a Dialog
 
 The menu closes before the chosen item's action runs. An action can await a confirmation or a slow call, and the menu is already gone while it waits:
@@ -411,6 +428,7 @@ The host and the trigger both render `MokaContextMenu`. Render it yourself when 
 | `Look` | `MokaPopupLook?` | `null` | How the menu is drawn. Null takes the theme's popup look. A menu passes it on to its submenus. See [Looks](#looks) |
 | `ItemStyle` | `MokaContextMenuItemStyle` | `Standard` | How the rows' text is drawn. `Quiet` is regular weight in a softer ink until a row is lit. A menu passes it on to its submenus. See [Quiet rows](#quiet-rows) |
 | `Owner` | `IHandleEvent?` | `null` | The component that redraws after an item runs. A menu passes it on to its submenus. See [Redrawing the page](#redrawing-the-page) |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the text of an item whose `Target` opens another tab, after a comma. A menu passes it on to its submenus; `MokaContextMenuHost` and `MokaContextMenuTrigger` take it too. See [Links](#links) |
 
 `IsSubmenu` and `ParentLeft` are set by a menu on its own submenus. Leave them unset.
 

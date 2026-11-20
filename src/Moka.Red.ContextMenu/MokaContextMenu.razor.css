@@ -51,6 +51,18 @@
 }
 
 /* Danger: the row in the error color, its icon too, over the error tint while it is the lit row. */
+/* An item with an address is a link, drawn like the other rows. */
+a.moka-ctx-item {
+	text-decoration: none;
+}
+
+/* An item that opens another tab. */
+.moka-ctx-external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 .moka-ctx-item--danger {
 	color: var(--moka-color-error);
 }

@@ -7,6 +7,7 @@
 // Shared with other packages; the relative import resolves against this module's own URL.
 export { preventKeys } from '../Moka.Red.Core/moka-keys.js';
 export { trackHover } from '../Moka.Red.Core/moka-hover.js';
+export { openTab } from '../Moka.Red.Core/moka-links.js';
 
 const DEFAULT_MARGIN = 8;
 

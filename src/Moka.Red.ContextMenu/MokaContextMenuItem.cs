@@ -65,6 +65,23 @@ public sealed class MokaContextMenuItem
 	/// <summary>Synchronous click handler alternative. Runs through the menu's owner the same way.</summary>
 	public Action? OnClickSync { get; init; }
 
+	/// <summary>
+	///     The address the item opens. The row is then a link, so a middle click and the browser's "copy link" work. A click
+	///     follows it, and Enter or Space follows it after <see cref="OnClick" /> runs; either way the menu closes. A
+	///     <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> address is never used, and an item with
+	///     <see cref="Children" /> ignores it.
+	/// </summary>
+	public string? Href { get; init; }
+
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a row gets
+	///     <c>rel="noopener noreferrer"</c>, an external-link mark and <see cref="MokaContextMenu.NewTabText" /> for screen
+	///     readers. Enter or Space opens the tab before <see cref="OnClick" /> runs, while the browser still counts the key
+	///     press (five seconds in Chromium, Firefox and WebKit). Null, <c>_self</c>, <c>_parent</c> and <c>_top</c> open it in
+	///     the page.
+	/// </summary>
+	public string? Target { get; init; }
+
 	/// <summary>Whether this item has a sub-menu.</summary>
 	public bool HasChildren => Children is not null && Children.Count > 0;
 }

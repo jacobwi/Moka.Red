@@ -22,6 +22,21 @@
 	</MokaContextMenuTrigger>
 </DemoSection>
 
+<DemoSection Id="links" Title="Links" Description="An item with Href is a link, so a middle click and the browser's copy link work. Target _blank opens it in a new tab with rel=&quot;noopener noreferrer&quot; and an external-link mark, and Enter opens the tab from the key press.">
+	<ChildContent>
+		<MokaContextMenuTrigger Items="_linkItems" Trigger="MokaContextMenuTriggerType.Both">
+			<div style="padding: var(--moka-spacing-lg); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; cursor: context-menu;">
+				Right-click or click an app
+			</div>
+		</MokaContextMenuTrigger>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Href">The address the item opens; the row is a link</DemoParam>
+		<DemoParam Name="Target">_blank or a window's name opens it in another tab</DemoParam>
+		<DemoParam Name="NewTabText">On the host, the trigger or the menu: what screen readers hear</DemoParam>
+	</Notes>
+</DemoSection>
+
 <DemoSection Id="quiet-rows" Title="Quiet rows" Description="ItemStyle Quiet draws rows in regular weight and the softer ink until a row is lit.">
 	<p class="page-desc">
 		Open a menu with a right click, or from the keyboard with the button, then move to Color with the arrows or the mouse.
@@ -139,6 +154,13 @@
 			]
 		},
 		new() { Text = "Properties", OnClickSync = () => { } }
+	];
+
+	private static readonly MokaContextMenuItem[] _linkItems =
+	[
+		new() { Text = "Open the Blazor docs", Icon = MokaIcons.File.Document, Href = "https://learn.microsoft.com/aspnet/core/blazor/", Target = "_blank" },
+		new() { Text = "Go to the menu page", Icon = MokaIcons.Navigation.Home, Href = "components/menu" },
+		new() { Text = "Rename", Icon = MokaIcons.Action.Edit, Shortcut = "F2", DividerBefore = true, OnClickSync = () => { } }
 	];
 
 	private static readonly MokaContextMenuItem[] _dangerItems =

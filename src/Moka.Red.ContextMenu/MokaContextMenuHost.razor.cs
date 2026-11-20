@@ -32,6 +32,12 @@ public sealed partial class MokaContextMenuHost : IDisposable
 	public MokaContextMenuItemStyle ItemStyle { get; set; }
 
 	/// <summary>
+	///     What screen readers hear after the text of an item that opens another tab (<see cref="MokaContextMenu.NewTabText" />).
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
+	/// <summary>
 	///     How the buttons of every radial menu this host draws sit around their target, unless the menu's spec says
 	///     (<see cref="MokaRadialMenuSpec.Shape" />). Null leaves it a <see cref="MokaRadialShape.Ring" />.
 	/// </summary>

@@ -2,6 +2,9 @@
 // hotkey registry used to carry the same forty lines each, and a fix to one would have missed the other.
 import { parseShortcut as parse, isEditable, matches } from '../Moka.Red.Core/moka-hotkeys.js';
 
+// A command row that opens another tab, picked with Enter.
+export { openTab } from '../Moka.Red.Core/moka-links.js';
+
 function parseShortcut(text) {
     return parse(text, 'MokaCommandPalette');
 }
@@ -38,13 +41,6 @@ export function updateShortcut(handle, shortcut) {
     if (registration) {
         registration.spec = parseShortcut(shortcut);
     }
-}
-
-// A command row that opens another tab, picked with Enter. .NET keeps the highlight, so it decides which row Enter
-// meant and calls this right away: the browser still counts the key press, which lets a page open a tab for five
-// seconds afterwards in Chromium, Firefox and WebKit. A click on the row is the link's own.
-export function openTab(href, target) {
-    window.open(href, target, 'noopener,noreferrer');
 }
 
 export function focusInput(inputElement) {

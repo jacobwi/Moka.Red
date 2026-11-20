@@ -39,17 +39,10 @@
 				MokaContextMenuItem item = entry.Item!;
 				int index = entry.ActionIndex;
 				string? color = ItemColor(item);
+				string? href = LinkOf(item);
 
-				<div class="@ItemClass(item, index)"
-				     id="@ItemId(index)"
-				     data-moka-ctx-index="@index"
-				     data-moka-index="@(indexBase + index)"
-				     @onclick="() => HandleItemClick(item)"
-				     @onmouseenter="ItemEnterHandler(item, index)"
-				     role="menuitem"
-				     aria-disabled="@(item.Disabled ? "true" : null)"
-				     aria-haspopup="@(item.HasChildren ? "true" : null)"
-				     aria-expanded="@AriaExpanded(item)">
+				RenderFragment row =
+					@<text>
 					@if (checkColumn)
 					{
 						@if (item.Checked)
@@ -88,6 +81,13 @@
 						<span class="moka-ctx-icon-placeholder"></span>
 					}
 					<span class="moka-ctx-text">@item.Text</span>
+					@if (href is not null && UrlValues.OpensNewTab(item.Target))
+					{
+						<span class="moka-visually-hidden">, @NewTabText</span>
+						<span class="moka-ctx-external" aria-hidden="true">
+							<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+						</span>
+					}
 					@if (item.Shortcut is not null)
 					{
 						<span class="moka-ctx-shortcut">
@@ -103,7 +103,42 @@
 							<MokaIcon Icon="MokaIcons.Navigation.ChevronRight" SizeValue="10px"/>
 						</span>
 					}
-				</div>
+					</text>;
+
+				@* An item with an address is a link, so a middle click and "copy link" are the browser's own. Focus stays on
+				   the menu, as for every row, so the link isn't a tab stop. *@
+				@if (href is not null)
+				{
+					<a class="@ItemClass(item, index)"
+					   id="@ItemId(index)"
+					   data-moka-ctx-index="@index"
+					   data-moka-index="@(indexBase + index)"
+					   href="@(item.Disabled ? null : href)"
+					   target="@(item.Disabled ? null : item.Target)"
+					   rel="@(item.Disabled ? null : UrlValues.RelFor(item.Target))"
+					   tabindex="-1"
+					   @onclick="() => HandleItemClick(item, false)"
+					   @onmouseenter="ItemEnterHandler(item, index)"
+					   role="menuitem"
+					   aria-disabled="@(item.Disabled ? "true" : null)">
+						@row
+					</a>
+				}
+				else
+				{
+					<div class="@ItemClass(item, index)"
+					     id="@ItemId(index)"
+					     data-moka-ctx-index="@index"
+					     data-moka-index="@(indexBase + index)"
+					     @onclick="() => HandleItemClick(item, false)"
+					     @onmouseenter="ItemEnterHandler(item, index)"
+					     role="menuitem"
+					     aria-disabled="@(item.Disabled ? "true" : null)"
+					     aria-haspopup="@(item.HasChildren ? "true" : null)"
+					     aria-expanded="@AriaExpanded(item)">
+						@row
+					</div>
+				}
 
 				@* Sub-menu: a DOM child of this menu, so mouseleave here covers both. It reaches
 				   back through the cascade to hand focus back and to take it from the keyboard. *@
@@ -118,6 +153,7 @@
 						                 ParentLeft="_menuLeft"
 						                 Look="Look"
 						                 ItemStyle="ItemStyle"
+						                 NewTabText="@NewTabText"
 						                 Owner="Owner"
 						                 OnClose="OnClose"/>
 					</CascadingValue>
