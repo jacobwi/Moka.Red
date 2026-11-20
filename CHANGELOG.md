@@ -5,6 +5,37 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-11-20
+
+### Changed (breaking)
+- Ten types now use the namespace of the package that ships them, and the type forwards that kept their old names are
+  gone, so code built against 0.10.x must be rebuilt. Each had moved to a lower package and kept its old namespace,
+  which left namespaces naming the wrong package. To move:
+  - `MokaTooltip`, `MokaTooltipPosition`: replace `@using Moka.Red.Feedback.Tooltip` with
+    `@using Moka.Red.Primitives.Tooltip`.
+  - `MokaSkeleton`, `MokaSkeletonShape`, `MokaSkeletonAnimation`: add `@using Moka.Red.Primitives.Skeleton`
+    (`Moka.Red.Feedback.Loading` still holds `MokaSpinner` and `MokaLoadingOverlay`).
+  - `MokaSparkline`: add `@using Moka.Red.Primitives.Sparkline` (`Moka.Red.Data.Chart` still holds the charts).
+  - `MokaColorMode`, `MokaTableLook`, `MokaTableDensity`: `@using Moka.Red.Core.Theming`.
+  - `MokaByteUnits`: `@using Moka.Red.Core.Utilities`.
+- The theme generator's C# export writes `MokaTableLook` and `MokaTableDensity` by their short names. An export made
+  before 0.11.0 that names them as `Moka.Red.Data.Table.MokaTableLook` needs that prefix removed.
+
+### Added
+- `MokaGrid.KeepEmptyColumns` keeps the empty columns `MinColumn` makes room for (`auto-fill` in place of `auto-fit`),
+  so a few items keep the width they have in a full row instead of stretching across it.
+
+### Fixed
+- `MokaAvatar` with a length `SizeValue` scales its initials and icon with the box, by the share they have at each
+  `Size` step, and a tile's icon scales with the tile; every `Size` step renders as before. Large initials read
+  `--moka-font-size-xl` in place of a literal 20 px, so they follow the theme's text size and font scale. So
+  `MokaAccountCard`'s avatar, 1.75rem at the Xs step, draws its initials at 12.8 px where they were 11 px.
+
+### Docs
+- Installation lists what `AddMokaRed()` registers and which components need each service, for an app that references
+  individual packages, with measured CSS sizes per package set: an app's styles.css imports the scoped bundle of every
+  referenced package, so referencing only the packages in use cuts the CSS each page loads.
+
 ## [0.10.2] - 2026-11-19
 
 ### Changed
