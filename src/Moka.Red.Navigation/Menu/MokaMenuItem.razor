@@ -30,6 +30,14 @@
 			{
 				<span class="moka-menu-item__text">@Text</span>
 
+				@if (OpensNewTab)
+				{
+					<span class="moka-visually-hidden">, @NewTabText</span>
+					<span class="moka-menu-item__external" aria-hidden="true">
+						<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+					</span>
+				}
+
 				@if (!string.IsNullOrEmpty(Badge))
 				{
 					<span class="moka-menu-item__badge moka-menu-item__badge--@ColorToKebab(BadgeColor ?? MokaColor.Primary)">@Badge</span>
@@ -67,6 +75,8 @@
 			@<div class="moka-menu-item__row">
 				<a class="@CssClass" style="@CssStyle" id="@Id"
 				   href="@(Disabled ? null : LinkHref)"
+				   target="@(Disabled ? null : LinkTarget)"
+				   rel="@(Disabled ? null : LinkRel)"
 				   role="@(Disabled ? "link" : null)"
 				   aria-disabled="@(Disabled ? "true" : null)"
 				   aria-current="@(IsActive ? "page" : null)"
@@ -113,6 +123,8 @@
 		item =
 			@<a class="@CssClass" style="@CssStyle" id="@Id"
 			    href="@(Disabled ? null : LinkHref)"
+			    target="@(Disabled ? null : LinkTarget)"
+			    rel="@(Disabled ? null : LinkRel)"
 			    role="@(Disabled ? "link" : null)"
 			    aria-disabled="@(Disabled ? "true" : null)"
 			    aria-current="@(IsActive ? "page" : null)"
@@ -178,8 +190,14 @@ else
 			{
 				@* The parent's icon only opens its flyout on the rail, so its own page is the flyout's first link. Only there,
 				   so the page isn't marked current twice while the link beside the arrow shows. *@
-				<a class="moka-menu-item__flyout-title moka-menu-item__flyout-link" href="@LinkHref"
-				   aria-current="@(IsActive ? "page" : null)" @onclick="HandleFlyoutLinkClick">@Text</a>
+				<a class="moka-menu-item__flyout-title moka-menu-item__flyout-link" href="@LinkHref" target="@LinkTarget"
+				   rel="@LinkRel" aria-current="@(IsActive ? "page" : null)" @onclick="HandleFlyoutLinkClick">
+					@Text
+					@if (OpensNewTab)
+					{
+						<span class="moka-visually-hidden">, @NewTabText</span>
+					}
+				</a>
 			}
 			else if (CanFlyout && !IsLink)
 			{

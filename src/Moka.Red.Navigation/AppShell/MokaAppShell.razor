@@ -89,10 +89,12 @@
 		if (entry.Children.Count == 0)
 		{
 			return @<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+			                      Target="@entry.Target" NewTabText="@NewTabText"
 			                      Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"/>;
 		}
 
 		return @<MokaMenuItem Text="@entry.Label" Icon="entry.Icon" ImageSource="@entry.ImageSource" Href="@entry.Href"
+		                      Target="@entry.Target" NewTabText="@NewTabText"
 		                      Pill="entry.Pill" Active="ReferenceEquals(entry, current)" OnClick="PickCallback"
 		                      ShowLabel="ShowGroupLabel" HideLabel="HideGroupLabel">
 			@foreach (MokaNavEntry child in entry.Children)

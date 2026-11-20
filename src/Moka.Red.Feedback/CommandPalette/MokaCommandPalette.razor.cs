@@ -14,6 +14,7 @@ namespace Moka.Red.Feedback.CommandPalette;
 public partial class MokaCommandPalette : MokaComponentBase
 {
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
+	private const string PaletteModule = "./_content/Moka.Red.Feedback/moka-command-palette.js";
 
 	private DotNetObjectReference<MokaCommandPalette>? _dotNetRef;
 	private List<MokaCommand> _filteredCommands = [];
@@ -39,6 +40,13 @@ public partial class MokaCommandPalette : MokaComponentBase
 	/// <summary>Text shown when no commands match the search.</summary>
 	[Parameter]
 	public string NoResultsText { get; set; } = "No commands found";
+
+	/// <summary>
+	///     What screen readers hear after the title of a command whose <see cref="MokaCommand.Target" /> opens another tab,
+	///     after a comma. The row shows an external-link mark.
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>Maximum number of results to display.</summary>
 	[Parameter]
@@ -82,7 +90,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 			if (firstRender)
 			{
 				_dotNetRef = DotNetObjectReference.Create(this);
-				_jsModule = await GetJsModuleAsync("./_content/Moka.Red.Feedback/moka-command-palette.js");
+				_jsModule = await GetJsModuleAsync(PaletteModule);
 
 				// The handle scopes the keydown listener to this instance so disposing
 				// one palette does not unhook the shortcut for any other.
@@ -161,7 +169,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 				List<MokaCommand> shown = DisplayedCommands();
 				if (_focusedIndex >= 0 && _focusedIndex < shown.Count)
 				{
-					await ExecuteCommand(shown[_focusedIndex]);
+					await ExecuteCommand(shown[_focusedIndex], true);
 				}
 
 				break;
@@ -192,11 +200,28 @@ public partial class MokaCommandPalette : MokaComponentBase
 		_focusedIndex = _filteredCommands.Count > 0 ? 0 : -1;
 	}
 
-	private async Task ExecuteCommand(MokaCommand command)
+	// Navigating to a javascript: URL would run it, since NavigateTo hands a URL outside the app to the browser, and so
+	// would a link to one.
+	private static string? HrefOf(MokaCommand command) =>
+		string.IsNullOrEmpty(command.Href) ? null : UrlValues.SafeHref(command.Href);
+
+	private static bool OpensNewTab(MokaCommand command) =>
+		HrefOf(command) is not null && UrlValues.OpensNewTab(command.Target);
+
+	// A click on a row that opens another tab was the link's own, so only Enter opens the tab here, before anything else
+	// runs, while the browser still counts the key press.
+	private async Task ExecuteCommand(MokaCommand command, bool byKeyboard)
 	{
 		if (command.Disabled)
 		{
 			return;
+		}
+
+		string? href = HrefOf(command);
+		bool newTab = OpensNewTab(command);
+		if (newTab && byKeyboard)
+		{
+			await SafeModuleInvokeVoidAsync(PaletteModule, "openTab", href, command.Target);
 		}
 
 		Service.Close();
@@ -210,11 +235,9 @@ public partial class MokaCommandPalette : MokaComponentBase
 			command.OnExecuteSync?.Invoke();
 		}
 
-		// Navigating to a javascript: URL would run it, since NavigateTo hands a URL outside the app to
-		// the browser.
-		if (!string.IsNullOrEmpty(command.Href) && !UrlValues.HasBlockedScheme(command.Href))
+		if (href is not null && !newTab)
 		{
-			Navigation.NavigateTo(command.Href);
+			Navigation.NavigateTo(href);
 		}
 	}
 

@@ -1,3 +1,4 @@
+@implements IDisposable
 @inject IMokaCommandPaletteService CommandPalette
 
 <DemoSection Id="basics" Title="Basics" Description="Search for a command and run it from the keyboard.">
@@ -7,9 +8,38 @@
 	<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
 </DemoSection>
 
+<DemoSection Id="pages-in-another-tab" Title="Pages in another tab" Description="A command with Href and a Target of _blank is drawn as a link with an external-link mark. A click, Ctrl+click or middle click is the link's own, and Enter opens the tab from the key press.">
+	<ChildContent>
+		<p style="font-size: var(--moka-font-size-sm);">
+			Open the palette and search for <MokaKbd>docs</MokaKbd>.
+		</p>
+		<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaCommand.Target">_blank or a window's name opens Href there, with rel="noopener noreferrer"</DemoParam>
+		<DemoParam Name="NewTabText">What screen readers hear after the title</DemoParam>
+	</Notes>
+</DemoSection>
+
 @code {
+	private const string DocsCommand = "showcase-demo-blazor-docs";
+
+	protected override void OnInitialized() => CommandPalette.Register(new MokaCommand
+	{
+		Id = DocsCommand,
+		Title = "Blazor docs",
+		Description = "Microsoft's Blazor documentation",
+		Group = "Elsewhere",
+		Icon = MokaIcons.File.Document,
+		Href = "https://learn.microsoft.com/aspnet/core/blazor/",
+		Target = "_blank",
+		Keywords = "docs documentation"
+	});
+
 	private void OpenCommandPalette()
 	{
 		CommandPalette.Open();
 	}
+
+	public void Dispose() => CommandPalette.Unregister(DocsCommand);
 }

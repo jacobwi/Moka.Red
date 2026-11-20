@@ -89,4 +89,27 @@ public class UrlValuesTests
 	[InlineData("ftp://example.com/icon.png")]
 	public void SafeImageSource_DropsEverythingElse(string? source) =>
 		Assert.Null(UrlValues.SafeImageSource(source));
+
+	[Theory]
+	[InlineData("_blank")]
+	[InlineData("_BLANK")]
+	[InlineData("reports")]
+	public void ATargetThatOpensElsewhere_OpensANewTab_WithNoOpener(string target)
+	{
+		Assert.True(UrlValues.OpensNewTab(target));
+		Assert.Equal("noopener noreferrer", UrlValues.RelFor(target));
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("  ")]
+	[InlineData("_self")]
+	[InlineData("_Parent")]
+	[InlineData("_top")]
+	public void ATargetThatStaysInTheTab_NeedsNoRel(string? target)
+	{
+		Assert.False(UrlValues.OpensNewTab(target));
+		Assert.Null(UrlValues.RelFor(target));
+	}
 }

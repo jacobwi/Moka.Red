@@ -43,6 +43,14 @@ public sealed record MokaNavEntry(
 	/// </summary>
 	public string? ImageSource { get; init; }
 
+	/// <summary>
+	///     Where the entry's link opens: <c>_blank</c> for a new tab, or a window's name, for a page outside the app such as
+	///     another service's own web page (set <see cref="Route" /> to its full address, which <see cref="Find" /> never
+	///     matches). The menu marks such an entry with an external-link mark and gives it <c>rel="noopener noreferrer"</c>.
+	///     Null opens it in place.
+	/// </summary>
+	public string? Target { get; init; }
+
 	/// <summary>The route as a link relative to the page's base address, so an app hosted under a path keeps working.</summary>
 	public string Href
 	{

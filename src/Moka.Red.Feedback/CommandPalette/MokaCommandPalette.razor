@@ -25,9 +25,8 @@
 			}
 			else if (ShowGroups)
 			{
-				var grouped = GroupedCommands();
 				var itemIndex = 0;
-				foreach (var group in grouped)
+				foreach (var group in GroupedCommands())
 				{
 					if (!string.IsNullOrEmpty(group.Key))
 					{
@@ -36,32 +35,7 @@
 
 					foreach (var command in group)
 					{
-						var idx = itemIndex;
-						<div class="@ItemCss(command, idx)"
-						     data-moka-index="@idx"
-						     @onclick="() => ExecuteCommand(command)">
-							@if (command.Icon.HasValue)
-							{
-								<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
-								          Class="moka-command-palette__item-icon"/>
-							}
-							<div class="moka-command-palette__item-content">
-								<div class="moka-command-palette__item-title">@command.Title</div>
-								@if (!string.IsNullOrEmpty(command.Description))
-								{
-									<div class="moka-command-palette__item-desc">@command.Description</div>
-								}
-							</div>
-							@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
-							{
-								<span class="moka-command-palette__item-shortcut">
-									@foreach (string key in ShortcutKeys.Split(command.Shortcut))
-									{
-										<MokaKbd>@key</MokaKbd>
-									}
-								</span>
-							}
-						</div>
+						@CommandRow(command, itemIndex)
 						itemIndex++;
 					}
 				}
@@ -71,32 +45,7 @@
 				var itemIndex = 0;
 				foreach (var command in _filteredCommands)
 				{
-					var idx = itemIndex;
-					<div class="@ItemCss(command, idx)"
-					     data-moka-index="@idx"
-					     @onclick="() => ExecuteCommand(command)">
-						@if (command.Icon.HasValue)
-						{
-							<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
-							          Class="moka-command-palette__item-icon"/>
-						}
-						<div class="moka-command-palette__item-content">
-							<div class="moka-command-palette__item-title">@command.Title</div>
-							@if (!string.IsNullOrEmpty(command.Description))
-							{
-								<div class="moka-command-palette__item-desc">@command.Description</div>
-							}
-						</div>
-						@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
-						{
-							<span class="moka-command-palette__item-shortcut">
-								@foreach (string key in ShortcutKeys.Split(command.Shortcut))
-								{
-									<MokaKbd>@key</MokaKbd>
-								}
-							</span>
-						}
-					</div>
+					@CommandRow(command, itemIndex)
 					itemIndex++;
 				}
 			}
@@ -108,4 +57,69 @@
 			<span><MokaKbd>Esc</MokaKbd> Close</span>
 		</div>
 	</div>
+}
+
+@code {
+	// A command that opens another tab is a link, so a click, Ctrl+click and a middle click are the browser's own. Focus
+	// stays in the search box, as for every row, so the link isn't a tab stop.
+	private RenderFragment CommandRow(MokaCommand command, int index)
+	{
+		RenderFragment content =
+			@<text>
+				@if (command.Icon.HasValue)
+				{
+					<MokaIcon Icon="command.Icon.Value" Size="MokaSize.Sm"
+					          Class="moka-command-palette__item-icon"/>
+				}
+				<div class="moka-command-palette__item-content">
+					<div class="moka-command-palette__item-title">
+						@command.Title
+						@if (OpensNewTab(command))
+						{
+							<span class="moka-visually-hidden">, @NewTabText</span>
+						}
+					</div>
+					@if (!string.IsNullOrEmpty(command.Description))
+					{
+						<div class="moka-command-palette__item-desc">@command.Description</div>
+					}
+				</div>
+				@if (OpensNewTab(command))
+				{
+					<span class="moka-command-palette__item-external" aria-hidden="true">
+						<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+					</span>
+				}
+				@if (ShowShortcuts && !string.IsNullOrEmpty(command.Shortcut))
+				{
+					<span class="moka-command-palette__item-shortcut">
+						@foreach (string key in ShortcutKeys.Split(command.Shortcut))
+						{
+							<MokaKbd>@key</MokaKbd>
+						}
+					</span>
+				}
+			</text>;
+
+		if (OpensNewTab(command))
+		{
+			return @<a class="@ItemCss(command, index)"
+			           data-moka-index="@index"
+			           href="@(command.Disabled ? null : HrefOf(command))"
+			           target="@(command.Disabled ? null : command.Target)"
+			           rel="@(command.Disabled ? null : UrlValues.RelFor(command.Target))"
+			           tabindex="-1"
+			           role="@(command.Disabled ? "link" : null)"
+			           aria-disabled="@(command.Disabled ? "true" : null)"
+			           @onclick="() => ExecuteCommand(command, false)">
+				@content
+			</a>;
+		}
+
+		return @<div class="@ItemCss(command, index)"
+		            data-moka-index="@index"
+		            @onclick="() => ExecuteCommand(command, false)">
+			@content
+		</div>;
+	}
 }

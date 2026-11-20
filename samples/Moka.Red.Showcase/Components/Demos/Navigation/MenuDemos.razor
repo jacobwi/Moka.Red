@@ -23,6 +23,22 @@
 	</Notes>
 </DemoSection>
 
+<DemoSection Id="a-page-in-another-tab" Title="A page in another tab" Description="Target opens a link in another tab. The link gets rel=&quot;noopener noreferrer&quot; and an external-link mark, and screen readers hear that it opens a new tab. On a rail of icons the mark goes and the words stay.">
+	<ChildContent>
+		<div style="max-width: 280px;">
+			<MokaMenu aria-label="Elsewhere">
+				<MokaMenuItem Text="This page" Icon="MokaIcons.Navigation.Home" Href="components/menu" Match="NavLinkMatch.All"/>
+				<MokaMenuItem Text="Blazor docs" Icon="MokaIcons.File.Document" Href="https://learn.microsoft.com/aspnet/core/blazor/" Target="_blank"/>
+			</MokaMenu>
+		</div>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Target">_blank or a window's name; _self, _parent and _top render as given</DemoParam>
+		<DemoParam Name="NewTabText">What screen readers hear after the name</DemoParam>
+		<DemoParam Name="MokaNavEntry.Target">The same for an app shell's entry</DemoParam>
+	</Notes>
+</DemoSection>
+
 <DemoSection Id="a-long-group" Title="A long group" Description="A group opens to its own height, however many items it holds, and its items leave the tab order while it is closed.">
 	<div style="max-width: 280px;">
 		<MokaMenu aria-label="Folders">

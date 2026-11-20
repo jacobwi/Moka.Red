@@ -103,6 +103,13 @@
 	text-overflow: ellipsis;
 }
 
+/* A link that opens another tab. */
+::deep .moka-menu-item__external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 ::deep .moka-menu-item__badge {
 	font-size: var(--moka-font-size-xs);
 	font-weight: var(--moka-font-weight-semibold);
@@ -379,8 +386,10 @@
 	white-space: nowrap;
 }
 
-/* A group's flyout opens beside it, so the arrow that opens a group in place has nothing to say on the rail. */
-[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__chevron:not(.moka-menu-item__submenu *) {
+/* A group's flyout opens beside it, so the arrow that opens a group in place has nothing to say on the rail. A rail
+   holds icons alone, so a new tab's mark goes too; screen readers still hear it. */
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__chevron:not(.moka-menu-item__submenu *),
+[data-moka-rail] .moka-menu.moka-menu--adaptive ::deep .moka-menu-item__external:not(.moka-menu-item__submenu *) {
 	display: none;
 }
 

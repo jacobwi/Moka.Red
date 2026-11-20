@@ -82,6 +82,28 @@ public static class UrlValues
 	public static string? SafeHref(string? href) => HasBlockedScheme(href) ? null : href;
 
 	/// <summary>
+	///     Whether a link with this <c>target</c> opens in another tab or window: <c>_blank</c> or a window's name. Empty,
+	///     <c>_self</c>, <c>_parent</c> and <c>_top</c> keep it in the page's own tab. The keywords are matched without regard
+	///     to case, as browsers match them.
+	/// </summary>
+	/// <param name="target">The link's <c>target</c>.</param>
+	/// <returns><c>true</c> when the link opens somewhere else.</returns>
+	public static bool OpensNewTab(string? target) =>
+		!string.IsNullOrWhiteSpace(target)
+		&& !target.Equals("_self", StringComparison.OrdinalIgnoreCase)
+		&& !target.Equals("_parent", StringComparison.OrdinalIgnoreCase)
+		&& !target.Equals("_top", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>
+	///     The <c>rel</c> for a link with this <c>target</c>: <c>noopener noreferrer</c> when it opens in another tab (see
+	///     <see cref="OpensNewTab" />), so the page it opens can't reach this one through <c>window.opener</c> and isn't told
+	///     the address it came from. Otherwise <c>null</c>, so no <c>rel</c> renders.
+	/// </summary>
+	/// <param name="target">The link's <c>target</c>.</param>
+	/// <returns>The <c>rel</c> to render, or <c>null</c>.</returns>
+	public static string? RelFor(string? target) => OpensNewTab(target) ? "noopener noreferrer" : null;
+
+	/// <summary>
 	///     <paramref name="source" /> as given when it can only be a picture: a relative address, <c>http</c>, <c>https</c>,
 	///     <c>blob</c>, or a <c>data:</c> URI whose type is an image (PNG, JPEG, GIF, WebP, AVIF, SVG, BMP or an icon).
 	///     Anything else gives <c>null</c>, so an <c>img</c> from a third party's package never gets a document or a script

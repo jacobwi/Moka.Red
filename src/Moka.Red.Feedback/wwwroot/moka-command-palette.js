@@ -40,6 +40,13 @@ export function updateShortcut(handle, shortcut) {
     }
 }
 
+// A command row that opens another tab, picked with Enter. .NET keeps the highlight, so it decides which row Enter
+// meant and calls this right away: the browser still counts the key press, which lets a page open a tab for five
+// seconds afterwards in Chromium, Firefox and WebKit. A click on the row is the link's own.
+export function openTab(href, target) {
+    window.open(href, target, 'noopener,noreferrer');
+}
+
 export function focusInput(inputElement) {
     if (inputElement) {
         setTimeout(() => inputElement.focus(), 50);

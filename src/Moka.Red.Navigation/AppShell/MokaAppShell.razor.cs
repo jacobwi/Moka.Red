@@ -133,6 +133,13 @@ public partial class MokaAppShell : MokaVisualComponentBase
 	public string CloseMenuLabel { get; set; } = "Close the menu";
 
 	/// <summary>
+	///     What screen readers hear after the name of an entry whose <see cref="MokaNavEntry.Target" /> opens another tab,
+	///     after a comma.
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
+	/// <summary>
 	///     The nonce of a strict Content-Security-Policy, for the small script that sets the rail before first paint. Only
 	///     a static render (prerendering) writes that script; an interactive render writes none, so it needs no nonce.
 	///     Without it such a policy blocks the script, and the rail settles a moment later, when the module loads.

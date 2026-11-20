@@ -39,6 +39,8 @@ The menu fills the width of its container unless you give it a width, as the exa
 | `Icon` | `MokaIconDefinition?` | -- | Icon before the text |
 | `ImageSource` | `string?` | -- | A picture in place of `Icon`, such as a plugin's own icon: a URL or a `data:image/...` URI, drawn as an `img` in the icon's box with the item's text naming it. Only relative addresses, `http`, `https`, `blob` and image `data:` URIs are used. Anything else, or a picture that fails to load, shows `Icon` instead. The current item gets a ring round the picture, since a picture can't take the icon's color |
 | `Href` | `string?` | -- | Navigation link (renders as anchor). On an item with children the name is the link and an arrow button beside it opens and closes the group. See [A Group That Is Also a Page](#a-group-that-is-also-a-page). A `javascript:`, `vbscript:` or `data:` URL is not rendered: the item is not a link |
+| `Target` | `string?` | -- | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"`, an external-link mark after its text (hidden on a rail of icons), and `NewTabText` for screen readers, and a click on a group's link always opens it there. `_self`, `_parent` and `_top` render as given and change nothing else. See [A Page in Another Tab](#a-page-in-another-tab) |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of a link whose `Target` opens another tab, after a comma. In a `Collapsed` menu it joins the icon's `aria-label` |
 | `Active` | `bool` | `false` | Highlighted as active route. A link reports it with `aria-current="page"`. When it turns on, the groups around the item open |
 | `Match` | `NavLinkMatch?` | -- | Works out `Active` from the address, as `NavLink` does, and follows it as the person moves around. `All` is the page itself, `Prefix` the page and anything under it, where a prefix ends at a `/`, so `theme` doesn't light for `theme-editor`. The query and fragment never count, as with `NavLink` on .NET 10. Left out, `Active` alone decides, and the item doesn't listen for page changes. With it, `Active` can still light the item. When the address lights it, the groups around it open. Links only |
 | `Expanded` | `bool` | `false` | Sub-menu expanded state (two-way bindable). A one-way value applies only when it changes. A group that opens for the current page raises `ExpandedChanged` |
@@ -151,6 +153,21 @@ On a rail the parent's icon opens its flyout, as any parent's does, and the flyo
 
 Up to 0.5.4 `Href` was ignored on an item with children.
 
+### A Page in Another Tab
+
+`Target="_blank"` opens a link in a new tab, for a page outside the app such as another service's own web page. The link gets `rel="noopener noreferrer"`, so the page it opens can't reach this one through `window.opener` and isn't told the address it came from, and a small external-link mark after its text. Screen readers hear ", opens in a new tab" after the name (`NewTabText`). On a rail of icons the mark goes and the words stay. A click, Ctrl+click and a middle click are the browser's own, and a click on a group's link always opens the tab rather than opening or closing the group. A page of the app opened this way still lights from its `Match` in the tab that shows it.
+
+```blazor-preview
+<div style="max-width: 280px;">
+    <MokaMenu>
+        <MokaMenuItem Text="Devices" Icon="MokaIcons.Navigation.Home" Href="devices" />
+        <MokaMenuItem Text="Ad blocker" Icon="MokaIcons.Action.Settings" Href="https://example.com/" Target="_blank" />
+    </MokaMenu>
+</div>
+```
+
+`MokaAppShell` takes the same from `MokaNavEntry.Target`.
+
 ### Groups on the Rail
 
 A menu that shows only icons, `Collapsed` or an `Adaptive` menu under `data-moka-rail`, can't open a group in place. There a parent opens a flyout beside its icon that lists the group's items with their names, icons, pills and current page. It's the group's own element, shown in the browser's top layer through Core's `moka-popup.js`, so the sidebar's overflow doesn't cut it off and nothing on the page paints over it. It opens on the side of the icon with room, takes the popup look (`MokaTheme.WithPopups`) on the new design, and scrolls when the group is taller than the window. A group inside it opens in place, as a disclosure.
@@ -191,7 +208,7 @@ A press outside closes it, and so does going to another page. Following a link o
 
 | Item | Renders as |
 |------|------------|
-| `Href`, no children | A link. With `Active`, or a `Match` that fits the address, it has `aria-current="page"` |
+| `Href`, no children | A link. With `Active`, or a `Match` that fits the address, it has `aria-current="page"`. With a `Target` that opens another tab, also `target`, `rel="noopener noreferrer"` and a hidden ", opens in a new tab" |
 | Children | A disclosure button with `aria-expanded` and `aria-controls` naming its group. A closed group is `inert`, so Tab skips its links. On a rail the group is a flyout, and `aria-expanded` says whether it's open |
 | `Href` and children | A link, then a disclosure button with `aria-expanded` and `aria-controls`, two tab stops side by side. On a rail, the disclosure button alone, with the link at the top of its flyout |
 | `OnClick` or `OnContextMenu` | A button |

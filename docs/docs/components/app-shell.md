@@ -66,6 +66,7 @@ The shell needs an interactive layout. Put one `MokaHotkeyHost` in that layout f
 | `NavLabel` | `string` | `"Main"` | The name of the navigation, for screen readers |
 | `OpenMenuLabel` | `string` | `"Open the menu"` | The name of the top bar's menu button |
 | `CloseMenuLabel` | `string` | `"Close the menu"` | The name of the drawer's close button |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of an entry whose `Target` opens another tab, after a comma |
 | `RailLabels` | `bool` | `false` | The rail shows each screen's name under its icon, and is 80 px wide. See [Names on the rail](#names-on-the-rail) |
 | `Framed` | `bool` | `false` | Draws the main area as an inset panel beside the menu, full bleed on a phone. See [A framed main area](#a-framed-main-area) |
 | `Nonce` | `string?` | -- | The nonce of a strict Content-Security-Policy, for the script that sets the rail before first paint. Only a static render (prerendering) writes that script, so only it needs the nonce; an interactive render writes no script. Without it such a policy blocks the script, and the rail settles a moment later |
@@ -98,6 +99,7 @@ private static readonly MokaNavEntry[] Entries =
 | `Href` | `string` | The route as a link relative to the page's base address |
 | `Bottom` | `bool` | Set with `{ Bottom = true }`: listed at the bottom of the menu, under the list that scrolls and above the account card, such as Settings. Its group isn't shown there |
 | `ImageSource` | `string?` | Set with `{ ImageSource = ... }`: a picture in place of `Icon`, such as a plugin's own icon, as a URL or a `data:image/...` URI. `Icon` stays the fallback, shown when the address isn't one a picture can come from or the picture fails to load. See `MokaMenuItem.ImageSource` in [Navigation](navigation.md) |
+| `Target` | `string?` | Set with `{ Target = "_blank" }`: opens the entry in a new tab, for a page outside the app such as another service's own web page (give `Route` its full address, which `Find` never matches). The menu marks it with an external-link mark and gives it `rel="noopener noreferrer"`. See [A Page in Another Tab](navigation.md#a-page-in-another-tab) |
 | `Children` | `IReadOnlyList<MokaNavEntry>` | Set with `{ Children = [...] }`: the screens listed under this one. The entry stays a page of its own. Children can hold children, and a child's `Group` and `Bottom` aren't read. Empty by default |
 
 `MokaNavEntry.Find(entries, path)` gives the entry a path belongs to, children included, for a page's eyebrow or your own title. Between two equally long routes the one listed first wins, a parent before its children. `MokaNavEntry.Flatten(entries)` gives every entry, each followed by its children, for anything that lists every screen.
@@ -112,6 +114,7 @@ Palette.RegisterMany(MokaNavEntry.Flatten(Entries).Select(entry => new MokaComma
     Description = entry.Group,
     Group = "Go to",
     Href = entry.Route,
+    Target = entry.Target,
     Keywords = entry.Keywords
 }));
 ```

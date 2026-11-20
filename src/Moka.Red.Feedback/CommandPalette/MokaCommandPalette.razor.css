@@ -92,6 +92,18 @@
 	cursor: default;
 }
 
+/* A command that opens another tab is a link, drawn like the other rows. */
+a.moka-command-palette__item {
+	color: inherit;
+	text-decoration: none;
+}
+
+.moka-command-palette__item-external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 /* MokaIcon renders the svg, so it carries its own scope and needs ::deep from here. */
 .moka-command-palette__item ::deep .moka-command-palette__item-icon {
 	flex-shrink: 0;

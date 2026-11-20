@@ -84,6 +84,22 @@ public partial class MokaMenuItem
 	public string? Href { get; set; }
 
 	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c>, an external-link mark after its text (not on a rail of icons), and
+	///     <see cref="NewTabText" /> for screen readers, and a click on it always opens it there, even on a group's link that
+	///     would otherwise open or close the group. <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and change
+	///     nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the name of a link whose <see cref="Target" /> opens another tab, after a comma.
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
+	/// <summary>
 	///     Whether this item is highlighted as the active route. A link says so to screen readers
 	///     with <c>aria-current="page"</c>. When it turns on, the groups around the item open.
 	/// </summary>
@@ -190,6 +206,9 @@ public partial class MokaMenuItem
 
 	private bool HasChildren => ChildContent is not null;
 	private string? LinkHref => UrlValues.SafeHref(Href);
+	private string? LinkTarget => IsLink ? Target : null;
+	private string? LinkRel => IsLink ? UrlValues.RelFor(Target) : null;
+	private bool OpensNewTab => IsLink && UrlValues.OpensNewTab(Target);
 	private bool IsActive => Active || _matched;
 
 	private static readonly string? ImageStyle = new StyleBuilder()
@@ -221,7 +240,8 @@ public partial class MokaMenuItem
 	// Whether a click on the link opens or closes the group in place of following the link. Rendered as the click's
 	// preventDefault, which the browser applies to the click Enter makes on a link too, and which Blazor's own link
 	// handling respects, so no script is needed.
-	private bool ClickStaysHere => ShowsLinkRow && !Disabled && CollapsesOnRepeat && (IsActive || (_expanded && HoldsCurrentChild));
+	private bool ClickStaysHere => ShowsLinkRow && !Disabled && !OpensNewTab && CollapsesOnRepeat
+	                               && (IsActive || (_expanded && HoldsCurrentChild));
 
 	private string ToggleLabel => _expanded
 		? HideLabel?.Invoke(Text ?? string.Empty) ?? $"Hide {Text}"
@@ -247,9 +267,19 @@ public partial class MokaMenuItem
 
 	// The text is not rendered while the menu shows only icons, so it names the item instead, and shows in a
 	// tooltip beside it.
-	private string? CollapsedLabel => !MenuCollapsed || string.IsNullOrEmpty(Text)
-		? null
-		: Pill is null ? Text : $"{Text}, {Pill.Why}";
+	private string? CollapsedLabel
+	{
+		get
+		{
+			if (!MenuCollapsed || string.IsNullOrEmpty(Text))
+			{
+				return null;
+			}
+
+			string label = Pill is null ? Text : $"{Text}, {Pill.Why}";
+			return OpensNewTab ? $"{label}, {NewTabText}" : label;
+		}
+	}
 
 	// An adaptive menu keeps its text for screen readers, so it needs the tag but no aria-label. It sits in the tag from
 	// the start because the rail can come and go without .NET hearing of it.

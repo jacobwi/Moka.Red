@@ -37,6 +37,7 @@ Place one `MokaCommandPalette` in the layout:
 | `ShowShortcuts` | `bool` | `true` | Shows each command's `Shortcut` hint as key caps |
 | `ShowGroups` | `bool` | `true` | Lists commands under their `Group` headings |
 | `Shortcut` | `string?` | `"Mod+K"` | Key combination that opens and closes the palette. Null or empty turns it off. See [Shortcut](#shortcut) |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the title of a command whose `Target` opens another tab, after a comma |
 
 ## MokaCommand
 
@@ -52,6 +53,7 @@ Place one `MokaCommandPalette` in the layout:
 | `OnExecute` | `Func<Task>?` | - | Runs when the command is chosen |
 | `OnExecuteSync` | `Action?` | - | Runs when the command is chosen and `OnExecute` is not set |
 | `Href` | `string?` | - | Navigates here after the action runs. A `javascript:`, `vbscript:` or `data:` URL is never navigated to |
+| `Target` | `string?` | - | Where `Href` opens: `_blank` for a new tab, or a window's name. See [Opening Another Tab](#opening-another-tab). `_self`, `_parent` and `_top` navigate in the page as without one |
 | `Disabled` | `bool` | `false` | Dimmed. Can be highlighted but doesn't run |
 
 ## IMokaCommandPaletteService
@@ -141,6 +143,24 @@ With `ShowGroups`, commands appear under their `Group` headings. Groups are sort
 A click or Enter closes the palette, then runs `OnExecute` (or `OnExecuteSync` when `OnExecute` is not set), then navigates to `Href` if there is one. A command can do its work and then route.
 
 The action runs inside the palette's event handler. When it changes something another component shows, that component calls `StateHasChanged()` itself.
+
+## Opening Another Tab
+
+A command with `Href` and `Target="_blank"` (or a window's name) opens the page in another tab, for a page outside the app. Its row is a link with `rel="noopener noreferrer"` and an external-link mark, and screen readers hear ", opens in a new tab" after its title (`NewTabText`).
+
+- A click, Ctrl+click or middle click is the link's own, so the browser opens the tab. A click also closes the palette and runs `OnExecute`.
+- Enter opens the tab first, then closes the palette and runs `OnExecute`. The palette keeps its highlight in .NET, which knows which row Enter meant after a run of arrow presses, and opens the tab as soon as it hears the key. Browsers let a page open a tab for five seconds after a key press (Chromium, Firefox and WebKit alike), so the popup blocker allows it.
+- The page itself stays where it is.
+
+```csharp
+Palette.Register(new MokaCommand
+{
+    Id = "router-admin",
+    Title = "Open the router's admin page",
+    Href = "https://192.168.1.1/",
+    Target = "_blank"
+});
+```
 
 ## Keyboard
 
