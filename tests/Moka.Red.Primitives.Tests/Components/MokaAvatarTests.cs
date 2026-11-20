@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
@@ -15,6 +16,7 @@ namespace Moka.Red.Primitives.Tests.Components;
 public class MokaAvatarTests : BunitContext
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string AvatarCss = "MokaAvatar.razor.css";
 
 	[Fact]
 	public void ATile_IsASoftSquare_NotACircle()
@@ -237,6 +239,145 @@ public class MokaAvatarTests : BunitContext
 		Assert.Equal("trim-both cap alphabetic",
 			ScopedCss.Declarations("MokaAvatar.razor.css", ".moka-avatar__initials")["text-box"]);
 	}
+
+	// SizeValue used to size only the box: a 56 px avatar drew the 14 px initials and the 16 px icon of a 40 px one.
+	[Fact]
+	public void SizeValue_GivesTheInitialsTheirStepsShareOfTheBox()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.SizeValue, "3.5rem"));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.Contains("moka-avatar--sized", root.ClassList);
+		Assert.StartsWith("width: 3.5rem; height: 3.5rem; --_avatar-size: 3.5rem;", root.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Equal("calc(var(--_avatar-size) * var(--_avatar-text) / var(--_avatar-box) * var(--moka-font-scale))",
+			ScopedCss.Declarations(AvatarCss, ".moka-avatar--sized")["font-size"]);
+	}
+
+	[Fact]
+	public void SizeValue_GivesTheIconItsStepsShareOfTheBox()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.SizeValue, "3.5rem"));
+
+		Assert.Contains("width: var(--_avatar-icon-size); height: var(--_avatar-icon-size)",
+			cut.Find(".moka-avatar__icon").GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Equal("calc(var(--_avatar-size) * var(--_avatar-icon) / var(--_avatar-box))",
+			ScopedCss.Declarations(AvatarCss, ".moka-avatar--sized")["--_avatar-icon-size"]);
+	}
+
+	// A tile's icon was 20 px whatever the tile's size.
+	[Fact]
+	public void ATileWithSizeValue_ScalesItsIconWithTheTile()
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.Tile, true)
+			.Add(x => x.SizeValue, "2rem"));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.Contains("moka-avatar--sized", root.ClassList);
+		Assert.Contains("--_avatar-size: 2rem", root.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains("width: var(--_avatar-icon-size)", cut.Find(".moka-avatar__icon").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void WithoutSizeValue_EveryStepDrawsAsBefore(bool tile)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.Tile, tile));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.DoesNotContain("moka-avatar--sized", root.ClassList);
+		Assert.DoesNotContain("--_avatar-size", root.GetAttribute("style") ?? string.Empty, StringComparison.Ordinal);
+		Assert.Contains(tile ? "width: 20px; height: 20px" : "width: 16px; height: 16px",
+			cut.Find(".moka-avatar__icon").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	// The stylesheet's numbers are each step's box, text and icon at the default text size. A SizeValue equal to a
+	// step's own box then draws exactly that step.
+	[Theory]
+	[InlineData(MokaSize.Xs, "xs", false)]
+	[InlineData(MokaSize.Sm, "sm", false)]
+	[InlineData(MokaSize.Md, "md", false)]
+	[InlineData(MokaSize.Lg, "lg", false)]
+	[InlineData(MokaSize.Md, "md", true)]
+	public void TheShares_AreTheStepsOwnSizes(MokaSize size, string step, bool tile)
+	{
+		IReadOnlyDictionary<string, string> shares =
+			ScopedCss.Declarations(AvatarCss, $".moka-avatar--sized.moka-avatar--{step}");
+		IReadOnlyDictionary<string, string> tileShares = ScopedCss.Declarations(AvatarCss, ".moka-avatar--sized.moka-avatar--tile");
+
+		IRenderedComponent<MokaAvatar> icon = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.Size, size)
+			.Add(x => x.Tile, tile));
+		string box = tile ? tileShares["--_avatar-box"] : shares["--_avatar-box"];
+		string iconSize = tile ? tileShares["--_avatar-icon"] : shares["--_avatar-icon"];
+
+		Match width = Regex.Match(icon.Find(".moka-avatar").GetAttribute("style") ?? string.Empty, "^width: (?<size>[^;]+);");
+		Assert.Equal(Number(box), Pixels(width.Groups["size"].Value));
+		Assert.Contains($"width: {iconSize}px; height: {iconSize}px", icon.Find(".moka-avatar__icon").GetAttribute("style"),
+			StringComparison.Ordinal);
+
+		string textToken = ScopedCss.Declarations(AvatarCss, $".moka-avatar--{step}")["font-size"];
+		string text = ScopedCss.Declarations("moka.css", ":root")[textToken["var(".Length..^1]];
+		Assert.Equal(Number(shares["--_avatar-text"]), Pixels(text));
+	}
+
+	[Theory]
+	[InlineData("56", "56px")]
+	[InlineData(" 3.5rem ", "3.5rem")]
+	[InlineData("var(--app-avatar)", "var(--app-avatar)")]
+	[InlineData("clamp(2rem, 8vw, 4rem)", "clamp(2rem, 8vw, 4rem)")]
+	public void SizeValue_ThatIsALength_IsShared(string value, string written)
+	{
+		IElement root = Render<MokaAvatar>(p => p
+			.Add(x => x.Initials, "JD")
+			.Add(x => x.SizeValue, value)).Find(".moka-avatar");
+
+		Assert.StartsWith($"width: {written}; height: {written}; --_avatar-size: {written};", root.GetAttribute("style"),
+			StringComparison.Ordinal);
+	}
+
+	// A value the content can't take a share of still sizes the box, and the content keeps its step's sizes. A
+	// percentage is of the avatar's container, and em, ex and ch of the avatar's own text, which the share would set.
+	[Theory]
+	[InlineData("fit-content")]
+	[InlineData("80%")]
+	[InlineData("calc(100% - 1rem)")]
+	[InlineData("3em")]
+	[InlineData("4ch")]
+	public void SizeValue_TheContentCantShare_SizesOnlyTheBox(string value)
+	{
+		IRenderedComponent<MokaAvatar> cut = Render<MokaAvatar>(p => p
+			.Add(x => x.Icon, MokaIcons.Navigation.Home)
+			.Add(x => x.SizeValue, value));
+
+		IElement root = cut.Find(".moka-avatar");
+		Assert.DoesNotContain("moka-avatar--sized", root.ClassList);
+		Assert.StartsWith($"width: {value}; height: {value};", root.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Contains("width: 16px", cut.Find(".moka-avatar__icon").GetAttribute("style"), StringComparison.Ordinal);
+	}
+
+	// Large initials were a literal 20 px, so they ignored the theme's text size and font scale.
+	[Fact]
+	public void LargeInitials_ReadATextSizeToken()
+	{
+		Assert.Equal("var(--moka-font-size-xl)", ScopedCss.Declarations(AvatarCss, ".moka-avatar--lg")["font-size"]);
+	}
+
+	private static double Number(string value) => double.Parse(value, CultureInfo.InvariantCulture);
+
+	// At the browser's default 16 px root, which is what the stylesheet's numbers assume.
+	private static double Pixels(string length) => length.EndsWith("rem", StringComparison.Ordinal)
+		? Number(length[..^"rem".Length]) * 16
+		: Number(length[..^"px".Length]);
 
 	private BunitJSModuleInterop SetupKeysModule()
 	{

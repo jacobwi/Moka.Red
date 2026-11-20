@@ -37,6 +37,14 @@ public partial class MokaGrid : MokaVisualComponentBase
 	[Parameter]
 	public string? MinColumn { get; set; }
 
+	/// <summary>
+	///     With <see cref="MinColumn" />, keeps the columns that hold no item, so one or two items stay as wide as they are
+	///     in a full row, and as the cards of another such grid on the page. Off by default: however few the items are, they
+	///     share the whole width. It writes <c>auto-fill</c> in place of <c>auto-fit</c>.
+	/// </summary>
+	[Parameter]
+	public bool KeepEmptyColumns { get; set; }
+
 	/// <summary>Number of equal-height rows. Null = auto rows (content-driven).</summary>
 	[Parameter]
 	public int? Rows { get; set; }
@@ -119,7 +127,7 @@ public partial class MokaGrid : MokaVisualComponentBase
 	private bool HasBreakpoints => Breakpoints is not null && Breakpoints.Count > 0;
 
 	private string? MinColumnTemplate => CssValues.IsLengthOrVariable(MinColumn)
-		? $"repeat(auto-fit, minmax(min(100%, {CssValues.WithPixels(MinColumn.Trim())}), 1fr))"
+		? $"repeat({(KeepEmptyColumns ? "auto-fill" : "auto-fit")}, minmax(min(100%, {CssValues.WithPixels(MinColumn.Trim())}), 1fr))"
 		: null;
 
 	private string ColumnsTemplate => MinColumnTemplate ?? ColumnsValue ?? $"repeat({Columns}, 1fr)";

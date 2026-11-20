@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Moka.Red.Core.Enums;
@@ -11,7 +12,8 @@ namespace Moka.Red.Primitives.Avatar;
 ///     User avatar component displaying an image, initials, or icon fallback. Initials sit on a label color picked from
 ///     the initials, the same one in every process and on every platform, unless <c>Color</c> or
 ///     <see cref="ColorValue" /> names one. <c>Color</c> fills the avatar with that theme color, black or white ink on it
-///     by its lightness; <c>MokaColor.Surface</c> is the neutral fill.
+///     by its lightness; <c>MokaColor.Surface</c> is the neutral fill. <c>SizeValue</c> sets a size of the app's own, and
+///     the initials and the icon keep the share of the box they have at <c>Size</c>'s own size.
 /// </summary>
 public partial class MokaAvatar
 {
@@ -102,6 +104,7 @@ public partial class MokaAvatar
 		.AddClass("moka-avatar--bordered", Bordered)
 		.AddClass("moka-avatar--clickable", IsClickable)
 		.AddClass("moka-avatar--own", OwnColor is not null)
+		.AddClass("moka-avatar--sized", OwnSize is not null)
 		.AddClass(Class)
 		.Build();
 
@@ -146,6 +149,7 @@ public partial class MokaAvatar
 			return new StyleBuilder()
 				.AddStyle("width", AvatarSize)
 				.AddStyle("height", AvatarSize)
+				.AddStyle("--_avatar-size", OwnSize)
 				.AddStyle("--_avatar-color", OwnColor)
 				.AddStyle("background-color", hue is { } tint ? MokaLabelColors.Background(tint) : null)
 				.AddStyle("color", hue is { } ink ? MokaLabelColors.Ink(ink) : null)
@@ -157,7 +161,16 @@ public partial class MokaAvatar
 		}
 	}
 
-	private string AvatarSize => SizeValue ?? (Tile ? "2.75rem" : null) ?? Size switch
+	// A length the stylesheet can take the content's share of. Not a percentage, which the box takes of its container,
+	// nor em, ex or ch, which the box takes of its own text while the text would take them of its parent's. Any other value
+	// still sizes the box, as it always has, and the content keeps its step's sizes.
+	private string? OwnSize => CssValues.IsLengthExpression(SizeValue) && !RelativeToTextOrContainer().IsMatch(SizeValue)
+		? CssValues.WithPixels(SizeValue.Trim())
+		: null;
+
+	private string? IconSizeValue => OwnSize is not null ? "var(--_avatar-icon-size)" : Tile ? "20px" : null;
+
+	private string AvatarSize => OwnSize ?? SizeValue ?? (Tile ? "2.75rem" : null) ?? Size switch
 	{
 		MokaSize.Xs => "24px",
 		MokaSize.Sm => "32px",
@@ -220,4 +233,7 @@ public partial class MokaAvatar
 			await OnClick.InvokeAsync(args);
 		}
 	}
+
+	[GeneratedRegex(@"%|\d(?:em|ex|ch)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex RelativeToTextOrContainer();
 }

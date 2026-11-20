@@ -8,6 +8,7 @@ namespace Moka.Red.Layout.Tests.Components;
 public class MokaGridMinColumnTests : BunitContext
 {
 	private const string AutoFit300 = "repeat(auto-fit, minmax(min(100%, 300px), 1fr))";
+	private const string AutoFill300 = "repeat(auto-fill, minmax(min(100%, 300px), 1fr))";
 
 	private static readonly IReadOnlyList<MokaBreakpoint> WideColumns =
 	[
@@ -134,5 +135,48 @@ public class MokaGridMinColumnTests : BunitContext
 			.Add(x => x.Breakpoints, WideColumns));
 
 		Assert.StartsWith("@media(min-width:1280px)", cut.Find("style").TextContent, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void KeepEmptyColumns_WritesTheAutoFillTemplate()
+	{
+		string? style = GridStyle(p => p.Add(x => x.MinColumn, "300px").Add(x => x.KeepEmptyColumns, true));
+
+		Assert.Equal($"display: grid; grid-template-columns: {AutoFill300}", style);
+	}
+
+	[Theory]
+	[InlineData("var(--x)")]
+	[InlineData("300")]
+	public void KeepEmptyColumns_ChangesOnlyTheRepeatKeyword(string value)
+	{
+		string? fit = GridStyle(p => p.Add(x => x.MinColumn, value));
+		string? fill = GridStyle(p => p.Add(x => x.MinColumn, value).Add(x => x.KeepEmptyColumns, true));
+
+		Assert.Equal(fit!.Replace("auto-fit", "auto-fill", StringComparison.Ordinal), fill);
+	}
+
+	[Fact]
+	public void KeepEmptyColumns_WithoutMinColumn_ChangesNothing()
+	{
+		string? style = GridStyle(p => p.Add(x => x.Columns, 3).Add(x => x.KeepEmptyColumns, true));
+
+		Assert.Equal("display: grid; grid-template-columns: repeat(3, 1fr)", style);
+	}
+
+	[Fact]
+	public void KeepEmptyColumns_WithBreakpoints_StaysInline_AndTheBreakpointTakesOverAtItsWidth()
+	{
+		IRenderedComponent<MokaGrid> cut = Render<MokaGrid>(p => p
+			.Add(x => x.MinColumn, "300px")
+			.Add(x => x.KeepEmptyColumns, true)
+			.Add(x => x.Breakpoints, WideColumns));
+
+		IElement grid = cut.Find(".moka-grid");
+		string uniqueClass = grid.ClassList.Single(c => c.StartsWith("moka-grid-", StringComparison.Ordinal));
+
+		Assert.Contains(AutoFill300, grid.GetAttribute("style"), StringComparison.Ordinal);
+		Assert.Equal("@media(min-width:1280px){." + uniqueClass + "{grid-template-columns: repeat(4, 1fr) !important}}",
+			cut.Find("style").TextContent);
 	}
 }

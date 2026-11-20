@@ -23,11 +23,38 @@ The simplest approach is to install the single meta-package, which pulls in ever
 dotnet add package Moka.Red
 ```
 
-A published Blazor WebAssembly app trims what it doesn't use, so the meta-package doesn't make it download every component. `Moka.Red.Diagnostics` isn't part of the meta-package and stays whole if you add it.
+A published Blazor WebAssembly app trims the code it doesn't use, so the meta-package doesn't make it download every component's code. Its CSS is another matter: see below. `Moka.Red.Diagnostics` isn't part of the meta-package and stays whole if you add it.
 
 ### Individual Packages
 
-For fine-grained control - particularly useful in large projects or when bundle size matters - add only the packages you need:
+Add only the packages whose components you use. The reason is CSS: an app's `{AppName}.styles.css` imports the scoped stylesheet of every Moka.Red package it references, directly or through another package, and the browser loads them all with the first page, whether that page uses those components or not. Trimming removes unused code from a WebAssembly download, and a Blazor Server app sends no code at all, but nothing removes unused CSS. So on Blazor Server, and on WebAssembly too, the packages you reference decide how much CSS every visitor loads.
+
+Measured on a Release publish, as `MapStaticAssets` serves the minified stylesheets:
+
+| The app references | Scoped CSS | gzip | Brotli |
+|--------------------|-----------:|-----:|-------:|
+| `Moka.Red` (every package) | 1,602 KB | 185 KB | 150 KB |
+| `Moka.Red.Data` (every package but ThemeGen) | 1,534 KB | 178 KB | 143 KB |
+| `Moka.Red.Forms` and `Moka.Red.Layout` | 1,098 KB | 127 KB | 101 KB |
+| `Moka.Red.Layout` (brings Feedback) | 715 KB | 85 KB | 69 KB |
+| `Moka.Red.Primitives` | 413 KB | 48 KB | 38 KB |
+
+`moka.css` and the fonts come from `MokaThemeProvider` and are the same whichever packages you reference.
+
+A package brings the packages it builds on, and their CSS with them:
+
+| Package | Brings |
+|---------|--------|
+| `Moka.Red.Core` | nothing |
+| `Moka.Red.Icons` | Core |
+| `Moka.Red.Primitives` | Core, Icons |
+| `Moka.Red.Forms`, `Moka.Red.Feedback`, `Moka.Red.ContextMenu` | Core, Icons, Primitives |
+| `Moka.Red.Layout`, `Moka.Red.Navigation` | Core, Icons, Primitives, Feedback |
+| `Moka.Red.Data` | every package but ThemeGen and Diagnostics |
+| `Moka.Red.ThemeGen` | every package but Diagnostics |
+| `Moka.Red.Diagnostics` | Core, Icons, Primitives |
+
+So an app with a table or a chart gains little from individual packages. An app of forms, cards and dialogs loads about two thirds of the CSS, and one of cards and dialogs less than half. Then register the services your components need (see [Service Registration](#service-registration) below).
 
 ```bash
 # Core base classes and theming (required by all other packages)
@@ -68,7 +95,7 @@ dotnet add package Moka.Red.Diagnostics
 
 ### Meta-package (recommended)
 
-If you installed the `Moka.Red` meta-package, a single call registers all services (theming, toast, dialog, notification, command palette):
+If you installed the `Moka.Red` meta-package, a single call registers every service the components use:
 
 ```csharp
 // Program.cs
@@ -77,21 +104,52 @@ using Moka.Red.Extensions;
 builder.Services.AddMokaRed();
 ```
 
+`AddMokaRed(o => o.Theme = MokaTheme.Gate)` picks the theme it registers, and `o.Feedback` sets the Feedback options below.
+
 ### Individual packages
 
-When using individual packages, register services for the packages you installed:
+`AddMokaRed()` is these six calls, each from the package that owns the service. Without the meta-package, make the calls for the components you use:
 
 ```csharp
 // Program.cs
+using Moka.Red.ContextMenu.Extensions;
+using Moka.Red.Core.Extensions;
 using Moka.Red.Feedback.Extensions;
 
-// Toast, dialog, notification, command palette services
-builder.Services.AddMokaFeedback();
+builder.Services.AddMokaRedCore();      // Moka.Red.Core
+builder.Services.AddMokaAnnouncer();    // Moka.Red.Core
+builder.Services.AddMokaFeedback();     // Moka.Red.Feedback
+builder.Services.AddMokaContextMenu();  // Moka.Red.ContextMenu
+builder.Services.AddMokaHotkeys();      // Moka.Red.Core
+builder.Services.AddMokaPageTitles();   // Moka.Red.Core
 ```
+
+| Call | Registers | Needed by |
+|------|-----------|-----------|
+| `AddMokaRedCore(theme)` | The theme (`MokaTheme.Default` unless you pass one) as a root-level cascading value | Components outside a `MokaThemeProvider`, and interactive components under a statically rendered provider: a cascading value doesn't cross a render mode boundary, a root-level one does. Under an interactive provider everything gets the theme from the provider |
+| `AddMokaAnnouncer()` | `IMokaAnnouncer`, what the app says to screen readers | `MokaAnnouncerHost`, `MokaToastHost` and `MokaBannerHost`. `AddMokaFeedback()` calls it too |
+| `AddMokaFeedback()` | `IMokaToastService`, `IMokaDialogService`, `IMokaNotificationService`, `IMokaCommandPaletteService`, `IMokaBannerService`, browser storage for dismissed banners (unless you registered an `IMokaBannerStorage`), `MokaFeedbackOptions` and the announcer | `MokaToastHost` and `MokaToast`, `MokaDialogHost`, `MokaNotificationCenter`, `MokaCommandPalette` and `MokaBannerHost`. `MokaTable`'s `ConfirmDelete` asks through the dialog service and deletes without asking when it isn't registered |
+| `AddMokaContextMenu()` | `IMokaContextMenuService`, the one shared menu | `MokaContextMenuHost` and `MokaRowMenuColumn`. `MokaContextMenuTrigger`, `MokaRadialMenuTrigger` and `MokaFileBrowser` use the shared menu when it is registered and a host is in the layout, and draw their own otherwise |
+| `AddMokaHotkeys()` | `IMokaHotkeyService`, the app's shortcut registry | `MokaHotkeyHost`. Without it `MokaCheatsheet` shows only the groups you pass it, and `MokaAppShell` has no `[` shortcut for its rail |
+| `AddMokaPageTitles()` | `IMokaPageTitleService` | `MokaPageTitle` and `MokaPageTitleHost` |
+
+A component that injects a service fails to render without it ("There is no registered service of type ..."), and `MokaRowMenuColumn` fails when its menu opens. A host such as `MokaToastHost` goes in the layout once, as with the meta-package.
 
 `AddMokaFeedback(f => ...)`, or `MokaRedOptions.Feedback` with the meta-package, sets app-wide toast defaults and a
 limit on stored notifications (`MokaFeedbackOptions`, see [Toast](/components/toast) and
 [Notification](/components/notification)).
+
+Some services aren't part of `AddMokaRed()` with either setup, and you add them when you use what needs them:
+
+| Call | Namespace | For |
+|------|-----------|-----|
+| `AddMokaTabs<TValue>()` | `Moka.Red.Navigation.Extensions` | `MokaTabContainer<TValue>` |
+| `AddMokaSystemNotifier()` | `Moka.Red.Feedback.Extensions` | Notifications outside the page, through the browser's Notification API |
+| `AddMokaFilePicker<TPicker>()` | `Moka.Red.Core.Extensions` | An app's own file picker (see below) |
+| `AddMokaDockWindows()`, `AddMokaDockStorage<TStorage>()` | `Moka.Red.Layout.DockLayout` | `MokaDockLayout` panels in their own window on Blazor Server, and dock layouts saved somewhere other than the browser |
+| `AddMokaDiagnostics()` | `Moka.Red.Diagnostics.Extensions` | The diagnostics overlay (see below) |
+
+In `_Imports.razor`, the hosts live in `Moka.Red.Core.Announcer`, `Moka.Red.Core.Hotkeys`, `Moka.Red.Core.PageTitle`, `Moka.Red.Feedback.Toast`, `Moka.Red.Feedback.Dialog`, `Moka.Red.Feedback.Banner`, `Moka.Red.Feedback.Notification`, `Moka.Red.Feedback.CommandPalette` and `Moka.Red.ContextMenu`. [Namespace Imports](imports) lists the namespaces of every package, with a minimal set for individual packages.
 
 ### File picker (Blazor Hybrid)
 

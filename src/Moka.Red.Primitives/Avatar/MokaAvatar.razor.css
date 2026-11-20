@@ -63,7 +63,44 @@
 }
 
 .moka-avatar--lg {
-	font-size: 20px;
+	font-size: var(--moka-font-size-xl);
+}
+
+/* SizeValue: the initials and the icon keep the share of the box they have at their step's own size, so an avatar of
+   3.5rem draws a larger Md avatar. The numbers are each step's box, text and icon in px at the default text size: the
+   boxes and icons MokaAvatar writes, the text its step's token. MokaAvatarTests holds them to those. */
+.moka-avatar--sized.moka-avatar--xs {
+	--_avatar-box: 24;
+	--_avatar-text: 11;
+	--_avatar-icon: 14;
+}
+
+.moka-avatar--sized.moka-avatar--sm {
+	--_avatar-box: 32;
+	--_avatar-text: 12;
+	--_avatar-icon: 14;
+}
+
+.moka-avatar--sized.moka-avatar--md {
+	--_avatar-box: 40;
+	--_avatar-text: 14;
+	--_avatar-icon: 16;
+}
+
+.moka-avatar--sized.moka-avatar--lg {
+	--_avatar-box: 56;
+	--_avatar-text: 20;
+	--_avatar-icon: 20;
+}
+
+.moka-avatar--sized.moka-avatar--tile {
+	--_avatar-box: 44;
+	--_avatar-icon: 20;
+}
+
+.moka-avatar--sized {
+	--_avatar-icon-size: calc(var(--_avatar-size) * var(--_avatar-icon) / var(--_avatar-box));
+	font-size: calc(var(--_avatar-size) * var(--_avatar-text) / var(--_avatar-box) * var(--moka-font-scale));
 }
 
 /* Image */

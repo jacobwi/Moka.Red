@@ -24,9 +24,10 @@ order: 25
 | `ShowIdenticon` | `bool` | `true` | Whether to show identicon as final fallback |
 | `Bordered` | `bool` | `false` | White border for overlapping avatars |
 | `Size` | `MokaSize` | `Md` | `Xs` (24px), `Sm` (32px), `Md` (40px), `Lg` (56px) |
+| `SizeValue` | `string?` | -- | Any size, such as `3.5rem` or `var(--app-avatar)`. The initials and the icon keep the share of the box they have at `Size` |
 | `Rounded` | `MokaRounding?` | `Full` | `Full` (circle), `None` (square), or any rounding value |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Makes the avatar a button: tab stop, focus ring, Enter and Space |
-| `Tile` | `bool` | `false` | A soft 44 px square for an icon rather than a person: a device, a plugin or a section of an app. `SizeValue` and `Rounded` still apply |
+| `Tile` | `bool` | `false` | A soft 44 px square for an icon rather than a person: a device, a plugin or a section of an app. `SizeValue` and `Rounded` still apply, and the icon grows and shrinks with the tile |
 | `Color` | `MokaColor?` | -- | Fills an avatar that shows no picture with a theme color, black or white ink on it by its lightness. `Surface` is the neutral fill. Unset, initials get their own label color |
 | `ColorValue` | `string?` | -- | Any CSS color or token, such as `#2563eb` or `var(--moka-label-teal)`, filled the same way. Wins over `Color`; anything that isn't a color is ignored |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -89,6 +90,18 @@ The avatar's own `color` is the ink, and the initials and icon take it, so a `St
     <MokaAvatar Initials="LG" Size="MokaSize.Lg" />
 </div>
 ```
+
+### Own size
+
+`SizeValue` takes a length, `calc()`, `var()` or `clamp()`. The initials and the icon keep the share of the box they have at `Size`'s own size, so `SizeValue="56px"` with the default `Md` draws a larger `Md` avatar: 19.6 px initials and a 22.4 px icon, where `Lg` has 20 px of each. The text share follows the theme's font scale; the shares themselves are those of the default text size. A tile's icon keeps its share too: 20 px at the tile's own 2.75rem, 32 px at 4.4rem. A percentage, or `em`, `ex` or `ch`, sizes only the box and the content keeps `Size`'s sizes, since the box takes a percentage of its container and those units of its own text.
+
+```razor
+<MokaAvatar Initials="JD" SizeValue="3.5rem" />
+<MokaAvatar Icon="MokaIcons.Navigation.Home" SizeValue="var(--profile-avatar)" />
+<MokaAvatar Icon="MokaIcons.Content.Server" Tile SizeValue="2rem" />
+```
+
+Up to 0.10.2, `SizeValue` sized only the box: a large avatar kept the initials and icon of its step, and a tile's icon was 20 px at any size.
 
 ## Square Avatars
 

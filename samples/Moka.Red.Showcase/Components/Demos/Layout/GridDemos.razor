@@ -51,6 +51,20 @@
 	</MokaGrid>
 </DemoSection>
 
+<DemoSection Id="keep-empty-columns" Title="Keep empty columns" Description="Two items with MinColumn: by default they share the whole width; KeepEmptyColumns keeps them as wide as in a full row.">
+	<div style="display: grid; gap: var(--moka-spacing-md);">
+		@foreach (bool keep in new[] { false, true })
+		{
+			<MokaGrid MinColumn="12rem" KeepEmptyColumns="keep" Gap="MokaSpacingScale.Sm">
+				@for (var i = 1; i <= 2; i++)
+				{
+					<div style="padding: var(--moka-spacing-md); background: var(--moka-color-surface-variant); border-radius: var(--moka-radius-md); text-align: center; font-size: var(--moka-font-size-sm);">@(keep ? "Kept" : "Shared") @i</div>
+				}
+			</MokaGrid>
+		}
+	</div>
+</DemoSection>
+
 @code {
 	private static readonly MokaBreakpoint[] _gridBreakpoints =
 	[

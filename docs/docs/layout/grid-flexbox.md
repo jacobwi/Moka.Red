@@ -22,6 +22,7 @@ use `Breakpoints` for full control.
 | `Columns` | `int` | `1` | Number of equal-width columns. |
 | `ColumnsValue` | `string?` | -- | Custom `grid-template-columns`. Overrides `Columns`. |
 | `MinColumn` | `string?` | -- | The narrowest a column may get, such as `"300px"` or `"var(--card-min)"`: as many columns as fit. Overrides `Columns` and `ColumnsValue`. A value that isn't a length or a `var()` is ignored. |
+| `KeepEmptyColumns` | `bool` | `false` | With `MinColumn`, keeps the columns no item fills, so a few items stay as wide as in a full row. Off, the items share the whole width. |
 | `Rows` | `int?` | -- | Number of equal-height rows (auto when null). |
 | `RowsValue` | `string?` | -- | Custom `grid-template-rows`. Overrides `Rows`. |
 | `ColumnsMd` | `int?` | -- | Column count at ≥ 768 px. |
@@ -66,6 +67,22 @@ use `Breakpoints` for full control.
     @foreach (var card in cards)
     {
         <ProductCard Item="card" />
+    }
+</MokaGrid>
+```
+
+### Few items: share the width or keep the columns
+
+With fewer items than fit in a row, `MinColumn` stretches them across the whole width: one card on a wide screen fills it. `KeepEmptyColumns` keeps the columns that hold nothing, so one card stays the width it has in a full row. It writes `auto-fill` in place of `auto-fit`; once the items fill a row the two lay out the same.
+
+- Leave it off when the items are the page's content and should use the room: a dashboard of a few tiles, a form split into panels, a list that is usually full.
+- Turn it on when the items are cards of one kind whose size means something, and the count varies: search results, a gallery, a list a filter can shrink to one, or several grids on one page whose cards should line up.
+
+```razor
+<MokaGrid MinColumn="16rem" KeepEmptyColumns Gap="MokaSpacingScale.Md">
+    @foreach (var result in results)
+    {
+        <ResultCard Item="result" />
     }
 </MokaGrid>
 ```
