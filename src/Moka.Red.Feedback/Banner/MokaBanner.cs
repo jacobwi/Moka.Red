@@ -47,6 +47,13 @@ public sealed record MokaBanner
 	/// <summary>Where the link goes. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> address is dropped.</summary>
 	public string? Href { get; init; }
 
+	/// <summary>
+	///     Where the link opens, such as <c>_blank</c>. Needs <see cref="Href" />. One that opens another tab gets
+	///     <c>rel="noopener noreferrer"</c>, and screen readers hear <see cref="MokaBannerText.NewTab" /> after its words.
+	///     <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and add nothing.
+	/// </summary>
+	public string? Target { get; init; }
+
 	/// <summary>The words on an action button, such as "Reload". Needs <see cref="OnAction" />.</summary>
 	public string? ActionText { get; init; }
 

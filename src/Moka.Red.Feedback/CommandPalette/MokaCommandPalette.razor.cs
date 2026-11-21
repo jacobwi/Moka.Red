@@ -3,19 +3,26 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Utilities;
+using Moka.Red.Feedback.Internal;
 
 namespace Moka.Red.Feedback.CommandPalette;
 
 /// <summary>
 ///     A Ctrl+K spotlight search overlay for discovering and executing commands.
 ///     Register commands via <see cref="IMokaCommandPaletteService" /> and place this
-///     component once in your layout (e.g., after MokaDialogHost).
+///     component once in your layout (e.g., after MokaDialogHost). To screen readers it is a modal dialog holding the
+///     WAI-ARIA combobox pattern: the search box keeps focus and points at the highlighted command in a listbox through
+///     <c>aria-activedescendant</c>.
 /// </summary>
 public partial class MokaCommandPalette : MokaComponentBase
 {
 	private const string HoverModule = "./_content/Moka.Red.Core/moka-hover.js";
 	private const string PaletteModule = "./_content/Moka.Red.Feedback/moka-command-palette.js";
 
+	private readonly string _listboxId = $"moka-command-palette-{Guid.NewGuid():N}-listbox";
+	private readonly MokaOverlayFocusTrap _focusTrap;
+
+	private ElementReference _dialogRef;
 	private DotNetObjectReference<MokaCommandPalette>? _dotNetRef;
 	private List<MokaCommand> _filteredCommands = [];
 	private int _focusedIndex = -1;
@@ -23,11 +30,17 @@ public partial class MokaCommandPalette : MokaComponentBase
 	private bool _isOpen;
 	private IJSObjectReference? _jsModule;
 	private ElementReference _resultsRef;
+	private bool _statusLive;
 	private bool _wasOpen;
 
 	private string _searchText = string.Empty;
 	private int? _shortcutHandle;
 	private string? _registeredShortcut;
+
+	/// <summary>Creates the palette.</summary>
+	public MokaCommandPalette() => _focusTrap = new MokaOverlayFocusTrap(
+		element => SafeModuleInvokeAsync<int>(MokaOverlayFocusTrap.Module, "trapFocus", element),
+		handle => SafeModuleInvokeVoidAsync(MokaOverlayFocusTrap.Module, "releaseFocus", handle));
 
 	[Inject] private IMokaCommandPaletteService Service { get; set; } = default!;
 
@@ -37,7 +50,24 @@ public partial class MokaCommandPalette : MokaComponentBase
 	[Parameter]
 	public string Placeholder { get; set; } = "Search commands...";
 
-	/// <summary>Text shown when no commands match the search.</summary>
+	/// <summary>
+	///     The accessible name of the palette's dialog and of the list of commands in it, which screen readers say when
+	///     the palette opens.
+	/// </summary>
+	[Parameter]
+	public string Label { get; set; } = "Command palette";
+
+	/// <summary>
+	///     The accessible name of the search box, a combobox to screen readers. The placeholder is only a hint and goes
+	///     away once something is typed, so the box carries a name of its own.
+	/// </summary>
+	[Parameter]
+	public string SearchLabel { get; set; } = "Search commands";
+
+	/// <summary>
+	///     Text shown when no commands match the search. Screen readers hear it too, from a polite live region, when the
+	///     list empties.
+	/// </summary>
 	[Parameter]
 	public string NoResultsText { get; set; } = "No commands found";
 
@@ -85,6 +115,17 @@ public partial class MokaCommandPalette : MokaComponentBase
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// A live region added with its text already in it isn't announced, so the status region opens empty and takes
+		// the no-results text one render later.
+		if (_isOpen && !_statusLive)
+		{
+			_statusLive = true;
+			if (!HasResults)
+			{
+				StateHasChanged();
+			}
+		}
+
 		try
 		{
 			if (firstRender)
@@ -114,6 +155,9 @@ public partial class MokaCommandPalette : MokaComponentBase
 			{
 				await _jsModule.InvokeVoidAsync("focusInput", _inputRef);
 			}
+
+			// The palette is a modal dialog, so Tab stays inside it while it's open and focus goes back where it was.
+			await _focusTrap.SyncAsync(() => _isOpen, _dialogRef);
 		}
 		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{
@@ -133,6 +177,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 	private void HandleToggle()
 	{
 		_isOpen = Service.IsOpen;
+		_statusLive = false;
 		if (_isOpen)
 		{
 			_searchText = string.Empty;
@@ -250,6 +295,16 @@ public partial class MokaCommandPalette : MokaComponentBase
 	private List<MokaCommand> DisplayedCommands() =>
 		ShowGroups ? GroupedCommands().SelectMany(g => g).ToList() : _filteredCommands;
 
+	private bool HasResults => _filteredCommands.Count > 0;
+
+	private string? ActiveOptionId => _focusedIndex >= 0 && _focusedIndex < _filteredCommands.Count ? OptionId(_focusedIndex) : null;
+
+	private string? StatusText => _statusLive && !HasResults ? NoResultsText : null;
+
+	private string OptionId(int index) => $"{_listboxId}-option-{index}";
+
+	private string GroupHeadingId(int firstIndex) => $"{_listboxId}-group-{firstIndex}";
+
 	private string ItemCss(MokaCommand command, int index) => new CssBuilder("moka-command-palette__item")
 		.AddClass("moka-command-palette__item--focused", index == _focusedIndex)
 		.AddClass("moka-command-palette__item--disabled", command.Disabled)
@@ -259,6 +314,7 @@ public partial class MokaCommandPalette : MokaComponentBase
 	protected override async ValueTask DisposeAsyncCore()
 	{
 		Service.OnToggle -= HandleToggle;
+		await _focusTrap.ReleaseAsync();
 
 		if (_shortcutHandle is not null)
 		{

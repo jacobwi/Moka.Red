@@ -38,9 +38,10 @@ order: 25
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment?` | -- | `MokaAvatar` elements |
-| `Max` | `int` | `5` | Maximum avatars before showing "+N" |
+| `Max` | `int` | `5` | How many avatars show, in markup order. The rest are left out and a "+N" avatar counts them. 0 or less shows only the count |
 | `Spacing` | `string` | `"-8px"` | Overlap amount (negative margin) |
-| `Size` | `MokaSize` | `Md` | Size applied to all child avatars |
+| `Size` | `MokaSize` | `Md` | When set, the size of every avatar that sets no size of its own, and of the "+N" |
+| `SizeValue` | `string?` | -- | When set, the own size of every avatar that sets no size of its own, and of the "+N", as on [`MokaAvatar`](#own-size) |
 
 ## Image Avatar
 
@@ -147,3 +148,27 @@ Its accessible name is `Alt`, whatever the avatar shows, so give a clickable ava
     <MokaAvatar Initials="EE" />
 </MokaAvatarGroup>
 ```
+
+The group shows its first `Max` avatars in the order they stand and leaves the rest out, and a "+N" avatar at the end counts them. The "+N" is a `MokaAvatar` on the neutral fill, so it takes the group's overlap and ring, and its size. Avatars that come and go, such as those in a `@foreach`, move the count.
+
+### Group size
+
+A `Size` or `SizeValue` set on the group sizes every avatar in it that sets neither of its own, and the "+N" with them. An avatar with its own `Size` or `SizeValue` keeps it and takes nothing from the group. With a length `SizeValue` the initials and icons keep their share of the box, as on an avatar alone, from the group's `Size`.
+
+```razor
+<MokaAvatarGroup Size="MokaSize.Sm" Max="4">
+    @foreach (var member in _members)
+    {
+        <MokaAvatar Initials="@member.Initials" />
+    }
+</MokaAvatarGroup>
+
+<MokaAvatarGroup Size="MokaSize.Lg" SizeValue="3.5rem">
+    <MokaAvatar Initials="AB" />
+    <MokaAvatar Initials="CD" Size="MokaSize.Sm" />
+</MokaAvatarGroup>
+```
+
+A group without `Size` or `SizeValue` leaves its avatars as they would be alone.
+
+Up to 0.11.3 the group's `Size` and `SizeValue` never reached its avatars, and `Max` left nothing out: every avatar showed and the "+N" never appeared.

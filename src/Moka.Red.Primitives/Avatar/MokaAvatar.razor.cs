@@ -13,7 +13,9 @@ namespace Moka.Red.Primitives.Avatar;
 ///     the initials, the same one in every process and on every platform, unless <c>Color</c> or
 ///     <see cref="ColorValue" /> names one. <c>Color</c> fills the avatar with that theme color, black or white ink on it
 ///     by its lightness; <c>MokaColor.Surface</c> is the neutral fill. <c>SizeValue</c> sets a size of the app's own, and
-///     the initials and the icon keep the share of the box they have at <c>Size</c>'s own size.
+///     the initials and the icon keep the share of the box they have at <c>Size</c>'s own size. Inside a
+///     <see cref="MokaAvatarGroup" /> it takes the group's <c>Size</c> and <c>SizeValue</c> unless it sets either of its own,
+///     and it is left out past the group's <see cref="MokaAvatarGroup.Max" />.
 /// </summary>
 public partial class MokaAvatar
 {
@@ -33,7 +35,9 @@ public partial class MokaAvatar
 	];
 
 	private ElementReference _element;
+	private bool _hiddenByGroup;
 	private bool _keysBound;
+	private bool _sizeGiven;
 
 	/// <summary>Image URL for the avatar.</summary>
 	[Parameter]
@@ -92,12 +96,18 @@ public partial class MokaAvatar
 	[Parameter]
 	public string? ColorValue { get; set; }
 
+	[CascadingParameter]
+	private MokaAvatarGroup? Group { get; set; }
+
+	[CascadingParameter]
+	private MokaAvatarGroupSizing? GroupSizing { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-avatar";
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
-		.AddClass($"moka-avatar--{SizeToKebab(Size)}")
+		.AddClass($"moka-avatar--{SizeToKebab(EffectiveSize)}")
 		.AddClass("moka-avatar--tile", Tile)
 		.AddClass("moka-avatar--rounded", Rounded == MokaRounding.Full)
 		.AddClass("moka-avatar--square", Rounded == MokaRounding.None)
@@ -164,13 +174,19 @@ public partial class MokaAvatar
 	// A length the stylesheet can take the content's share of. Not a percentage, which the box takes of its container,
 	// nor em, ex or ch, which the box takes of its own text while the text would take them of its parent's. Any other value
 	// still sizes the box, as it always has, and the content keeps its step's sizes.
-	private string? OwnSize => CssValues.IsLengthExpression(SizeValue) && !RelativeToTextOrContainer().IsMatch(SizeValue)
-		? CssValues.WithPixels(SizeValue.Trim())
+	private string? OwnSize => CssValues.IsLengthExpression(EffectiveSizeValue) && !RelativeToTextOrContainer().IsMatch(EffectiveSizeValue)
+		? CssValues.WithPixels(EffectiveSizeValue.Trim())
 		: null;
+
+	private bool NamesOwnSize => _sizeGiven || SizeValue is not null;
+
+	private MokaSize EffectiveSize => !NamesOwnSize && GroupSizing?.Size is { } groupSize ? groupSize : Size;
+
+	private string? EffectiveSizeValue => NamesOwnSize ? SizeValue : GroupSizing?.SizeValue;
 
 	private string? IconSizeValue => OwnSize is not null ? "var(--_avatar-icon-size)" : Tile ? "20px" : null;
 
-	private string AvatarSize => OwnSize ?? SizeValue ?? (Tile ? "2.75rem" : null) ?? Size switch
+	private string AvatarSize => OwnSize ?? EffectiveSizeValue ?? (Tile ? "2.75rem" : null) ?? EffectiveSize switch
 	{
 		MokaSize.Xs => "24px",
 		MokaSize.Sm => "32px",
@@ -179,7 +195,7 @@ public partial class MokaAvatar
 		_ => "40px"
 	};
 
-	private MokaSize IconSize => Size switch
+	private MokaSize IconSize => EffectiveSize switch
 	{
 		MokaSize.Xs => MokaSize.Xs,
 		MokaSize.Sm => MokaSize.Xs,
@@ -188,10 +204,25 @@ public partial class MokaAvatar
 		_ => MokaSize.Sm
 	};
 
+	/// <summary>Notes whether the page set <c>Size</c>, which has a default and so can't say so itself.</summary>
+	/// <param name="parameters">The parameters the page passed, with the cascaded values.</param>
+	/// <returns>The task of the base class.</returns>
+	public override Task SetParametersAsync(ParameterView parameters)
+	{
+		_sizeGiven = parameters.TryGetValue<MokaSize>(nameof(Size), out _);
+		return base.SetParametersAsync(parameters);
+	}
+
+	/// <inheritdoc />
+	protected override void OnInitialized() => Group?.Join(this);
+
 	/// <inheritdoc />
 	protected override void OnParametersSet()
 	{
 		base.OnParametersSet();
+
+		Group?.Saw(this);
+		_hiddenByGroup = Group?.Hides(this) ?? false;
 
 		// Circular by default for avatars. A tile's corners come from the theme, through its stylesheet.
 		if (!Tile)
@@ -203,6 +234,13 @@ public partial class MokaAvatar
 	/// <inheritdoc />
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		// An avatar the group leaves out draws no element, so the one it draws when it comes back is bound again.
+		if (_hiddenByGroup)
+		{
+			_keysBound = false;
+			return;
+		}
+
 		// Enter and Space are handled in the browser, for the avatar itself only, and Space does
 		// not scroll the page. Static avatars never load the script.
 		if (IsClickable && !_keysBound)
@@ -224,6 +262,13 @@ public partial class MokaAvatar
 		}
 
 		return InitialsHues[(hash >> 16) % (uint)InitialsHues.Length];
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		Group?.Leave(this);
+		await base.DisposeAsyncCore();
 	}
 
 	private async Task HandleClick(MouseEventArgs args)

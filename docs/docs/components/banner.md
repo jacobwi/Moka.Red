@@ -26,7 +26,7 @@ of the layout:
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Sticky` | `bool` | `true` | The banners stay at the top of the window as the page scrolls |
-| `Text` | `MokaBannerText` | English | `Dismiss` ("Dismiss"), `Region` ("Notices", the strip's name for screen readers) and `Announcement` |
+| `Text` | `MokaBannerText` | English | `Dismiss` ("Dismiss"), `Region` ("Notices", the strip's name for screen readers), `NewTab` ("opens in a new tab", heard after a link whose `Target` opens another tab) and `Announcement` |
 | `Class`, `Style`, `Id` | | | On the strip |
 
 ## IMokaBannerService
@@ -51,6 +51,7 @@ of the layout:
 | `Dismissible` | `bool` | `true` | Whether people can close it. Off for a notice that lasts as long as its cause |
 | `Remember` | `bool` | `false` | Keeps a dismissal across visits |
 | `LinkText`, `Href` | `string?` | - | A link after the message. A `javascript:`, `vbscript:` or `data:` address is dropped |
+| `Target` | `string?` | - | Where the link opens, such as `_blank`. One that opens another tab gets `rel="noopener noreferrer"` and the host's `Text.NewTab` for screen readers. See [Links to other sites](#links-to-other-sites) |
 | `ActionText`, `OnAction` | `string?`, `Func<Task>?` | - | An action button |
 
 ## Showing Banners
@@ -86,6 +87,25 @@ of the layout:
 
     void Online() => Banners.Dismiss("offline");
 }
+```
+
+## Links to other sites
+
+`Target` sends a banner's link somewhere else, such as `_blank` for a status page outside the app. A target that opens
+another tab gives the link `rel="noopener noreferrer"`, so the page it opens can't reach this one, and screen readers
+hear ", opens in a new tab" after the link's words. The host's `Text.NewTab` changes the words. `_self`, `_parent` and
+`_top` render as given and add nothing.
+
+```csharp
+Banners.Show(new MokaBanner
+{
+    Id = "incident-2026-11-21",
+    Message = "Sign-in is slow for some people.",
+    Severity = MokaToastSeverity.Warning,
+    LinkText = "Status page",
+    Href = "https://status.example.com",
+    Target = "_blank"
+});
 ```
 
 ## Remembering Dismissals

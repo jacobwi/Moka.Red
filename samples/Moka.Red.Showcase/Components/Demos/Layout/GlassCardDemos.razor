@@ -26,3 +26,16 @@
 		</MokaFlexbox>
 	</MokaGridBackground>
 </DemoSection>
+
+<DemoSection Id="link" Title="Link" Description="Href makes the title a link stretched over the card. Target opens it in another tab.">
+	<MokaGridBackground Pattern="MokaGridPattern.Lines" MinHeight="200px" Padding="MokaSpacingScale.Xl">
+		<MokaFlexbox Justify="MokaJustify.Center" Align="MokaAlign.Center" Gap="MokaSpacingScale.Lg" Style="min-height: 160px;" Wrap>
+			<MokaGlassCard Title="Status page" Subtitle="Opens in a new tab" Href="https://status.example.com" Target="_blank" Style="width: 220px;">
+				<MokaText>Uptime and incidents for every service.</MokaText>
+			</MokaGlassCard>
+			<MokaGlassCard Title="Reports" Subtitle="Stays in this tab" Href="/" Style="width: 220px;">
+				<MokaText>A click anywhere on the card follows the link.</MokaText>
+			</MokaGlassCard>
+		</MokaFlexbox>
+	</MokaGridBackground>
+</DemoSection>

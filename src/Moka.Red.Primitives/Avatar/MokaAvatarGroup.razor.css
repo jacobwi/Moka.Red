@@ -18,24 +18,8 @@
 	margin-left: 0;
 }
 
-/* Overflow indicator */
-.moka-avatar-group__overflow {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
-	background-color: var(--moka-color-surface-variant);
-	color: var(--moka-color-on-surface);
-	font-family: var(--moka-font-family);
-	font-weight: var(--moka-font-weight-medium);
-	font-size: var(--moka-font-size-xs);
-	margin-left: var(--moka-avatar-group-spacing, -8px);
-	box-shadow: 0 0 0 2px var(--moka-color-background);
-	flex-shrink: 0;
-	user-select: none;
+/* The count stands apart from the people it counts. */
+.moka-avatar-group ::deep .moka-avatar-group__overflow {
+	background-color: var(--moka-color-neutral-bg);
+	color: var(--moka-color-on-surface-2);
 }
-
-.moka-avatar-group__overflow.moka-avatar--xs { font-size: 9px; }
-.moka-avatar-group__overflow.moka-avatar--sm { font-size: var(--moka-font-size-xs); }
-.moka-avatar-group__overflow.moka-avatar--md { font-size: var(--moka-font-size-xs); }
-.moka-avatar-group__overflow.moka-avatar--lg { font-size: var(--moka-font-size-md); }

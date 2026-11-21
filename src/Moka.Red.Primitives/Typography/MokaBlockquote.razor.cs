@@ -24,6 +24,21 @@ public partial class MokaBlockquote
 	[Parameter]
 	public string? CitationHref { get; set; }
 
+	/// <summary>
+	///     Where the citation's link opens, such as <c>_blank</c>. Only used with <see cref="CitationHref" />. One that
+	///     opens another tab gets <c>rel="noopener noreferrer"</c>, and the link ends in <see cref="NewTabText" /> for
+	///     screen readers. <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and add nothing.
+	/// </summary>
+	[Parameter]
+	public string? CitationTarget { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the citation when its <see cref="CitationTarget" /> opens another tab, after a
+	///     comma. Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
 	/// <summary>When true, shows the left border accent. Defaults to true.</summary>
 	[Parameter]
 	public bool Accent { get; set; } = true;
@@ -36,6 +51,10 @@ public partial class MokaBlockquote
 	protected override string RootClass => "moka-blockquote";
 
 	private string? CitationLink => UrlValues.SafeHref(CitationHref);
+
+	private string? CitationRel => UrlValues.RelFor(CitationTarget);
+
+	private bool CitationOpensNewTab => UrlValues.OpensNewTab(CitationTarget);
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)

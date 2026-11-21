@@ -48,6 +48,14 @@ public sealed class MokaNotification
 	/// </summary>
 	public string? Href { get; init; }
 
+	/// <summary>
+	///     Where the notification's link opens, such as <c>_blank</c>. Needs <see cref="Href" />. One that opens another
+	///     tab gets <c>rel="noopener noreferrer"</c>, and screen readers hear
+	///     <see cref="MokaNotificationCenterText.NewTab" /> after the notification. <c>_self</c>, <c>_parent</c> and
+	///     <c>_top</c> render as given and add nothing.
+	/// </summary>
+	public string? Target { get; init; }
+
 	/// <summary>Buttons under the notification, such as "Retry" or "View log".</summary>
 	public IReadOnlyList<MokaNotificationAction> Actions { get; init; } = [];
 
@@ -62,6 +70,7 @@ public sealed class MokaNotification
 		Icon = Icon,
 		OnClick = OnClick,
 		Href = Href,
+		Target = Target,
 		Actions = Actions,
 		Read = true
 	};

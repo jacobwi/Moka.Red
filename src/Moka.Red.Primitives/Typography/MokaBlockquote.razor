@@ -12,7 +12,13 @@
 			@if (CitationLink is not null)
 			{
 				<cite>
-					<a href="@CitationLink">@Citation</a>
+					<a href="@CitationLink" target="@CitationTarget" rel="@CitationRel">
+						@Citation
+						@if (CitationOpensNewTab)
+						{
+							<span class="moka-visually-hidden">, @NewTabText</span>
+						}
+					</a>
 				</cite>
 			}
 			else

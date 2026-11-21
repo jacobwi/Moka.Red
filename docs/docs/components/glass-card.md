@@ -23,8 +23,12 @@ order: 85
 | `BorderColor` | `string?` | - | Border color override |
 | `Glow` | `bool` | `false` | Enable glowing border effect |
 | `GlowColor` | `string?` | - | Glow color override |
-| `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space |
-| `OnClick` | `EventCallback` | - | Click callback |
+| `Clickable` | `bool` | `false` | Makes the card a button: hover effect, pointer cursor, tab stop, Enter and Space. A card with `Href` is a link instead |
+| `OnClick` | `EventCallback` | - | Raised by a click on a `Clickable` card, or on the link of a card with `Href` |
+| `Href` | `string?` | - | A click anywhere on the card follows it. The link is the title, or a hidden link named by `ActionLabel`. A `javascript:`, `vbscript:` or `data:` URL is not rendered. See [Link](#link) |
+| `Target` | `string?` | - | Where the card's link opens, such as `_blank`. Only used with `Href`. One that opens another tab gets `rel="noopener noreferrer"`, and the link's name ends in `NewTabText` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the link's name, after a comma, when `Target` opens another tab |
+| `ActionLabel` | `string?` | `Title` | Names the hidden link of a card with `Href` that shows a custom `Header` or no `Title` |
 
 ## Basic Glass Card
 
@@ -79,3 +83,24 @@ order: 85
 ```
 
 A clickable card is a button to the keyboard and to screen readers. It joins the tab order with the focus ring, and Enter or Space activate it, the same as a click. Keys pressed in a control inside it are left alone, and Space does not scroll the page.
+
+## Link
+
+`Href` makes the card lead to a page, as `MokaCard`'s does. The card stays a plain element, and its one tab stop is a
+real link stretched over it, so a click anywhere follows it, and a middle click, copying the link and opening it in
+another tab all work. The title is the link; with a custom `Header` or no `Title` it is a visually hidden link named by
+`ActionLabel`, else by `Title`, else by the card's header and body. An `aria-label` on the card names the link instead.
+Links, buttons and inputs inside the card sit above the stretched link and keep their own clicks. The card draws the
+focus ring while its link has keyboard focus. `OnClick` is raised by a click on the link, and with `Href` the card is a
+link whether or not `Clickable` is set.
+
+`Target` opens the link somewhere else, such as `_blank`. A target that opens another tab gives the link
+`rel="noopener noreferrer"`, so the page it opens can't reach this one, and adds ", opens in a new tab" to its name for
+screen readers (`NewTabText`). A `rel` or `download` attribute on the card goes on the link, and a `rel` wins over the one
+`Target` gives.
+
+```razor
+<MokaGlassCard Title="Status page" Subtitle="Uptime and incidents" Href="https://status.example.com" Target="_blank">
+    Every service, with its last 90 days.
+</MokaGlassCard>
+```

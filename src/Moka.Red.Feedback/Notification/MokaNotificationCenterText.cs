@@ -26,6 +26,12 @@ public sealed record MokaNotificationCenterText
 	public string Unread { get; init; } = "Unread";
 
 	/// <summary>
+	///     What a screen reader hears after a notification whose link opens another tab (<see cref="MokaNotification.Target" />),
+	///     after a comma.
+	/// </summary>
+	public string NewTab { get; init; } = "opens in a new tab";
+
+	/// <summary>
 	///     The heading over the notifications from today, under <see cref="MokaNotificationLook.Grouped" />. Today is the
 	///     local date of the registered <see cref="TimeProvider" />, else the system clock's.
 	/// </summary>

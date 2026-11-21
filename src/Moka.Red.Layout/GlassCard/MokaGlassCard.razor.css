@@ -51,6 +51,50 @@
 	box-shadow: var(--moka-focus-ring);
 }
 
+/* A card with Href is a plain element. Its one link (the title, or a hidden link) stretches its ::after over the card,
+   so a click anywhere follows it, and nothing interactive sits inside a link. Static, because the rule below that lifts
+   the card's links would otherwise lift this one too. */
+.moka-glass-card__action {
+	position: static;
+	z-index: auto;
+	color: inherit;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.moka-glass-card__action::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+/* The card draws the focus ring, so the link draws none of its own. */
+.moka-glass-card__action:focus-visible {
+	outline: none;
+}
+
+/* Absolute, so it takes no part in the card's flex layout. */
+.moka-glass-card__action--hidden {
+	position: absolute;
+	inset: 0;
+}
+
+/* Interactive things inside a link card sit above the stretched link and keep their own clicks. :where keeps the rule
+   weaker than any component's own position, so a control that places itself keeps its place. */
+:where(.moka-glass-card--link) ::deep :where(a[href], button, input, select, textarea, label, summary, [tabindex]) {
+	position: relative;
+	z-index: 2;
+}
+
+/* Keyboard focus on the link of a link card. Child combinators, so a card nested inside doesn't light this one. */
+.moka-glass-card--link:has(> .moka-glass-card__action:focus-visible),
+.moka-glass-card--link:has(> .moka-glass-card__header > .moka-glass-card__title > .moka-glass-card__action:focus-visible) {
+	outline: var(--moka-focus-width) solid transparent;
+	border-color: var(--moka-color-primary-border);
+	box-shadow: var(--moka-focus-ring);
+}
+
 /* Header */
 .moka-glass-card__header {
 	padding: var(--moka-spacing-md) var(--moka-spacing-lg);
@@ -100,6 +144,13 @@
 .moka-gate .moka-glass-card--glow,
 .moka-gate .moka-glass-card--glow:hover { box-shadow: none; }
 .moka-gate .moka-glass-card--clickable:focus-visible { border-color: var(--moka-color-primary); box-shadow: var(--moka-focus-ring); outline: var(--moka-focus-width) solid transparent; }
+
+.moka-gate .moka-glass-card--link:has(> .moka-glass-card__action:focus-visible),
+.moka-gate .moka-glass-card--link:has(> .moka-glass-card__header > .moka-glass-card__title > .moka-glass-card__action:focus-visible) {
+	border-color: var(--moka-color-primary);
+	box-shadow: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
+}
 
 .moka-gate .moka-glass-card__header { padding: var(--moka-card-padding) var(--moka-card-padding) 0; border-bottom: none; }
 

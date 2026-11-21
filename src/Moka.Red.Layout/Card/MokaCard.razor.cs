@@ -15,9 +15,6 @@ public partial class MokaCard : MokaVisualComponentBase
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
-	private static readonly HashSet<string> LinkAttributeNames =
-		new(["rel", "download"], StringComparer.OrdinalIgnoreCase);
-
 	private readonly string _regionId = $"moka-card-{Guid.NewGuid():N}";
 	private ElementReference _headerContent;
 	private string? _boundHeaderId;
@@ -216,7 +213,7 @@ public partial class MokaCard : MokaVisualComponentBase
 	private string? HiddenActionName => ActionLabel ?? Title;
 
 	private bool ActionNamedByContent =>
-		HasAction && !TitleIsAction && HiddenActionName is null && !HasAttribute("aria-label");
+		HasAction && !TitleIsAction && HiddenActionName is null && !CardActionAttributes.HasAriaLabel(AdditionalAttributes);
 
 	private bool IsToggleable => Collapsible && HasHeader;
 
@@ -233,28 +230,10 @@ public partial class MokaCard : MokaVisualComponentBase
 	private string? HeaderContentId => ActionNamedByContent ? $"{_regionId}-header" : null;
 
 	private IReadOnlyDictionary<string, object>? RootAttributes =>
-		HasAction ? AttributesWhere(name => !GoesToAction(name)) : AdditionalAttributes;
+		CardActionAttributes.ForRoot(AdditionalAttributes, HasAction, LinkHref is not null);
 
-	private IReadOnlyDictionary<string, object>? ActionAttributes
-	{
-		get
-		{
-			Dictionary<string, object>? attributes = AttributesWhere(GoesToAction);
-			if (!OpensNewTab || attributes is null)
-			{
-				return attributes;
-			}
-
-			// An aria-label replaces the link's content as its name, so the words for a new tab go into it.
-			string? labelKey = attributes.Keys.FirstOrDefault(key => key.Equals("aria-label", StringComparison.OrdinalIgnoreCase));
-			if (labelKey is not null && attributes[labelKey] is string label)
-			{
-				attributes[labelKey] = $"{label}, {NewTabText}";
-			}
-
-			return attributes;
-		}
-	}
+	private IReadOnlyDictionary<string, object>? ActionAttributes =>
+		CardActionAttributes.ForAction(AdditionalAttributes, LinkHref is not null, OpensNewTab ? NewTabText : null);
 
 	private string BodyCssClass => new CssBuilder("moka-card-body")
 		.AddClass("moka-thin-scrollbar", Fill)
@@ -343,27 +322,6 @@ public partial class MokaCard : MokaVisualComponentBase
 	}
 
 	private Task HandleClick(MouseEventArgs args) => OnClick.InvokeAsync(args);
-
-	// What names the card, or describes its link, belongs on the action now that the card itself is a plain element.
-	private bool GoesToAction(string name) =>
-		name.Equals("aria-label", StringComparison.OrdinalIgnoreCase) ||
-		(LinkHref is not null && LinkAttributeNames.Contains(name));
-
-	private bool HasAttribute(string name) =>
-		AdditionalAttributes?.Keys.Any(key => key.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
-
-	private Dictionary<string, object>? AttributesWhere(Func<string, bool> keep)
-	{
-		if (AdditionalAttributes is null)
-		{
-			return null;
-		}
-
-		Dictionary<string, object> kept = AdditionalAttributes
-			.Where(attribute => keep(attribute.Key))
-			.ToDictionary(attribute => attribute.Key, attribute => attribute.Value);
-		return kept.Count > 0 ? kept : null;
-	}
 
 	private async Task HandleHeaderClick()
 	{

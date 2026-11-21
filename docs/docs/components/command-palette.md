@@ -32,7 +32,9 @@ Place one `MokaCommandPalette` in the layout:
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `Placeholder` | `string` | `"Search commands..."` | Search box placeholder |
-| `NoResultsText` | `string` | `"No commands found"` | Shown when nothing matches |
+| `Label` | `string` | `"Command palette"` | Accessible name of the palette's dialog and of its list of commands. See [Accessibility](#accessibility) |
+| `SearchLabel` | `string` | `"Search commands"` | Accessible name of the search box |
+| `NoResultsText` | `string` | `"No commands found"` | Shown when nothing matches, and announced to screen readers |
 | `MaxResults` | `int` | `20` | Most commands listed at once |
 | `ShowShortcuts` | `bool` | `true` | Shows each command's `Shortcut` hint as key caps |
 | `ShowGroups` | `bool` | `true` | Lists commands under their `Group` headings |
@@ -172,6 +174,45 @@ Palette.Register(new MokaCommand
 | Escape | Close the palette |
 
 The search box has focus while the palette is open. A click on the backdrop also closes it.
+
+## Accessibility
+
+The palette follows the WAI-ARIA combobox pattern with a listbox popup, as in the APG's editable combobox with list autocomplete. Focus stays in the search box while the arrow keys move the highlight, and the search box tells screen readers which command is highlighted, so they read each command as the highlight reaches it.
+
+- The palette is a modal dialog (`role="dialog"`, `aria-modal="true"`) named by `Label`. While it's open, Tab stays inside it, and when it closes focus goes back to where it was, as with `MokaDialog`.
+- The search box is a combobox named by `SearchLabel`. It has `aria-autocomplete="list"`, `aria-controls` naming the list, `aria-expanded` true while commands show, and `aria-activedescendant` naming the highlighted command, left out when nothing is highlighted.
+- The commands are a listbox named by `Label`. Each command is an option with an id built from the list's id and its place in the list, `aria-selected="true"` on the highlighted one only, and `aria-disabled="true"` when it's `Disabled`. A command that opens another tab is still a link, so a middle click and the browser's copy-link work, with the option role.
+- With `ShowGroups`, each group is a `role="group"` named by its heading through `aria-labelledby`. Commands without a group stand in the list itself.
+- When nothing matches, a polite live region (`role="status"`) says `NoResultsText`. The region is on the page from the moment the palette opens and fills one render later, since screen readers skip a region that arrives with its text already in it. The visible "No commands found" is hidden from screen readers, so it isn't read twice.
+
+Name the palette in the app's language:
+
+```razor
+<MokaCommandPalette Label="Befehlspalette"
+                    SearchLabel="Befehle suchen"
+                    Placeholder="Befehl suchen..."
+                    NoResultsText="Keine Befehle gefunden" />
+```
+
+The rendered structure, with ids shortened:
+
+```html
+<div class="moka-command-palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <input role="combobox" aria-label="Search commands" aria-expanded="true"
+         aria-controls="listbox" aria-autocomplete="list" aria-activedescendant="listbox-option-1">
+  <div id="listbox" role="listbox" aria-label="Command palette">
+    <div role="option" id="listbox-option-0">Help</div>
+    <div role="group" aria-labelledby="listbox-group-1">
+      <div id="listbox-group-1" role="presentation">Edit</div>
+      <div role="option" id="listbox-option-1" aria-selected="true">Save</div>
+      <a role="option" id="listbox-option-2" href="https://example.com/" target="_blank">Open the docs</a>
+    </div>
+  </div>
+  <div class="moka-visually-hidden" role="status"></div>
+</div>
+```
+
+Up to 0.11.3 nothing in the palette carried a role or a name: screen readers heard a text box, but not the list, the highlighted command or how many there were, and an empty list went unannounced.
 
 ## Shortcut
 

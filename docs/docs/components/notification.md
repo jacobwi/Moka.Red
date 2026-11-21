@@ -64,6 +64,7 @@ Inject `IMokaNotificationService` into any component or service to manage notifi
 | `OnClick` | `Action?` | -- | Optional click action. Enter and Space on the notification run it too |
 | `Key` | `string?` | -- | Names what it is about, so a later one with the same key replaces it (unread, at the top) |
 | `Href` | `string?` | -- | Makes the notification a link there. A `javascript:`, `vbscript:` or `data:` address is dropped |
+| `Target` | `string?` | -- | Where the link opens, such as `_blank`. One that opens another tab gets `rel="noopener noreferrer"` and the center's `Text.NewTab` for screen readers. Needs `Href` |
 | `Actions` | `IReadOnlyList<MokaNotificationAction>` | empty | Buttons under the notification |
 
 ## Pushing Notifications
@@ -113,6 +114,21 @@ A notification can carry buttons, lead somewhere, and take the place of an earli
 
     Task RunAgainAsync() => Task.CompletedTask;
 }
+```
+
+`Target` opens the link somewhere else, such as `_blank` for a build log on another site. A target that opens another
+tab gives the link `rel="noopener noreferrer"`, so the page it opens can't reach this one, and screen readers hear
+", opens in a new tab" after the notification (`Text.NewTab`). `_self`, `_parent` and `_top` render as given and add
+nothing. Following the link still marks the notification read and runs its `OnClick`.
+
+```csharp
+NotificationService.Push(new MokaNotification
+{
+    Title = "Deploy finished",
+    Message = "Production is on 4.2.",
+    Href = "https://ci.example.com/deploys/118",
+    Target = "_blank"
+});
 ```
 
 A toast shown with `AlsoInCenter` lands here too and stays after the toast has gone, under one key, so a tracked task's
@@ -200,6 +216,7 @@ The parameter way:
 | `MarkAllRead`, `ClearAll` | "Mark all read", "Clear all" |
 | `Empty` | "No notifications" |
 | `Unread` | "Unread", what a screen reader hears after an unread notification |
+| `NewTab` | "opens in a new tab", what a screen reader hears after a notification whose `Target` opens another tab |
 | `Today`, `Earlier` | The headings under `Grouped` |
 | `NewCount` | "2 new", the header's count in `Inbox`, `Grouped` and `Terminal`. Hidden while nothing is unread |
 | `Bell` | "Notifications, 3 unread", the bell's name, from the unread count |
@@ -222,6 +239,7 @@ notification, never over the button below.
 The bell is a disclosure button: it reports `aria-expanded` as `"true"` or `"false"`, points `aria-controls` at the open panel, and its name includes the unread count ("Notifications, 3 unread"). The panel comes right after it, so Tab moves from the bell to Mark all read, Clear all, and then each notification and its dismiss button.
 
 - Each notification is a button. Enter or Space marks it read and runs its `OnClick`, as a click does. An unread notification is described as "Unread".
+- A notification with `Href` is a link instead, and focus sits on the link itself, so Enter follows it the browser's way, into another tab when its `Target` says so, and marks it read on the way.
 - The dismiss button is named after its notification ("Dismiss Build Complete") and shows while its row has focus. Dismissing moves focus to the notification that took its place, or to the bell when none is left.
 - Escape closes the panel and returns focus to the bell. Inside a `MokaDialog` it closes only the panel.
 - Clear all closes the panel and returns focus to the bell.

@@ -420,8 +420,11 @@
 	text-transform: var(--moka-control-case);
 }
 
+/* The halves reset letter spacing and case as a button does, so they take the split button's here. */
 .moka-gate .moka-split-btn__primary,
 .moka-gate .moka-split-btn__toggle {
+	letter-spacing: inherit;
+	text-transform: inherit;
 	transition: background-color var(--moka-transition-normal), color var(--moka-transition-normal);
 }
 

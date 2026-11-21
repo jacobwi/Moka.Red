@@ -194,6 +194,28 @@ Highlights text with a background color, like a marker.
 
 `Citation` adds a footer naming the source, and `CitationHref` links it. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the citation shows as plain text.
 
+`CitationTarget` says where the link opens, such as `_blank` or a window's name. One that opens another tab gives the
+link `rel="noopener noreferrer"`, so the page it opens can't reach this one, and screen readers hear ", opens in a new
+tab" after the citation (`NewTabText`). `_self`, `_parent` and `_top` render as given and add nothing. Without
+`CitationHref` it does nothing.
+
+```razor
+<MokaBlockquote Citation="Grace Hopper" CitationHref="https://example.com/hopper" CitationTarget="_blank">
+    It is easier to ask forgiveness than it is to get permission.
+</MokaBlockquote>
+```
+
+### MokaBlockquote Parameters
+
+| Name | Type | Default | Description |
+|------|------|---------|-------------|
+| `Citation` | `string?` | - | The source, in a `cite` element after the quote |
+| `CitationHref` | `string?` | - | Links the citation. A `javascript:`, `vbscript:` or `data:` URL is not rendered |
+| `CitationTarget` | `string?` | - | Where the citation's link opens. One that opens another tab gets `rel="noopener noreferrer"` and `NewTabText` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the citation when `CitationTarget` opens another tab, after a comma |
+| `Accent` | `bool` | `true` | The accent edge |
+| `Filled` | `bool` | `false` | A subtle background fill |
+
 ## MokaKbd
 
 Renders a single key as a raised cap: monospace text, a heavier bottom border and an inset shadow.

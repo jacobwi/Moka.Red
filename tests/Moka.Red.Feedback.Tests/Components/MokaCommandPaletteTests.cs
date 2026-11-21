@@ -149,6 +149,7 @@ public class MokaCommandPaletteTests : BunitContext
 	private BunitJSModuleInterop SetupModule()
 	{
 		JSInterop.SetupModule("./_content/Moka.Red.Core/moka-hover.js").Mode = JSRuntimeMode.Loose;
+		JSInterop.SetupModule("./_content/Moka.Red.Feedback/moka-dialog.js").Mode = JSRuntimeMode.Loose;
 		BunitJSModuleInterop module = JSInterop.SetupModule(Module);
 		module.Setup<int>("registerShortcut", _ => true).SetResult(1);
 		module.SetupVoid("updateShortcut", _ => true).SetVoidResult();

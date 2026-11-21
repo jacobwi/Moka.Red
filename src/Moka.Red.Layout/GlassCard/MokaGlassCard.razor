@@ -2,12 +2,16 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id"
-	 @onclick="HandleClick"
-	 role="@(Clickable ? "button" : null)" tabindex="@TabIndex"
-	 @attributes="AdditionalAttributes" @ref="_element">
+	 @onclick="ButtonClick"
+	 role="@(IsButton ? "button" : null)" tabindex="@TabIndex"
+	 @attributes="RootAttributes" @ref="_element">
+	@if (LinkHref is not null && !TitleIsAction)
+	{
+		RenderAction(true);
+	}
 	@if (HasHeader)
 	{
-		<div class="moka-glass-card__header">
+		<div class="moka-glass-card__header" id="@HeaderId">
 			@if (Header is not null)
 			{
 				@Header
@@ -16,7 +20,16 @@
 			{
 				@if (Title is not null)
 				{
-					<div class="moka-glass-card__title">@Title</div>
+					<div class="moka-glass-card__title">
+						@if (TitleIsAction)
+						{
+							RenderAction(false);
+						}
+						else
+						{
+							@Title
+						}
+					</div>
 				}
 				@if (Subtitle is not null)
 				{
@@ -27,7 +40,7 @@
 	}
 	@if (ChildContent is not null)
 	{
-		<div class="moka-glass-card__body">
+		<div class="moka-glass-card__body" id="@BodyId">
 			@ChildContent
 		</div>
 	}
@@ -38,3 +51,29 @@
 		</div>
 	}
 </div>
+
+@{
+	void RenderAction(bool hidden)
+	{
+		<a class="@ActionCssClass(hidden)" href="@LinkHref" target="@Target" rel="@LinkRel"
+		   aria-labelledby="@ActionLabelledBy(hidden)"
+		   @onclick="OnClick" @attributes="ActionAttributes">@{ RenderActionText(hidden); }</a>
+	}
+
+	void RenderActionText(bool hidden)
+	{
+		if (!hidden)
+		{
+			@Title
+		}
+		else if (HiddenActionName is not null)
+		{
+			<span class="moka-visually-hidden">@HiddenActionName</span>
+		}
+
+		if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden" id="@NewTabWordsId">, @NewTabText</span>
+		}
+	}
+}

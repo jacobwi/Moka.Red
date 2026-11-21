@@ -9,6 +9,12 @@ public sealed record MokaBannerText
 	/// <summary>Names the strip of banners for screen readers, so it can be found as a landmark.</summary>
 	public string Region { get; init; } = "Notices";
 
+	/// <summary>
+	///     What a screen reader hears after the words of a link that opens another tab (<see cref="MokaBanner.Target" />),
+	///     after a comma.
+	/// </summary>
+	public string NewTab { get; init; } = "opens in a new tab";
+
 	/// <summary>What a screen reader hears when a banner shows: its title and message by default.</summary>
 	public Func<MokaBanner, string> Announcement { get; init; } = DefaultAnnouncement;
 

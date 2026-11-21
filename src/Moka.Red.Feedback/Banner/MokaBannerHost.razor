@@ -21,7 +21,13 @@
 					<span class="moka-banner__message">@banner.Message</span>
 					@if (banner.LinkText is not null && UrlValues.SafeHref(banner.Href) is { } href)
 					{
-						<a class="moka-banner__link" href="@href">@banner.LinkText</a>
+						<a class="moka-banner__link" href="@href" target="@banner.Target" rel="@UrlValues.RelFor(banner.Target)">
+							@banner.LinkText
+							@if (UrlValues.OpensNewTab(banner.Target))
+							{
+								<span class="moka-visually-hidden">, @Text.NewTab</span>
+							}
+						</a>
 					}
 				</div>
 				@if (banner.ActionText is not null && banner.OnAction is not null)

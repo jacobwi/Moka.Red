@@ -2,18 +2,15 @@
 @inherits MokaVisualComponentBase
 
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	@if (ChildContent is not null)
-	{
-		<CascadingValue Value="this" IsFixed="true">
-			@ChildContent
+	<CascadingValue Value="this" IsFixed="true">
+		<CascadingValue Value="_sizing">
+			@_avatars.Collect(ChildContent)
 		</CascadingValue>
-	}
+	</CascadingValue>
 
-	@if (_overflowCount > 0)
+	@if (OverflowCount > 0)
 	{
-		<div class="moka-avatar-group__overflow moka-avatar--@(SizeToKebab(Size))"
-		     style="@OverflowStyle">
-			<span>+@_overflowCount</span>
-		</div>
+		<MokaAvatar Class="moka-avatar-group__overflow" Initials="@($"+{OverflowCount}")" Color="MokaColor.Surface"
+		            Size="@Size" SizeValue="@SizeValue"/>
 	}
 </div>

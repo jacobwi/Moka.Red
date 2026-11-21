@@ -45,6 +45,8 @@ public class MokaCommandPaletteTargetTests : BunitContext
 		Assert.Equal("noopener noreferrer", row.GetAttribute("rel"));
 		Assert.Equal("-1", row.GetAttribute("tabindex"));
 		Assert.Equal("0", row.GetAttribute("data-moka-index"));
+		Assert.Equal("option", row.GetAttribute("role"));
+		Assert.Equal("true", row.GetAttribute("aria-selected"));
 		Assert.Equal("true", row.QuerySelector(".moka-command-palette__item-external")!.GetAttribute("aria-hidden"));
 		Assert.Equal(", opens in a new tab", row.QuerySelector(".moka-visually-hidden")!.TextContent);
 	}
@@ -145,7 +147,7 @@ public class MokaCommandPaletteTargetTests : BunitContext
 		IElement row = cut.Find("a.moka-command-palette__item");
 		Assert.False(row.HasAttribute("href"));
 		Assert.False(row.HasAttribute("target"));
-		Assert.Equal("link", row.GetAttribute("role"));
+		Assert.Equal("option", row.GetAttribute("role"));
 		Assert.Equal("true", row.GetAttribute("aria-disabled"));
 
 		await cut.Find(".moka-command-palette").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });

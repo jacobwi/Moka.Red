@@ -72,8 +72,15 @@
 									@if (UrlValues.SafeHref(notification.Href) is { } href)
 									{
 										<a class="moka-notification-item__main" href="@href"
+										   target="@notification.Target" rel="@UrlValues.RelFor(notification.Target)"
 										   aria-describedby="@(notification.Read ? null : UnreadId)"
-										   @onclick="() => HandleItemClick(notification)">@itemContent</a>
+										   @onclick="() => HandleItemClick(notification)">
+											@itemContent
+											@if (UrlValues.OpensNewTab(notification.Target))
+											{
+												<span class="moka-visually-hidden">, @Text.NewTab</span>
+											}
+										</a>
 									}
 									else
 									{
