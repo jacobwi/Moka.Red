@@ -48,10 +48,10 @@ public partial class MokaDropdownItemLinkTests : BunitContext
 	{
 		IRenderedComponent<MokaDropdownItem> cut = Item(p => p
 			.Add(x => x.Href, "/reports/q3.pdf")
-			.Add(x => x.Target, "_blank"));
+			.Add(x => x.Target, "_self"));
 
 		Assert.Equal(
-			"""<a class="moka-dropdown-item" role="menuitem" href="/reports/q3.pdf" target="_blank" tabindex="-1" blazor:onclick="1">""" +
+			"""<a class="moka-dropdown-item" role="menuitem" href="/reports/q3.pdf" target="_self" tabindex="-1" blazor:onclick="1">""" +
 			"""<span class="moka-dropdown-item-text">Report</span></a>""",
 			Markup(cut));
 	}

@@ -21,7 +21,10 @@ order: 26
 | `Selected` | `bool` | `false` | Whether the chip is selected (two-way bindable) |
 | `SelectedChanged` | `EventCallback<bool>` | -- | Callback when selected state changes |
 | `Controlled` | `bool` | `false` | After raising its change callback, the control shows what the parent passes back, so a refused change reverts. See [Controlled](#controlled) |
-| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click event callback. With it, or with `SelectedChanged`, the chip is a button |
+| `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click event callback. With it, or with `SelectedChanged`, the chip is a button. Raised on a link too |
+| `Href` | `string?` | -- | Makes the chip a link, with the same look, hover and press. A `javascript:`, `vbscript:` or `data:` URL is not rendered. See [Links](#links) |
+| `Target` | `string?` | -- | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"` and `NewTabText` for screen readers |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the chip's text when its `Target` opens another tab, after a comma |
 | `Variant` | `MokaVariant` | `Soft` | `Soft` (tinted background), `Filled` (tinted border), `Outlined`, `Text` |
 | `Color` | `MokaColor?` | `Surface` | Color of the text, border and background. Unset is neutral; a selected neutral chip uses the primary color |
 | `Label` | `MokaLabelColor?` | -- | A color someone gave the chip: its tint behind readable ink, and a dot before the text when there's no icon or avatar. Replaces `Color`; `Variant` still shapes it |
@@ -34,7 +37,8 @@ order: 26
 
 What a chip renders follows what it does:
 
-- With nothing to click (no `OnClick`, no `SelectedChanged`) it is a `span`: no tab stop, no pointer, and no hover or press feedback. Its resting look is the same as a button chip's.
+- With nothing to click (no `Href`, no `OnClick`, no `SelectedChanged`) it is a `span`: no tab stop, no pointer, and no hover or press feedback. Its resting look is the same as a button chip's.
+- With `Href` it is a link (`<a>`). See [Links](#links).
 - With `OnClick` or `SelectedChanged` it is a `<button type="button">`. Once the parent passes `Selected` or `SelectedChanged`, it is a toggle button and carries `aria-pressed` as `"true"` or `"false"`, so screen readers say whether it's on. A chip with only `OnClick` is an action and has no `aria-pressed`.
 - `Closable` puts the remove button beside the chip's own button, never inside it, since a button can't hold another: the chip is a `span` holding its button (when it has `OnClick` or `SelectedChanged`) and the remove button. A click anywhere on it but the cross still reaches its button, and the focus ring goes round the whole chip.
 
@@ -124,6 +128,21 @@ A tab stop rather than Delete or Backspace on the chip: those keys belong to a s
         <MokaChip Text="@t" Closable OnClose="@(() => _tags.Remove(t))" />
     }
 </div>
+```
+
+## Links
+
+`Href` makes the chip an `<a>`, for a chip that goes to a page such as a tag's own list. It keeps the look, hover and press
+of a button chip. A link says nothing about being pressed, so it carries no `aria-pressed`, though `SelectedChanged` and
+`OnClick` still run on a click. On a `Closable` chip the link sits beside the remove button, as the button would.
+
+`Target="_blank"` opens it in another tab with `rel="noopener noreferrer"`, and screen readers hear ", opens in a new tab"
+after the text (`NewTabText`). A disabled link has no `href`, `target` or `rel`, so it goes nowhere, and says it is a
+disabled link (`role="link"` with `aria-disabled="true"`).
+
+```razor
+<MokaChip Text="Blazor" Icon="MokaIcons.Content.Tag" Href="/tags/blazor" />
+<MokaChip Text="Docs" Href="https://example.com/docs" Target="_blank" />
 ```
 
 ## Controlled

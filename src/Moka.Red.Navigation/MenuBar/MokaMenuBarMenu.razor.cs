@@ -12,6 +12,7 @@ namespace Moka.Red.Navigation.MenuBar;
 /// </summary>
 public partial class MokaMenuBarMenu : MokaVisualComponentBase
 {
+	private const string LinksModule = "./_content/Moka.Red.Core/moka-links.js";
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	private readonly string _menuId = $"moka-menubar-menu-{Guid.NewGuid():N}";
@@ -45,6 +46,9 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 	/// <summary>Icon before the label.</summary>
 	[Parameter]
 	public MokaIconDefinition? Icon { get; set; }
+
+	[Inject]
+	private NavigationManager Navigation { get; set; } = default!;
 
 	/// <inheritdoc />
 	protected override string RootClass => "moka-menubar-menu";
@@ -101,11 +105,23 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 		_typeAhead = string.Empty;
 	}
 
-	/// <summary>Closes this menu and runs the item's action, in that order, as the context menu does.</summary>
+	/// <summary>
+	///     Closes this menu and runs the item's action, in that order, as the context menu does. From the keyboard a link
+	///     item is followed too: another tab first, while the browser still counts the key press, and an address in this
+	///     tab last, after the action.
+	/// </summary>
 	/// <param name="item">The item that was chosen.</param>
+	/// <param name="byKeyboard">Whether Enter or Space chose it. A click on a link was the link's own.</param>
 	/// <returns>A task that completes when the action has run.</returns>
-	internal async Task ChooseAsync(MokaMenuBarItem item)
+	internal async Task ChooseAsync(MokaMenuBarItem item, bool byKeyboard)
 	{
+		string? href = byKeyboard ? item.FollowedHref : null;
+		bool newTab = href is not null && UrlValues.OpensNewTab(item.Target);
+		if (newTab)
+		{
+			await SafeModuleInvokeVoidAsync(LinksModule, "openTab", href, item.Target);
+		}
+
 		// The focused item leaves with the menu, which would drop focus to the page. It goes back to the trigger
 		// before the action runs, so that is also where a dialog the action opens returns it.
 		if (Bar is not null)
@@ -114,6 +130,11 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 		}
 
 		await item.InvokeAsync();
+
+		if (href is not null && !newTab)
+		{
+			Navigation.NavigateTo(href);
+		}
 	}
 
 	internal ValueTask FocusTriggerAsync() => SafeFocusAsync(_triggerRef);
@@ -215,7 +236,7 @@ public partial class MokaMenuBarMenu : MokaVisualComponentBase
 			case " ":
 				if (_highlighted >= 0 && _highlighted < _items.Count)
 				{
-					await ChooseAsync(_items[_highlighted]);
+					await ChooseAsync(_items[_highlighted], byKeyboard: true);
 				}
 
 				return;

@@ -33,6 +33,8 @@ order: 87
 | `EndContent` | `RenderFragment?` | -- | Trailing content such as a badge, switch or button |
 | `ChildContent` | `RenderFragment?` | -- | Extra content under the text |
 | `Href` | `string?` | -- | Renders the row as a link. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the row stays a plain row |
+| `Target` | `string?` | -- | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"`, an external-link mark after its text and `NewTabText` for screen readers. See [Links](#links) |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the row's text when its `Target` opens another tab, after a comma |
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Makes the row clickable |
 | `OnContextMenu` | `EventCallback<MouseEventArgs>` | -- | Right-click handler. Suppresses the browser's own menu |
 | `Active` | `bool` | `false` | Selected styling |
@@ -147,6 +149,19 @@ A click on a button inside a row also reaches the row's `OnClick`, whether it ca
 <MokaList Bordered>
     <MokaListItem Text="Getting started" Href="#" Icon="MokaIcons.File.Document" />
     <MokaListItem Text="Components" Href="#" Icon="MokaIcons.Navigation.Home" />
+</MokaList>
+```
+
+`Target="_blank"`, or a window's name, opens the row in another tab, for a page outside the app. The link gets
+`rel="noopener noreferrer"`, so the page it opens can't reach this one through `window.opener` and isn't told the address it
+came from, and a small external-link mark after its text, before `EndContent`. Screen readers hear ", opens in a new tab"
+after the text (`NewTabText`). A disabled row drops `target` and `rel` with its `href` and keeps the mark. The list's own
+Enter and Space handling covers only clickable rows that aren't links, so Enter follows a link row once, the browser's way.
+
+```razor
+<MokaList Bordered>
+    <MokaListItem Text="Status page" Href="https://status.example.com" Target="_blank" Icon="MokaIcons.Status.Info" />
+    <MokaListItem Text="Invoices" Href="/invoices" Icon="MokaIcons.File.Document" />
 </MokaList>
 ```
 

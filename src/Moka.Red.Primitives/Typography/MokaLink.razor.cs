@@ -32,9 +32,19 @@ public partial class MokaLink
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-	/// <summary>When true, opens link in a new tab with rel="noopener noreferrer".</summary>
+	/// <summary>
+	///     When true, opens the link in a new tab with <c>rel="noopener noreferrer"</c>, an external-link mark after its
+	///     content, and <see cref="NewTabText" /> for screen readers.
+	/// </summary>
 	[Parameter]
 	public bool External { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the link's content when it is <see cref="External" />, after a comma, since the
+	///     mark is hidden from them. Defaults to "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>Controls underline behavior. Defaults to Hover.</summary>
 	[Parameter]

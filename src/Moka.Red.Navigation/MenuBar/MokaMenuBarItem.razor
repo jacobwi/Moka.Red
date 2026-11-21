@@ -1,35 +1,69 @@
 @namespace Moka.Red.Navigation.MenuBar
 @inherits MokaVisualComponentBase
 
-@* tabindex -1 throughout: the menubar is one tab stop, and the arrow keys move focus between the items. *@
-<button class="@CssClass" style="@CssStyle" id="@Id"
-        type="button"
-        role="menuitem"
-        tabindex="-1"
-        disabled="@Disabled"
-        @onclick="HandleClick"
-        @ref="_itemRef"
-        @attributes="AdditionalAttributes">
-	@if (Icon is not null)
-	{
-		<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-menubar-item__icon"/>
-	}
-	else
-	{
-		<span class="moka-menubar-item__icon-gap" aria-hidden="true"></span>
-	}
-
-	<span class="moka-menubar-item__text">@Text</span>
-
-	@if (!string.IsNullOrEmpty(Shortcut))
-	{
-		@* The same key caps the context menu and the command palette draw, from the same splitter. A hint
-		   only: the item does not bind the key, the hotkey registry does. *@
-		<span class="moka-menubar-item__shortcut">
-			@foreach (string key in ShortcutKeys.Split(Shortcut))
+@{
+	RenderFragment content =
+		@<text>
+			@if (Icon is not null)
 			{
-				<MokaKbd>@key</MokaKbd>
+				<MokaIcon Icon="Icon.Value" SizeValue="14px" Class="moka-menubar-item__icon"/>
 			}
-		</span>
-	}
-</button>
+			else
+			{
+				<span class="moka-menubar-item__icon-gap" aria-hidden="true"></span>
+			}
+
+			<span class="moka-menubar-item__text">@Text</span>
+
+			@if (OpensNewTab)
+			{
+				<span class="moka-visually-hidden">, @NewTabText</span>
+				<span class="moka-menubar-item__external" aria-hidden="true">
+					<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+				</span>
+			}
+
+			@if (!string.IsNullOrEmpty(Shortcut))
+			{
+				@* The same key caps the context menu and the command palette draw, from the same splitter. A hint
+				   only: the item does not bind the key, the hotkey registry does. *@
+				<span class="moka-menubar-item__shortcut">
+					@foreach (string key in ShortcutKeys.Split(Shortcut))
+					{
+						<MokaKbd>@key</MokaKbd>
+					}
+				</span>
+			}
+		</text>;
+}
+
+@* tabindex -1 throughout: the menubar is one tab stop, and the arrow keys move focus between the items. *@
+@if (FollowedHref is not null)
+{
+	@* WAI-ARIA's navigation menubar: a link with role="menuitem", so a middle click and "copy link" are the browser's
+	   own. A disabled item has nowhere to go, so it stays the disabled button below. *@
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   role="menuitem"
+	   tabindex="-1"
+	   href="@FollowedHref"
+	   target="@Target"
+	   rel="@UrlValues.RelFor(Target)"
+	   @onclick="HandleClick"
+	   @ref="_itemRef"
+	   @attributes="AdditionalAttributes">
+		@content
+	</a>
+}
+else
+{
+	<button class="@CssClass" style="@CssStyle" id="@Id"
+	        type="button"
+	        role="menuitem"
+	        tabindex="-1"
+	        disabled="@Disabled"
+	        @onclick="HandleClick"
+	        @ref="_itemRef"
+	        @attributes="AdditionalAttributes">
+		@content
+	</button>
+}

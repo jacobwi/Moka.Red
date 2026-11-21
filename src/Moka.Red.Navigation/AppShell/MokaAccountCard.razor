@@ -39,10 +39,18 @@
 				}
 				else if (href is not null)
 				{
-					<a role="menuitem" tabindex="-1" href="@href" class="@ItemClass(item)"
+					<a role="menuitem" tabindex="-1" href="@href" target="@item.Target" rel="@UrlValues.RelFor(item.Target)"
+					   class="@ItemClass(item)"
 					   aria-current="@(item.Active ? "page" : null)"
 					   @ref="_itemRefs[index]" @onclick="() => PickAsync(item)">
 						@ItemContent(item)
+						@if (UrlValues.OpensNewTab(item.Target))
+						{
+							<span class="moka-visually-hidden">, @NewTabText</span>
+							<span class="moka-account-card__external" aria-hidden="true">
+								<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+							</span>
+						}
 					</a>
 				}
 				else

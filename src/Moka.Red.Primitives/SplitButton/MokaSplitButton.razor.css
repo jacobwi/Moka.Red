@@ -26,6 +26,10 @@
 	font: inherit;
 	color: inherit;
 	background: inherit;
+	/* What the browser gives a button, so the main part looks the same when it is a link. */
+	letter-spacing: normal;
+	text-transform: none;
+	text-decoration: none;
 	outline: none;
 	transition:
 		background-color var(--moka-transition-fast),

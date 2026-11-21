@@ -114,6 +114,13 @@
 	white-space: nowrap;
 }
 
+/* A link that opens another tab. */
+.moka-list ::deep .moka-list-item__external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 /* End slot */
 .moka-list ::deep .moka-list-item__end {
 	flex-shrink: 0;

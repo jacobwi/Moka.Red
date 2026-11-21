@@ -120,10 +120,12 @@ Renders a `<label>` with optional `For` binding to an input id.
 
 ## MokaLink
 
-Renders an `<a>` with consistent styling and optional external-link icon.
+Renders an `<a>` with consistent styling and optional external-link icon. `External` opens it in a new tab with
+`rel="noopener noreferrer"` and a small external-link mark, and screen readers hear ", opens in a new tab" after its text
+(`NewTabText`), since the mark is hidden from them.
 
 ```blazor-preview
-<MokaLink Href="https://github.com" Target="_blank">View on GitHub</MokaLink>
+<MokaLink Href="https://github.com" External="true">View on GitHub</MokaLink>
 ```
 
 ### MokaLink Parameters
@@ -133,7 +135,8 @@ Renders an `<a>` with consistent styling and optional external-link icon.
 | `Href` | `string?` | - | URL. Left unset, the link points to `#`, or is a button when it has `OnClick`. A `javascript:`, `vbscript:` or `data:` URL is not rendered, so the link has no `href` |
 | `OnClick` | `EventCallback<MouseEventArgs>` | - | Raised on a click. Without `Href` the link renders as a button |
 | `Disabled` | `bool` | `false` | Disables the button. A link with `Href` ignores it |
-| `External` | `bool` | `false` | Opens the link in a new tab with `rel="noopener noreferrer"` and shows an icon |
+| `External` | `bool` | `false` | Opens the link in a new tab with `rel="noopener noreferrer"`, shows an icon and adds `NewTabText` for screen readers |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the text of an `External` link, after a comma |
 | `Underline` | `MokaLinkUnderline` | `Hover` | `Always`, `Hover` or `None` |
 | `Weight` | `MokaFontWeight?` | - | Font weight |
 | `Color` | `MokaColor?` | `Primary` | Link color |

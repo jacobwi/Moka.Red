@@ -34,6 +34,8 @@ order: 5
 | `AccentWidth` | `string` | `"3px"` | Accent bar thickness |
 | `NoPadding` | `bool` | `false` | Removes all internal padding |
 | `Href` | `string?` | -- | A click anywhere on the card follows it. The link is the title, or a hidden link named by `ActionLabel`. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the card stays a plain card |
+| `Target` | `string?` | -- | Where the card's link opens, such as `_blank`. Only used with `Href`. One that opens another tab gets `rel="noopener noreferrer"`, and the link's name ends in `NewTabText` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the link's name, after a comma, when `Target` opens another tab |
 | `Inner` | `bool` | `false` | A card inside a card: the panel color, no line or shadow, a smaller corner, and its own padding around the header, body and footer. With `Outlined` it gets a 1px outline |
 | `Live` | `bool` | `false` | A green edge on an `Inner` card, for something that is running. Does nothing without `Inner` |
 | `Dashed` | `bool` | `false` | A dashed edge on an `Inner` card, for something waiting to be filled. Does nothing without `Inner` |
@@ -130,7 +132,19 @@ With no `Title` shown (a custom `Header`, or no header at all) the action is a v
 </MokaCard>
 ```
 
-A `target`, `rel` or `download` attribute on a card with `Href` goes on the link, and an `aria-label` names the action. Other attributes stay on the card.
+A `rel` or `download` attribute on a card with `Href` goes on the link, and an `aria-label` names the action. Other attributes stay on the card.
+
+### Opening in another tab
+
+`Target` sends the card's link somewhere else, such as `_blank` or a window's name. A target that opens another tab gives the link `rel="noopener noreferrer"`, so the page it opens can't reach this one, and adds ", opens in a new tab" to the link's name for screen readers: inside the title link, inside the hidden link, at the end of an `aria-label`, or as a last part of the header and body that name it. `NewTabText` changes the words. `_self`, `_parent` and `_top` keep the link in this tab and add nothing. A `rel` attribute wins over the one `Target` gives.
+
+```razor
+<MokaCard Title="Status page" Href="https://status.example.com" Target="_blank">
+    Uptime and incidents for every service
+</MokaCard>
+```
+
+A `target` attribute written in lower case is `Target`, since Blazor binds parameters without regard to case.
 
 A clickable card can be collapsible. Its title is then the collapse toggle, so the action is a hidden button named by `ActionLabel` or `Title`. A click on the header toggles the card, and a click anywhere else runs the action.
 

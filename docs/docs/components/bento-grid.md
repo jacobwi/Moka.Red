@@ -61,6 +61,8 @@ order: 86
 | `Source` | `string?` | - | A small tag after the title saying where the card comes from, such as "Plugin" |
 | `Href` | `string?` | - | Where the head's Open link goes. Without it there is no link |
 | `OpenText` | `string` | `"Open"` | Text of the head's Open link |
+| `Target` | `string?` | - | Where the Open link opens, such as `_blank`. Only used with `Href`. One that opens another tab gets `rel="noopener noreferrer"`, and the link's name ends in `NewTabText` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after `OpenText`, after a comma, when `Target` opens another tab |
 | `EndContent` | `RenderFragment?` | - | Content at the end of the head, before the Open link, such as a count or a status dot |
 
 Setting `Card`, `Icon`, `IconContent`, `Source`, `Href` or `EndContent` gives the item a head: the icon, the title in 14 px, the source tag, the end content and the Open link in one row. Without any of them the item renders as it always has.
@@ -228,6 +230,14 @@ A card's head holds its `Icon`, its title, an optional `Source` tag and an Open 
 
 ```razor
 <MokaBentoItem Card="card" Title="Plugins" Icon="MokaIcons.Content.Copy" Source="Plugin" Href="/plugins">
+    ...
+</MokaBentoItem>
+```
+
+`Target` opens the Open link somewhere else, such as `_blank` for a card about another site. A target that opens another tab gives the link `rel="noopener noreferrer"` and words for screen readers after its text ("Open, opens in a new tab"), which `NewTabText` changes. `_self`, `_parent` and `_top` add nothing.
+
+```razor
+<MokaBentoItem Card="card" Title="Status" Href="https://status.example.com" Target="_blank">
     ...
 </MokaBentoItem>
 ```

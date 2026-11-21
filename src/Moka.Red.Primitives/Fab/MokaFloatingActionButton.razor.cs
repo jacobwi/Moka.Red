@@ -29,9 +29,33 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 	[EditorRequired]
 	public MokaIconDefinition Icon { get; set; }
 
-	/// <summary>Click event callback.</summary>
+	/// <summary>Click event callback. Raised on a link (<see cref="Href" />) too, before the browser follows it.</summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+	/// <summary>
+	///     Makes the button a link to this address, drawn exactly as the button and in the same tooltip. A
+	///     <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not rendered: it stays a button. While disabled or
+	///     <see cref="Loading" /> the link has no <c>href</c>, so it goes nowhere, and says it is a disabled link.
+	/// </summary>
+	[Parameter]
+	public string? Href { get; set; }
+
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c>, and <see cref="NewTabText" /> joins its accessible name after a comma, while
+	///     the tooltip shows <see cref="Label" /> alone. <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and
+	///     change nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the name of a link whose <see cref="Target" /> opens another tab. Defaults to
+	///     "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     Fixed viewport position. Defaults to <see cref="MokaFabPosition.BottomRight" />.
@@ -116,6 +140,24 @@ public partial class MokaFloatingActionButton : MokaVisualComponentBase
 	private bool ShowsLabel => Extended && !string.IsNullOrEmpty(Label);
 
 	private bool Busy => Loading && !Disabled;
+
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
+
+	private bool LinkInert => Disabled || Loading;
+
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	// The aria-label names the link, extended or not, so the new tab is said there rather than in hidden text inside it.
+	private string AccessibleName => UrlValues.OpensNewTab(Target)
+		? $"{Label ?? "Action"}, {NewTabText}"
+		: Label ?? "Action";
+
+	// No listener on a link that nothing listens to, since every listener costs a round trip.
+	private EventCallback<MouseEventArgs> LinkClick => OnClick.HasDelegate
+		? EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick)
+		: default;
 
 	// Only an icon shows, so the label names it in a tooltip. A button without a label has nothing to show.
 	private string? TooltipText => ShowsLabel ? null : Label;

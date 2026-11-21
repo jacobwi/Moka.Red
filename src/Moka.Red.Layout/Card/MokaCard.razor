@@ -97,7 +97,8 @@
 	{
 		if (LinkHref is not null)
 		{
-			<a class="@ActionCssClass(hidden)" href="@LinkHref" aria-labelledby="@ActionLabelledBy(hidden)"
+			<a class="@ActionCssClass(hidden)" href="@LinkHref" target="@Target" rel="@LinkRel"
+			   aria-labelledby="@ActionLabelledBy(hidden)"
 			   @onclick="HandleClick" @attributes="ActionAttributes">@{ RenderActionText(hidden); }</a>
 		}
 		else
@@ -116,6 +117,11 @@
 		else if (HiddenActionName is not null)
 		{
 			<span class="moka-visually-hidden">@HiddenActionName</span>
+		}
+
+		if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden" id="@NewTabWordsId">, @NewTabText</span>
 		}
 	}
 }

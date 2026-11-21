@@ -40,7 +40,8 @@ The dropdown's own root element takes no part in the layout (`display: contents`
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Click handler. Enter and Space raise it too |
 | `Disabled` | `bool` | `false` | Whether the item is disabled. The arrow keys skip it and a click on it does nothing. A link loses its address |
 | `Href` | `string?` | -- | An address, so the item is a link: an `a` element with `role="menuitem"`. A `javascript:`, `vbscript:` or `data:` address is not rendered and the item stays a plain one. See [Links](#links) |
-| `Target` | `string?` | -- | Where the link opens, such as `"_blank"`. Only used with `Href` |
+| `Target` | `string?` | -- | Where the link opens, such as `"_blank"`. Only used with `Href`. One that opens another tab gets `rel="noopener noreferrer"`, an external-link mark and `NewTabText` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of a link whose `Target` opens another tab, after a comma |
 | `Danger` | `bool` | `false` | Draws the item in the error color, on a red tint while it's hovered or focused. See [Danger items](#danger-items) |
 | `Divider` | `bool` | `false` | Renders as a horizontal divider instead of an item |
 | `Class` | `string?` | -- | Additional CSS classes |
@@ -93,14 +94,16 @@ An item with `Href` is a link, an `a` element with `role="menuitem"` as in the W
     </ChildContent>
     <Items>
         <MokaDropdownItem Text="Open" Href="/reports/q3" Icon="MokaIcons.Navigation.ChevronRight" />
-        <MokaDropdownItem Text="Open in a new tab" Href="/reports/q3" Target="_blank" Icon="MokaIcons.Content.ExternalLink" />
+        <MokaDropdownItem Text="Open in a new tab" Href="/reports/q3" Target="_blank" />
         <MokaDropdownItem Text="Download PDF" Href="/reports/q3.pdf" download="q3-report.pdf" Icon="MokaIcons.Action.Download" />
         <MokaDropdownItem Text="Archived" Href="/reports/q3/archive" Disabled />
     </Items>
 </MokaDropdown>
 ```
 
-A disabled link has no `href` or `target`, so it goes nowhere, and keeps `aria-disabled="true"`. An address the library won't render (`javascript:`, `vbscript:`, `data:`) leaves a plain item, as `MokaButton` and `MokaMenuItem` do.
+A disabled link has no `href`, `target` or `rel`, so it goes nowhere, and keeps `aria-disabled="true"`. An address the library won't render (`javascript:`, `vbscript:`, `data:`) leaves a plain item, as `MokaButton` and `MokaMenuItem` do.
+
+A `Target` that opens another tab (`_blank` or a window's name) gives the link `rel="noopener noreferrer"`, so the page it opens can't reach this one, an external-link mark after its text and `NewTabText` for screen readers. A `rel` attribute stays on a link that keeps to this tab. Enter and Space click the link in the browser, inside the key press, so another tab opens as it does for a click.
 
 ## Danger items
 

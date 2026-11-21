@@ -10,7 +10,8 @@ namespace Moka.Red.Primitives.Button;
 
 /// <summary>
 ///     A performant, accessible button with variant, color, and size support.
-///     Renders as &lt;a&gt; when <see cref="Href" /> is set, &lt;button&gt; otherwise.
+///     Renders as &lt;a&gt; when <see cref="Href" /> is set, &lt;button&gt; otherwise. The link keeps the link role, since
+///     it navigates, and only looks like a button.
 /// </summary>
 public partial class MokaButton
 {
@@ -60,15 +61,29 @@ public partial class MokaButton
 	public MokaIconDefinition? EndIcon { get; set; }
 
 	/// <summary>
-	///     When set, renders as an anchor element instead of a button. A <c>javascript:</c>, <c>vbscript:</c>
-	///     or <c>data:</c> URL is not rendered: the component stays a button.
+	///     When set, renders as an anchor element instead of a button, which screen readers announce as a link. A
+	///     <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not rendered: the component stays a button. A
+	///     disabled or busy link has no <c>href</c>, so it goes nowhere, and says it is a disabled link.
 	/// </summary>
 	[Parameter]
 	public string? Href { get; set; }
 
-	/// <summary>Link target (e.g., "_blank"). Only used when <see cref="Href" /> is set.</summary>
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c> and <see cref="NewTabText" /> for screen readers; no mark is drawn, so add an
+	///     <see cref="EndIcon" /> such as <c>MokaIcons.Content.ExternalLink</c> to show it. <c>_self</c>, <c>_parent</c> and
+	///     <c>_top</c> render as given and change nothing else. Only used when <see cref="Href" /> is set.
+	/// </summary>
 	[Parameter]
 	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the label of a link whose <see cref="Target" /> opens another tab, after a comma.
+	///     An icon-only link named by an <c>aria-label</c> takes that name instead, so say it there. Defaults to
+	///     "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>HTML button type attribute. Defaults to "button".</summary>
 	[Parameter]
@@ -117,6 +132,8 @@ public partial class MokaButton
 	private bool IsIconOnly => ChildContent is null && (StartIcon is not null || EndIcon is not null);
 	private string? LinkHref => UrlValues.SafeHref(Href);
 	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
+	private string? LinkRel => UrlValues.RelFor(Target);
+	private bool OpensNewTab => IsLink && UrlValues.OpensNewTab(Target);
 	private bool IsDisabled => Disabled || Loading;
 
 	// OnAfterRender runs only once the button is live in the browser (blazor/components/lifecycle.md: not during

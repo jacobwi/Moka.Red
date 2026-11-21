@@ -30,6 +30,13 @@ a.moka-dropdown-item {
 	text-decoration: none;
 }
 
+/* A link that opens another tab. */
+.moka-dropdown-item__external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 /* Danger: the row in the error color, its icon too, over the error tint while it is hovered or focused. */
 .moka-dropdown-item--danger {
 	color: var(--moka-color-error);

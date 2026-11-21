@@ -55,6 +55,18 @@
 	white-space: nowrap;
 }
 
+/* An item with an address is a link. It reads as a row like the rest. */
+a.moka-menubar-item {
+	text-decoration: none;
+}
+
+/* A link that opens another tab. */
+.moka-menubar-item__external {
+	display: inline-flex;
+	flex-shrink: 0;
+	color: var(--moka-color-on-surface-tertiary);
+}
+
 /* One key cap per key, laid out the way the context menu's shortcuts are. */
 .moka-menubar-item__shortcut {
 	display: flex;

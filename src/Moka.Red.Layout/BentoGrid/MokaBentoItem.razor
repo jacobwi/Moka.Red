@@ -91,7 +91,13 @@ else
 			}
 			@if (OpenHref is not null)
 			{
-				<a class="moka-bento-item__open" href="@OpenHref" @onclick:stopPropagation="Clickable">@OpenText</a>
+				<a class="moka-bento-item__open" href="@OpenHref" target="@Target" rel="@OpenRel" @onclick:stopPropagation="Clickable">
+					@OpenText
+					@if (OpensNewTab)
+					{
+						<span class="moka-visually-hidden">, @NewTabText</span>
+					}
+				</a>
 			}
 		</div>
 		@if (Description is not null)

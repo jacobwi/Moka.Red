@@ -23,6 +23,10 @@
 	white-space: nowrap;
 	font-family: var(--moka-font-family);
 	font-weight: var(--moka-font-weight-medium);
+	/* What the browser gives a button, so the button looks the same when it is a link. */
+	letter-spacing: normal;
+	text-transform: none;
+	text-decoration: none;
 	box-shadow: var(--moka-shadow-3);
 	outline: none;
 	transition:

@@ -8,6 +8,8 @@
 	<div role="listitem" style="@LinkWrapperStyle">
 		<a class="@CssClass" style="@CssStyle" id="@Id"
 		   href="@(Disabled ? null : LinkHref)"
+		   target="@(Disabled ? null : Target)"
+		   rel="@(Disabled ? null : LinkRel)"
 		   role="@(Disabled ? "link" : null)"
 		   aria-disabled="@(Disabled ? "true" : null)"
 		   @attributes="AdditionalAttributes"
@@ -64,6 +66,14 @@ else
 				@ChildContent
 			}
 		</div>
+
+		@if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden">, @NewTabText</span>
+			<span class="moka-list-item__external" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+			</span>
+		}
 
 		@if (EndContent is not null)
 		{

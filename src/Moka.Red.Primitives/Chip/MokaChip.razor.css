@@ -17,6 +17,7 @@
 	letter-spacing: 0.08em;
 	line-height: 1;
 	white-space: nowrap;
+	text-decoration: none;
 	cursor: pointer;
 	user-select: none;
 	outline: none;
@@ -53,6 +54,7 @@
 	letter-spacing: inherit;
 	text-transform: inherit;
 	white-space: inherit;
+	text-decoration: none;
 	cursor: pointer;
 	outline: none;
 	-webkit-tap-highlight-color: transparent;

@@ -259,6 +259,7 @@ The open menu sits in the browser's top layer, so the side menu's overflow doesn
 | `Items` | `IReadOnlyList<MokaAccountItem>` | empty | The rows, in order |
 | `OnItemClick` | `EventCallback<MokaAccountItem>` | -- | Raised when the person picks a row, a link or not |
 | `MenuLabel` | `string` | `"Account menu"` | What the card does, said to screen readers after the name |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of a row whose `Target` opens another tab, after a comma |
 | `Disabled` | `bool` | `false` | The card can't be opened |
 
 The heading is one line. `HeadingDetail` puts a mono line under it, each cut with an ellipsis when it's too long, and
@@ -271,3 +272,9 @@ name already says who's signed in.
 ```
 
 `MokaAccountItem(Text, Icon, Href, Danger, Active, Disabled, Checked)` is one row. With `Href` it's a link. `Danger` turns it red when hovered or focused, `Active` marks the page showing now (and the card itself is then drawn as the current place, like a menu's current page), and `Disabled` makes the arrow keys pass over it. `Checked` makes it a setting that turns on or off, which leaves the menu open. `MokaAccountItem.Divider` is a line between groups.
+
+A row's `Target`, set with `{ Target = "_blank" }`, opens its link in another tab, for a page outside the app such as a help site. The row gets `rel="noopener noreferrer"`, an external-link mark and `NewTabText` for screen readers. A click and Enter are the link's own; Space, which a link doesn't answer, opens the tab from the card before the row is picked, while the browser still counts the key press. Since this page stays where it was, focus goes back to the card.
+
+```razor
+new MokaAccountItem("Help", MokaIcons.Status.Info, "https://help.example.com") { Target = "_blank" }
+```

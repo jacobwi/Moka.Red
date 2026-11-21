@@ -4,7 +4,21 @@
 @if (Closable)
 {
 	<span class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-		@if (HasAction)
+		@if (IsLink)
+		{
+			<a class="moka-chip__action"
+			   href="@(Disabled ? null : LinkHref)"
+			   target="@(Disabled ? null : Target)"
+			   rel="@(Disabled ? null : LinkRel)"
+			   role="@(Disabled ? "link" : null)"
+			   tabindex="@(Disabled ? "-1" : null)"
+			   aria-disabled="@(Disabled ? "true" : null)"
+			   @onclick="LinkClick"
+			   @onclick:preventDefault="Disabled">
+				@{ RenderContent(); }
+			</a>
+		}
+		else if (HasAction)
 		{
 			<button type="button" class="moka-chip__action"
 			        disabled="@Disabled"
@@ -25,6 +39,21 @@
 			</button>
 		</MokaTooltip>
 	</span>
+}
+else if (IsLink)
+{
+	<a class="@CssClass" style="@CssStyle" id="@Id"
+	   href="@(Disabled ? null : LinkHref)"
+	   target="@(Disabled ? null : Target)"
+	   rel="@(Disabled ? null : LinkRel)"
+	   role="@(Disabled ? "link" : null)"
+	   tabindex="@(Disabled ? "-1" : null)"
+	   aria-disabled="@(Disabled ? "true" : null)"
+	   @onclick="LinkClick"
+	   @onclick:preventDefault="Disabled"
+	   @attributes="AdditionalAttributes">
+		@{ RenderContent(); }
+	</a>
 }
 else if (HasAction)
 {
@@ -74,6 +103,11 @@ else
 		if (ChildContent is not null)
 		{
 			<span class="moka-chip__text">@ChildContent</span>
+		}
+
+		if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden">, @NewTabText</span>
 		}
 	}
 }

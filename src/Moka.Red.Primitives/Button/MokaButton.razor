@@ -7,8 +7,9 @@
 	   data-moka-look="@LookName"
 	   data-moka-disabled-look="@DisabledLookName"
 	   href="@(IsDisabled ? null : LinkHref)"
-	   target="@Target"
-	   role="button"
+	   target="@(IsDisabled ? null : Target)"
+	   rel="@(IsDisabled ? null : LinkRel)"
+	   role="@(IsDisabled ? "link" : null)"
 	   aria-disabled="@(IsDisabled ? "true" : null)"
 	   aria-busy="@(Loading ? "true" : null)"
 	   tabindex="@(IsDisabled ? -1 : 0)"
@@ -54,6 +55,11 @@ else
 		if (ChildContent is not null)
 		{
 			<span class="moka-btn-content">@ChildContent</span>
+		}
+
+		if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden">, @NewTabText</span>
 		}
 
 		if (SpinnerAt == SpinnerPlace.End)

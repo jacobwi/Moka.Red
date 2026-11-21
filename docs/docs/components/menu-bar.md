@@ -51,6 +51,9 @@ No service registration, and no host component.
 | `OnClick` | `EventCallback` | - | Runs when the item is chosen, after the menu has closed |
 | `Disabled` | `bool` | `false` | Dimmed, cannot be chosen, and skipped by the arrow keys |
 | `Danger` | `bool` | `false` | Draws the item and its icon in the error color, on a red tint while it's hovered or highlighted. See [Danger items](#danger-items) |
+| `Href` | `string?` | - | An address, so the item is a link (`a role="menuitem"`). See [Link items](#link-items) |
+| `Target` | `string?` | - | Where the link opens, such as `_blank`. Only used with `Href` |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of a link whose `Target` opens another tab, after a comma |
 
 ## Basic Usage
 
@@ -83,6 +86,19 @@ No service registration, and no host component.
 
 It's the look only: ask before anything that can't be undone. Name the action in its text, since the color alone doesn't say it.
 
+## Link items
+
+`Href` makes the item a link with `role="menuitem"`, as in WAI-ARIA's navigation menubar example, so a middle click, Ctrl+click and the link's own context menu work. A click is the link's own: the browser follows it, and the menu closes and runs `OnClick`. Enter and Space belong to the bar, so from the keyboard the menu follows the link itself: it closes, runs `OnClick`, then goes to the address. A `javascript:`, `vbscript:` or `data:` address isn't rendered, and a disabled item has nowhere to go, so both stay buttons.
+
+`Target` opens the link somewhere else, such as `_blank` for a page outside the app. A target that opens another tab gives the link `rel="noopener noreferrer"`, an external-link mark and `NewTabText` for screen readers. From the keyboard the menu opens the tab first, while the browser still counts the key press (Chromium, Firefox and WebKit allow it for five seconds), then closes and runs `OnClick`.
+
+```razor
+<MokaMenuBarMenu Label="Help">
+    <MokaMenuBarItem Text="Getting started" Href="docs/start" />
+    <MokaMenuBarItem Text="Documentation" Icon="MokaIcons.Content.Book" Href="https://docs.example.com" Target="_blank" />
+</MokaMenuBarMenu>
+```
+
 ## Keyboard
 
 The bar is one tab stop. Tab moves into it and back out; everything else happens with the arrow keys, which is
@@ -96,7 +112,7 @@ what separates a menu bar from a row of buttons.
 | Up, Down | In an open menu | Moves between items, wrapping, stepping over disabled ones |
 | Home, End | In the bar | Jumps to the first or last menu |
 | Home, End | In an open menu | Jumps to the first or last item |
-| Enter, Space | In an open menu | Chooses the item |
+| Enter, Space | In an open menu | Chooses the item. On a link item it follows the link, in another tab first when its `Target` says so |
 | A letter | In the bar | Jumps to the menu whose label starts with it |
 | A letter | In an open menu | Jumps to the item whose text starts with it |
 | Escape | In an open menu | Closes it and puts focus back on its label |

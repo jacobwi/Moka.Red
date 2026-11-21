@@ -1,18 +1,11 @@
 @namespace Moka.Red.Primitives.Fab
 @inherits MokaVisualComponentBase
 
-@* The root holds the button's place and takes Class, Style and the margin. The tooltip's element inside it is
-   what the name is placed against: a fixed button inside the tooltip would leave that element behind. *@
-<div class="@CssClass" style="@CssStyle">
-	<MokaTooltip Text="@TooltipText" Position="TooltipPosition">
-		<button class="@ButtonClass" style="@ButtonStyle" id="@Id"
-		        type="button"
-		        disabled="@Disabled"
-		        aria-disabled="@(Busy ? "true" : null)"
-		        aria-busy="@(Loading ? "true" : null)"
-		        aria-label="@(Label ?? "Action")"
-		        @attributes="AdditionalAttributes"
-		        @onclick="HandleClick">
+@{
+	// A template, not a local function: a local function writes to this component's own builder, which is the wrong
+	// one inside the tooltip's ChildContent.
+	RenderFragment content =
+		@<text>
 			@if (Loading)
 			{
 				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-fab-icon moka-spin"/>
@@ -29,6 +22,42 @@
 			{
 				<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
 			}
-		</button>
+		</text>;
+}
+
+@* The root holds the button's place and takes Class, Style and the margin. The tooltip's element inside it is
+   what the name is placed against: a fixed button inside the tooltip would leave that element behind. *@
+<div class="@CssClass" style="@CssStyle">
+	<MokaTooltip Text="@TooltipText" Position="TooltipPosition">
+		@if (IsLink)
+		{
+			<a class="@ButtonClass" style="@ButtonStyle" id="@Id"
+			   href="@(LinkInert ? null : LinkHref)"
+			   target="@(LinkInert ? null : Target)"
+			   rel="@(LinkInert ? null : LinkRel)"
+			   role="@(LinkInert ? "link" : null)"
+			   tabindex="@(LinkInert ? "-1" : null)"
+			   aria-disabled="@(LinkInert ? "true" : null)"
+			   aria-busy="@(Loading ? "true" : null)"
+			   aria-label="@AccessibleName"
+			   @attributes="AdditionalAttributes"
+			   @onclick="LinkClick"
+			   @onclick:preventDefault="LinkInert">
+				@content
+			</a>
+		}
+		else
+		{
+			<button class="@ButtonClass" style="@ButtonStyle" id="@Id"
+			        type="button"
+			        disabled="@Disabled"
+			        aria-disabled="@(Busy ? "true" : null)"
+			        aria-busy="@(Loading ? "true" : null)"
+			        aria-label="@(Label ?? "Action")"
+			        @attributes="AdditionalAttributes"
+			        @onclick="HandleClick">
+				@content
+			</button>
+		}
 	</MokaTooltip>
 </div>

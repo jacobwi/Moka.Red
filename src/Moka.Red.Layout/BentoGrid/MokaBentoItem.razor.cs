@@ -104,6 +104,21 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 	[Parameter]
 	public string OpenText { get; set; } = "Open";
 
+	/// <summary>
+	///     Where the head's Open link opens, such as <c>_blank</c>. Only used with <see cref="Href" />. One that opens
+	///     another tab gets <c>rel="noopener noreferrer"</c>, and the link's name ends in <see cref="NewTabText" /> for
+	///     screen readers.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after <see cref="OpenText" /> when <see cref="Target" /> opens another tab, after a
+	///     comma. Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
 	[CascadingParameter] private MokaBentoGrid? ParentGrid { get; set; }
 
 	/// <inheritdoc />
@@ -173,6 +188,10 @@ public partial class MokaBentoItem : MokaVisualComponentBase
 	private string? TileLabel => Card is not null ? ResolvedTitle : null;
 
 	private string? OpenHref => UrlValues.SafeHref(Href);
+
+	private string? OpenRel => UrlValues.RelFor(Target);
+
+	private bool OpensNewTab => OpenHref is not null && UrlValues.OpensNewTab(Target);
 
 	private EventCallback<MouseEventArgs> TileClick => Clickable
 		? EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick)

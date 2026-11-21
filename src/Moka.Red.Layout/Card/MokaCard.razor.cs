@@ -16,7 +16,7 @@ public partial class MokaCard : MokaVisualComponentBase
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
 
 	private static readonly HashSet<string> LinkAttributeNames =
-		new(["target", "rel", "download"], StringComparer.OrdinalIgnoreCase);
+		new(["rel", "download"], StringComparer.OrdinalIgnoreCase);
 
 	private readonly string _regionId = $"moka-card-{Guid.NewGuid():N}";
 	private ElementReference _headerContent;
@@ -128,12 +128,26 @@ public partial class MokaCard : MokaVisualComponentBase
 
 	/// <summary>
 	///     Optional href. A click anywhere on the card follows it, and the card's one tab stop is a link: the title
-	///     when the card shows one, else a visually hidden link named by <see cref="ActionLabel" />. A
-	///     <c>target</c>, <c>rel</c> or <c>download</c> attribute goes on that link. A <c>javascript:</c>,
-	///     <c>vbscript:</c> or <c>data:</c> URL is not rendered: the card stays a plain card.
+	///     when the card shows one, else a visually hidden link named by <see cref="ActionLabel" />. A <c>rel</c> or
+	///     <c>download</c> attribute goes on that link, and a <c>rel</c> wins over the one <see cref="Target" /> gives. A
+	///     <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not rendered: the card stays a plain card.
 	/// </summary>
 	[Parameter]
 	public string? Href { get; set; }
+
+	/// <summary>
+	///     Where the card's link opens, such as <c>_blank</c>. Only used with <see cref="Href" />. One that opens another
+	///     tab gets <c>rel="noopener noreferrer"</c>, and its name ends in <see cref="NewTabText" /> for screen readers.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the name of a card whose <see cref="Target" /> opens another tab, after a comma.
+	///     Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     A card inside a card: the panel color with no line or shadow, a smaller corner, and its own padding
@@ -188,6 +202,12 @@ public partial class MokaCard : MokaVisualComponentBase
 
 	private string? LinkHref => UrlValues.SafeHref(Href);
 
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	private bool OpensNewTab => LinkHref is not null && UrlValues.OpensNewTab(Target);
+
+	private string? NewTabWordsId => ActionNamedByContent ? $"{_regionId}-new-tab" : null;
+
 	private bool HasAction => Clickable || LinkHref is not null;
 
 	// A collapsible card's title is its toggle, and a button can't sit inside another.
@@ -215,7 +235,26 @@ public partial class MokaCard : MokaVisualComponentBase
 	private IReadOnlyDictionary<string, object>? RootAttributes =>
 		HasAction ? AttributesWhere(name => !GoesToAction(name)) : AdditionalAttributes;
 
-	private IReadOnlyDictionary<string, object>? ActionAttributes => AttributesWhere(GoesToAction);
+	private IReadOnlyDictionary<string, object>? ActionAttributes
+	{
+		get
+		{
+			Dictionary<string, object>? attributes = AttributesWhere(GoesToAction);
+			if (!OpensNewTab || attributes is null)
+			{
+				return attributes;
+			}
+
+			// An aria-label replaces the link's content as its name, so the words for a new tab go into it.
+			string? labelKey = attributes.Keys.FirstOrDefault(key => key.Equals("aria-label", StringComparison.OrdinalIgnoreCase));
+			if (labelKey is not null && attributes[labelKey] is string label)
+			{
+				attributes[labelKey] = $"{label}, {NewTabText}";
+			}
+
+			return attributes;
+		}
+	}
 
 	private string BodyCssClass => new CssBuilder("moka-card-body")
 		.AddClass("moka-thin-scrollbar", Fill)
@@ -267,7 +306,12 @@ public partial class MokaCard : MokaVisualComponentBase
 		bool hasBody = !IsCollapsed && (Loading || ChildContent is not null);
 		string?[] ids = [HasHeader && HeaderToggleLabel is null ? HeaderContentId : null, hasBody ? BodyId : null];
 		string labelledBy = string.Join(' ', ids.Where(id => id is not null));
-		return labelledBy.Length > 0 ? labelledBy : null;
+		if (labelledBy.Length == 0)
+		{
+			return null;
+		}
+
+		return OpensNewTab ? $"{labelledBy} {NewTabWordsId}" : labelledBy;
 	}
 
 	/// <inheritdoc />
@@ -300,7 +344,7 @@ public partial class MokaCard : MokaVisualComponentBase
 
 	private Task HandleClick(MouseEventArgs args) => OnClick.InvokeAsync(args);
 
-	// What names the card, or says where its link opens, belongs on the action now that the card itself is a plain element.
+	// What names the card, or describes its link, belongs on the action now that the card itself is a plain element.
 	private bool GoesToAction(string name) =>
 		name.Equals("aria-label", StringComparison.OrdinalIgnoreCase) ||
 		(LinkHref is not null && LinkAttributeNames.Contains(name));

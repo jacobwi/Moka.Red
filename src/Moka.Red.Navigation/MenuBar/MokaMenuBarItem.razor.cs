@@ -44,6 +44,31 @@ public partial class MokaMenuBarItem : MokaVisualComponentBase
 	[Parameter]
 	public EventCallback OnClick { get; set; }
 
+	/// <summary>
+	///     An address, so the item is a link (an <c>a</c> element with <c>role="menuitem"</c>): a middle click, Ctrl+click
+	///     and the link's own context menu work. A click is the link's own; Enter or Space follow it from the menu.
+	///     Choosing it still closes the menu and raises <see cref="OnClick" />, and from the keyboard an address in this
+	///     tab is followed after <see cref="OnClick" />. A disabled item has nowhere to go, so it stays a disabled button,
+	///     and a <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> address is not rendered: the item stays a button.
+	/// </summary>
+	[Parameter]
+	public string? Href { get; set; }
+
+	/// <summary>
+	///     Where the link opens, such as <c>_blank</c>. Only used with <see cref="Href" />. One that opens another tab gets
+	///     <c>rel="noopener noreferrer"</c>, an external-link mark and <see cref="NewTabText" /> for screen readers, and
+	///     Enter or Space open the tab before the menu closes and <see cref="OnClick" /> runs.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the name of a link whose <see cref="Target" /> opens another tab, after a comma.
+	///     Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-menubar-item";
 
@@ -56,6 +81,11 @@ public partial class MokaMenuBarItem : MokaVisualComponentBase
 		.AddClass("moka-menubar-item--danger", Danger)
 		.AddClass(Class)
 		.Build();
+
+	private bool OpensNewTab => FollowedHref is not null && UrlValues.OpensNewTab(Target);
+
+	/// <summary>The address choosing the item goes to: none while it is disabled or the address could run script.</summary>
+	internal string? FollowedHref => Disabled || string.IsNullOrEmpty(Href) ? null : UrlValues.SafeHref(Href);
 
 	/// <inheritdoc />
 	protected override void OnInitialized()
@@ -74,11 +104,12 @@ public partial class MokaMenuBarItem : MokaVisualComponentBase
 		}
 	}
 
+	// A click on a link is the link's own: the browser follows it, and the menu only closes and runs the action.
 	private async Task HandleClick()
 	{
 		if (Menu is not null)
 		{
-			await Menu.ChooseAsync(this);
+			await Menu.ChooseAsync(this, byKeyboard: false);
 			return;
 		}
 

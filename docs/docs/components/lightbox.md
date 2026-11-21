@@ -112,10 +112,18 @@ Reads are matched to items by `Key` when the item has one, else by value. Give i
 | `OnClick` | `EventCallback<MouseEventArgs>` | -- | Raised when it is pressed, unless it is busy or disabled. Works on a link too. Without a listener the button sends nothing to .NET |
 | `Href` | `string?` | -- | Makes it a link, such as to the full image. `javascript:`, `vbscript:` and `data:` addresses are dropped, leaving a button |
 | `Download` | `string?` | -- | With `Href`, saves what the link points at: the file name to save it as, or `""` for the name the address gives. Null is an ordinary link |
+| `Target` | `string?` | -- | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"`, and `NewTabText` joins its `aria-label` while the tooltip shows `Text` alone |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after `Text` when the link's `Target` opens another tab, after a comma |
 | `Busy` | `bool` | `false` | Its work is under way: a turning ring in place of the icon, presses ignored, and it stays focusable (`aria-disabled`), so the keyboard keeps its place |
 | `Disabled` | `bool` | `false` | A disabled button. A disabled link is a disabled button |
 | `TooltipPosition` | `MokaTooltipPosition` | `Bottom` | Where its tooltip opens |
 | `Class` / `Style` / `Id` | `string?` | -- | On the button or link, with any other attribute |
+
+An action that opens the full image in another tab takes `Target="_blank"`. It is named by its `aria-label`, so ", opens in a new tab" joins that name; the tooltip still says what it does.
+
+```razor
+<MokaLightboxAction Icon="MokaIcons.Content.ExternalLink" Text="Open original" Href="@context.Src" Target="_blank" />
+```
 
 `MokaMediaGallery` hands its lightbox the same template through `LightboxActions`.
 

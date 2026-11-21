@@ -96,6 +96,22 @@ public partial class MokaListItem
 	[Parameter]
 	public string? Href { get; set; }
 
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c>, an external-link mark after its content, before <see cref="EndContent" />, and
+	///     <see cref="NewTabText" /> for screen readers. <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and
+	///     change nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the row's text when its <see cref="Target" /> opens another tab, after a comma.
+	///     Defaults to "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
 	/// <summary>Click event callback.</summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
@@ -126,6 +142,10 @@ public partial class MokaListItem
 	private string? LinkHref => UrlValues.SafeHref(Href);
 
 	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
+
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	private bool OpensNewTab => IsLink && UrlValues.OpensNewTab(Target);
 
 	// A clickable row is a div, so it needs its own tab stop, and MokaList supplies Enter and
 	// Space. Links are already focusable. A row with only a context menu still takes focus so

@@ -14,6 +14,7 @@ namespace Moka.Red.Navigation.AppShell;
 public partial class MokaAccountCard : MokaVisualComponentBase
 {
 	private const string KeysModule = "./_content/Moka.Red.Core/moka-keys.js";
+	private const string LinksModule = "./_content/Moka.Red.Core/moka-links.js";
 	private const string PopupModule = "./_content/Moka.Red.Core/moka-popup.js";
 
 	// Above the card the menu is as wide as the card. Beside the rail its stylesheet gives it a width.
@@ -96,6 +97,13 @@ public partial class MokaAccountCard : MokaVisualComponentBase
 	/// <summary>What the card does, said to screen readers after the name.</summary>
 	[Parameter]
 	public string MenuLabel { get; set; } = "Account menu";
+
+	/// <summary>
+	///     What screen readers hear after the name of a row whose <see cref="MokaAccountItem.Target" /> opens another tab,
+	///     after a comma. Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	[CascadingParameter]
 	private MokaAppShell? Shell { get; set; }
@@ -273,8 +281,9 @@ public partial class MokaAccountCard : MokaVisualComponentBase
 		{
 			_open = false;
 
-			// First, so a dialog the app opens from this remembers the card as where to send focus back.
-			if (UrlValues.SafeHref(item.Href) is null)
+			// First, so a dialog the app opens from this remembers the card as where to send focus back. A link that opens
+			// another tab leaves this page as it is, so focus comes back here too.
+			if (UrlValues.SafeHref(item.Href) is null || UrlValues.OpensNewTab(item.Target))
 			{
 				await SafeFocusAsync(_card);
 			}
@@ -315,13 +324,22 @@ public partial class MokaAccountCard : MokaVisualComponentBase
 			return;
 		}
 
-		// A button clicks itself on Space. A link doesn't.
+		// A button clicks itself on Space. A link doesn't, so the card follows it: another tab first, while the browser
+		// still counts the key press.
 		if (e.Key == " ")
 		{
 			MokaAccountItem focused = Items[rows[_focused]];
 			if (UrlValues.SafeHref(focused.Href) is { } href)
 			{
-				Navigation.NavigateTo(href);
+				if (UrlValues.OpensNewTab(focused.Target))
+				{
+					await SafeModuleInvokeVoidAsync(LinksModule, "openTab", href, focused.Target);
+				}
+				else
+				{
+					Navigation.NavigateTo(href);
+				}
+
 				await PickAsync(focused);
 			}
 

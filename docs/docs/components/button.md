@@ -29,8 +29,9 @@ order: 1
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
 | `Quiet` | `bool` | `false` | The quiet look for an icon-only button. `Variant` is ignored and `Size` changes only the icon |
 | `Look` | `MokaButtonLook?` | `null` | How this button is drawn, ahead of the theme's `Buttons`. `null` follows the theme. New design only, see [Looks](#looks) |
-| `Href` | `string?` | - | Renders as `<a>` when set. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>` |
-| `Target` | `string?` | - | Link target (e.g., `_blank`) |
+| `Href` | `string?` | - | Renders as `<a>` when set, a link that looks like a button. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>`. See [Link Button](#link-button) |
+| `Target` | `string?` | - | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"` and `NewTabText` for screen readers. `_self`, `_parent` and `_top` render as given |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the label of a link whose `Target` opens another tab, after a comma |
 | `Type` | `string` | `"button"` | HTML button type attribute |
 | `OnClick` | `EventCallback<MouseEventArgs>` | - | Click callback |
 | `Class` | `string?` | - | Additional CSS classes |
@@ -274,10 +275,20 @@ with an ellipsis.
 
 ## Link Button
 
-When `Href` is set the component renders as an `<a>` element while keeping button styling.
+When `Href` is set the component renders as an `<a>` element while keeping button styling. It goes somewhere, so it stays a
+link to screen readers (it carried `role="button"` up to 0.11.2): a role of button is for an anchor that does something on
+the page rather than navigate. `OnClick` still runs on a click.
+
+`Target="_blank"`, or a window's name, opens it in another tab. The link gets `rel="noopener noreferrer"`, so the page it
+opens can't reach this one through `window.opener` and isn't told the address it came from, and screen readers hear
+", opens in a new tab" after the label (`NewTabText`). No mark is drawn on the button; add `EndIcon` to show one. An
+icon-only link button named by an `aria-label` should say it opens a new tab in that name.
+
+A disabled or busy link has no `href`, `target` or `rel`, so it goes nowhere, and says it is a disabled link
+(`role="link"` with `aria-disabled="true"`).
 
 ```blazor-preview
-<MokaButton Href="https://github.com" Target="_blank" EndIcon="MokaIcons.Content.Link">
+<MokaButton Href="https://github.com" Target="_blank" EndIcon="MokaIcons.Content.ExternalLink">
     Open GitHub
 </MokaButton>
 ```

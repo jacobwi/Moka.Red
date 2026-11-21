@@ -21,6 +21,13 @@ else
 			{
 				<span class="moka-dropdown-item-text">@Text</span>
 			}
+			@if (OpensNewTab)
+			{
+				<span class="moka-visually-hidden">, @NewTabText</span>
+				<span class="moka-dropdown-item__external" aria-hidden="true">
+					<MokaIcon Icon="MokaIcons.Content.ExternalLink" SizeValue="12px"/>
+				</span>
+			}
 		</text>;
 
 	@* The dropdown's script moves focus between items, so an enabled item takes focus without
@@ -34,6 +41,7 @@ else
 		<a @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
 		   href="@(Disabled ? null : LinkHref)"
 		   target="@(Disabled ? null : Target)"
+		   rel="@(Disabled ? null : LinkRel)"
 		   tabindex="@(Disabled ? null : "-1")"
 		   aria-disabled="@(Disabled ? "true" : null)"
 		   @onclick="HandleClick"

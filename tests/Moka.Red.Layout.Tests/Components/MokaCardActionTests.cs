@@ -186,7 +186,7 @@ public partial class MokaCardActionTests : BunitContext
 		IElement action = cut.Find(".moka-card-action");
 		Assert.Equal("_blank", action.GetAttribute("target"));
 		Assert.Equal("noopener", action.GetAttribute("rel"));
-		Assert.Equal("Open backups", action.GetAttribute("aria-label"));
+		Assert.Equal("Open backups, opens in a new tab", action.GetAttribute("aria-label"));
 		Assert.Equal("card", card.GetAttribute("data-test"));
 		Assert.False(card.HasAttribute("target"));
 		Assert.False(card.HasAttribute("aria-label"));

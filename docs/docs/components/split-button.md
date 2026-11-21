@@ -13,7 +13,10 @@ order: 54
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `ChildContent` | `RenderFragment` | **required** | The primary button label |
-| `OnClick` | `EventCallback` | -- | Callback for the primary button click |
+| `OnClick` | `EventCallback` | -- | Callback for the primary button click. Raised on a link too |
+| `Href` | `string?` | -- | Makes the main part a link, drawn as the button it replaces. A `javascript:`, `vbscript:` or `data:` URL is not rendered: it stays a button. See [Link](#link) |
+| `Target` | `string?` | -- | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"` and `NewTabText` for screen readers |
+| `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the label of a link whose `Target` opens another tab, after a comma |
 | `DropdownContent` | `RenderFragment` | `null` | Content rendered inside the dropdown panel |
 | `Color` | `MokaColor` | `Primary` | Color theme for the button |
 | `Variant` | `MokaVariant` | `Filled` | Visual variant (Filled, Outlined, Soft, Text) |
@@ -89,6 +92,24 @@ draft, which shouldn't start while the first one runs. A menu item can start the
     <ChildContent>Save</ChildContent>
     <DropdownContent>
         <MokaDropdownItem Text="Save Draft" Icon="MokaIcons.File.FileText" OnClick="SaveDraftAsync" />
+    </DropdownContent>
+</MokaSplitButton>
+```
+
+## Link
+
+`Href` makes the main part an `<a>`, drawn exactly as the button, for a main action that goes to a page; the arrow and its
+menu stay as they are. `OnClick` still runs on a click, before the browser follows the link. `Target="_blank"` opens it in
+another tab with `rel="noopener noreferrer"`, and screen readers hear ", opens in a new tab" after the label
+(`NewTabText`). While `Disabled` or `Loading` the link has no `href`, `target` or `rel`, so it goes nowhere, and says it is a
+disabled link (`role="link"` with `aria-disabled="true"`).
+
+```razor
+<MokaSplitButton Href="/reports/new">
+    <ChildContent>New report</ChildContent>
+    <DropdownContent>
+        <MokaDropdownItem Text="From a template" Href="/reports/templates" />
+        <MokaDropdownItem Text="Import" OnClick="Import" />
     </DropdownContent>
 </MokaSplitButton>
 ```

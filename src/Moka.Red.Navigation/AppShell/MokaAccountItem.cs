@@ -19,6 +19,13 @@ public sealed record MokaAccountItem(
 	bool Disabled = false,
 	bool? Checked = null)
 {
+	/// <summary>
+	///     Where the row's link opens, such as <c>_blank</c>. Only used with <see cref="Href" />. One that opens another
+	///     tab gets <c>rel="noopener noreferrer"</c>, an external-link mark and the card's <c>NewTabText</c> for screen
+	///     readers.
+	/// </summary>
+	public string? Target { get; init; }
+
 	/// <summary>A line between groups of rows.</summary>
 	public static MokaAccountItem Divider { get; } = new(string.Empty);
 

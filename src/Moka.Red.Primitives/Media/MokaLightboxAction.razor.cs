@@ -48,6 +48,22 @@ public partial class MokaLightboxAction : MokaVisualComponentBase
 	public string? Download { get; set; }
 
 	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c>, and <see cref="NewTabText" /> joins its <c>aria-label</c> after a comma, while
+	///     the tooltip shows <see cref="Text" /> alone. <c>_self</c>, <c>_parent</c> and <c>_top</c> render as given and
+	///     change nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after <see cref="Text" /> when the link's <see cref="Target" /> opens another tab.
+	///     Defaults to "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
+
+	/// <summary>
 	///     Whether its work is under way, such as a download being prepared. It shows a turning ring in place of its icon
 	///     and ignores presses, and stays focusable, so the keyboard keeps its place.
 	/// </summary>
@@ -76,6 +92,10 @@ public partial class MokaLightboxAction : MokaVisualComponentBase
 		.Build();
 
 	private string? LinkHref => Disabled || Busy || string.IsNullOrWhiteSpace(Href) ? null : UrlValues.SafeHref(Href);
+
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	private string LinkName => UrlValues.OpensNewTab(Target) ? $"{Text}, {NewTabText}" : Text;
 
 	// No listener at all while nothing listens or a press would be ignored.
 	private EventCallback<MouseEventArgs> ClickHandler => Busy || Disabled ? default : OnClick;

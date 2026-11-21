@@ -19,6 +19,24 @@
 	<p style="margin-top:8px; opacity:0.6; font-size: var(--moka-font-size-sm);">@_splitButtonStatus</p>
 </DemoSection>
 
+<DemoSection Id="link" Title="A link as the main action" Description="Href makes the main part a link, so a middle click, Ctrl+click and copy link work. Target _blank opens it in a new tab with rel=&quot;noopener noreferrer&quot;, and screen readers hear that it does.">
+	<MokaFlexbox Gap="MokaSpacingScale.Md" Wrap="true">
+		<MokaSplitButton Href="components/button">
+			<ChildContent>Open</ChildContent>
+			<DropdownContent>
+				<MokaDropdownItem Text="Open in a new tab" Href="components/button" Target="_blank"/>
+				<MokaDropdownItem Text="Copy address" Icon="MokaIcons.Content.Copy" OnClick="() => { }"/>
+			</DropdownContent>
+		</MokaSplitButton>
+		<MokaSplitButton Href="https://learn.microsoft.com/aspnet/core/blazor/" Target="_blank">
+			<ChildContent>Blazor docs</ChildContent>
+			<DropdownContent>
+				<MokaDropdownItem Text="Components" Href="https://learn.microsoft.com/aspnet/core/blazor/components/" Target="_blank"/>
+			</DropdownContent>
+		</MokaSplitButton>
+	</MokaFlexbox>
+</DemoSection>
+
 <DemoSection Id="busy" Title="Busy">
 	<p class="page-desc">The main action or a menu item runs a two-second save. While it runs both halves keep focus and do nothing, since the menu holds other ways to save.</p>
 	<div>

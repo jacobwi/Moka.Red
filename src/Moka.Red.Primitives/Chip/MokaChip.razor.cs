@@ -12,11 +12,12 @@ namespace Moka.Red.Primitives.Chip;
 ///     Styled with the same variants as <c>MokaButton</c>; a selected chip adds a check icon and a colored fill.
 /// </summary>
 /// <remarks>
-///     A chip with <see cref="OnClick" /> or <see cref="SelectedChanged" /> is a button, and a toggle button with
-///     <c>aria-pressed</c> once the parent passes <see cref="Selected" /> or <see cref="SelectedChanged" />. A chip with
-///     neither is a plain <c>span</c>. A <see cref="Closable" /> chip is a <c>span</c> holding its own button, when it
-///     has one, beside the remove button, since a button can't hold another. <c>Class</c>, <c>Style</c>, <c>Id</c> and
-///     other attributes go on the outermost element.
+///     A chip with <see cref="Href" /> is a link. Otherwise a chip with <see cref="OnClick" /> or
+///     <see cref="SelectedChanged" /> is a button, and a toggle button with <c>aria-pressed</c> once the parent passes
+///     <see cref="Selected" /> or <see cref="SelectedChanged" />. A chip with none of them is a plain <c>span</c>. A
+///     <see cref="Closable" /> chip is a <c>span</c> holding its own link or button, when it has one, beside the remove
+///     button, since neither can hold another button. <c>Class</c>, <c>Style</c>, <c>Id</c> and other attributes go on the
+///     outermost element.
 /// </remarks>
 public partial class MokaChip
 {
@@ -71,9 +72,34 @@ public partial class MokaChip
 	[Parameter]
 	public bool Controlled { get; set; }
 
-	/// <summary>Click event callback.</summary>
+	/// <summary>Click event callback. Raised on a link (<see cref="Href" />) too, before the browser follows it.</summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+	/// <summary>
+	///     Makes the chip a link to this address, such as a tag's page, with the same look, hover and press. A link says
+	///     nothing about being pressed, so <c>aria-pressed</c> isn't written, though <see cref="SelectedChanged" /> and
+	///     <see cref="OnClick" /> still run on a click. On a <see cref="Closable" /> chip the link sits beside the remove
+	///     button. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not rendered, and the chip is what it
+	///     would be without one. A disabled link has no <c>href</c>, so it goes nowhere, and says it is a disabled link.
+	/// </summary>
+	[Parameter]
+	public string? Href { get; set; }
+
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c> and <see cref="NewTabText" /> for screen readers. <c>_self</c>, <c>_parent</c>
+	///     and <c>_top</c> render as given and change nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the chip's text when its <see cref="Target" /> opens another tab, after a comma.
+	///     Defaults to "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     A color someone gave this chip: its tint behind readable ink, and a dot in its color before the text when there
@@ -93,9 +119,24 @@ public partial class MokaChip
 
 	private bool ShowsLabelDot => Label is not null && Icon is null && !_selected && string.IsNullOrEmpty(Avatar);
 
-	private bool HasAction => OnClick.HasDelegate || SelectedChanged.HasDelegate;
+	private string? LinkHref => UrlValues.SafeHref(Href);
 
-	private string? AriaPressed => !HasAction || !_toggle ? null : _selected ? "true" : "false";
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
+
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	private bool OpensNewTab => IsLink && UrlValues.OpensNewTab(Target);
+
+	private bool HasHandler => OnClick.HasDelegate || SelectedChanged.HasDelegate;
+
+	private bool HasAction => IsLink || HasHandler;
+
+	private string? AriaPressed => !HasHandler || !_toggle ? null : _selected ? "true" : "false";
+
+	// No listener on a link that nothing listens to, since every listener costs a round trip.
+	private EventCallback<MouseEventArgs> LinkClick => HasHandler
+		? EventCallback.Factory.Create<MouseEventArgs>(this, HandleClick)
+		: default;
 
 	private string RemoveName => string.IsNullOrEmpty(Text) ? "Remove" : $"Remove {Text}";
 

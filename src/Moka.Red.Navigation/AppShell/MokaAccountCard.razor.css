@@ -163,6 +163,12 @@
 	min-width: 0;
 }
 
+/* A row that opens another tab. Its icon takes the row's icon color, like the icon before the name. */
+.moka-account-card__external {
+	display: inline-flex;
+	flex-shrink: 0;
+}
+
 .moka-account-card__item:hover,
 .moka-account-card__item:focus {
 	outline: none;

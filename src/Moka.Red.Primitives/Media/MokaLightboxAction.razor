@@ -4,8 +4,8 @@
 <MokaTooltip Text="@Text" Position="TooltipPosition" Class="moka-lightbox-action-tip">
 	@if (LinkHref is { } href)
 	{
-		<a class="@CssClass" style="@CssStyle" id="@Id" href="@href" download="@Download" aria-label="@Text"
-		   @onclick="ClickHandler" @attributes="AdditionalAttributes">
+		<a class="@CssClass" style="@CssStyle" id="@Id" href="@href" target="@Target" rel="@LinkRel" download="@Download"
+		   aria-label="@LinkName" @onclick="ClickHandler" @attributes="AdditionalAttributes">
 			<MokaIcon Icon="Icon" SizeValue="@IconSize"/>
 		</a>
 	}

@@ -7,7 +7,7 @@ namespace Moka.Red.Primitives.SplitButton;
 
 /// <summary>
 ///     A split button with a primary action and a dropdown arrow for additional actions.
-///     The left side triggers the primary <see cref="OnClick" /> action, while the right
+///     The left side triggers the primary <see cref="OnClick" /> action, or follows <see cref="Href" />, while the right
 ///     arrow toggles a dropdown menu rendered from <see cref="DropdownContent" />.
 /// </summary>
 public partial class MokaSplitButton
@@ -27,9 +27,33 @@ public partial class MokaSplitButton
 	[Parameter]
 	public RenderFragment? ChildContent { get; set; }
 
-	/// <summary>Primary button click event.</summary>
+	/// <summary>Primary button click event. Raised on a link (<see cref="Href" />) too, before the browser follows it.</summary>
 	[Parameter]
 	public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+	/// <summary>
+	///     Makes the main part a link to this address, drawn exactly as the button it replaces; the arrow and its menu stay
+	///     as they are. A <c>javascript:</c>, <c>vbscript:</c> or <c>data:</c> URL is not rendered: the main part stays a
+	///     button. While disabled or <see cref="Loading" /> the link has no <c>href</c>, so it goes nowhere, and says it is
+	///     a disabled link.
+	/// </summary>
+	[Parameter]
+	public string? Href { get; set; }
+
+	/// <summary>
+	///     Where <see cref="Href" /> opens: <c>_blank</c> for a new tab, or a window's name. Such a link gets
+	///     <c>rel="noopener noreferrer"</c> and <see cref="NewTabText" /> for screen readers. <c>_self</c>, <c>_parent</c>
+	///     and <c>_top</c> render as given and change nothing else.
+	/// </summary>
+	[Parameter]
+	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the label of a link whose <see cref="Target" /> opens another tab, after a comma.
+	///     Defaults to "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     Content rendered inside the dropdown panel, usually <c>MokaDropdownItem</c>s. The panel is a
@@ -93,6 +117,21 @@ public partial class MokaSplitButton
 	private string MenuId => _menuId;
 
 	private bool Busy => Loading && !Disabled;
+
+	private string? LinkHref => UrlValues.SafeHref(Href);
+
+	private bool IsLink => !string.IsNullOrEmpty(LinkHref);
+
+	private bool LinkInert => Disabled || Loading;
+
+	private string? LinkRel => UrlValues.RelFor(Target);
+
+	private bool OpensNewTab => IsLink && UrlValues.OpensNewTab(Target);
+
+	// No listener on a link that nothing listens to, since every listener costs a round trip.
+	private EventCallback<MouseEventArgs> PrimaryLinkClick => OnClick.HasDelegate
+		? EventCallback.Factory.Create<MouseEventArgs>(this, HandlePrimaryClick)
+		: default;
 
 	private string ToggleId => $"{_menuId}-toggle";
 

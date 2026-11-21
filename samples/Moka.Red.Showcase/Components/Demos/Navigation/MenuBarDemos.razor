@@ -17,6 +17,10 @@
 			<MokaMenuBarItem Text="Zoom in" Shortcut="Ctrl++" OnClick="@(() => _menuBarRan = "Zoom in")"/>
 			<MokaMenuBarItem Text="Zoom out" Shortcut="Ctrl+-" OnClick="@(() => _menuBarRan = "Zoom out")"/>
 		</MokaMenuBarMenu>
+		<MokaMenuBarMenu Label="Help">
+			<MokaMenuBarItem Text="Blazor docs" Icon="MokaIcons.File.Document" Href="https://learn.microsoft.com/aspnet/core/blazor/" Target="_blank"/>
+			<MokaMenuBarItem Text="Menu page" Href="components/menu"/>
+		</MokaMenuBarMenu>
 	</MokaMenuBar>
 
 	<p class="page-desc">Chosen: <code>@(_menuBarRan ?? "nothing yet")</code></p>

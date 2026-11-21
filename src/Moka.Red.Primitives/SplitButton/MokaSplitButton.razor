@@ -4,21 +4,32 @@
 @* Keys stop here while the menu is open, so Escape does not also close a MokaDialog around it. *@
 <div class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes" @ref="_root"
      @onkeydown:stopPropagation="_isOpen">
-	<button class="moka-split-btn__primary"
-	        type="button"
-	        disabled="@Disabled"
-	        aria-disabled="@(Busy ? "true" : null)"
-	        aria-busy="@(Loading ? "true" : null)"
-	        @onclick="HandlePrimaryClick">
-		<span class="moka-split-btn__content">@ChildContent</span>
-		@if (Loading)
-		{
-			<span class="moka-split-btn__spinner" aria-hidden="true">
-				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-spin"/>
-			</span>
-			<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
-		}
-	</button>
+	@if (IsLink)
+	{
+		<a class="moka-split-btn__primary"
+		   href="@(LinkInert ? null : LinkHref)"
+		   target="@(LinkInert ? null : Target)"
+		   rel="@(LinkInert ? null : LinkRel)"
+		   role="@(LinkInert ? "link" : null)"
+		   tabindex="@(LinkInert ? "-1" : null)"
+		   aria-disabled="@(LinkInert ? "true" : null)"
+		   aria-busy="@(Loading ? "true" : null)"
+		   @onclick="PrimaryLinkClick"
+		   @onclick:preventDefault="LinkInert">
+			@{ RenderPrimaryContent(); }
+		</a>
+	}
+	else
+	{
+		<button class="moka-split-btn__primary"
+		        type="button"
+		        disabled="@Disabled"
+		        aria-disabled="@(Busy ? "true" : null)"
+		        aria-busy="@(Loading ? "true" : null)"
+		        @onclick="HandlePrimaryClick">
+			@{ RenderPrimaryContent(); }
+		</button>
+	}
 
 	<span class="moka-split-btn__divider"></span>
 
@@ -50,3 +61,23 @@
 		</div>
 	}
 </div>
+
+@{
+	void RenderPrimaryContent()
+	{
+		<span class="moka-split-btn__content">@ChildContent</span>
+
+		if (OpensNewTab)
+		{
+			<span class="moka-visually-hidden">, @NewTabText</span>
+		}
+
+		if (Loading)
+		{
+			<span class="moka-split-btn__spinner" aria-hidden="true">
+				<MokaIcon Icon="MokaIcons.Status.Spinner" Size="@IconSize" Class="moka-spin"/>
+			</span>
+			<span class="moka-visually-hidden" role="status">@(_announcing ? LoadingText : null)</span>
+		}
+	}
+}

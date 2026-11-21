@@ -32,7 +32,7 @@ public class MokaButtonTests : BunitContext
 
 		IElement anchor = cut.Find("a");
 		Assert.Equal("https://example.com", anchor.GetAttribute("href"));
-		Assert.Equal("button", anchor.GetAttribute("role"));
+		Assert.False(anchor.HasAttribute("role"));
 	}
 
 	[Fact]

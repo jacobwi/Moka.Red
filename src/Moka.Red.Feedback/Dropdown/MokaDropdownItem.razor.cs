@@ -48,9 +48,19 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public string? Href { get; set; }
 
-	/// <summary>Where the link opens, such as <c>_blank</c>. Only used with <see cref="Href" />.</summary>
+	/// <summary>
+	///     Where the link opens, such as <c>_blank</c>. Only used with <see cref="Href" />. One that opens another tab gets
+	///     <c>rel="noopener noreferrer"</c>, an external-link mark and <see cref="NewTabText" /> for screen readers.
+	/// </summary>
 	[Parameter]
 	public string? Target { get; set; }
+
+	/// <summary>
+	///     What screen readers hear after the name of a link whose <see cref="Target" /> opens another tab, after a comma.
+	///     Default "opens in a new tab".
+	/// </summary>
+	[Parameter]
+	public string NewTabText { get; set; } = "opens in a new tab";
 
 	/// <summary>
 	///     Draws the item in the error color, on a red tint when it is hovered or has keyboard focus, for an action
@@ -78,6 +88,12 @@ public partial class MokaDropdownItem : MokaComponentBase
 	private string? LinkHref => string.IsNullOrEmpty(Href) ? null : UrlValues.SafeHref(Href);
 
 	private bool IsLink => LinkHref is not null;
+
+	private bool OpensNewTab => IsLink && !Disabled && UrlValues.OpensNewTab(Target);
+
+	// The rendered rel comes after the item's attributes and replaces theirs, so a rel the app gave stays for a link
+	// that keeps to this tab.
+	private string? LinkRel => UrlValues.RelFor(Target) ?? AdditionalAttributes?.GetValueOrDefault("rel") as string;
 
 	private async Task HandleClick(MouseEventArgs e)
 	{
