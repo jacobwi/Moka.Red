@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Moka.Red.Mcp;
@@ -33,8 +34,13 @@ internal static class TypeDescriptions
 			return text.ToString().TrimEnd();
 		}
 
-		AppendProperties(text, type, catalog, docs, BindingFlags.Public | BindingFlags.Instance, "Properties");
-		AppendProperties(text, type, catalog, docs, BindingFlags.Public | BindingFlags.Static, "Static properties");
+		List<PropertyInfo> properties = Properties(type, BindingFlags.Public | BindingFlags.Instance);
+		ConstructorInfo? primary = PrimaryConstructor(type);
+		HashSet<string> positional = primary is null ? [] : [.. primary.GetParameters().Select(parameter => parameter.Name!)];
+
+		AppendConstructors(text, type, primary, properties, positional, catalog.Nullability);
+		AppendProperties(text, type, properties, positional, catalog, docs, "Properties");
+		AppendProperties(text, type, Properties(type, BindingFlags.Public | BindingFlags.Static), [], catalog, docs, "Static properties");
 		AppendFields(text, type);
 		AppendMethods(text, type, catalog);
 
@@ -49,12 +55,112 @@ internal static class TypeDescriptions
 		return text.ToString().TrimEnd();
 	}
 
-	private static void AppendProperties(StringBuilder text, Type type, ComponentCatalog catalog, DocsLibrary docs, BindingFlags flags, string title)
-	{
-		List<PropertyInfo> properties = type.GetProperties(flags)
+	private static List<PropertyInfo> Properties(Type type, BindingFlags flags) =>
+		type.GetProperties(flags)
 			.Where(property => property.GetIndexParameters().Length == 0 && property.DeclaringType != typeof(object))
 			.Where(property => property.Name != "EqualityContract")
 			.ToList();
+
+	// Public constructors, left out when the only one takes nothing, so a plain options class reads as before. A record's
+	// copy constructor is protected or private, so it never shows.
+	private static void AppendConstructors(
+		StringBuilder text,
+		Type type,
+		ConstructorInfo? primary,
+		List<PropertyInfo> properties,
+		HashSet<string> positional,
+		NullabilityInfoContext nullability)
+	{
+		if (type.IsAbstract)
+		{
+			return;
+		}
+
+		List<ConstructorInfo> constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+			.Where(constructor => !ComponentCatalog.IsHidden(constructor))
+			.OrderBy(constructor => constructor == primary ? 0 : 1)
+			.ToList();
+		if (constructors.All(constructor => constructor.GetParameters().Length == 0))
+		{
+			return;
+		}
+
+		string name = TypeNames.Of(type);
+		text.AppendLine().AppendLine("## Constructors");
+		foreach (ConstructorInfo constructor in constructors)
+		{
+			string parameters = string.Join(", ", constructor.GetParameters().Select(parameter => Parameter(parameter, nullability)));
+			text.AppendLine(CultureInfo.InvariantCulture, $"- `new {name}({parameters})`");
+		}
+
+		if (primary is not null)
+		{
+			string? initOnly = properties.FirstOrDefault(property => !positional.Contains(property.Name) && IsInitOnly(property))?.Name;
+			text.AppendLine().AppendLine(Usage(type, name, primary, initOnly));
+		}
+	}
+
+	private static string Usage(Type type, string name, ConstructorInfo primary, string? initOnly)
+	{
+		ParameterInfo[] parameters = primary.GetParameters();
+		string arguments = string.Join(", ", parameters.Where(parameter => !parameter.HasDefaultValue).Select(parameter => parameter.Name));
+		List<string> optional = [.. parameters.Where(parameter => parameter.HasDefaultValue).Select(parameter => parameter.Name!)];
+		string initializer = initOnly is null ? "" : $" {{ {initOnly} = ... }}";
+
+		List<string> notes = [];
+		if (optional.Count > 0)
+		{
+			notes.Add($"{Listed(optional)} as optional arguments");
+		}
+
+		if (initOnly is not null)
+		{
+			notes.Add("the (init) properties in the initializer");
+		}
+
+		string with = notes.Count == 0 ? "" : $", with {string.Join(" and ", notes)}";
+		return $"Positional {Kind(type)}: create it with `new {name}({arguments}){initializer}`{with}.";
+	}
+
+	private static string Listed(List<string> names) =>
+		names.Count == 1 ? names[0] : $"{string.Join(", ", names[..^1])} and {names[^1]}";
+
+	// A record's primary constructor is the one its compiler-made Deconstruct mirrors, name for name and type for type.
+	private static ConstructorInfo? PrimaryConstructor(Type type)
+	{
+		if (!IsRecord(type))
+		{
+			return null;
+		}
+
+		List<ParameterInfo[]> deconstructs = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+			.Where(method => method.Name == "Deconstruct" && method.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false))
+			.Select(method => method.GetParameters())
+			.ToList();
+
+		return type.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+			.FirstOrDefault(constructor => deconstructs.Any(outs => Mirrors(constructor.GetParameters(), outs)));
+	}
+
+	private static bool Mirrors(ParameterInfo[] parameters, ParameterInfo[] outs) =>
+		parameters.Length == outs.Length
+		&& parameters.Zip(outs).All(pair => pair.First.Name == pair.Second.Name
+		                                    && pair.Second.ParameterType.IsByRef
+		                                    && pair.First.ParameterType == pair.Second.ParameterType.GetElementType());
+
+	private static bool IsInitOnly(PropertyInfo property) =>
+		property.SetMethod is { IsPublic: true } setter
+		&& setter.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name == "IsExternalInit");
+
+	private static void AppendProperties(
+		StringBuilder text,
+		Type type,
+		List<PropertyInfo> properties,
+		HashSet<string> positional,
+		ComponentCatalog catalog,
+		DocsLibrary docs,
+		string title)
+	{
 		if (properties.Count == 0)
 		{
 			return;
@@ -72,9 +178,10 @@ internal static class TypeDescriptions
 		{
 			string? description = catalog.Docs.PropertySummary(property.DeclaringType!, property.Name)
 			                      ?? docs.Parameter(type.Name, property.Name)?.Description;
-			string access = property.SetMethod is { IsPublic: true } setter
-				? setter.ReturnParameter.GetRequiredCustomModifiers().Any(modifier => modifier.Name == "IsExternalInit") ? " (init)" : ""
-				: " (read-only)";
+			string access = positional.Contains(property.Name) ? " (positional)"
+				: property.SetMethod is not { IsPublic: true } ? " (read-only)"
+				: IsInitOnly(property) ? " (init)"
+				: "";
 			text.AppendLine(CultureInfo.InvariantCulture,
 				$"| `{property.Name}`{access} | `{TypeNames.Of(property, catalog.Nullability)}` | {Flat(description)} |");
 		}
@@ -166,12 +273,17 @@ internal static class TypeDescriptions
 	{
 		{ IsEnum: true } => "enum",
 		{ IsInterface: true } => "interface",
-		{ IsValueType: true } => type.GetMethod("<Clone>$") is null && type.GetMethod("PrintMembers", BindingFlags.NonPublic | BindingFlags.Instance) is not null ? "record struct" : "struct",
+		{ IsValueType: true } => IsRecord(type) ? "record struct" : "struct",
 		{ IsAbstract: true, IsSealed: true } => "static class",
-		_ when type.GetMethod("<Clone>$") is not null => "record",
+		_ when IsRecord(type) => "record",
 		{ IsAbstract: true } => "abstract class",
 		_ => "class"
 	};
+
+	private static bool IsRecord(Type type) =>
+		type.IsValueType
+			? type.GetMethod("PrintMembers", BindingFlags.NonPublic | BindingFlags.Instance) is not null
+			: type.GetMethod("<Clone>$") is not null;
 
 	private static string Flat(string? text) =>
 		string.IsNullOrWhiteSpace(text)

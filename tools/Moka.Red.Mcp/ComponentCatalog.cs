@@ -124,8 +124,8 @@ internal sealed class ComponentCatalog
 			.OrderBy(assembly => assembly.GetName().Name, StringComparer.Ordinal)
 			.ToList();
 
-	private static bool IsHidden(Type type) =>
-		type.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>(inherit: false)?.State == System.ComponentModel.EditorBrowsableState.Never;
+	internal static bool IsHidden(MemberInfo member) =>
+		member.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>(inherit: false)?.State == System.ComponentModel.EditorBrowsableState.Never;
 
 	private static bool IsComponent(Type type) =>
 		type is { IsClass: true, IsAbstract: false }
