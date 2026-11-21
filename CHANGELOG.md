@@ -5,6 +5,30 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.4] - 2026-11-21
+
+### Added
+- `MokaCommandPalette` follows the WAI-ARIA combobox pattern with a listbox popup: the palette is a modal dialog named by
+  the new `Label` ("Command palette"), the search box a combobox named by the new `SearchLabel` ("Search commands")
+  whose `aria-activedescendant` follows the highlight, the commands a listbox of options with `aria-selected` on the
+  highlighted one, groups labelled by their headings, and a polite live region that says `NoResultsText` when nothing
+  matches. Tab now stays inside the open palette, and focus goes back where it was when it closes, as with
+  `MokaDialog`.
+- `MokaGlassCard.Href`, `Target`, `NewTabText` and `ActionLabel`: a card that is a link, built as `MokaCard`'s is (one
+  link stretched over the card, the card's one tab stop).
+- `MokaBlockquote.CitationTarget` and `NewTabText` for the citation link; `MokaBanner.Target` and
+  `MokaNotification.Target` (init properties), with the words in `MokaBannerText.NewTab` and
+  `MokaNotificationCenterText.NewTab`. A link that opens another tab gets `rel="noopener noreferrer"` and words for
+  screen readers.
+
+### Fixed
+- `MokaAvatarGroup.Max` never hid anything and its "+N" never showed, since no avatar registered with the group. Now
+  avatars past `Max` aren't drawn and "+N" counts them, so a page that sets `Max` below its avatar count shows fewer
+  avatars and the count. The "+N" is a `MokaAvatar` and sizes like the others.
+- `MokaAvatarGroup.Size` and `SizeValue` reach the avatars inside it; an avatar's own `Size` or `SizeValue` wins.
+- On the new design a `MokaSplitButton`'s label follows the letter case setting (`WithLetterCase`) as `MokaButton`'s
+  does; under Uppercase and Controls it stayed as written. Sentence case and the original design draw as before.
+
 ## [0.11.3] - 2026-11-21
 
 ### Added
