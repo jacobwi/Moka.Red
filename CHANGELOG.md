@@ -5,6 +5,33 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.3] - 2026-11-21
+
+### Added
+- `MokaSplitButton.Href` and `Target`: the main part becomes a link (`<a class="moka-split-btn__primary">`), so a
+  middle click, Ctrl+click and copy link work. `OnClick` still runs, and a disabled or busy link loses its address.
+- `Href` and `Target` on `MokaChip` (the chip's main action), `MokaFloatingActionButton` and `MokaMenuBarItem` (an
+  `a role="menuitem"`, as in WAI-ARIA's navigation menubar). Enter or Space on a menubar link opens another tab before
+  `OnClick` runs and follows an in-page address after it, as the context menu does.
+- `Target` on `MokaListItem`, `MokaCard`, `MokaBentoItem` (its Open link), `MokaLightboxAction` and `MokaAccountItem`
+  (an init property; the constructor is unchanged).
+- Every link above that opens another tab gets `rel="noopener noreferrer"` and ", opens in a new tab" for screen
+  readers, set by a `NewTabText` parameter on the component (on `MokaAccountCard` for its items). Rows (list items,
+  account card items, menubar and dropdown items) also show an external-link mark; buttons, chips and cards don't, since
+  they have icons of their own. A component without an address renders as before.
+- `MokaLink.NewTabText`: an `External` link now tells screen readers it opens a new tab.
+
+### Fixed
+- `MokaButton`'s link no longer carries `role="button"`, so screen readers announce it as the link it is; a disabled or
+  busy link is `role="link"`. It also gets `rel` with its `Target`, which it never rendered.
+- `MokaDropdownItem` links with a `Target` get `rel="noopener noreferrer"`, the mark and the words; an app's own `rel`
+  on a same-tab link is kept.
+
+### Changed
+- A component that gained `Target` takes a lowercase `target` attribute as that parameter (Blazor matches parameter
+  names without regard to case), so one already passing `target="_blank"` through its extra attributes, such as a
+  `MokaCard`, now also gets `rel` and the words.
+
 ## [0.11.2] - 2026-11-20
 
 ### Added
