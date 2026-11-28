@@ -27,8 +27,8 @@ public sealed partial class MokaTextFieldSuggestionsTests : BunitContext
 		_hover.SetupVoid("trackHover", _ => true).SetVoidResult();
 	}
 
-	// Recorded from 0.12.0 before Suggestions existed. Handler numbers and tooltip anchors change per render, so both
-	// are left out of the comparison.
+	// Recorded from 0.12.0 before Suggestions existed. Handler numbers and tooltip anchors change per render and scope
+	// attributes per build, so they are left out of the comparison.
 	[Theory]
 	[MemberData(nameof(MarkupBeforeSuggestions))]
 	public void WithoutSuggestions_TheMarkupIsAsItWas(string name, string expected)
@@ -376,8 +376,12 @@ public sealed partial class MokaTextFieldSuggestionsTests : BunitContext
 		return -1;
 	}
 
-	private static string Normalize(string markup) => Variable().Replace(markup, "$1");
+	private static string Normalize(string markup) => Scope().Replace(Variable().Replace(markup, "$1"), "b-scope");
 
 	[GeneratedRegex(@"(blazor:on\w+=)""\d+""|--moka-tooltip-[0-9a-f]{32}")]
 	private static partial Regex Variable();
+
+	// CSS isolation scope attributes are hashed per build, so CI writes other ones than the build the markup came from.
+	[GeneratedRegex(@"(?<= )b-[a-z0-9]{10}(?=[ >/])")]
+	private static partial Regex Scope();
 }
