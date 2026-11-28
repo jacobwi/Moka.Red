@@ -28,6 +28,7 @@
 	<!-- Splits a style attribute the way a browser does, for the checks that a value adds no declarations. -->
 	<ItemGroup>
 		<Compile Include="..\Shared\CssDeclarations.cs" Link="Shared\CssDeclarations.cs" />
+		<Compile Include="..\Shared\ScriptRunner.cs" Link="Shared\ScriptRunner.cs" />
 	</ItemGroup>
 
 	<!-- A JS module and an import that fail the way a circuit ending under them does, for the teardown tests. -->

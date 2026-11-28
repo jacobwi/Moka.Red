@@ -13,11 +13,11 @@ internal static class MenuDom
 		cut.FindAll("[role=menu]");
 
 	/// <summary>
-	///     The rows of one menu. A submenu is a DOM child of its parent menu, so this takes direct
-	///     children only.
+	///     The rows of one menu, a checked row included. A submenu is a DOM child of its parent menu, so this takes
+	///     direct children only.
 	/// </summary>
 	public static List<IElement> Rows(IElement menu) =>
-		menu.Children.Where(child => child.GetAttribute("role") == "menuitem").ToList();
+		menu.Children.Where(child => child.GetAttribute("role") is "menuitem" or "menuitemcheckbox").ToList();
 
 	public static IElement Row(IElement menu, string text) => Assert.Single(Rows(menu), row => Text(row) == text);
 

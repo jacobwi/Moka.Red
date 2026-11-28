@@ -56,7 +56,7 @@ else
 	else
 	{
 		<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle"
-		     role="@(IsCheckable ? "menuitemcheckbox" : "menuitem")"
+		     role="@Role"
 		     aria-checked="@CheckedState"
 		     tabindex="@(Disabled ? null : "-1")"
 		     aria-disabled="@(Disabled ? "true" : null)"

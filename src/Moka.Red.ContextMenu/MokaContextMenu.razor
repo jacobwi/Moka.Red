@@ -132,7 +132,8 @@
 					     data-moka-index="@(indexBase + index)"
 					     @onclick="() => HandleItemClick(item, false)"
 					     @onmouseenter="ItemEnterHandler(item, index)"
-					     role="menuitem"
+					     role="@(IsCheckedItem(item) ? "menuitemcheckbox" : "menuitem")"
+					     aria-checked="@(IsCheckedItem(item) ? "true" : null)"
 					     aria-disabled="@(item.Disabled ? "true" : null)"
 					     aria-haspopup="@(item.HasChildren ? "true" : null)"
 					     aria-expanded="@AriaExpanded(item)">

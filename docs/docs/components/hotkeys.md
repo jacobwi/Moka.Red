@@ -37,7 +37,7 @@ It renders no markup.
 | `Keys` | `string?` | - | Modifiers then one key, joined by `+`: `"Ctrl+K"`, `"Mod+Shift+P"`. `Mod` is Ctrl, or Cmd on a Mac. See [Keys](#keys) |
 | `Description` | `string?` | - | What it does, in the words a shortcut list shows. Required for it to be listed |
 | `Group` | `string?` | - | Heading it is listed under. Null groups it under "General" |
-| `AllowInInput` | `bool` | `false` | Whether it still fires while focus is in a text field. Only matters for a shortcut that types a character |
+| `InFields` | `MokaHotkeyFields` | `UnlessTyping` | Whether it fires while focus is in an editable field: `UnlessTyping` skips a shortcut that types a character there, `Never` leaves fields their own keys, `Always` fires there too. See [In text fields](#in-text-fields) |
 | `AllowInModal` | `bool` | `false` | Whether it still fires while a modal (a dialog, a bottom sheet, an overlay drawer) is open. Turn it on for a hotkey that belongs to the modal itself |
 | `PreventDefault` | `bool` | `true` | Whether a matching press has its default action cancelled |
 | `OnInvoke` | `Func<Task>?` | - | Runs when it fires. Takes precedence over `OnInvokeSync` |
@@ -88,8 +88,23 @@ is Ctrl everywhere except a Mac, where it is Cmd. `Space` is the space bar.
 Every modifier has to match exactly, so `Ctrl+Shift+K` is not `Ctrl+K`. A modifier that is not in that list
 turns the hotkey off and logs a warning, rather than binding the bare key.
 
-A shortcut that types a character (no Ctrl, Cmd or Alt, such as `/` or `Shift+K`) is skipped while focus is in a
-text field, so the character still reaches the field. Set `AllowInInput` to fire it anyway.
+### In text fields
+
+`InFields` says what a hotkey does while focus is in an editable field: a text input, a text area, a select or
+anything content-editable.
+
+| `MokaHotkeyFields` | In a field |
+|--------------------|------------|
+| `UnlessTyping` | The default. A shortcut that types a character (no Ctrl, Cmd or Alt, such as `/` or `Shift+K`) is skipped, so the character reaches the field. One with Ctrl, Cmd or Alt fires |
+| `Never` | Nothing fires, so the field keeps its own keys. Use it for app-wide undo and redo, select all, copy and paste |
+| `Always` | It fires there too, even a shortcut that types a character |
+
+```csharp
+Hotkeys.Register(new MokaHotkey { Keys = "Mod+Z", Description = "Undo", InFields = MokaHotkeyFields.Never, OnInvoke = UndoAsync });
+Hotkeys.Register(new MokaHotkey { Keys = "Mod+Shift+Z", Description = "Redo", InFields = MokaHotkeyFields.Never, OnInvoke = RedoAsync });
+```
+
+`InFields` replaced `AllowInInput` in 0.12.0: `AllowInInput = true` is `InFields = MokaHotkeyFields.Always`.
 
 While a modal is open, the registry fires nothing unless a hotkey sets `AllowInModal`. A modal is drawn inside the
 page's markup, so its keys reach the page, and a page shortcut such as `D` for duplicate would otherwise act on the

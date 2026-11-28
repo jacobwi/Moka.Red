@@ -5,6 +5,25 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Breaking:** `MokaHotkey.AllowInInput` is replaced by `InFields` (`MokaHotkeyFields`), which says what a hotkey does
+  while focus is in an editable field. `UnlessTyping`, the default, is what `AllowInInput = false` did: a shortcut that
+  types a character is skipped there and the rest fire. `Always` is what `AllowInInput = true` did. Replace
+  `AllowInInput = true` with `InFields = MokaHotkeyFields.Always`.
+
+### Added
+- `MokaHotkeyFields.Never`: a hotkey that never fires while focus is in an editable field, so the field keeps its own
+  keys. An app-wide Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y for undo and redo no longer takes a text box's own undo. A shortcut
+  with Ctrl, Cmd or Alt used to fire in every field.
+- `MokaDropdownItem.Radio`: a `Checked` item that is one choice of several, such as which version of a document is
+  open, is a `menuitemradio` with `aria-checked` and the same check. The arrow keys reach it.
+
+### Fixed
+- A checked `MokaContextMenuItem` drew a check, but screen readers heard a plain menu item. It is now a
+  `menuitemcheckbox` with `aria-checked="true"`. An item with children or an address stays a plain menu item.
+
 ## [0.11.6] - 2026-11-28
 
 ### Added

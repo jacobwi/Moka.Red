@@ -71,7 +71,26 @@
 	</MokaDropdown>
 </DemoSection>
 
+<DemoSection Id="radio" Title="One choice of several" Description="Radio makes a Checked item one choice of several, such as which version of a document is open: a menuitemradio with the same check. Keep exactly one checked, with a divider between the choices and other items.">
+	<MokaDropdown>
+		<ChildContent>
+			<MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">@_version</MokaButton>
+		</ChildContent>
+		<Items>
+			@foreach (string version in Versions)
+			{
+				<MokaDropdownItem Text="@version" Checked="version == _version" Radio OnClick="() => _version = version"/>
+			}
+			<MokaDropdownItem Divider/>
+			<MokaDropdownItem Text="New version" Icon="MokaIcons.Action.Add"/>
+		</Items>
+	</MokaDropdown>
+</DemoSection>
+
 @code {
+	private static readonly string[] Versions = ["Original", "For a design role", "For a lead role"];
+
+	private string _version = Versions[0];
 	private bool _grid = true;
 	private bool _pinned;
 	private bool _rulers;

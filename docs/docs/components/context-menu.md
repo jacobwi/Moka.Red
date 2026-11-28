@@ -44,7 +44,7 @@ Place one `MokaContextMenuHost` in the layout, next to the other hosts:
 | `Shortcut` | `string?` | - | Hint on the right, such as `"Ctrl+C"`, drawn as one `MokaKbd` cap per key. A label only: the menu does not bind the key. Split on `+`, so `"Ctrl++"` reads as Ctrl and the plus key |
 | `Label` | `MokaLabelColor?` | - | A label color: a swatch in the icon's place, or the icon drawn in it. See [Colors](#colors) |
 | `ColorValue` | `string?` | - | Any CSS color for the swatch or icon, such as `"#ff8800"` or `"var(--moka-color-primary)"`. Wins over `Label`; a value that isn't a color is ignored |
-| `Checked` | `bool` | `false` | Shows a check mark in place of the icon, or beside the color in a menu that has colors |
+| `Checked` | `bool` | `false` | Shows a check mark in place of the icon, or beside the color in a menu that has colors. The item is then a `menuitemcheckbox` with `aria-checked="true"`, so screen readers hear it's checked. An item with children or an address stays a plain menu item |
 | `Disabled` | `bool` | `false` | Dimmed, can't be chosen, skipped by the arrow keys |
 | `Danger` | `bool` | `false` | Draws the item and its icon in the error color, on a red tint while it's the lit row. See [Danger items](#danger-items) |
 | `DividerBefore` | `bool` | `false` | Draws a divider above the item |

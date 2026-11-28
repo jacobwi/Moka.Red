@@ -478,6 +478,9 @@ public partial class MokaContextMenu : ComponentBase, IAsyncDisposable
 	private static string? LinkOf(MokaContextMenuItem item) =>
 		item.HasChildren || string.IsNullOrEmpty(item.Href) ? null : UrlValues.SafeHref(item.Href);
 
+	// Checked is a bool, so only an item that is on can be told apart from a plain one; it says so to screen readers.
+	private static bool IsCheckedItem(MokaContextMenuItem item) => item.Checked && !item.HasChildren;
+
 	// A click on a row with an address was the link's own. From the keyboard the menu follows it: another tab first,
 	// while the browser still counts the key press, and the page last, after the action.
 	private async Task HandleItemClick(MokaContextMenuItem item, bool byKeyboard)

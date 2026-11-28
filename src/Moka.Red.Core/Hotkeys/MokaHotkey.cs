@@ -26,11 +26,12 @@ public sealed record MokaHotkey
 	public string? Group { get; init; }
 
 	/// <summary>
-	///     Whether the hotkey still fires while focus is in a text field. Default false, which matters only for a
-	///     shortcut that types a character (no Ctrl, Cmd or Alt, such as "/" or "Shift+K"): one that cannot be
-	///     typed is never in a field's way and always fires.
+	///     Whether the hotkey fires while focus is in an editable field. <see cref="MokaHotkeyFields.UnlessTyping" />, the
+	///     default, skips a shortcut that types a character there and fires the rest;
+	///     <see cref="MokaHotkeyFields.Never" /> leaves fields their own keys, so an app-wide Ctrl+Z doesn't take a text
+	///     box's undo; <see cref="MokaHotkeyFields.Always" /> fires there too.
 	/// </summary>
-	public bool AllowInInput { get; init; }
+	public MokaHotkeyFields InFields { get; init; }
 
 	/// <summary>
 	///     Whether the hotkey still fires while a modal (a dialog, a bottom sheet, an overlay drawer) is open. Default

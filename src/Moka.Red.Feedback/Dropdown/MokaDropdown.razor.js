@@ -8,7 +8,7 @@
  * lost.
  */
 
-const ITEM = '[role="menuitem"], [role="menuitemcheckbox"]';
+const ITEM = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const boundRoots = new WeakSet();
 

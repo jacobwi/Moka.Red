@@ -451,7 +451,7 @@ public class MokaAppShellTests : BunitContext
 
 		MokaHotkey hotkey = Assert.Single(hotkeys.Hotkeys);
 		Assert.Equal("[", hotkey.Keys);
-		Assert.False(hotkey.AllowInInput);
+		Assert.Equal(MokaHotkeyFields.UnlessTyping, hotkey.InFields);
 		Assert.False(string.IsNullOrEmpty(hotkey.Description));
 	}
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
+using Moka.Red.Core.Utilities;
 
 namespace Moka.Red.Core.Hotkeys;
 
@@ -122,7 +123,7 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			{
 				["id"] = h.Id,
 				["keys"] = h.Keys,
-				["allowInInput"] = h.AllowInInput,
+				["inFields"] = MokaEnumHelpers.ToCssClass(h.InFields),
 				["allowInModal"] = h.AllowInModal,
 				["preventDefault"] = h.PreventDefault
 			})

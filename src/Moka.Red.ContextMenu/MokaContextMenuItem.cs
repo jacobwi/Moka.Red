@@ -42,7 +42,10 @@ public sealed class MokaContextMenuItem
 	/// <summary>Whether to show a divider line before this item.</summary>
 	public bool DividerBefore { get; init; }
 
-	/// <summary>Whether this item is checked (shows checkmark).</summary>
+	/// <summary>
+	///     Whether this item is checked: it shows a check, and screen readers hear it as a checked menu item
+	///     (<c>menuitemcheckbox</c> with <c>aria-checked</c>). An item with children or an address stays a plain menu item.
+	/// </summary>
 	public bool Checked { get; init; }
 
 	/// <summary>Keyboard shortcut hint displayed on the right (e.g., "Ctrl+C").</summary>

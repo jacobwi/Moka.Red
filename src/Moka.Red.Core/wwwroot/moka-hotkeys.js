@@ -86,7 +86,7 @@ export function bindHotkeys(dotNetRef) {
 
 		for (const entry of binding.specs) {
 			if (!matches(e, entry.spec)) continue;
-			if (entry.spec.types && !entry.allowInInput && isEditable(e.target)) continue;
+			if (!firesIn(e.target, entry)) continue;
 			// A modal is drawn inside the page, so its keys reach this listener too. The page behind it is out of use.
 			if (!entry.allowInModal && modalIsOpen()) continue;
 
@@ -104,10 +104,17 @@ export function bindHotkeys(dotNetRef) {
 	return handle;
 }
 
+// Whether a hotkey fires with focus on this element: everywhere outside a field, and in one as its InFields says.
+function firesIn(target, entry) {
+	if (entry.inFields === 'always' || !isEditable(target)) return true;
+	return entry.inFields !== 'never' && !entry.spec.types;
+}
+
 /**
  * Replaces the set a handle listens for. Called whenever the registry changes.
  * @param {number} handle - From bindHotkeys.
- * @param {Array<{id:string, keys:string, allowInInput:boolean, allowInModal:boolean, preventDefault:boolean}>} hotkeys - The set.
+ * @param {Array<{id:string, keys:string, inFields:string, allowInModal:boolean, preventDefault:boolean}>} hotkeys - The set.
+ *     inFields is 'unless-typing', 'never' or 'always'.
  */
 export function setHotkeys(handle, hotkeys) {
 	const binding = _bindings.get(handle);
@@ -116,7 +123,7 @@ export function setHotkeys(handle, hotkeys) {
 	binding.specs = (hotkeys || [])
 		.map(h => ({
 			id: h.id,
-			allowInInput: !!h.allowInInput,
+			inFields: h.inFields || 'unless-typing',
 			allowInModal: !!h.allowInModal,
 			preventDefault: h.preventDefault !== false,
 			spec: parseShortcut(h.keys, 'MokaHotkeys')

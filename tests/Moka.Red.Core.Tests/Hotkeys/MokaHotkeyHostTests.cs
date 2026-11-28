@@ -96,6 +96,29 @@ public class MokaHotkeyHostTests : BunitContext
 		});
 	}
 
+	// The browser matches presses, so each hotkey's field setting goes with it, as the name the script reads.
+	[Fact]
+	public void WhetherAHotkeyWorksInAField_IsSentToTheBrowser()
+	{
+		IRenderedComponent<MokaHotkeyHost> cut = Render<MokaHotkeyHost>();
+
+		cut.InvokeAsync(() =>
+		{
+			Hotkeys.Register(new MokaHotkey { Id = "search", Keys = "/", OnInvokeSync = () => { } });
+			Hotkeys.Register(new MokaHotkey { Id = "undo", Keys = "Mod+Z", InFields = MokaHotkeyFields.Never, OnInvokeSync = () => { } });
+			Hotkeys.Register(new MokaHotkey { Id = "close", Keys = "Escape", InFields = MokaHotkeyFields.Always, OnInvokeSync = () => { } });
+		});
+
+		cut.WaitForAssertion(() =>
+		{
+			IReadOnlyList<JSRuntimeInvocation> pushes = _module.Invocations["setHotkeys"];
+			Dictionary<string, object?>[] sent = Assert.IsType<Dictionary<string, object?>[]>(pushes[pushes.Count - 1].Arguments[1]);
+			Assert.Equal("unless-typing", sent.Single(h => (string?)h["id"] == "search")["inFields"]);
+			Assert.Equal("never", sent.Single(h => (string?)h["id"] == "undo")["inFields"]);
+			Assert.Equal("always", sent.Single(h => (string?)h["id"] == "close")["inFields"]);
+		});
+	}
+
 	[Fact]
 	public async Task AMatchFromTheBrowserRunsTheAction()
 	{

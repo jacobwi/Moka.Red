@@ -71,6 +71,28 @@ public class MokaDropdownItemCheckedTests : BunitContext
 		Assert.Empty(link.QuerySelectorAll(".moka-dropdown-item-check"));
 	}
 
+	[Theory]
+	[InlineData(true, "true")]
+	[InlineData(false, "false")]
+	public void ARadioItem_IsAMenuItemRadio_WithTheSameCheck(bool on, string state)
+	{
+		IElement item = Item(p => p.Add(x => x.Text, "Original").Add(x => x.Checked, on).Add(x => x.Radio, true))
+			.Find(".moka-dropdown-item");
+
+		Assert.Equal("menuitemradio", item.GetAttribute("role"));
+		Assert.Equal(state, item.GetAttribute("aria-checked"));
+		Assert.Equal(!on, item.QuerySelector(".moka-dropdown-item-check")!.ClassList.Contains("moka-dropdown-item-check--off"));
+	}
+
+	[Fact]
+	public void Radio_WithoutChecked_IsAPlainItem()
+	{
+		IElement item = Item(p => p.Add(x => x.Text, "Rename").Add(x => x.Radio, true)).Find(".moka-dropdown-item");
+
+		Assert.Equal("menuitem", item.GetAttribute("role"));
+		Assert.False(item.HasAttribute("aria-checked"));
+	}
+
 	[Fact]
 	public void ADisabledItem_StillSaysWhetherItIsOn()
 	{

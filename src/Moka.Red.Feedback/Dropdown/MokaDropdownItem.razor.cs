@@ -79,6 +79,15 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public bool? Checked { get; set; }
 
+	/// <summary>
+	///     Makes a <see cref="Checked" /> item one choice of several, such as which view is open: a <c>menuitemradio</c>
+	///     in place of a <c>menuitemcheckbox</c>, with the same check. Put the choices next to each other, with a
+	///     <see cref="Divider" /> between them and other items. The app keeps exactly one of them checked. Ignored without
+	///     <see cref="Checked" />.
+	/// </summary>
+	[Parameter]
+	public bool Radio { get; set; }
+
 	/// <summary>When true, renders as a horizontal divider instead of a menu item.</summary>
 	[Parameter]
 	public bool Divider { get; set; }
@@ -103,6 +112,8 @@ public partial class MokaDropdownItem : MokaComponentBase
 	private bool IsCheckable => Checked is not null && !IsLink;
 
 	private string? CheckedState => IsCheckable ? (Checked == true ? "true" : "false") : null;
+
+	private string Role => IsCheckable ? (Radio ? "menuitemradio" : "menuitemcheckbox") : "menuitem";
 
 	private string CheckCssClass => new CssBuilder("moka-dropdown-item-icon")
 		.AddClass("moka-dropdown-item-check")
