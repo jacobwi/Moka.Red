@@ -29,7 +29,7 @@ A placeholder too long for its field ends in an ellipsis rather than mid-word, a
 | `MokaColorPicker` | `string` | Hue/saturation/lightness + hex |
 | `MokaFileUpload` | `IBrowserFile` | Single/multi, drag-drop |
 | `MokaTagInput` | `IList<string>` | Free-text tags with Enter |
-| `MokaRadioGroup` | `TValue` | Radio button group. `AriaLabel` names it apart from the visible `Label` |
+| `MokaRadioGroup` | `TValue` | Radio button group. `AriaLabel` names it apart from the visible `Label`. `Cards` draws picture cards, and `Browse` lets people look through them before choosing |
 | `MokaAutoComplete<T>` | `T` | Async/sync suggestions |
 | `MokaSearchInput` | `string` | Debounced search field |
 | `MokaInlineEdit` | `string` | Text that becomes a field, see [Inline Edit](inline-edit.md) |
@@ -98,7 +98,7 @@ Where a component differs:
 | Component | `Id` and other attributes | `Class` and `Style` |
 |-----------|---------------------------|---------------------|
 | `MokaCheckbox`, `MokaSwitch` | The checkbox input, or the drawn box of a `DisplayOnly` checkbox | The label row |
-| `MokaRadioGroup` | The `role="radiogroup"` element | The same element |
+| `MokaRadioGroup` | The `role="radiogroup"` element, or the `role="listbox"` element with `Browse` | The same element |
 | `MokaRangeSlider` | The element that holds both thumbs | The same element |
 | `MokaFileUpload` | The file input, so `capture`, `name` or `aria-describedby` work there | The field's outer element |
 | `MokaOtpInput`, `MokaPinInput` | The one field. The message id is built from `Id` | The outer element |
@@ -167,7 +167,7 @@ What a control can do on a static page depends on whether the browser can edit i
 
 | On a static page | Controls |
 |---|---|
-| Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaOtpInput`, `MokaPinInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup`, and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
+| Edited and posted | `MokaTextField`, `MokaPasswordField`, `MokaTextArea`, `MokaNumericField`, `MokaPhoneInput`, `MokaCurrencyInput`, `MokaColorInput`, `MokaOtpInput`, `MokaPinInput`, `MokaCheckbox`, `MokaSwitch`, `MokaRadioGroup` (with `Browse` too, whose cards stay radios on a static page), and `MokaNativeSelect` over strings, numbers, enums, dates or `Guid`s |
 | Edited and posted, if you give it a `name` | `MokaSlider` and `MokaSearchInput`, which aren't tied to a form field |
 | Shown and posted, but can't be changed | `MokaSelect`, `MokaCountrySelect`, `MokaDatePicker`, `MokaTimePicker`, `MokaColorPicker`, `MokaCascader`, `MokaInlineEdit`, `MokaEmojiPicker`. Their popups need interactivity, so they keep the value the server set. `MokaSelect` with `Multiple` posts nothing |
 | Not posted | Everything else, including `MokaRangeBar`, `MokaIpAddressInput`, `MokaMacAddressInput`, `MokaAutoComplete`, `MokaTreeSelect`, `MokaTagInput`, `MokaRating`, `MokaKnob`, `MokaRangeSlider`, `MokaDateRangePicker`, `MokaFileUpload`, `MokaSignaturePad` and `MokaCreditCardInput` |
@@ -1012,6 +1012,42 @@ For a choice people judge by looking, such as a theme or a layout, set `Cards` a
 | `Hint` | `MokaRadioItem` | A line under the name |
 
 `Preview` only shows with `Cards`. `Hint` shows on a plain radio too, as a quiet line under its label. The picture is hidden from screen readers because the name says what it shows, so make the name enough on its own. The chosen card gets a check by its name, and its ring follows `WithSelection`.
+
+### Browse before choosing
+
+Radios choose as the arrow keys move, which is right for a setting but not for a picker people want to look through first, such as templates or themes with a preview beside them. `Browse` makes the cards a listbox (the WAI-ARIA listbox pattern) whose highlight moves without choosing, and `HighlightChanged` tells the page where it is.
+
+```razor
+<MokaRadioGroup @bind-Value="_template" Label="Template" Cards="true" Browse="true"
+                HighlightChanged="@(id => _previewed = id)">
+    <MokaRadioItem Value="@("report")" Label="Report">
+        <Preview><TemplateThumb Id="report" /></Preview>
+    </MokaRadioItem>
+    <MokaRadioItem Value="@("letter")" Label="Letter">
+        <Preview><TemplateThumb Id="letter" /></Preview>
+    </MokaRadioItem>
+</MokaRadioGroup>
+
+<TemplatePreview Id="@(_previewed ?? _template)" />
+```
+
+| Key or action | What it does |
+|---------------|--------------|
+| Tab | Reaches the list once, with the chosen card highlighted (else the first card) |
+| Left, Right | The card before or after, skipping disabled cards. Flipped in right-to-left text |
+| Up, Down | The card above or below, a whole row of cards away |
+| Home, End | The first or the last card |
+| Pointer over a card | Highlights it |
+| Enter, Space, click | Chooses the highlighted card: `ValueChanged`, and `EditForm` validation as usual |
+
+| Parameter | On | What it does |
+|-----------|----|--------------|
+| `Browse` | `MokaRadioGroup` | With `Cards`, the cards are a list browsed with a highlight. Without `Cards` it does nothing |
+| `HighlightChanged` | `MokaRadioGroup` | The value of the card the highlight lands on. Once neither the pointer nor focus is on the cards, the chosen value again |
+
+The highlight lives in the browser: a key press or a pointer move sets an attribute, and .NET hears only a choice, and a new highlight while `HighlightChanged` has a handler, once per card and one call at a time. The list is the one tab stop, and screen readers follow the highlighted card through `aria-activedescendant`. Since a card is an option of the list, put nothing interactive inside it.
+
+On a static page, and until the group renders interactively, the cards stay native radios, so a form still posts a choice. Interactive, a group with a `name` attribute posts its value from a hidden field.
 
 ## AutoComplete
 

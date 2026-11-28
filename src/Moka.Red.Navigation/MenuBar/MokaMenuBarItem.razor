@@ -30,7 +30,7 @@
 				<span class="moka-menubar-item__shortcut">
 					@foreach (string key in ShortcutKeys.Split(Shortcut))
 					{
-						<MokaKbd>@key</MokaKbd>
+						<MokaKbd Key="@key" />
 					}
 				</span>
 			}

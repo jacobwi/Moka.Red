@@ -2,10 +2,11 @@
  * Moka.Red.Core's JavaScript initializer. Blazor loads it at startup and calls the hook for the app's hosting model.
  * It registers @onmokakeydown: a keydown whose arguments say who owns the press, which only the browser can tell.
  * It also starts the copy listener (moka-copy.js) and registers its events: @onmokacopied, how a copy went, and
- * @onmokacopyask, an element asking .NET for the text to copy.
+ * @onmokacopyask, an element asking .NET for the text to copy. On an Apple platform it marks the page with
+ * data-moka-platform="apple", so a key cap for a shortcut's Mod key reads Cmd there and Ctrl elsewhere.
  */
 
-import { keyOwner, inModal } from './moka-keys.js';
+import { isApplePlatform, keyOwner, inModal } from './moka-keys.js';
 import { listenForCopies } from './moka-copy.js';
 
 function register(blazor) {
@@ -36,11 +37,19 @@ function register(blazor) {
 	});
 
 	listenForCopies();
+	markPlatform();
 }
 
-/** Blazor Web App. */
+function markPlatform() {
+	if (isApplePlatform) {
+		document.documentElement.setAttribute('data-moka-platform', 'apple');
+	}
+}
+
+/** Blazor Web App. An enhanced page update replaces the document's attributes with the server's, so the mark goes back. */
 export function afterWebStarted(blazor) {
 	register(blazor);
+	blazor.addEventListener('enhancedload', markPlatform);
 }
 
 /** Blazor Server, Blazor WebAssembly and Blazor Hybrid. */

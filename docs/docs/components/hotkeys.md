@@ -52,6 +52,17 @@ It renders no markup.
 | `Hotkeys` | Every registered hotkey, in registration order |
 | `InvokeAsync(id)` | Runs one as a press would, so a menu item and its shortcut share an action |
 | `OnChanged` | Raised when the set changes |
+| `IsListening` | Whether a `MokaHotkeyHost` is listening, so a registered hotkey fires |
+| `ListeningChanged` | Raised when `IsListening` changes |
+| `AddListener()` | Marks a listener as bound until the result is disposed. `MokaHotkeyHost` calls it; an app doesn't need to |
+
+A component with a shortcut of its own can register it here while `IsListening` is true and keep its own listener
+otherwise, so it works in an app with no host. `MokaCommandPalette` does this with its `Shortcut`: with a host in the
+layout the shortcut shares the one listener and shows in the cheatsheet. The three members have default bodies, so an
+implementation of your own still compiles; it answers `false` and never raises the event.
+
+A held key repeats, and the registry cancels the browser's own action for every repeat of a matching shortcut while
+running the hotkey once per press. Up to 0.12.1 only the first press was cancelled.
 
 ## Registering from a component
 
@@ -87,6 +98,16 @@ is Ctrl everywhere except a Mac, where it is Cmd. `Space` is the space bar.
 
 Every modifier has to match exactly, so `Ctrl+Shift+K` is not `Ctrl+K`. A modifier that is not in that list
 turns the hotkey off and logs a warning, rather than binding the bare key.
+
+A punctuation mark or symbol is written as the character it types: `"?"`, `"/"`, `"Ctrl+["`. Which keys type it
+depends on the keyboard layout (`?` is Shift+/ in the US and Shift+, in France, `/` is Shift+7 in Germany), so the
+press is matched by the character, and Shift counts only when the shortcut names it. `"?"` fires for whatever types a
+question mark; `"Shift+?"` needs Shift as well. Letters and digits are matched by the key as before, so `"K"` still
+doesn't fire for Shift+K. Up to 0.12.1 a shortcut such as `"?"` never fired, since typing it takes Shift.
+
+Key caps show `Mod` as Ctrl, and as Cmd on a Mac, iPhone or iPad: the library's JavaScript marks the page with
+`data-moka-platform="apple"` there, and `MokaKbd` with `Key="Mod"` switches by CSS. A page drawn before Blazor starts
+shows Ctrl until it does.
 
 ### In text fields
 

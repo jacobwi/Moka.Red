@@ -126,7 +126,7 @@ A kind with nothing to sort or export, the row menu and the actions column, take
 |------|------|---------|-------------|
 | `Value` | `Func<TItem, DateTimeOffset?>?` | -- | The row's moment, or null for none. A `DateTime` converts by itself. Required |
 | `Relative` | `bool` | `false` | Writes how long ago or how far off the moment is, with the exact time in a tooltip |
-| `Live` | `bool` | `false` | Keeps relative times up to date as time passes, one timer per cell |
+| `Live` | `bool` | `false` | Keeps relative times up to date as time passes. The cells share one timer, and only a cell whose text changes redraws |
 | `TooltipFormat` | `string` | `"F"` | How the tooltip of a relative time writes the exact moment |
 | `TimeZone` | `TimeZoneInfo?` | -- | The zone moments are written in. Null is the moment's own offset, or the viewer's for relative times |
 

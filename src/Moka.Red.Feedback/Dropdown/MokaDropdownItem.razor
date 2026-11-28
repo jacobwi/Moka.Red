@@ -25,6 +25,15 @@ else
 			{
 				<span class="moka-dropdown-item-text">@Text</span>
 			}
+			@if (!string.IsNullOrEmpty(Shortcut))
+			{
+				<span class="moka-dropdown-item-shortcut">
+					@foreach (string key in ShortcutKeys.Split(Shortcut))
+					{
+						<MokaKbd Key="@key" />
+					}
+				</span>
+			}
 			@if (OpensNewTab)
 			{
 				<span class="moka-visually-hidden">, @NewTabText</span>

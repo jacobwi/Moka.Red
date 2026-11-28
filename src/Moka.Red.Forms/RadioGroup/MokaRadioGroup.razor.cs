@@ -1,4 +1,6 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Moka.Red.Core.Base;
 using Moka.Red.Core.Enums;
 using Moka.Red.Core.Utilities;
@@ -51,6 +53,24 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	[Parameter]
 	public string? MinColumn { get; set; }
 
+	/// <summary>
+	///     With <see cref="Cards" />, lets people look through the cards before choosing: the cards are a list whose
+	///     highlight moves with the arrow keys, Home, End and the pointer without changing the value, and Enter, Space or a
+	///     click chooses the highlighted card. <see cref="HighlightChanged" /> reports where the highlight is, for a preview.
+	///     On a static page and until the group renders interactively the cards stay native radios, so a form still posts a
+	///     choice.
+	/// </summary>
+	[Parameter]
+	public bool Browse { get; set; }
+
+	/// <summary>
+	///     Raised in a <see cref="Browse" /> group when the highlight lands on another card, from a key, the pointer or focus,
+	///     with that card's value, and with the chosen value again once the pointer and focus have left the cards. Raised
+	///     only when the card changes, never for each pointer move.
+	/// </summary>
+	[Parameter]
+	public EventCallback<TValue> HighlightChanged { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-radiogroup";
 
@@ -60,6 +80,7 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	private string ComputedCssClass => new CssBuilder(RootClass)
 		.AddClass("moka-radiogroup--row", Orientation == MokaDirection.Row && !Cards)
 		.AddClass("moka-radiogroup--cards", Cards)
+		.AddClass("moka-radiogroup--browse", Browses)
 		.AddClass("moka-radiogroup--disabled", Disabled)
 		.AddClass(CssClass) // InputBase's field classes: modified, valid, invalid
 		.AddClass(Class)
@@ -83,6 +104,17 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 	private string? WrapperStyle => new StyleBuilder()
 		.AddStyle("margin", ResolvedMargin)
 		.Build();
+
+	// Before the group renders interactively the script that moves the highlight can't run, so the cards stay radios a
+	// static form can post.
+	internal bool Browses => Cards && Browse && RendererInfo.IsInteractive;
+
+	private string? ListDisabled => Disabled ? "true" : null;
+
+	private string? ListTabIndex => Disabled ? null : "0";
+
+	/// <inheritdoc />
+	protected override string? PostedValue => Convert.ToString(CurrentValue, CultureInfo.InvariantCulture);
 
 	/// <inheritdoc />
 	protected override bool TryParseValueFromString(string? value, out TValue result, out string validationErrorMessage)
@@ -119,6 +151,86 @@ public partial class MokaRadioGroup<TValue> : MokaVisualInputBase<TValue>
 
 	/// <summary>Checks if a value is currently selected.</summary>
 	internal bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(value, CurrentValue);
+
+	internal void AddOption(string key, MokaRadioItem<TValue> item) => _options[key] = item;
+
+	internal void RemoveOption(string key) => _options.Remove(key);
+
+	/// <summary>Called by the browse script when a card is clicked, or chosen with Enter or Space.</summary>
+	/// <param name="key">The card's key.</param>
+	[JSInvokable]
+	public void ChooseFromBrowse(string key)
+	{
+		if (Browses && !Disabled && _options.TryGetValue(key, out MokaRadioItem<TValue>? item) && !item.IsDisabled)
+		{
+			SelectValue(item.Value);
+		}
+	}
+
+	/// <summary>Called by the browse script when the highlight lands on another card, or goes back to the chosen one.</summary>
+	/// <param name="key">The highlighted card's key, or null for the chosen value when no card shows it.</param>
+	[JSInvokable]
+	public void HighlightFromBrowse(string? key)
+	{
+		TValue value = key is not null && _options.TryGetValue(key, out MokaRadioItem<TValue>? item) ? item.Value : CurrentValue!;
+		RunDetached(() => HighlightChanged.InvokeAsync(value));
+	}
+
+	/// <inheritdoc />
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+
+		bool browses = Browses;
+		bool reports = HighlightChanged.HasDelegate;
+		if (browses != _bound)
+		{
+			_bound = browses;
+			if (browses)
+			{
+				_reporting = reports;
+				_dotNetRef ??= DotNetObjectReference.Create(this);
+				await SafeModuleInvokeVoidAsync(ModulePath, "bindBrowse", _browseKey, _group, _dotNetRef, reports);
+			}
+			else
+			{
+				await SafeModuleInvokeVoidAsync(ModulePath, "unbindBrowse", _browseKey);
+			}
+		}
+		else if (browses && reports != _reporting)
+		{
+			_reporting = reports;
+			await SafeModuleInvokeVoidAsync(ModulePath, "reportBrowse", _browseKey, reports);
+		}
+	}
+
+	/// <inheritdoc />
+	protected override async ValueTask DisposeAsyncCore()
+	{
+		if (_bound)
+		{
+			_bound = false;
+			await SafeModuleInvokeVoidAsync(ModulePath, "unbindBrowse", _browseKey);
+		}
+
+		_dotNetRef?.Dispose();
+		await base.DisposeAsyncCore();
+	}
+
+	private const string ModulePath = "./_content/Moka.Red.Forms/RadioGroup/MokaRadioGroup.razor.js";
+
+	private readonly Dictionary<string, MokaRadioItem<TValue>> _options = new(StringComparer.Ordinal);
+
+	private readonly string _browseKey = Guid.NewGuid().ToString("N");
+
+	private ElementReference _group;
+
+	private DotNetObjectReference<MokaRadioGroup<TValue>>? _dotNetRef;
+
+	private bool _bound;
+
+	private bool _reporting;
+
 	private readonly string _generatedId = $"moka-radio-group-{Guid.NewGuid():N}";
 
 	private string FieldId => string.IsNullOrEmpty(Id) ? _generatedId : Id;

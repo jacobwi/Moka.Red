@@ -11,6 +11,10 @@
  * Binding the same element again replaces its settings.
  */
 
+/** Whether this is an Apple platform, where the Mod key of a shortcut is Cmd rather than Ctrl. */
+export const isApplePlatform = /mac|iphone|ipad|ipod/i.test(
+	globalThis.navigator?.userAgentData?.platform ?? globalThis.navigator?.platform ?? '');
+
 const activationRoots = new WeakMap(); // root -> selector, or null for the root itself
 const keyRules = new WeakMap(); // root -> rules
 

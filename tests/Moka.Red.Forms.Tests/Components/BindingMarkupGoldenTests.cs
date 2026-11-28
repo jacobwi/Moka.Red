@@ -137,6 +137,20 @@ public sealed class BindingMarkupGoldenTests : BunitContext
 
 	[Theory]
 	[MemberData(nameof(Bound))]
+	public void RadioCards(bool bound) => Golden("radio-cards", bound, () => Render<MokaRadioGroup<string>>(p =>
+	{
+		p.Add(x => x.Id, "probe").Add(x => x.Label, "Theme").Add(x => x.Cards, true).Add(x => x.Value, "b")
+			.AddChildContent<MokaRadioItem<string>>(item => item.Add(x => x.Value, "a").Add(x => x.Label, "Light").Add(x => x.Hint, "Bright")
+				.Add(x => x.Preview, (RenderFragment)(b => b.AddMarkupContent(0, "<i class=\"pic\"></i>"))))
+			.AddChildContent<MokaRadioItem<string>>(item => item.Add(x => x.Value, "b").Add(x => x.Label, "Dark").Add(x => x.Disabled, bound));
+		if (bound)
+		{
+			p.Add(x => x.ValueChanged, v => _fields.Text = v).Add(x => x.ValueExpression, Expr(() => _fields.Text));
+		}
+	}));
+
+	[Theory]
+	[MemberData(nameof(Bound))]
 	public void TextField(bool bound) => Golden("text-field", bound, () => Render<MokaTextField>(p =>
 	{
 		p.Add(x => x.Id, "probe").Add(x => x.Label, "Name").Add(x => x.Value, "Ada");

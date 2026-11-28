@@ -21,25 +21,86 @@
 	</Notes>
 </DemoSection>
 
+<DemoSection Id="fuzzy-and-recent" Title="Ranked search and recent commands" Description="This site's palette matches letters in order with gaps allowed and ranks the best matches first, and lists the commands run last at the top while the search box is empty.">
+	<ChildContent>
+		<p style="font-size: var(--moka-font-size-sm);">
+			Open the palette and type <MokaKbd>dtpk</MokaKbd> to find the date picker, run a command, then open the palette again.
+		</p>
+		<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="Matching">Contains (the default) or Fuzzy</DemoParam>
+		<DemoParam Name="Filter">The app's own matching: a score, or null to leave a command out. Wins over Matching</DemoParam>
+		<DemoParam Name="ShowRecent">Lists IMokaCommandPaletteService.Recent first under a Recent heading, RecentCount at most</DemoParam>
+		<DemoParam Name="GroupOrder">Group names to list first, in this order</DemoParam>
+	</Notes>
+</DemoSection>
+
+<DemoSection Id="children" Title="Commands with children" Description="A command with Children opens them in the palette in its place. Escape, or Backspace in an empty search box, goes back a level.">
+	<ChildContent>
+		<p style="font-size: var(--moka-font-size-sm);">
+			Open the palette, search for <MokaKbd>report</MokaKbd> and pick Open a report. Last report: @_report
+		</p>
+		<MokaButton OnClick="OpenCommandPalette" Variant="MokaVariant.Outlined" Size="MokaSize.Sm">Open Command Palette</MokaButton>
+	</ChildContent>
+	<Notes>
+		<DemoParam Name="MokaCommand.Children">The commands one level down. A command that has them runs nothing itself</DemoParam>
+		<DemoParam Name="Text.PageOpened">What screen readers hear when a level opens</DemoParam>
+		<DemoParam Name="Text.Back">The footer hint beside Escape on a lower level</DemoParam>
+	</Notes>
+</DemoSection>
+
 @code {
 	private const string DocsCommand = "showcase-demo-blazor-docs";
+	private const string ReportCommand = "showcase-demo-reports";
 
-	protected override void OnInitialized() => CommandPalette.Register(new MokaCommand
+	private string _report = "none yet";
+
+	protected override void OnInitialized() => CommandPalette.RegisterMany(
+	[
+		new MokaCommand
+		{
+			Id = DocsCommand,
+			Title = "Blazor docs",
+			Description = "Microsoft's Blazor documentation",
+			Group = "Elsewhere",
+			Icon = MokaIcons.File.Document,
+			Href = "https://learn.microsoft.com/aspnet/core/blazor/",
+			Target = "_blank",
+			Keywords = "docs documentation"
+		},
+		new MokaCommand
+		{
+			Id = ReportCommand,
+			Title = "Open a report",
+			Description = "Sales, stock or visitors",
+			Group = "Demo",
+			Icon = MokaIcons.File.Document,
+			Children = [Report("sales", "Sales"), Report("stock", "Stock"), Report("visitors", "Visitors")]
+		}
+	]);
+
+	// The command runs in the palette's handler, so this page draws itself again.
+	private MokaCommand Report(string id, string title) => new()
 	{
-		Id = DocsCommand,
-		Title = "Blazor docs",
-		Description = "Microsoft's Blazor documentation",
-		Group = "Elsewhere",
+		Id = $"{ReportCommand}-{id}",
+		Title = title,
 		Icon = MokaIcons.File.Document,
-		Href = "https://learn.microsoft.com/aspnet/core/blazor/",
-		Target = "_blank",
-		Keywords = "docs documentation"
-	});
+		OnExecute = () => InvokeAsync(() =>
+		{
+			_report = title;
+			StateHasChanged();
+		})
+	};
 
 	private void OpenCommandPalette()
 	{
 		CommandPalette.Open();
 	}
 
-	public void Dispose() => CommandPalette.Unregister(DocsCommand);
+	public void Dispose()
+	{
+		CommandPalette.Unregister(DocsCommand);
+		CommandPalette.Unregister(ReportCommand);
+	}
 }

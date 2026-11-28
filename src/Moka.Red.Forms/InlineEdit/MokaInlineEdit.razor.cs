@@ -211,6 +211,10 @@ public partial class MokaInlineEdit
 			{
 				await FocusDisplayAsync();
 			}
+			else if (Trigger == MokaInlineEditTrigger.Manual)
+			{
+				await SafeModuleInvokeVoidAsync(ModulePath, "restoreFocus", _root);
+			}
 		}
 	}
 

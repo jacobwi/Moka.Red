@@ -88,6 +88,14 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public bool Radio { get; set; }
 
+	/// <summary>
+	///     A keyboard shortcut drawn as key caps at the end of the row, such as <c>"Mod+S"</c>: one <c>MokaKbd</c> per key,
+	///     as the context menu, the menu bar and the command palette draw theirs. A hint only: register the key with the
+	///     hotkey registry to bind it.
+	/// </summary>
+	[Parameter]
+	public string? Shortcut { get; set; }
+
 	/// <summary>When true, renders as a horizontal divider instead of a menu item.</summary>
 	[Parameter]
 	public bool Divider { get; set; }

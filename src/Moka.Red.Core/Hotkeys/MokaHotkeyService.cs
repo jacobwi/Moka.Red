@@ -7,9 +7,28 @@ public sealed class MokaHotkeyService : IMokaHotkeyService
 {
 	// Insertion order is what a shortcut list shows, so the order registrations arrive in is kept.
 	private readonly List<MokaHotkey> _hotkeys = [];
+	private int _listeners;
 
 	/// <inheritdoc />
 	public event Action? OnChanged;
+
+	/// <inheritdoc />
+	public event Action? ListeningChanged;
+
+	/// <inheritdoc />
+	public bool IsListening => _listeners > 0;
+
+	/// <inheritdoc />
+	public IDisposable AddListener()
+	{
+		_listeners++;
+		if (_listeners == 1)
+		{
+			ListeningChanged?.Invoke();
+		}
+
+		return new Listener(this);
+	}
 
 	/// <inheritdoc />
 	public IReadOnlyList<MokaHotkey> Hotkeys => _hotkeys;
@@ -64,6 +83,31 @@ public sealed class MokaHotkeyService : IMokaHotkeyService
 
 		hotkey.OnInvokeSync?.Invoke();
 		return Task.CompletedTask;
+	}
+
+	private void RemoveListener()
+	{
+		_listeners--;
+		if (_listeners == 0)
+		{
+			ListeningChanged?.Invoke();
+		}
+	}
+
+	private sealed class Listener(MokaHotkeyService service) : IDisposable
+	{
+		private bool _disposed;
+
+		public void Dispose()
+		{
+			if (_disposed)
+			{
+				return;
+			}
+
+			_disposed = true;
+			service.RemoveListener();
+		}
 	}
 
 	// Disposing twice must not unregister whatever took the id in the meantime.

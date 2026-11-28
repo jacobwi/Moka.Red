@@ -21,6 +21,7 @@ public class MokaCommandPaletteHrefTests : BunitContext
 		module.Setup<int>("registerShortcut", _ => true).SetResult(1);
 		module.SetupVoid("updateShortcut", _ => true).SetVoidResult();
 		module.SetupVoid("focusInput", _ => true).SetVoidResult();
+		module.SetupVoid("watchHighlight", _ => true).SetVoidResult();
 	}
 
 	[Theory]

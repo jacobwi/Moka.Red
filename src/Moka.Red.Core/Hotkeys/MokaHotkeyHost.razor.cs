@@ -16,6 +16,7 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 	private bool _disposed;
 	private DotNetObjectReference<MokaHotkeyHost>? _dotNetRef;
 	private int _handle;
+	private IDisposable? _listener;
 	private IJSObjectReference? _module;
 	private bool _pendingPush;
 
@@ -36,6 +37,9 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 		{
 			Service.OnChanged -= HandleChanged;
 		}
+
+		_listener?.Dispose();
+		_listener = null;
 
 		if (_handle != 0)
 		{
@@ -103,6 +107,11 @@ public sealed partial class MokaHotkeyHost : ComponentBase, IAsyncDisposable
 			_dotNetRef = DotNetObjectReference.Create(this);
 			_handle = await _module.InvokeAsync<int>("bindHotkeys", _dotNetRef);
 			await PushAsync();
+
+			if (!_disposed && Service is not null)
+			{
+				_listener = Service.AddListener();
+			}
 		}
 		catch (Exception ex) when (MokaJsInterop.IsCircuitGone(ex))
 		{

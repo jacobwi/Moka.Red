@@ -14,6 +14,19 @@ kbd {
 	vertical-align: baseline;
 }
 
+/* The Mod key reads Ctrl until the page knows it runs on an Apple platform (Moka.Red.Core.lib.module.js). */
+.moka-kbd-apple {
+	display: none;
+}
+
+:root[data-moka-platform="apple"] .moka-kbd-apple {
+	display: inline;
+}
+
+:root[data-moka-platform="apple"] .moka-kbd-pc {
+	display: none;
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate kbd {

@@ -77,7 +77,9 @@ An error from `Validate` or from a failed `Save` shows under the field and keeps
 
 ## Started by the parent
 
-With `Manual` the text is plain text, for a row that starts editing from F2 or a menu.
+With `Manual` the text is plain text, for a row that starts editing from F2 or a menu. Enter or Escape gives
+focus back to whatever had it when the field opened, such as the Rename button below, so a keyboard user carries
+on from there. Clicking away leaves focus where the click put it. Up to 0.12.1 focus fell to the page.
 
 ```razor
 <MokaInlineEdit @bind-Value="_name" @bind-Editing="_renaming" Label="Name" Trigger="MokaInlineEditTrigger.Manual" />
@@ -123,6 +125,6 @@ Inside an `EditForm` it takes part like any other input, and the form's validati
 | Key | Action |
 |-----|--------|
 | Enter or Space on the text | Starts editing |
-| Enter | Saves, except while an input method is composing |
-| Escape | Cancels |
+| Enter | Saves, except while an input method is composing. Focus goes back to the text, or with `Manual` to what had it before |
+| Escape | Cancels. Focus goes back as for Enter |
 | Tab | Moves on, which saves |

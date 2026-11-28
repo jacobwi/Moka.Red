@@ -55,3 +55,39 @@ export function trackHover(list, dotNetRef) {
 		state.index = -1;
 	}, { passive: true });
 }
+
+/**
+ * Scrolls a list, and only the list, so the row at index shows, with the heading over it when it is the first row
+ * under one. Element.scrollIntoView would also scroll the page under a list that sits partly out of the window.
+ * @param {HTMLElement} list - The scrolling element around the rows.
+ * @param {number} index - The row's data-moka-index. The first row scrolls the list to its top.
+ * @param {string} [headingClass] - The class of a heading drawn just before the first row of a group.
+ */
+export function revealRow(list, index, headingClass) {
+	if (!list) return;
+
+	if (index <= 0) {
+		list.scrollTop = 0;
+		return;
+	}
+
+	const row = list.querySelector(`[data-moka-index="${index}"]`);
+	if (!row) return;
+
+	const heading = row.previousElementSibling;
+	const first = headingClass && heading && heading.classList.contains(headingClass) ? heading : row;
+
+	const style = getComputedStyle(list);
+	const box = list.getBoundingClientRect();
+	const viewTop = box.top + list.clientTop + (parseFloat(style.paddingTop) || 0);
+	const viewBottom = box.top + list.clientTop + list.clientHeight - (parseFloat(style.paddingBottom) || 0);
+
+	const top = first.getBoundingClientRect().top;
+	const bottom = row.getBoundingClientRect().bottom;
+
+	if (top < viewTop) {
+		list.scrollTop -= viewTop - top;
+	} else if (bottom > viewBottom) {
+		list.scrollTop += bottom - viewBottom;
+	}
+}

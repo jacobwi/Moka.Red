@@ -1,6 +1,7 @@
 // Parsing and matching live in Core, where everything that binds a key shares them: the palette and the
 // hotkey registry used to carry the same forty lines each, and a fix to one would have missed the other.
 import { parseShortcut as parse, isEditable, matches } from '../Moka.Red.Core/moka-hotkeys.js';
+import { revealRow } from '../Moka.Red.Core/moka-hover.js';
 
 // A command row that opens another tab, picked with Enter.
 export { openTab } from '../Moka.Red.Core/moka-links.js';
@@ -41,6 +42,27 @@ export function updateShortcut(handle, shortcut) {
     if (registration) {
         registration.spec = parseShortcut(shortcut);
     }
+}
+
+/**
+ * Keeps the highlighted command in view as the arrow keys move it, scrolling the list and nothing around it, and puts
+ * the list back at its top when the search changes. It watches the search box's aria-activedescendant, so .NET moves
+ * the highlight and never has to ask for a scroll. Both go with the elements when the palette closes.
+ * @param {HTMLInputElement} input - The search box.
+ * @param {HTMLElement} results - The scrolling element around the list.
+ */
+export function watchHighlight(input, results) {
+    if (!input || !results) return;
+
+    new MutationObserver(() => {
+        const id = input.getAttribute('aria-activedescendant');
+        const row = id ? document.getElementById(id) : null;
+        if (row && results.contains(row)) {
+            revealRow(results, Number(row.dataset.mokaIndex), 'moka-command-palette__group');
+        }
+    }).observe(input, { attributes: true, attributeFilter: ['aria-activedescendant'] });
+
+    input.addEventListener('input', () => { results.scrollTop = 0; }, { passive: true });
 }
 
 export function focusInput(inputElement) {

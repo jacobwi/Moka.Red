@@ -5,6 +5,53 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.2] - 2026-11-28
+
+### Added
+- `MokaRadioGroup.Browse`: with `Cards`, people can look through the cards before choosing. The cards become a
+  WAI-ARIA listbox whose highlight moves with the arrow keys (across the columns), Home, End and the pointer without
+  changing the value, and Enter, Space or a click chooses. `HighlightChanged` reports the highlighted card's value, for
+  a live preview, and the chosen value again once the pointer and focus have left the cards; it's raised only when the
+  card changes. On a static page and until the group renders interactively the cards stay native radios, so a form
+  still posts a choice. Without `Browse` the markup is unchanged.
+- `MokaCommandPalette.Matching` (`MokaCommandMatching`): `Contains`, the default, matches as before; `Fuzzy` finds the
+  typed letters in order and ranks the results, preferring word starts, runs of letters and the title. `Filter` takes
+  the app's own score (`Func<MokaCommand, string, int?>`, null for no match) and wins over `Matching`.
+- `MokaCommandPalette.GroupOrder` lists the named groups first, in that order. `ShowRecent` and `RecentCount` (5) put
+  the commands run last in a Recent group at the top while nothing is typed. `IMokaCommandPaletteService.Recent`,
+  `SetRecent` and `RecentChanged` let an app store and restore that list; they have default interface bodies.
+- `MokaCommand.Children`: a command that opens a level of commands of its own, such as a theme picker. The box clears,
+  the parent's name shows before it and the search covers that level; Escape, or Backspace in an empty box, goes back.
+- `MokaCommandPalette.Text` (`MokaCommandPaletteText`) holds the footer words, the Recent heading, the words announced
+  when a level opens and the shortcut's description.
+- With a `MokaHotkeyHost` in the layout, the command palette registers its `Shortcut` with `IMokaHotkeyService`, so it
+  shares the one listener and shows in `MokaCheatsheet`; without a host it keeps its own listener.
+  `IMokaHotkeyService.IsListening`, `ListeningChanged` and `AddListener` say whether a host is listening, with default
+  interface bodies.
+- `MokaKbd.Key` names a key as a shortcut names it. `"Mod"` reads Ctrl, and Cmd on a Mac, iPhone or iPad: the library's
+  JavaScript initializer marks the page with `data-moka-platform="apple"` there (again after an enhanced page update),
+  and the key cap switches by CSS. Every key cap the library draws for a shortcut uses it: the context menu, the menu
+  bar, the command palette, the cheatsheet, the slash menu and tooltips.
+- `MokaDropdownItem.Shortcut`: a shortcut hint drawn as key caps at the end of the row, as the context menu and the
+  menu bar draw theirs.
+
+### Changed
+- Every `MokaRelativeTime` on a clock now shares one timer, set for whichever instance's text changes first, in place
+  of one timer each. A page of a thousand runs one timer, and only the instances whose text changes redraw, each on its
+  own renderer. The text, the markup and when it changes are the same as before.
+
+### Fixed
+- A shortcut named by a punctuation mark or symbol, such as `"?"`, never fired, since typing it takes Shift and the
+  shortcut didn't name Shift. It's now matched by the character typed, with Shift counted only when the shortcut names
+  it, so `"?"` and `"/"` work on any keyboard layout. Letters and digits match as before.
+- The hotkey registry cancels the browser's own action for every repeat of a held shortcut, not only the first press;
+  the hotkey still runs once per press.
+- The command palette scrolls the highlighted command into view as the arrow keys move it, and goes back to the top
+  when the search changes.
+- Key caps for a shortcut written with `Mod` showed the word "Mod".
+- `MokaInlineEdit` with `Trigger="Manual"`: Enter or Escape gives focus back to whatever had it when the field opened,
+  such as the button that opened it. Focus used to fall to the page.
+
 ## [0.12.1] - 2026-11-28
 
 ### Added

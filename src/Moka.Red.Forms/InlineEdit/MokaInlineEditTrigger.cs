@@ -9,6 +9,9 @@ public enum MokaInlineEditTrigger
 	/// <summary>A double click on the text. Enter and Space on the focused text start it too.</summary>
 	DoubleClick,
 
-	/// <summary>Only the parent, through <c>Editing</c>. The text is then plain text, not a button.</summary>
+	/// <summary>
+	///     Only the parent, through <c>Editing</c>. The text is then plain text, not a button. Enter or Escape gives focus
+	///     back to what had it when the field opened, such as the button that opened it.
+	/// </summary>
 	Manual
 }

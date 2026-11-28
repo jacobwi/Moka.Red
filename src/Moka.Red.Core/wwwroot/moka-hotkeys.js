@@ -5,9 +5,7 @@
  * rejected would send every keystroke in the app over the circuit. .NET hears only the presses that match.
  */
 
-import { isEditable, modalIsOpen } from './moka-keys.js';
-
-const _isMac = /mac|iphone|ipad|ipod/i.test(navigator.userAgentData?.platform ?? navigator.platform ?? '');
+import { isApplePlatform, isEditable, modalIsOpen } from './moka-keys.js';
 
 const MODIFIERS = new Set(['mod', 'ctrl', 'control', 'meta', 'cmd', 'command', 'alt', 'option', 'shift']);
 
@@ -40,14 +38,17 @@ export function parseShortcut(text, source) {
 	const mod = mods.has('mod');
 	const spec = {
 		key: key === 'space' ? ' ' : key,
-		ctrl: mods.has('ctrl') || mods.has('control') || (mod && !_isMac),
-		meta: mods.has('meta') || mods.has('cmd') || mods.has('command') || (mod && _isMac),
+		ctrl: mods.has('ctrl') || mods.has('control') || (mod && !isApplePlatform),
+		meta: mods.has('meta') || mods.has('cmd') || mods.has('command') || (mod && isApplePlatform),
 		alt: mods.has('alt') || mods.has('option'),
 		shift: mods.has('shift')
 	};
 
 	// Without Ctrl, Cmd or Alt a one-character key is typing ("/", "Shift+K").
 	spec.types = !spec.ctrl && !spec.meta && !spec.alt && spec.key.length === 1;
+	// A punctuation mark or symbol is named by the character it types, and which keys type it depends on the
+	// layout: "?" is Shift+/ in the US and Shift+, in France, "/" is Shift+7 in Germany.
+	spec.symbol = /^[\p{P}\p{S}]$/u.test(spec.key);
 	return spec;
 }
 
@@ -55,17 +56,22 @@ export { isEditable };
 
 /**
  * Whether a press is the shortcut. Every modifier has to match exactly: Ctrl+Shift+K is not Ctrl+K. Letters and
- * digits are also compared by code, because Alt and Shift change what e.key reports for them.
+ * digits are also compared by code, because Alt and Shift change what e.key reports for them. A punctuation mark or
+ * symbol is compared by the character typed, and Shift counts only when the shortcut names it, since the layout
+ * decides whether typing the character takes Shift.
  * @param {KeyboardEvent} e - The press.
  * @param {object} spec - A parsed shortcut.
  * @returns {boolean}
  */
 export function matches(e, spec) {
-	if (e.ctrlKey !== spec.ctrl || e.metaKey !== spec.meta || e.altKey !== spec.alt || e.shiftKey !== spec.shift) {
+	const shiftMatches = e.shiftKey === spec.shift || (spec.symbol && !spec.shift);
+	if (e.ctrlKey !== spec.ctrl || e.metaKey !== spec.meta || e.altKey !== spec.alt || !shiftMatches) {
 		return false;
 	}
 
 	const key = typeof e.key === 'string' ? e.key.toLowerCase() : '';
+	if (spec.symbol) return key === spec.key;
+
 	const code = typeof e.code === 'string' ? e.code.toLowerCase() : '';
 	return key === spec.key || code === 'key' + spec.key || code === 'digit' + spec.key;
 }
@@ -81,20 +87,22 @@ export function bindHotkeys(dotNetRef) {
 	const binding = { specs: [] };
 
 	binding.listener = (e) => {
-		// A held key repeats; a shortcut fires once per press, as the palette's own already did.
-		if (e.repeat) return;
-
 		for (const entry of binding.specs) {
 			if (!matches(e, entry.spec)) continue;
 			if (!firesIn(e.target, entry)) continue;
 			// A modal is drawn inside the page, so its keys reach this listener too. The page behind it is out of use.
 			if (!entry.allowInModal && modalIsOpen()) continue;
 
+			// A held key repeats, and the browser's own action would take every repeat the shortcut doesn't cancel.
 			if (entry.preventDefault) {
 				e.preventDefault();
 			}
 
-			dotNetRef.invokeMethodAsync('InvokeFromJs', entry.id);
+			// A shortcut fires once per press, however long the key is held.
+			if (!e.repeat) {
+				dotNetRef.invokeMethodAsync('InvokeFromJs', entry.id);
+			}
+
 			return;
 		}
 	};

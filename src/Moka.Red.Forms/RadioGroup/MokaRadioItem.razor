@@ -2,19 +2,58 @@
 @inherits MokaComponentBase
 @typeparam TValue
 
-@* The native radio is the real control: it takes focus, the arrow keys move between radios that
-   share a name, and screen readers read its checked state. The label around it makes the whole row
-   clickable, and the browser forwards that click to the input once, so one click selects once. *@
-<label class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
-	<input type="radio"
-	       class="moka-radio-native"
-	       name="@ParentGroup?.GroupName"
-	       value="@PostedValue"
-	       checked="@IsSelected"
-	       disabled="@IsDisabled"
-	       @onchange="HandleChange"/>
-	@if (IsCard)
-	{
+@if (InBrowse)
+{
+	@* An option of the group's listbox. The group's script moves the highlight and hears the clicks, so the card has no
+	   handler of its own. *@
+	<div class="@CssClass" style="@CssStyle" id="@OptionId" role="option" aria-selected="@(IsSelected ? "true" : "false")"
+	     aria-disabled="@(IsDisabled ? "true" : null)" data-moka-option="@_key" @attributes="AdditionalAttributes">
+		@CardContent
+	</div>
+}
+else
+{
+	@* The native radio is the real control: it takes focus, the arrow keys move between radios that
+	   share a name, and screen readers read its checked state. The label around it makes the whole row
+	   clickable, and the browser forwards that click to the input once, so one click selects once. *@
+	<label class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">
+		<input type="radio"
+		       class="moka-radio-native"
+		       name="@ParentGroup?.GroupName"
+		       value="@PostedValue"
+		       checked="@IsSelected"
+		       disabled="@IsDisabled"
+		       @onchange="HandleChange"/>
+		@if (IsCard)
+		{
+			@CardContent
+		}
+		else
+		{
+			<span class="moka-radio-circle" aria-hidden="true">
+				@if (IsSelected)
+				{
+					<span class="moka-radio-dot"></span>
+				}
+			</span>
+			@if (ChildContent is not null)
+			{
+				<span class="moka-radio-label">@ChildContent</span>
+			}
+			else if (Label is not null)
+			{
+				<span class="moka-radio-label">@Label</span>
+			}
+			@if (Hint is not null)
+			{
+				<span class="moka-radio-item__hint">@Hint</span>
+			}
+		}
+	</label>
+}
+
+@code {
+	private RenderFragment CardContent => @<text>
 		@if (Preview is not null)
 		{
 			<span class="moka-radio-item__art" aria-hidden="true">@Preview</span>
@@ -39,26 +78,5 @@
 		{
 			<span class="moka-radio-item__hint">@Hint</span>
 		}
-	}
-	else
-	{
-		<span class="moka-radio-circle" aria-hidden="true">
-			@if (IsSelected)
-			{
-				<span class="moka-radio-dot"></span>
-			}
-		</span>
-		@if (ChildContent is not null)
-		{
-			<span class="moka-radio-label">@ChildContent</span>
-		}
-		else if (Label is not null)
-		{
-			<span class="moka-radio-label">@Label</span>
-		}
-		@if (Hint is not null)
-		{
-			<span class="moka-radio-item__hint">@Hint</span>
-		}
-	}
-</label>
+	</text>;
+}

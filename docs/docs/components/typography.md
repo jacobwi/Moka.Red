@@ -225,14 +225,22 @@ One cap per key, so a combination is several of them.
 <p>Press <MokaKbd>Ctrl</MokaKbd> + <MokaKbd>K</MokaKbd> to open search.</p>
 ```
 
-Every shortcut hint in the library is built from this component: `MokaContextMenu` and
-`MokaCommandPalette` split a `Shortcut` string on `+` and draw a cap per key, `MokaCheatsheet` draws
-one per entry in `Keys`, and `MokaSlashMenu` and `MokaSearchInput` use it for their key hints. To split
-a hint the same way in your own markup, call `ShortcutKeys.Split`:
+`Key` names the key as a shortcut names it. `Mod`, the key a shortcut such as `"Mod+K"` means on every
+platform, reads Ctrl, and Cmd on a Mac, iPhone or iPad once the page has started, matching what the hotkey
+registry binds. `Key` wins over the content.
+
+```blazor-preview
+<p>Press <MokaKbd Key="Mod" /> + <MokaKbd Key="K" /> to open search.</p>
+```
+
+Every shortcut hint in the library is built from this component: `MokaContextMenu`, `MokaMenuBarItem`,
+`MokaDropdownItem`, `MokaTooltip` and `MokaCommandPalette` split a `Shortcut` string on `+` and draw a cap
+per key, `MokaCheatsheet` draws one per entry in `Keys`, and `MokaSlashMenu` and `MokaSearchInput` use it
+for their key hints. To split a hint the same way in your own markup, call `ShortcutKeys.Split`:
 
 ```razor
-@foreach (string key in ShortcutKeys.Split("Ctrl+Shift+P"))
+@foreach (string key in ShortcutKeys.Split("Mod+Shift+P"))
 {
-    <MokaKbd>@key</MokaKbd>
+    <MokaKbd Key="@key" />
 }
 ```

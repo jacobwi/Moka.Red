@@ -52,4 +52,13 @@ public sealed class MokaCommand
 	///     <see cref="Href" /> always has.
 	/// </summary>
 	public string? Target { get; init; }
+
+	/// <summary>
+	///     Commands one level down. Picking a command that has them opens them in the palette in its place, the way "Change
+	///     theme" can open a list of themes: the search box clears, the command's title shows before it, and what is typed
+	///     searches only these. Escape, or Backspace in an empty search box, goes back a level. Such a command runs nothing
+	///     and goes nowhere itself, so <see cref="OnExecute" />, <see cref="OnExecuteSync" /> and <see cref="Href" /> are
+	///     ignored. An empty list still opens, showing the palette's no-results text.
+	/// </summary>
+	public IReadOnlyList<MokaCommand>? Children { get; init; }
 }

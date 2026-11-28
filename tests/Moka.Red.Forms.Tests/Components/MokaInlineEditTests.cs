@@ -397,6 +397,32 @@ public class MokaInlineEditTests : BunitContext
 		_module.VerifyInvoke("open");
 	}
 
+	[Theory]
+	[InlineData("Enter")]
+	[InlineData("Escape")]
+	public void ManualTrigger_EnterOrEscape_GivesFocusBackToWhatOpenedTheField(string key)
+	{
+		IRenderedComponent<MokaInlineEdit> cut = RenderEdit(p => p.Add(x => x.Trigger, MokaInlineEditTrigger.Manual));
+		cut.Render(p => p.Add(x => x.Editing, true));
+
+		Field(cut).Input("Budget");
+		Field(cut).KeyDown(new KeyboardEventArgs { Key = key });
+
+		Assert.Empty(cut.FindAll("input"));
+		_module.VerifyInvoke("restoreFocus");
+	}
+
+	[Fact]
+	public void ManualTrigger_ClickingAway_LeavesFocusWhereItWent()
+	{
+		IRenderedComponent<MokaInlineEdit> cut = RenderEdit(p => p.Add(x => x.Trigger, MokaInlineEditTrigger.Manual));
+		cut.Render(p => p.Add(x => x.Editing, true));
+
+		Field(cut).Blur();
+
+		Assert.DoesNotContain(_module.Invocations, i => i.Identifier == "restoreFocus");
+	}
+
 	[Fact]
 	public void Editing_ReportsWhatThePersonDid_AndNotWhatTheParentDid()
 	{

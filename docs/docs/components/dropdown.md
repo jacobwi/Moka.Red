@@ -45,6 +45,7 @@ The dropdown's own root element takes no part in the layout (`display: contents`
 | `Danger` | `bool` | `false` | Draws the item in the error color, on a red tint while it's hovered or focused. See [Danger items](#danger-items) |
 | `Checked` | `bool?` | -- | Makes the item an option that is on or off: `role="menuitemcheckbox"` with `aria-checked`, and a check in the icon's place while it's on. Null is a plain item. A link ignores it. See [Checked items](#checked-items) |
 | `Radio` | `bool` | `false` | Makes a `Checked` item one choice of several: `role="menuitemradio"` with the same check. See [One choice of several](#one-choice-of-several) |
+| `Shortcut` | `string?` | -- | A keyboard shortcut hint drawn as key caps at the end of the row, such as `"Mod+S"`. A hint only: bind the key with the [hotkey registry](hotkeys.md). See [Shortcuts](#shortcuts) |
 | `Divider` | `bool` | `false` | Renders as a horizontal divider instead of an item |
 | `Class` | `string?` | -- | Additional CSS classes |
 
@@ -168,6 +169,26 @@ put a `Divider` between the choices and any other items, which is enough to tell
     <MokaDropdownItem Text="New version" Icon="MokaIcons.Action.Add" OnClick="AddDraft" />
 </Items>
 ```
+
+## Shortcuts
+
+`Shortcut` shows the keys that run the same action, one key cap per key, at the end of the row, as the context menu and the menu bar do. `Mod` reads Ctrl, and Cmd on a Mac. The item doesn't bind the keys: register them with `IMokaHotkeyService` so the shortcut works and shows in the cheatsheet.
+
+```blazor-preview
+<MokaDropdown>
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined">File</MokaButton>
+    </ChildContent>
+    <Items>
+        <MokaDropdownItem Text="Save" Icon="MokaIcons.Action.Save" Shortcut="Mod+S" />
+        <MokaDropdownItem Text="Save as" Shortcut="Mod+Shift+S" />
+        <MokaDropdownItem Divider />
+        <MokaDropdownItem Text="Close" Shortcut="Mod+W" />
+    </Items>
+</MokaDropdown>
+```
+
+Screen readers hear the keys after the item's name, as in the other menus.
 
 ## Match Width
 

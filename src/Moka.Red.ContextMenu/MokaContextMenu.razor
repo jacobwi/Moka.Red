@@ -93,7 +93,7 @@
 						<span class="moka-ctx-shortcut">
 							@foreach (string key in ShortcutKeys.Split(item.Shortcut))
 							{
-								<MokaKbd>@key</MokaKbd>
+								<MokaKbd Key="@key" />
 							}
 						</span>
 					}

@@ -13,6 +13,42 @@ public sealed class MokaCommandPaletteService : IMokaCommandPaletteService
 	// which is what the palette shows before the user types anything.
 	private readonly List<MokaCommand> _ordered = [];
 	private bool _isOpen;
+	private string[] _recent = [];
+
+	/// <inheritdoc />
+	public IReadOnlyList<string> Recent
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _recent;
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public event Action? RecentChanged;
+
+	/// <inheritdoc />
+	public void SetRecent(IEnumerable<string> ids)
+	{
+		ArgumentNullException.ThrowIfNull(ids);
+
+		string[] next = ids.Distinct(StringComparer.Ordinal).ToArray();
+		bool changed;
+
+		lock (_lock)
+		{
+			changed = !_recent.AsSpan().SequenceEqual(next);
+			_recent = next;
+		}
+
+		if (changed)
+		{
+			RecentChanged?.Invoke();
+		}
+	}
 
 	/// <inheritdoc />
 	public IReadOnlyList<MokaCommand> Commands

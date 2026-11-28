@@ -49,15 +49,32 @@ public partial class MokaRadioItem<TValue> : MokaComponentBase
 
 	private string? PostedValue => Convert.ToString(Value, CultureInfo.InvariantCulture);
 
-	private bool IsDisabled => Disabled || (ParentGroup?.Disabled ?? false);
+	internal bool IsDisabled => Disabled || (ParentGroup?.Disabled ?? false);
 
 	private bool IsCard => ParentGroup?.Cards ?? false;
+
+	private bool InBrowse => ParentGroup?.Browses ?? false;
+
+	private readonly string _key = Guid.NewGuid().ToString("N");
+
+	private string OptionId => string.IsNullOrEmpty(Id) ? $"moka-radio-option-{_key}" : Id;
+
+	/// <inheritdoc />
+	protected override void OnInitialized() => ParentGroup?.AddOption(_key, this);
+
+	/// <inheritdoc />
+	protected override ValueTask DisposeAsyncCore()
+	{
+		ParentGroup?.RemoveOption(_key);
+		return base.DisposeAsyncCore();
+	}
 
 	/// <inheritdoc />
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-radio-item--selected", IsSelected)
 		.AddClass("moka-radio-item--disabled", IsDisabled)
 		.AddClass("moka-radio-item--card", IsCard)
+		.AddClass("moka-radio-item--option", InBrowse)
 		.AddClass("moka-radio-item--hinted", !IsCard && Hint is not null)
 		.AddClass(Class)
 		.Build();

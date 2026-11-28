@@ -39,4 +39,25 @@ public interface IMokaHotkeyService
 	/// <param name="id">The <see cref="MokaHotkey.Id" />.</param>
 	/// <returns>A task that completes when the hotkey's action has run.</returns>
 	Task InvokeAsync(string id);
+
+	/// <summary>
+	///     Whether a <c>MokaHotkeyHost</c> is listening, so a registered hotkey fires. A component with a shortcut of its
+	///     own can register it here while this is true and keep its own listener otherwise, so it works in an app with
+	///     no host. An implementation that doesn't track hosts answers false.
+	/// </summary>
+	bool IsListening => false;
+
+	/// <summary>Raised when <see cref="IsListening" /> changes.</summary>
+	event Action? ListeningChanged
+	{
+		add { }
+		remove { }
+	}
+
+	/// <summary>
+	///     Tells the registry a listener is bound. <c>MokaHotkeyHost</c> calls it once its listener is in the page and
+	///     disposes the result when it goes, so <see cref="IsListening" /> stays true while any host is.
+	/// </summary>
+	/// <returns>A registration that takes the listener away when disposed.</returns>
+	IDisposable AddListener() => MokaHotkeyNoListener.Instance;
 }

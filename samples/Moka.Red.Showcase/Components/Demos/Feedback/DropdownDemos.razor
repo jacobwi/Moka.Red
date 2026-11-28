@@ -56,6 +56,20 @@
 	</MokaDropdown>
 </DemoSection>
 
+<DemoSection Id="shortcuts" Title="Shortcuts" Description="Shortcut draws the keys that run the same action as key caps at the end of the row, as the context menu and the menu bar do. Mod reads Ctrl, and Cmd on a Mac. A hint only: the hotkey registry binds the keys.">
+	<MokaDropdown>
+		<ChildContent>
+			<MokaButton EndIcon="MokaIcons.Navigation.ChevronDown">File</MokaButton>
+		</ChildContent>
+		<Items>
+			<MokaDropdownItem Text="Save" Icon="MokaIcons.Action.Save" Shortcut="Mod+S"/>
+			<MokaDropdownItem Text="Save as" Shortcut="Mod+Shift+S"/>
+			<MokaDropdownItem Divider/>
+			<MokaDropdownItem Text="Close" Shortcut="Mod+W"/>
+		</Items>
+	</MokaDropdown>
+</DemoSection>
+
 <DemoSection Id="checked" Title="Checked items" Description="Checked makes an item an option that is on or off: a menuitemcheckbox with aria-checked, and a check in the icon's place while it is on. Off, it shows its icon or keeps the check's width, so the names line up.">
 	<MokaDropdown>
 		<ChildContent>

@@ -154,7 +154,9 @@ A null `Value` shows a hyphen, or whatever `EmptyText` says, in a plain `<span>`
 
 ## How it stays current
 
-Each instance sets one timer for the moment its own text next changes: the next minute, the next hour, and so on. "Just now" doesn't tick, and a value from last year wakes rarely, so a table can hold thousands of them. `Formatter` is asked again at those same moments.
+Each instance wakes at the moment its own text next changes: the next minute, the next hour, and so on. "Just now" doesn't tick, and a value from last year wakes rarely. `Formatter` is asked again at those same moments.
+
+They share one timer per clock, set for whichever is due first, so a table of a thousand runs one timer, not a thousand. When it fires, only the instances whose text changes redraw, each on its own page's renderer. With a `TimeProvider` registered per circuit, as in [Time zones](#time-zones), each circuit has one.
 
 There's no timer on a static or prerendered render, and the text is whatever it was when the page was drawn. `Live="false"` turns it off too. The text isn't a live region, so a screen reader doesn't interrupt anyone when it changes.
 

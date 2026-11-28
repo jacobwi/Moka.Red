@@ -1,4 +1,15 @@
 @namespace Moka.Red.Primitives.Typography
 @inherits MokaComponentBase
 
-<kbd class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">@ChildContent</kbd>
+<kbd class="@CssClass" style="@CssStyle" id="@Id" @attributes="AdditionalAttributes">@if (IsModKey)
+	{
+		<span class="moka-kbd-pc">Ctrl</span><span class="moka-kbd-apple"><span aria-hidden="true">&#8984;</span><span class="moka-visually-hidden">Command</span></span>
+	}
+	else if (Key is not null)
+	{
+		@Key
+	}
+	else
+	{
+		@ChildContent
+	}</kbd>

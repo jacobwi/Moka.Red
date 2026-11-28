@@ -39,4 +39,28 @@ public interface IMokaCommandPaletteService
 
 	/// <summary>Toggle the palette.</summary>
 	void Toggle();
+
+	/// <summary>
+	///     The <see cref="MokaCommand.Id" />s of the commands run from the palette, the most recent first, each once. The
+	///     palette lists them under its <see cref="MokaCommandPaletteText.Recent" /> heading with
+	///     <see cref="MokaCommandPalette.ShowRecent" />. Ids whose command is gone stay in the list and are skipped there,
+	///     so a command registered again later comes back. An implementation that doesn't keep them answers an empty list.
+	/// </summary>
+	IReadOnlyList<string> Recent => [];
+
+	/// <summary>Raised when <see cref="Recent" /> changes, so an app can store the list.</summary>
+	event Action? RecentChanged
+	{
+		add { }
+		remove { }
+	}
+
+	/// <summary>
+	///     Replaces <see cref="Recent" />: to restore a list the app stored, or to clear it with an empty one. Repeated ids
+	///     keep their first place. The palette calls it with the command it runs moved to the front.
+	/// </summary>
+	/// <param name="ids">The ids, the most recent first.</param>
+	void SetRecent(IEnumerable<string> ids)
+	{
+	}
 }

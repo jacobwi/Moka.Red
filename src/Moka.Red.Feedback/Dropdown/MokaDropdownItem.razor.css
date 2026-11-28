@@ -76,6 +76,15 @@ a.moka-dropdown-item {
 	text-overflow: ellipsis;
 }
 
+.moka-dropdown-item-shortcut {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: var(--moka-spacing-xs);
+	margin-left: auto;
+	padding-left: var(--moka-spacing-lg);
+}
+
 .moka-dropdown-divider {
 	height: 1px;
 	background: var(--moka-color-outline-variant);
@@ -131,6 +140,11 @@ a.moka-dropdown-item {
 .moka-gate .moka-dropdown-item--danger:hover:not(.moka-dropdown-item--disabled) ::deep .moka-dropdown-item-icon,
 .moka-gate .moka-dropdown-item--danger:focus-visible ::deep .moka-dropdown-item-icon {
 	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-dropdown-item-shortcut ::deep kbd {
+	color: var(--moka-popup-muted, var(--moka-color-on-surface-variant));
+	border-color: var(--moka-popup-divider, var(--moka-color-outline-strong));
 }
 
 .moka-gate .moka-dropdown-item ::deep .moka-dropdown-item-check { color: var(--moka-popup-accent, var(--moka-color-primary)); }

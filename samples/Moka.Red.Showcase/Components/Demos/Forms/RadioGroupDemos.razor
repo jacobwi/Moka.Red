@@ -18,6 +18,54 @@
 	</div>
 </DemoSection>
 
+<DemoSection Id="cards" Title="Picture cards" Description="A choice people judge by looking. Still native radios: one tab stop, the arrow keys choose.">
+	<MokaRadioGroup TValue="string" @bind-Value="_layout" Label="Report layout" Cards="true" MinColumn="9rem">
+		@foreach (LayoutChoice choice in Layouts)
+		{
+			<MokaRadioItem TValue="string" Value="@choice.Id" Label="@choice.Name" Hint="@choice.Hint">
+				<Preview><span class="radio-demo-picture radio-demo-picture--@choice.Id"></span></Preview>
+			</MokaRadioItem>
+		}
+	</MokaRadioGroup>
+</DemoSection>
+
+<DemoSection Id="browse" Title="Browse before choosing" Description="With Browse the arrow keys and the pointer move a highlight without choosing, so a preview can follow it. Enter, Space or a click chooses.">
+	<div class="radio-demo-browse">
+		<MokaRadioGroup TValue="string" @bind-Value="_browsed" Label="Report layout" Cards="true" Browse="true" MinColumn="9rem"
+		                HighlightChanged="@(id => _previewed = id)">
+			@foreach (LayoutChoice choice in Layouts)
+			{
+				<MokaRadioItem TValue="string" Value="@choice.Id" Label="@choice.Name" Hint="@choice.Hint">
+					<Preview><span class="radio-demo-picture radio-demo-picture--@choice.Id"></span></Preview>
+				</MokaRadioItem>
+			}
+		</MokaRadioGroup>
+		<MokaPaper Outlined="true" Class="radio-demo-preview">
+			<MokaCaption Micro="true">Preview</MokaCaption>
+			<span class="radio-demo-picture radio-demo-picture--large radio-demo-picture--@(_previewed ?? _browsed)"></span>
+			<MokaText>Showing @NameOf(_previewed ?? _browsed). Chosen: @NameOf(_browsed).</MokaText>
+		</MokaPaper>
+	</div>
+</DemoSection>
+
 @code {
 	private string _radioValue = "option1";
+
+	private string _layout = "columns";
+
+	private string _browsed = "columns";
+
+	private string? _previewed;
+
+	private static readonly LayoutChoice[] Layouts =
+	[
+		new("single", "Single column", "Text only"),
+		new("columns", "Two columns", "Text beside figures"),
+		new("grid", "Grid", "Figures first"),
+		new("sidebar", "Sidebar", "Notes in the margin")
+	];
+
+	private static string NameOf(string id) => Layouts.First(choice => choice.Id == id).Name;
+
+	private sealed record LayoutChoice(string Id, string Name, string Hint);
 }

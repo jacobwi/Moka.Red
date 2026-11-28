@@ -12,10 +12,22 @@
 	@* Not IsFixed: every item reads the selection from the group, so all of them have to
 	   re-render when it changes. *@
 	<CascadingValue Value="this">
-		@* The radios inside are the controls, so the group takes the Id and the other attributes. *@
-		<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@GroupAriaLabel"
-		     aria-describedby="@DescribedBy" @attributes="ControlAttributes">
-			@ChildContent
-		</div>
+		@if (Browses)
+		{
+			<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="listbox" aria-label="@GroupAriaLabel"
+			     aria-describedby="@DescribedBy" aria-disabled="@ListDisabled" tabindex="@ListTabIndex" @ref="_group"
+			     @attributes="ControlAttributes">
+				@ChildContent
+			</div>
+			@HiddenField
+		}
+		else
+		{
+			@* The radios inside are the controls, so the group takes the Id and the other attributes. *@
+			<div class="@ComputedCssClass" style="@ComponentStyle" id="@Id" role="radiogroup" aria-label="@GroupAriaLabel"
+			     aria-describedby="@DescribedBy" @attributes="ControlAttributes">
+				@ChildContent
+			</div>
+		}
 	</CascadingValue>
 </MokaFieldWrapper>

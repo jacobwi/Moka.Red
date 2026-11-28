@@ -10,8 +10,8 @@ namespace Moka.Red.Primitives.RelativeTime;
 
 /// <summary>
 ///     A moment as words, such as "3 minutes ago" or "in 2 hours", that keeps itself current. Each one wakes only when
-///     its own text is due to change, so a table can hold thousands. The words are English; <see cref="Formatter" />
-///     replaces them. It takes the size and color of the text around it.
+///     its own text is due to change, and they all share one timer, so a table can hold thousands. The words are
+///     English; <see cref="Formatter" /> replaces them. It takes the size and color of the text around it.
 /// </summary>
 public partial class MokaRelativeTime : MokaVisualComponentBase
 {
@@ -35,15 +35,12 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 		(Year, TimeSpan.MaxValue, "year")
 	];
 
-	// A timer throws on a wait of 49.7 days or more. A value due later wakes at this, finds nothing to do and waits again.
-	private static readonly TimeSpan LongestWait = TimeSpan.FromDays(30);
-
 	// Whole units are counted down, so a future value sitting exactly on one still reads the same until just after it.
 	private static readonly TimeSpan JustPast = TimeSpan.FromMilliseconds(1);
 
 	private TimeProvider? _clock;
 	private string _text = string.Empty;
-	private ITimer? _timer;
+	private RelativeTimeClock.Subscription? _wakes;
 	private DateTimeOffset? _wakeFor;
 
 	[Inject]
@@ -168,15 +165,10 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 	}
 
 	/// <inheritdoc />
-	protected override async ValueTask DisposeAsyncCore()
+	protected override ValueTask DisposeAsyncCore()
 	{
-		if (_timer is not null)
-		{
-			await _timer.DisposeAsync();
-			_timer = null;
-		}
-
-		await base.DisposeAsyncCore();
+		Disarm();
+		return base.DisposeAsyncCore();
 	}
 
 	private static string Words(TimeSpan age)
@@ -292,22 +284,14 @@ public partial class MokaRelativeTime : MokaVisualComponentBase
 		}
 
 		_wakeFor = due;
-		TimeSpan untilDue = due - now + JustPast;
-		TimeSpan wait = untilDue < LongestWait ? untilDue : LongestWait;
-		if (_timer is null)
-		{
-			_timer = Clock.CreateTimer(_ => RunDetached(Wake), null, wait, Timeout.InfiniteTimeSpan);
-		}
-		else
-		{
-			_timer.Change(wait, Timeout.InfiniteTimeSpan);
-		}
+		_wakes ??= RelativeTimeClock.Join(Clock, () => RunDetached(Wake));
+		_wakes.WakeAt(due + JustPast);
 	}
 
 	private void Disarm()
 	{
-		_timer?.Dispose();
-		_timer = null;
+		_wakes?.Dispose();
+		_wakes = null;
 		_wakeFor = null;
 	}
 

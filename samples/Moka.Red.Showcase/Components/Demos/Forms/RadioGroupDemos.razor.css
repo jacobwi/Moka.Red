@@ -1,0 +1,56 @@
+.radio-demo-browse {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
+	gap: var(--moka-spacing-lg);
+	align-items: start;
+}
+
+@media (max-width: 720px) {
+	.radio-demo-browse {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.radio-demo-browse ::deep .radio-demo-preview {
+	display: grid;
+	gap: var(--moka-spacing-sm);
+	padding: var(--moka-spacing-md);
+}
+
+.radio-demo-picture {
+	--_ink: var(--moka-color-outline-strong);
+	--_fig: var(--moka-color-primary-border);
+	display: block;
+	height: 3rem;
+	border-radius: var(--moka-radius-sm);
+	background-color: var(--moka-color-surface-variant);
+	background-repeat: no-repeat;
+}
+
+.radio-demo-picture--large {
+	height: 7rem;
+}
+
+.radio-demo-picture--single {
+	background-image: linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_ink), var(--_ink));
+	background-size: 70% 8%, 70% 8%, 50% 8%;
+	background-position: 50% 25%, 50% 50%, 35% 75%;
+}
+
+.radio-demo-picture--columns {
+	background-image: linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_fig), var(--_fig));
+	background-size: 38% 8%, 38% 8%, 38% 60%;
+	background-position: 10% 30%, 10% 60%, 90% 50%;
+}
+
+.radio-demo-picture--grid {
+	background-image: linear-gradient(var(--_fig), var(--_fig)), linear-gradient(var(--_fig), var(--_fig)), linear-gradient(var(--_fig), var(--_fig)), linear-gradient(var(--_fig), var(--_fig));
+	background-size: 36% 32%, 36% 32%, 36% 32%, 36% 32%;
+	background-position: 15% 20%, 85% 20%, 15% 80%, 85% 80%;
+}
+
+.radio-demo-picture--sidebar {
+	background-image: linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_ink), var(--_ink)), linear-gradient(var(--_fig), var(--_fig));
+	background-size: 55% 8%, 55% 8%, 22% 70%;
+	background-position: 10% 30%, 10% 60%, 90% 50%;
+}

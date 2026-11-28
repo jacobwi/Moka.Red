@@ -25,6 +25,7 @@ public class MokaCommandPaletteTargetTests : BunitContext
 		_module.Setup<int>("registerShortcut", _ => true).SetResult(1);
 		_module.SetupVoid("updateShortcut", _ => true).SetVoidResult();
 		_module.SetupVoid("focusInput", _ => true).SetVoidResult();
+		_module.SetupVoid("watchHighlight", _ => true).SetVoidResult();
 		_module.SetupVoid("openTab", _ => true).SetVoidResult();
 	}
 
