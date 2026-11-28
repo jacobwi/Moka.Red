@@ -83,7 +83,7 @@ Every style choice `MokaTheme` takes, as the appearance panel's rows in its comp
 
 The previews draw `MokaThemePreview`: a page header, tabs, buttons in every variant, fields, a select, a switch and a checkbox, alerts, stat cards, a table with a selected row, a bar chart, tags and labels, a raised card holding a side menu with the current project, a settings section with its icon tile and status line, a notification list drawn in place (`MokaNotificationBell` with `Inline`), a small dock layout, a dialog and toasts that open inside the preview, and a status bar whose sync item has a tooltip. Between them every style choice shows somewhere. Dialogs, toasts, list rows, popups and tooltips show once they open, and chart print only in print.
 
-Only an app's outermost `MokaThemeProvider` writes the button looks, so the sample's own buttons take the previewed theme's `Buttons` and `DisabledButtons` through `MokaButton.Look` and `DisabledLook`.
+Only an app's outermost `MokaThemeProvider` writes the button looks, so the sample's own buttons take the previewed theme's `Buttons`, `DisabledButtons`, `PressedButtons` and `PressedButtonFill` through `MokaButton.Look`, `DisabledLook`, `PressedLook` and `PressedFill`. Two of them are toggles shown pressed.
 
 ## Showing What Changed
 

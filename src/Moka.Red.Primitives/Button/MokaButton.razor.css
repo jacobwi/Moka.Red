@@ -574,6 +574,99 @@
 	color: var(--moka-color-error-soft);
 }
 
+/* Pressed: a toggle that is on (Pressed). Its tone follows the color. A quiet or text button takes the tone's tint, an
+   outlined one a tone border with it, a soft one a deeper tint inside a tone border, and a filled one sinks. These are
+   what the original design draws; on the new design the rules at the end of the file draw the other looks. The outline
+   is transparent, so it shows only where forced colors draw it, as an inner ring a box-shadow can't give there. */
+.moka-btn--pressed {
+	--_btn-press: var(--moka-color-primary);
+	--_btn-press-bg: var(--moka-color-primary-bg);
+	--_btn-press-ink: var(--moka-color-primary-light);
+	--_btn-press-solid: var(--moka-button-primary-bg);
+	--_btn-press-on: var(--moka-button-primary-color);
+	outline: var(--moka-border-width) solid transparent;
+	outline-offset: calc(var(--moka-border-width) * -3);
+}
+
+.moka-btn--pressed.moka-btn--error {
+	--_btn-press: var(--moka-color-error);
+	--_btn-press-bg: var(--moka-color-error-bg);
+	--_btn-press-ink: var(--moka-color-error-ink);
+	--_btn-press-solid: var(--moka-color-error);
+	--_btn-press-on: var(--moka-color-on-error);
+}
+
+.moka-btn--pressed.moka-btn--warning {
+	--_btn-press: var(--moka-color-warning);
+	--_btn-press-bg: var(--moka-color-warning-bg);
+	--_btn-press-ink: var(--moka-color-warning-ink);
+	--_btn-press-solid: var(--moka-color-warning);
+	--_btn-press-on: var(--moka-color-on-warning);
+}
+
+.moka-btn--pressed.moka-btn--success {
+	--_btn-press: var(--moka-color-success);
+	--_btn-press-bg: var(--moka-color-success-bg);
+	--_btn-press-ink: var(--moka-color-success-ink);
+	--_btn-press-solid: var(--moka-color-success);
+	--_btn-press-on: var(--moka-color-on-success);
+}
+
+.moka-btn--pressed.moka-btn--info {
+	--_btn-press: var(--moka-color-info);
+	--_btn-press-bg: var(--moka-color-info-bg);
+	--_btn-press-ink: var(--moka-color-info-ink);
+	--_btn-press-solid: var(--moka-color-info);
+	--_btn-press-on: var(--moka-color-on-info);
+}
+
+.moka-btn--pressed:focus-visible {
+	--_btn-focus: var(--moka-focus-ring);
+	outline: var(--moka-focus-width) solid transparent;
+}
+
+.moka-btn--quiet.moka-btn--pressed,
+.moka-btn--text.moka-btn--pressed {
+	background-color: var(--_btn-press-bg);
+	color: var(--_btn-press-ink);
+}
+
+.moka-btn--outlined.moka-btn--pressed {
+	background-color: var(--_btn-press-bg);
+	border-color: var(--_btn-press);
+	color: var(--_btn-press-ink);
+}
+
+.moka-btn--soft.moka-btn--pressed {
+	background-color: color-mix(in srgb, var(--_btn-press) 26%, transparent);
+	border-color: var(--_btn-press);
+	color: var(--_btn-press-ink);
+}
+
+.moka-btn--filled.moka-btn--pressed {
+	filter: brightness(0.86);
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 calc(var(--moka-border-width) * 2) calc(var(--moka-border-width) * 4) color-mix(in srgb, var(--moka-color-background) 55%, transparent);
+}
+
+.moka-btn--pressed:is(.moka-btn--quiet, .moka-btn--text, .moka-btn--outlined):is(:hover, :active):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_btn-press) 24%, transparent);
+	color: var(--_btn-press-ink);
+}
+
+.moka-btn--pressed:is(.moka-btn--outlined, .moka-btn--soft):is(:hover, :active):not(.moka-btn--disabled) {
+	border-color: var(--_btn-press);
+}
+
+.moka-btn--soft.moka-btn--pressed:is(:hover, :active):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_btn-press) 34%, transparent);
+	color: var(--_btn-press-ink);
+}
+
+.moka-btn--filled.moka-btn--pressed:is(:hover, :active):not(.moka-btn--disabled) {
+	filter: brightness(0.86);
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 calc(var(--moka-border-width) * 2) calc(var(--moka-border-width) * 4) color-mix(in srgb, var(--moka-color-background) 55%, transparent);
+}
+
 /* Gate look. Only under .moka-gate, so the Matrix rules above stay as they are. */
 
 .moka-gate .moka-btn {
@@ -1148,6 +1241,142 @@
 .moka-gate .moka-btn--text.moka-btn--primary:focus-visible { color: var(--moka-color-primary-light); }
 
 .moka-gate .moka-btn--text.moka-btn--primary:hover:not(.moka-btn--disabled) { color: var(--moka-button-text-hover-color); }
+
+/* Pressed toggles on the new design. Every button carries a size and a color class, so naming them gives the tinted
+   rules the weight of the button looks' rules above, and being later they win: a pressed button keeps its look's shape
+   and takes the pressed colors. The other looks are named twice like the button looks, the theme's through a class only
+   the outermost theme root carries and a button's own through data-moka-pressed-look or data-moka-pressed-fill, and
+   outrank the tinted rules. The disabled looks come after, so a disabled toggle reads as unavailable first. */
+
+.moka-gate .moka-btn.moka-btn--pressed:is(.moka-btn--outlined, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info) {
+	background-color: var(--_btn-press-bg);
+	background-image: none;
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--outlined:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info) {
+	border-color: var(--_btn-press);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--soft:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info) {
+	background-color: color-mix(in srgb, var(--_btn-press) 26%, transparent);
+	background-image: none;
+	border-color: var(--_btn-press);
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--filled:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info) {
+	filter: brightness(0.86);
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 calc(var(--moka-border-width) * 2) calc(var(--moka-border-width) * 4) color-mix(in srgb, var(--moka-color-background) 55%, transparent);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed:is(.moka-btn--outlined, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_btn-press) 24%, transparent);
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--outlined:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled) {
+	border-color: var(--_btn-press);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--soft:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_btn-press) 34%, transparent);
+	border-color: var(--_btn-press);
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate .moka-btn.moka-btn--pressed.moka-btn--filled:is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled) {
+	filter: brightness(0.86);
+	transform: none;
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 calc(var(--moka-border-width) * 2) calc(var(--moka-border-width) * 4) color-mix(in srgb, var(--moka-color-background) 55%, transparent);
+}
+
+/* Solid: an outlined, soft or text toggle draws as a filled button in its tone. Not while disabled, so a disabled look
+   below still neutralizes it. */
+.moka-gate.moka-pressed-button-fill-solid .moka-btn.moka-btn--pressed:not([data-moka-pressed-fill]):is(.moka-btn--outlined, .moka-btn--soft, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-fill="solid"]:is(.moka-btn--outlined, .moka-btn--soft, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):not(.moka-btn--disabled) {
+	background-color: var(--_btn-press-solid);
+	background-image: none;
+	border-color: var(--_btn-press-solid);
+	color: var(--_btn-press-on);
+}
+
+.moka-gate.moka-pressed-button-fill-solid .moka-btn.moka-btn--pressed:not([data-moka-pressed-fill]):is(.moka-btn--outlined, .moka-btn--soft, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-fill="solid"]:is(.moka-btn--outlined, .moka-btn--soft, .moka-btn--text):is(.moka-btn--xs, .moka-btn--sm, .moka-btn--md, .moka-btn--lg):is(.moka-btn--primary, .moka-btn--secondary, .moka-btn--surface, .moka-btn--error, .moka-btn--warning, .moka-btn--success, .moka-btn--info):is(:hover, :active):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--_btn-press-solid) 85%, var(--moka-color-lift));
+	border-color: color-mix(in srgb, var(--_btn-press-solid) 85%, var(--moka-color-lift));
+	color: var(--_btn-press-on);
+}
+
+/* Quiet looks. Tint is the shared rule above. */
+.moka-gate.moka-pressed-buttons-raised .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="raised"].moka-btn--quiet {
+	background-color: var(--moka-color-surface-raised);
+	color: var(--moka-color-on-surface);
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 0 0 var(--moka-border-width) var(--moka-color-outline-strong);
+}
+
+.moka-gate.moka-pressed-buttons-raised .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="raised"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled) {
+	background-color: color-mix(in srgb, var(--moka-color-on-surface) 10%, var(--moka-color-surface-raised));
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate.moka-pressed-buttons-accent-icon .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="accent-icon"].moka-btn--quiet,
+.moka-gate.moka-pressed-buttons-bar .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="bar"].moka-btn--quiet {
+	background-color: transparent;
+}
+
+.moka-gate.moka-pressed-buttons-accent-icon .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="accent-icon"].moka-btn--quiet {
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate.moka-pressed-buttons-accent-icon .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="accent-icon"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate.moka-pressed-buttons-bar .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="bar"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled) {
+	background-color: var(--moka-color-surface-hover);
+}
+
+.moka-gate.moka-pressed-buttons-accent-icon .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="accent-icon"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled) {
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate.moka-pressed-buttons-ring .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="ring"].moka-btn--quiet {
+	background-color: transparent;
+	color: var(--_btn-press-ink);
+	box-shadow: var(--_btn-focus, 0 0 transparent), inset 0 0 0 var(--moka-border-width) var(--_btn-press);
+}
+
+.moka-gate.moka-pressed-buttons-ring .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="ring"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled) {
+	background-color: var(--_btn-press-bg);
+	color: var(--_btn-press-ink);
+}
+
+.moka-gate.moka-pressed-buttons-bar .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="bar"].moka-btn--quiet,
+.moka-gate.moka-pressed-buttons-bar .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled),
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="bar"].moka-btn--quiet:is(:hover, :active, :focus-visible):not(.moka-btn--disabled) {
+	color: var(--moka-color-on-surface);
+}
+
+.moka-gate.moka-pressed-buttons-bar .moka-btn.moka-btn--pressed:not([data-moka-pressed-look]).moka-btn--quiet::after,
+.moka-gate .moka-btn.moka-btn--pressed[data-moka-pressed-look="bar"].moka-btn--quiet::after {
+	content: "";
+	position: absolute;
+	inset: auto 0 calc(var(--moka-border-width) * 3);
+	width: calc(var(--moka-border-width) * 14);
+	height: calc(var(--moka-border-width) * 2);
+	margin-inline: auto;
+	border-radius: var(--moka-border-width);
+	background-color: var(--_btn-press);
+}
 
 /* Disabled looks, named twice like the button looks: the theme's through a class only the outermost theme root carries,
    and a button's own through data-moka-disabled-look. Last in the file and more specific than any look's rule, so a

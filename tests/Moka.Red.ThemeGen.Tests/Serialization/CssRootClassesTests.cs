@@ -25,6 +25,7 @@ public sealed class CssRootClassesTests : BunitContext
 		{ "original light", MokaTheme.Light },
 		{
 			"every class", MokaTheme.Gate.WithPopups(MokaPopupLook.Glass).WithButtons(MokaButtonLook.Pill).WithDisabledButtons(MokaDisabledButtonLook.Outline)
+				.WithPressedButtons(MokaPressedButtonLook.AccentIcon).WithPressedButtonFill(MokaPressedButtonFill.Solid)
 				.WithTooltips(MokaTooltipLook.Terminal).WithTooltipArrows().WithTooltipMotion(MokaTooltipMotion.Grow).WithTooltipSize(MokaTooltipSize.Roomy)
 		}
 	};

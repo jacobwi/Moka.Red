@@ -463,6 +463,50 @@ public enum MokaDisabledButtonLook
 }
 
 /// <summary>
+///     How a Quiet button that is pressed (a toggle that is on) is drawn. Its tone follows the button's <c>Color</c>. See
+///     <see cref="MokaTheme.WithPressedButtons" /> and <c>MokaButton.PressedLook</c>.
+/// </summary>
+public enum MokaPressedButtonLook
+{
+	/// <summary>The tone's tint behind the icon in the tone's light ink, as a selected chip or toggle group item.</summary>
+	Tint,
+
+	/// <summary>A raised neutral fill with a hairline and full ink, like a desktop toolbar, with no accent.</summary>
+	Raised,
+
+	/// <summary>
+	///     Only the icon takes the tone. The lightest look, and color alone, so pair it with an icon that changes too, such as
+	///     a filled and an outline star.
+	/// </summary>
+	AccentIcon,
+
+	/// <summary>A ring in the tone inside the button, and the icon in the tone's light ink.</summary>
+	Ring,
+
+	/// <summary>A short bar in the tone under the icon, like a tab, and the icon in full ink.</summary>
+	Bar
+}
+
+/// <summary>
+///     How a pressed button (a toggle that is on) that isn't Quiet is drawn. A filled button sinks either way. See
+///     <see cref="MokaTheme.WithPressedButtonFill" /> and <c>MokaButton.PressedFill</c>.
+/// </summary>
+public enum MokaPressedButtonFill
+{
+	/// <summary>
+	///     Each variant keeps its kind in the tone: an outlined button takes a tone border and tint, a soft one a stronger
+	///     tint and a ring, a text one a tint.
+	/// </summary>
+	Tinted,
+
+	/// <summary>
+	///     An outlined, soft or text button draws as a filled one in its tone. The strongest signal; two such toggles side by
+	///     side read like two main actions.
+	/// </summary>
+	Solid
+}
+
+/// <summary>
 ///     How tall buttons, toggle groups and segmented controls are beside text fields and selects. See
 ///     <see cref="MokaTheme.WithControlHeights" />.
 /// </summary>

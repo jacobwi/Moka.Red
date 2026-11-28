@@ -22,6 +22,7 @@
 @using Moka.Red.Primitives.Chip
 @using Moka.Red.Primitives.Stat
 @using Moka.Red.Primitives.Tag
+@using Moka.Red.Primitives.Tooltip
 @using Moka.Red.Primitives.Typography
 
 <MokaThemeProvider Theme="@PreviewTheme" Nonce="@Nonce">
@@ -46,6 +47,14 @@
 				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Color="MokaColor.Error" Variant="MokaVariant.Outlined">@Text.Delete</MokaButton>
 				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Disabled>@Text.Disabled</MokaButton>
 				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" Loading LoadingText="@Text.Saving">@Text.Saving</MokaButton>
+				<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" PressedLook="PressedButtonLook"
+				            PressedFill="PressedButtonFill" Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Toggle.Pin"
+				            @bind-Pressed="_pinned">@Text.Pinned</MokaButton>
+				<MokaTooltip Text="@Text.ShowGrid">
+					<MokaButton Look="ButtonLook" DisabledLook="DisabledButtonLook" PressedLook="PressedButtonLook"
+					            PressedFill="PressedButtonFill" Quiet StartIcon="MokaIcons.Navigation.Grid" aria-label="@Text.ShowGrid"
+					            @bind-Pressed="_grid"/>
+				</MokaTooltip>
 			</div>
 		</div>
 

@@ -122,12 +122,55 @@ public partial class MokaButton
 	[Parameter]
 	public MokaDisabledButtonLook? DisabledLook { get; set; }
 
+	/// <summary>
+	///     Makes the button a toggle: <c>true</c> while it is on, <c>false</c> while it is off. It writes
+	///     <c>aria-pressed</c> and draws the pressed look while on, in the tone of its <c>Color</c>, on every variant and on
+	///     both designs. Null, the default, is a plain button that writes neither. Keep one name for the toggle and let the
+	///     pressed state say whether it is on. A link (<see cref="Href" />) is never a toggle, so it ignores this.
+	/// </summary>
+	[Parameter]
+	public bool? Pressed { get; set; }
+
+	/// <summary>
+	///     Raised on a click with the opposite of <see cref="Pressed" />, before <see cref="OnClick" />, so
+	///     <c>@bind-Pressed</c> flips the toggle. The button never keeps the state: it shows the <see cref="Pressed" /> its
+	///     parent passes, so a parent that doesn't take the change keeps the toggle as it was.
+	/// </summary>
+	[Parameter]
+	public EventCallback<bool> PressedChanged { get; set; }
+
+	/// <summary>
+	///     How this button is drawn while pressed when it is <see cref="Quiet" />, ahead of the theme's
+	///     <see cref="MokaTheme.PressedButtons" />. Null, the default, follows the theme. Written as
+	///     <c>data-moka-pressed-look</c>, so it applies on the new design only; the original design draws
+	///     <see cref="MokaPressedButtonLook.Tint" />.
+	/// </summary>
+	[Parameter]
+	public MokaPressedButtonLook? PressedLook { get; set; }
+
+	/// <summary>
+	///     How this button is drawn while pressed when it isn't <see cref="Quiet" />, ahead of the theme's
+	///     <see cref="MokaTheme.PressedButtonFill" />. Null, the default, follows the theme. Written as
+	///     <c>data-moka-pressed-fill</c>, so it applies on the new design only; the original design draws
+	///     <see cref="MokaPressedButtonFill.Tinted" />.
+	/// </summary>
+	[Parameter]
+	public MokaPressedButtonFill? PressedFill { get; set; }
+
 	/// <inheritdoc />
 	protected override string RootClass => "moka-btn";
 
 	private string? LookName => Look is { } look ? MokaEnumHelpers.ToCssClass(look) : null;
 
 	private string? DisabledLookName => DisabledLook is { } look ? MokaEnumHelpers.ToCssClass(look) : null;
+
+	private string? PressedLookName => PressedLook is { } look ? MokaEnumHelpers.ToCssClass(look) : null;
+
+	private string? PressedFillName => PressedFill is { } fill ? MokaEnumHelpers.ToCssClass(fill) : null;
+
+	private bool IsToggle => Pressed is not null && !IsLink;
+
+	private string? PressedState => IsToggle ? (Pressed == true ? "true" : "false") : null;
 
 	private bool IsIconOnly => ChildContent is null && (StartIcon is not null || EndIcon is not null);
 	private string? LinkHref => UrlValues.SafeHref(Href);
@@ -169,6 +212,7 @@ public partial class MokaButton
 		.AddClass("moka-btn--loading", Loading)
 		.AddClass("moka-btn--loading-over", SpinnerAt == SpinnerPlace.Over)
 		.AddClass("moka-btn--disabled", IsDisabled)
+		.AddClass("moka-btn--pressed", IsToggle && Pressed == true)
 		.AddClass(Class)
 		.Build();
 
@@ -204,9 +248,16 @@ public partial class MokaButton
 
 	private async Task HandleClick(MouseEventArgs args)
 	{
-		if (!IsDisabled)
+		if (IsDisabled)
 		{
-			await OnClick.InvokeAsync(args);
+			return;
 		}
+
+		if (IsToggle)
+		{
+			await PressedChanged.InvokeAsync(Pressed != true);
+		}
+
+		await OnClick.InvokeAsync(args);
 	}
 }

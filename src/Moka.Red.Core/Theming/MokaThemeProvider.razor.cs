@@ -316,6 +316,9 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 			.AddClass(ButtonsClass(theme), gate && IsOutermost)
 			.AddClass(DisabledButtonsClass(theme),
 				gate && IsOutermost && theme.DisabledButtons != MokaDisabledButtonLook.Faded)
+			.AddClass(PressedButtonsClass(theme), gate && IsOutermost && theme.PressedButtons != MokaPressedButtonLook.Tint)
+			.AddClass(PressedButtonFillClass(theme),
+				gate && IsOutermost && theme.PressedButtonFill != MokaPressedButtonFill.Tinted)
 			.AddClass("moka-control-heights-matched", gate && theme.ControlHeights == MokaControlHeights.Matched)
 			.AddClass(TooltipsClass(theme), gate && theme.Tooltips != MokaTooltipLook.Standard)
 			.AddClass("moka-tooltips-arrow", gate && theme.TooltipArrows)
@@ -336,6 +339,13 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	// Left off at Faded, so a root looks as it always has. Outermost only, for the button looks' reason.
 	private static string DisabledButtonsClass(MokaTheme theme) =>
 		$"moka-disabled-buttons-{MokaEnumHelpers.ToCssClass(theme.DisabledButtons)}";
+
+	// Pressed looks are rules per variant and color too, so the same: left off at their defaults, outermost only.
+	private static string PressedButtonsClass(MokaTheme theme) =>
+		$"moka-pressed-buttons-{MokaEnumHelpers.ToCssClass(theme.PressedButtons)}";
+
+	private static string PressedButtonFillClass(MokaTheme theme) =>
+		$"moka-pressed-button-fill-{MokaEnumHelpers.ToCssClass(theme.PressedButtonFill)}";
 
 	// The matched control heights class also only sets variables, so every provider writes it and the nearest wins.
 

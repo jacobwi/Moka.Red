@@ -133,6 +133,18 @@ public sealed record MokaTheme
 	public MokaDisabledButtonLook DisabledButtons { get; init; } = MokaDisabledButtonLook.Faded;
 
 	/// <summary>
+	///     How pressed Quiet buttons are drawn, unless a button sets a pressed look of its own. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaPressedButtonLook PressedButtons { get; init; } = MokaPressedButtonLook.Tint;
+
+	/// <summary>
+	///     How pressed buttons that aren't Quiet are drawn, unless a button sets a pressed fill of its own. Only the
+	///     <see cref="MokaLook.Gate" /> look reads it.
+	/// </summary>
+	public MokaPressedButtonFill PressedButtonFill { get; init; } = MokaPressedButtonFill.Tinted;
+
+	/// <summary>
 	///     Whether buttons, toggle groups and segmented controls take a field's height at each size. Only the
 	///     <see cref="MokaLook.Gate" /> look reads it.
 	/// </summary>
@@ -694,6 +706,26 @@ public sealed record MokaTheme
 	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
 	public MokaTheme WithDisabledButtons(MokaDisabledButtonLook look) =>
 		Look == MokaLook.Gate ? this with { DisabledButtons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose pressed Quiet buttons (toggles that are on, <c>MokaButton.Pressed</c>) are drawn this
+	///     way, unless a button sets its own. Only the outermost <see cref="MokaThemeProvider" /> sets it for the page. No
+	///     effect on the <see cref="MokaLook.Matrix" /> look, which draws <see cref="MokaPressedButtonLook.Tint" />.
+	/// </summary>
+	/// <param name="look">How pressed Quiet buttons are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithPressedButtons(MokaPressedButtonLook look) =>
+		Look == MokaLook.Gate ? this with { PressedButtons = look } : this;
+
+	/// <summary>
+	///     Creates a new theme whose pressed buttons that aren't Quiet are drawn this way, unless a button sets its own. Only
+	///     the outermost <see cref="MokaThemeProvider" /> sets it for the page. No effect on the <see cref="MokaLook.Matrix" />
+	///     look, which draws <see cref="MokaPressedButtonFill.Tinted" />.
+	/// </summary>
+	/// <param name="fill">How pressed buttons that aren't Quiet are drawn.</param>
+	/// <returns>The new theme, or this one on the <see cref="MokaLook.Matrix" /> look.</returns>
+	public MokaTheme WithPressedButtonFill(MokaPressedButtonFill fill) =>
+		Look == MokaLook.Gate ? this with { PressedButtonFill = fill } : this;
 
 	/// <summary>
 	///     Creates a new theme whose buttons, toggle groups and segmented controls are as tall as a text field or select of

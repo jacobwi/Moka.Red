@@ -174,6 +174,14 @@ internal static class ThemeReflection
 			{
 				value = MokaDisabledButtonLook.Outline;
 			}
+			else if (type == typeof(MokaPressedButtonLook))
+			{
+				value = MokaPressedButtonLook.Ring;
+			}
+			else if (type == typeof(MokaPressedButtonFill))
+			{
+				value = MokaPressedButtonFill.Solid;
+			}
 			else if (type == typeof(MokaControlHeights))
 			{
 				value = MokaControlHeights.Matched;

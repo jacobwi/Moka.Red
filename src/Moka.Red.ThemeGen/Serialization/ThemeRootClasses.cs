@@ -30,6 +30,16 @@ internal static class ThemeRootClasses
 			yield return $"moka-disabled-buttons-{MokaEnumHelpers.ToCssClass(theme.DisabledButtons)}";
 		}
 
+		if (theme.PressedButtons != MokaPressedButtonLook.Tint)
+		{
+			yield return $"moka-pressed-buttons-{MokaEnumHelpers.ToCssClass(theme.PressedButtons)}";
+		}
+
+		if (theme.PressedButtonFill != MokaPressedButtonFill.Tinted)
+		{
+			yield return $"moka-pressed-button-fill-{MokaEnumHelpers.ToCssClass(theme.PressedButtonFill)}";
+		}
+
 		if (theme.ControlHeights == MokaControlHeights.Matched)
 		{
 			yield return "moka-control-heights-matched";

@@ -121,6 +121,20 @@ public sealed class MokaThemePreviewTests : BunitContext
 		Assert.All(buttons, button => Assert.Equal(MokaDisabledButtonLook.Outline, button.Instance.DisabledLook));
 	}
 
+	// The toggles show the previewed theme's pressed choices, which the outermost provider would otherwise decide.
+	[Fact]
+	public void TheSamplesToggles_ArePressed_InThePreviewedPressedLooks()
+	{
+		MokaTheme theme = MokaTheme.Red.WithPressedButtons(MokaPressedButtonLook.Ring).WithPressedButtonFill(MokaPressedButtonFill.Solid);
+		IRenderedComponent<MokaThemePreview> cut = Render<MokaThemePreview>(p => p.Add(x => x.PreviewTheme, theme));
+
+		List<IRenderedComponent<MokaButton>> toggles = [.. cut.FindComponents<MokaButton>().Where(button => button.Instance.Pressed is not null)];
+		Assert.Equal(2, toggles.Count);
+		Assert.All(toggles, toggle => Assert.Equal("true", toggle.Find("button").GetAttribute("aria-pressed")));
+		Assert.All(toggles, toggle => Assert.Equal(MokaPressedButtonLook.Ring, toggle.Instance.PressedLook));
+		Assert.All(toggles, toggle => Assert.Equal(MokaPressedButtonFill.Solid, toggle.Instance.PressedFill));
+	}
+
 	[Fact]
 	public void TheDialog_OpensInsideThePreviewsStage()
 	{

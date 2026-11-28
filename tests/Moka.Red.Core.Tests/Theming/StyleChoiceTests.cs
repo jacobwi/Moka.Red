@@ -185,6 +185,8 @@ public class StyleChoiceTests
 			Assert.Same(original, original.WithDialogs(MokaDialogLook.Bands));
 			Assert.Same(original, original.WithButtons(MokaButtonLook.Pill));
 			Assert.Same(original, original.WithDisabledButtons(MokaDisabledButtonLook.Muted));
+			Assert.Same(original, original.WithPressedButtons(MokaPressedButtonLook.Ring));
+			Assert.Same(original, original.WithPressedButtonFill(MokaPressedButtonFill.Solid));
 			Assert.Same(original, original.WithControlHeights(MokaControlHeights.Matched));
 			Assert.Same(original, original.WithComponentStyle(MokaComponentStyle.Terminal));
 			Assert.Same(original, original.WithSurfaces(MokaSurfaces.Graphite));
@@ -225,6 +227,10 @@ public class StyleChoiceTests
 		Assert.Equal(MokaDialogLook.Standard, theme.Dialogs);
 		Assert.Equal(MokaButtonLook.Standard, theme.Buttons);
 		Assert.Equal(MokaDisabledButtonLook.Faded, theme.DisabledButtons);
+		Assert.Equal(MokaPressedButtonLook.Tint, theme.PressedButtons);
+		Assert.Equal(MokaPressedButtonFill.Tinted, theme.PressedButtonFill);
+		Assert.Equal(MokaPressedButtonLook.Bar, theme.WithPressedButtons(MokaPressedButtonLook.Bar).PressedButtons);
+		Assert.Equal(MokaPressedButtonFill.Solid, theme.WithPressedButtonFill(MokaPressedButtonFill.Solid).PressedButtonFill);
 		Assert.Equal(MokaDisabledButtonLook.Muted, theme.WithDisabledButtons(MokaDisabledButtonLook.Muted).DisabledButtons);
 		Assert.Equal(MokaDisabledButtonLook.Muted, theme.WithDisabledButtons(MokaDisabledButtonLook.Muted)
 			.WithComponentStyle(MokaComponentStyle.Terminal).DisabledButtons);

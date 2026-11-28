@@ -159,6 +159,39 @@
 	</MokaFlexbox>
 </DemoSection>
 
+<DemoSection Id="toggles" Title="Toggle buttons">
+	<p class="page-desc">Pressed makes a button a toggle: aria-pressed, and the pressed look while it's on. Click any of them. A pressed Quiet button takes one of five looks and any other variant one of two fills; Tint and Tinted are the defaults and all the original design draws. Pick them for the app with MokaTheme.WithPressedButtons and WithPressedButtonFill, or for one button with PressedLook and PressedFill.</p>
+	@foreach (MokaPressedButtonLook look in Enum.GetValues<MokaPressedButtonLook>())
+	{
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<span class="page-desc" style="min-width: 6rem;">@look</span>
+			@foreach ((string name, MokaIconDefinition icon, MokaColor color) in QuietToggles)
+			{
+				string key = $"{look}-{name}";
+				<MokaTooltip Text="@name">
+					<MokaButton Quiet StartIcon="icon" Color="color" aria-label="@name" PressedLook="look"
+					            Pressed="_pressed.Contains(key)" PressedChanged="on => SetPressed(key, on)"/>
+				</MokaTooltip>
+			}
+		</MokaFlexbox>
+	}
+	@foreach (MokaPressedButtonFill fill in Enum.GetValues<MokaPressedButtonFill>())
+	{
+		<MokaFlexbox Direction="MokaDirection.Row" Gap="MokaSpacingScale.Sm" Align="MokaAlign.Center" Wrap>
+			<span class="page-desc" style="min-width: 6rem;">@fill</span>
+			@foreach (MokaVariant variant in ToggleVariants)
+			{
+				string key = $"{fill}-{variant}";
+				<MokaButton Variant="variant" PressedFill="fill" StartIcon="MokaIcons.Toggle.Pin"
+				            Pressed="_pressed.Contains(key)" PressedChanged="on => SetPressed(key, on)">@variant</MokaButton>
+			}
+			@{ string alerts = $"{fill}-error"; }
+			<MokaButton Variant="MokaVariant.Outlined" Color="MokaColor.Error" PressedFill="fill" StartIcon="MokaIcons.Status.Warning"
+			            Pressed="_pressed.Contains(alerts)" PressedChanged="on => SetPressed(alerts, on)">Alerts</MokaButton>
+		</MokaFlexbox>
+	}
+</DemoSection>
+
 <DemoSection Id="full-width" Title="Full width">
 	<div style="max-width: 400px;">
 		<MokaButton FullWidth="true" StartIcon="MokaIcons.Action.Download">Download Report</MokaButton>
@@ -198,6 +231,19 @@
 @code {
 	private static readonly TimeSpan SaveTime = TimeSpan.FromSeconds(2);
 
+	private static readonly (string Name, MokaIconDefinition Icon, MokaColor Color)[] QuietToggles =
+	[
+		("Bold", MokaIcons.Content.Bold, MokaColor.Primary),
+		("Show grid", MokaIcons.Navigation.Grid, MokaColor.Primary),
+		("Pin", MokaIcons.Toggle.Pin, MokaColor.Primary),
+		("Star", MokaIcons.Toggle.Star, MokaColor.Warning)
+	];
+
+	private static readonly MokaVariant[] ToggleVariants = [MokaVariant.Filled, MokaVariant.Outlined, MokaVariant.Soft, MokaVariant.Text];
+
+	private readonly HashSet<string> _pressed = [.. Enum.GetValues<MokaPressedButtonLook>().SelectMany(look => new[] { $"{look}-Bold", $"{look}-Pin", $"{look}-Star" }),
+		.. Enum.GetValues<MokaPressedButtonFill>().SelectMany(fill => ToggleVariants.Select(variant => $"{fill}-{variant}").Append($"{fill}-error"))];
+
 	private readonly HashSet<int> _busyButtons = [];
 
 	private int _busyRuns;
@@ -234,6 +280,18 @@
 		_plainFormSent++;
 		await Task.Delay(SaveTime);
 		_plainFormSending = false;
+	}
+
+	private void SetPressed(string key, bool on)
+	{
+		if (on)
+		{
+			_pressed.Add(key);
+		}
+		else
+		{
+			_pressed.Remove(key);
+		}
 	}
 
 	private sealed class BusyFormModel

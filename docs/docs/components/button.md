@@ -29,6 +29,10 @@ order: 1
 | `FullWidth` | `bool` | `false` | Stretches the button to fill its container |
 | `Quiet` | `bool` | `false` | The quiet look for an icon-only button. `Variant` is ignored and `Size` changes only the icon |
 | `Look` | `MokaButtonLook?` | `null` | How this button is drawn, ahead of the theme's `Buttons`. `null` follows the theme. New design only, see [Looks](#looks) |
+| `Pressed` | `bool?` | `null` | Makes it a toggle: `true` while on, `false` while off. Writes `aria-pressed` and draws the pressed look while on. `null` is a plain button. A link ignores it. See [Toggle buttons](#toggle-buttons) |
+| `PressedChanged` | `EventCallback<bool>` | - | Raised on a click with the opposite of `Pressed`, before `OnClick`, so `@bind-Pressed` flips the toggle |
+| `PressedLook` | `MokaPressedButtonLook?` | `null` | How a pressed `Quiet` button is drawn, ahead of the theme's `PressedButtons`. New design only |
+| `PressedFill` | `MokaPressedButtonFill?` | `null` | How a pressed button that isn't `Quiet` is drawn, ahead of the theme's `PressedButtonFill`. New design only |
 | `Href` | `string?` | - | Renders as `<a>` when set, a link that looks like a button. A `javascript:`, `vbscript:` or `data:` URL is not rendered: the button stays a `<button>`. See [Link Button](#link-button) |
 | `Target` | `string?` | - | Where `Href` opens: `_blank` for a new tab, or a window's name. Such a link gets `rel="noopener noreferrer"` and `NewTabText` for screen readers. `_self`, `_parent` and `_top` render as given |
 | `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the label of a link whose `Target` opens another tab, after a comma |
@@ -252,6 +256,77 @@ Or on one button with `DisabledLook`, which wins over the theme:
 
 Only the outermost `MokaThemeProvider` sets the theme's look, as with `WithButtons`. `MokaTheme.Dark` and `MokaTheme.Light`
 ignore both: `WithDisabledButtons` does nothing on them.
+
+## Toggle buttons
+
+`Pressed` makes a button a toggle that is on or off, such as Bold, Pin or a panel that shows and hides. It writes
+`aria-pressed` as `"true"` or `"false"` and draws the pressed look while it's on, in the tone of the button's `Color`, on
+every variant and on both designs. Bind it with `@bind-Pressed`, or pass `Pressed` and handle `OnClick` yourself:
+
+```razor
+<div style="display:flex;gap:8px;align-items:center">
+    <MokaTooltip Text="Bold">
+        <MokaButton Quiet StartIcon="MokaIcons.Content.Bold" aria-label="Bold" @bind-Pressed="_bold" />
+    </MokaTooltip>
+    <MokaTooltip Text="Show grid">
+        <MokaButton Quiet StartIcon="MokaIcons.Navigation.Grid" aria-label="Show grid" @bind-Pressed="_grid" />
+    </MokaTooltip>
+    <MokaButton Variant="MokaVariant.Outlined" StartIcon="MokaIcons.Toggle.Pin" @bind-Pressed="_pinned">Pinned</MokaButton>
+</div>
+
+@code {
+    private bool _bold = true;
+    private bool _grid;
+    private bool _pinned = true;
+}
+```
+
+Keep one name for a toggle and let the pressed state say whether it's on: "Show in resume" with `aria-pressed`, not a
+name that flips between "Show" and "Hide", which screen readers would hear as the state twice. The button keeps no state
+of its own. It shows the `Pressed` you pass, so a parent that doesn't take the change keeps the toggle as it was.
+
+Without `Pressed` nothing changes, and an `aria-pressed` you pass through the button's attributes is written as given
+with no look, so an app that draws its own pressed state keeps it.
+
+### Pressed looks
+
+On the new design a pressed `Quiet` button can take one of five looks, and the other variants one of two fills. The first
+of each is the default, and the only one `MokaTheme.Dark` and `MokaTheme.Light` draw.
+
+| `MokaPressedButtonLook` | A pressed Quiet button |
+|------|---------------|
+| `Tint` | The tone's tint behind the icon in its light ink, as a selected chip or toggle group item. The default |
+| `Raised` | A raised neutral fill with a hairline and full ink, like a desktop toolbar, with no accent |
+| `AccentIcon` | Only the icon takes the tone. Color alone, so pair it with an icon that changes too, such as a filled and an outline star |
+| `Ring` | A ring in the tone inside the button, and the icon in the tone's light ink |
+| `Bar` | A short bar in the tone under the icon, like a tab |
+
+| `MokaPressedButtonFill` | A pressed Filled, Outlined, Soft or Text button |
+|------|---------------|
+| `Tinted` | Each variant keeps its kind in the tone: an outlined button takes a tone border and tint, a soft one a deeper tint inside a tone border, a text one a tint. The default |
+| `Solid` | An outlined, soft or text button draws as a filled one in its tone. The strongest signal: two of them side by side read like two main actions |
+
+A filled button sinks when pressed, with either fill. A pressed button keeps its `Look`'s shape, and a disabled one is drawn
+by its disabled look. Under forced colors, where fills and shadows are dropped, a pressed button keeps a thin ring in the
+system color.
+
+Set them for the whole app on the theme:
+
+```razor
+<MokaThemeProvider Theme="MokaTheme.Red.WithPressedButtons(MokaPressedButtonLook.Raised).WithPressedButtonFill(MokaPressedButtonFill.Solid)">
+    @Body
+</MokaThemeProvider>
+```
+
+Or on one button with `PressedLook` or `PressedFill`, which win over the theme:
+
+```razor
+<MokaButton Quiet StartIcon="MokaIcons.Toggle.Star" aria-label="Star" Color="MokaColor.Warning"
+            PressedLook="MokaPressedButtonLook.AccentIcon" @bind-Pressed="_starred" />
+```
+
+Only the outermost `MokaThemeProvider` sets the theme's choices, as with `WithButtons`. `WithPressedButtons` and
+`WithPressedButtonFill` do nothing on `MokaTheme.Dark` and `MokaTheme.Light`.
 
 ## Full Width
 

@@ -42,7 +42,9 @@ public partial class MokaThemePreview
 	private MokaThemePreviewText? _lastText;
 	private string? _name;
 	private List<MokaNotificationBellItem> _notices = [];
+	private bool _grid = true;
 	private bool _notify = true;
+	private bool _pinned = true;
 	private string? _owner;
 	private string? _project;
 	private List<TaskRow> _rows = [];
@@ -136,6 +138,10 @@ public partial class MokaThemePreview
 	private MokaButtonLook ButtonLook => PreviewTheme.Buttons;
 
 	private MokaDisabledButtonLook DisabledButtonLook => PreviewTheme.DisabledButtons;
+
+	private MokaPressedButtonLook PressedButtonLook => PreviewTheme.PressedButtons;
+
+	private MokaPressedButtonFill PressedButtonFill => PreviewTheme.PressedButtonFill;
 
 	private int UnreadNotices => _notices.Count(notice => !notice.Read);
 

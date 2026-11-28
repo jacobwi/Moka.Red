@@ -69,6 +69,12 @@ public sealed record MokaThemePreviewText
 	/// <summary>The busy button.</summary>
 	public string Saving { get; init; } = "Saving";
 
+	/// <summary>The toggle button, shown pressed.</summary>
+	public string Pinned { get; init; } = "Pinned";
+
+	/// <summary>The name and tooltip of the icon-only toggle, shown pressed.</summary>
+	public string ShowGrid { get; init; } = "Show grid";
+
 	/// <summary>The form card's title.</summary>
 	public string FormHeading { get; init; } = "Task details";
 

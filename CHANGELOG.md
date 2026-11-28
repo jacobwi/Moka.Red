@@ -5,6 +5,21 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Toggle buttons. `MokaButton.Pressed` (`bool?`) makes a button a toggle: it writes `aria-pressed` and draws the pressed
+  look while on, in the tone of its `Color`, on every variant and on both designs. `PressedChanged` makes
+  `@bind-Pressed` work; the button keeps no state of its own, so a parent that doesn't take the change keeps the toggle
+  as it was. Null, the default, writes nothing, and an `aria-pressed` passed through the button's attributes is written
+  as given with no look. A link ignores it. Under forced colors a pressed button keeps a thin ring in the system color.
+- Pressed looks, new design only: `MokaPressedButtonLook` for `Quiet` buttons (`Tint`, the default, `Raised`,
+  `AccentIcon`, `Ring`, `Bar`) and `MokaPressedButtonFill` for the other variants (`Tinted`, the default, `Solid`). Set
+  them for the app with `MokaTheme.WithPressedButtons` and `WithPressedButtonFill` (classes on the outermost theme root,
+  as with `WithDisabledButtons`), or on one button with `PressedLook` and `PressedFill`. A pressed button keeps its
+  `Look`'s shape, and a disabled one is drawn by its disabled look. The theme preview shows two toggles in the
+  previewed theme's choices, and the theme serializer carries both.
+
 ## [0.11.5] - 2026-11-28
 
 ### Added
