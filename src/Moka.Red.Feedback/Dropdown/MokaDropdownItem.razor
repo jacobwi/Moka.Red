@@ -9,7 +9,11 @@ else
 {
 	RenderFragment content =
 		@<text>
-			@if (Icon is not null)
+			@if (IsCheckable && (Checked == true || Icon is null))
+			{
+				<MokaIcon Icon="MokaIcons.Status.Check" Size="MokaSize.Xs" Class="@CheckCssClass"/>
+			}
+			else if (Icon is not null)
 			{
 				<MokaIcon Icon="Icon.Value" Size="MokaSize.Xs" Class="moka-dropdown-item-icon"/>
 			}
@@ -51,7 +55,9 @@ else
 	}
 	else
 	{
-		<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle" role="menuitem"
+		<div @attributes="AdditionalAttributes" class="@CssClass" style="@CssStyle"
+		     role="@(IsCheckable ? "menuitemcheckbox" : "menuitem")"
+		     aria-checked="@CheckedState"
 		     tabindex="@(Disabled ? null : "-1")"
 		     aria-disabled="@(Disabled ? "true" : null)"
 		     @onclick="HandleClick"

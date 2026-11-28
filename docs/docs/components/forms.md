@@ -46,6 +46,8 @@ A placeholder too long for its field ends in an ellipsis rather than mid-word, a
 
 Passing `Value` with `ValueChanged` makes the app the owner of the value. The input shows a change while your handler runs, whether it finishes at once or awaits. Once it has finished, the input shows the `Value` you pass: leave your value as it was to refuse the change, and the input goes back; set another value, such as a clamped one, and that one shows. Only the latest change counts, so a slow answer to an earlier change doesn't undo a later one.
 
+So a text field whose handler refuses text that isn't finished yet, such as a year with two of its digits typed, can never be filled in: every key is undone. Keep the typed text in a field of your own, pass that as `Value`, and act on it once it parses.
+
 ```razor
 <MokaSwitch Label="Start with the system" Value="_startup" ValueChanged="SetStartupAsync" />
 
@@ -398,16 +400,22 @@ Before 0.6.0 `TValue` had to be a non-nullable `INumber<TValue>`. The field now 
 
 ```blazor-preview
 @code { string _bio = ""; }
-<MokaTextArea @bind-Value="_bio" Label="Bio" Rows="4" AutoResize Placeholder="Tell us about yourself…" />
+<MokaTextArea @bind-Value="_bio" Label="Bio" Rows="2" AutoResize Placeholder="Tell us about yourself…" />
+```
+
+`AutoResize` grows and shrinks the box with its text, from `Rows` lines up to `MaxRows`, past which the text scrolls. It uses the CSS `field-sizing` property, in Chrome and Edge 123, Safari 26.2 and Firefox 152 and later. An older browser shows `Rows` lines that scroll, with the resize handle, so nothing is cut off.
+
+```razor
+<MokaTextArea @bind-Value="_notes" Label="Notes" Rows="1" AutoResize MaxRows="8" />
 ```
 
 ### MokaTextArea Parameters (extras)
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `Rows` | `int` | `3` | Initial visible rows |
-| `AutoResize` | `bool` | `false` | Grows with content |
-| `MaxRows` | `int?` | - | Limits auto-resize height |
+| `Rows` | `int` | `3` | Visible lines, and the fewest with `AutoResize` |
+| `AutoResize` | `bool` | `false` | Grows and shrinks with its text and drops the resize handle |
+| `MaxRows` | `int?` | - | With `AutoResize`, the most lines before the text scrolls. Never fewer than `Rows` |
 | `Optional` | `bool` | `false` | Shows a quiet "Optional" beside the label. `Required` wins |
 | `Mono` | `bool` | `false` | Writes the text in the monospace font and turns spell check off, for lists of names or addresses |
 | `EmojiButton` | `bool` | `false` | A smile in the bottom corner opens the emoji panel and puts the pick in at the caret, then hands focus back. See [Emoji picker](/components/emoji-picker) |

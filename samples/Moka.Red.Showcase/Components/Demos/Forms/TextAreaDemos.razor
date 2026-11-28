@@ -6,7 +6,16 @@
 	</EditForm>
 </DemoSection>
 
+<DemoSection Id="auto-resize" Title="Growing with its text" Description="AutoResize grows and shrinks the box with its text, from Rows lines up to MaxRows, past which it scrolls. It uses the CSS field-sizing property; an older browser shows Rows lines that scroll.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-lg); max-width: 480px;">
+		<MokaTextArea @bind-Value="_note" Label="One line to start" Rows="1" AutoResize="true"/>
+		<MokaTextArea @bind-Value="_summary" Label="At most six lines" Rows="2" MaxRows="6" AutoResize="true"/>
+	</div>
+</DemoSection>
+
 @code {
+	private string _note = "";
+	private string _summary = "Led the move of the reporting service to a queue, which cut nightly run times from four hours to forty minutes. Wrote the migration guide the other teams followed, and ran the on-call rotation for the first month.";
 	private readonly FormModel _model = new();
 
 	private sealed class FormModel

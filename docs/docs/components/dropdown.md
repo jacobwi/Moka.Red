@@ -43,6 +43,7 @@ The dropdown's own root element takes no part in the layout (`display: contents`
 | `Target` | `string?` | -- | Where the link opens, such as `"_blank"`. Only used with `Href`. One that opens another tab gets `rel="noopener noreferrer"`, an external-link mark and `NewTabText` |
 | `NewTabText` | `string` | `"opens in a new tab"` | What screen readers hear after the name of a link whose `Target` opens another tab, after a comma |
 | `Danger` | `bool` | `false` | Draws the item in the error color, on a red tint while it's hovered or focused. See [Danger items](#danger-items) |
+| `Checked` | `bool?` | -- | Makes the item an option that is on or off: `role="menuitemcheckbox"` with `aria-checked`, and a check in the icon's place while it's on. Null is a plain item. A link ignores it. See [Checked items](#checked-items) |
 | `Divider` | `bool` | `false` | Renders as a horizontal divider instead of an item |
 | `Class` | `string?` | -- | Additional CSS classes |
 
@@ -125,6 +126,31 @@ A `Target` that opens another tab (`_blank` or a window's name) gives the link `
 
 It's the look only: ask before anything that can't be undone. Without `Danger` an item looks as it always has.
 
+## Checked items
+
+`Checked` turns an item into an option that is on or off, such as "Show grid". While it's on, a check in the accent color takes the icon's place. While it's off, the item shows its `Icon`, or an empty space as wide as the check, so the names line up. The app keeps the state, so flip it in `OnClick`. The context menu (`MokaContextMenuItem.Checked`) and the account card's menu (`MokaAccountItem.Checked`) draw a check too.
+
+```razor
+<MokaDropdown>
+    <ChildContent>
+        <MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">View</MokaButton>
+    </ChildContent>
+    <Items>
+        <MokaDropdownItem Text="Show grid" Checked="_grid" OnClick="() => _grid = !_grid" />
+        <MokaDropdownItem Text="Show rulers" Checked="_rulers" OnClick="() => _rulers = !_rulers" />
+        <MokaDropdownItem Divider />
+        <MokaDropdownItem Text="Reset view" Icon="MokaIcons.Action.Refresh" />
+    </Items>
+</MokaDropdown>
+
+@code {
+    private bool _grid = true;
+    private bool _rulers;
+}
+```
+
+Choosing a checked item closes the menu like any other, unless the dropdown's `CloseOnItemClick` is off. An item with `Href` is a link, never a checkbox, so it ignores `Checked`. Without `Checked` an item looks and reads as it always has.
+
 ## Match Width
 
 ```blazor-preview
@@ -164,6 +190,7 @@ Escape in an open dropdown closes only the dropdown, not a `MokaDialog` around i
 - The menu button gets `aria-haspopup="menu"`, `aria-expanded` as `"true"` or `"false"`, `aria-controls` while the menu is open, and an `id` when it has none.
 - The menu has `role="menu"` and is labelled by the menu button. Items have `role="menuitem"`, a disabled item has `aria-disabled="true"`, and a divider has `role="separator"`.
 - An item with `Href` is an `a` element with `role="menuitem"`, so screen readers announce it as a menu item and the browser still treats it as a link.
+- An item with `Checked` has `role="menuitemcheckbox"` and `aria-checked` as `"true"` or `"false"`, so screen readers say whether it's on. The check is hidden from them, since `aria-checked` says it.
 - `Danger` is color only. Name the action in its text ("Delete"), since the color alone doesn't say it.
 
 A one-way `Open` sets the starting state and applies again only when its value changes, so a menu the user opened stays open when the parent re-renders. Use `@bind-Open` to track it.

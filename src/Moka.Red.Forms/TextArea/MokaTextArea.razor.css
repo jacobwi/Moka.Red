@@ -56,10 +56,30 @@
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--moka-color-error) 20%, transparent);
 }
 
-/* Auto-resize */
+/* Auto-resize. The box follows its text through field-sizing, between Rows and MaxRows lines. The limits count lines
+   only, so they hold the content box, and the box keeps the full width as a stretched column item in place of the
+   width: 100% that border-box needs. Without MaxRows its variable is unset, so max-height is none. A browser without
+   field-sizing keeps a box of Rows lines that scrolls and resizes, so no text is cut off. */
+.moka-textarea--auto-resize {
+	flex-direction: column;
+}
+
 .moka-textarea--auto-resize .moka-textarea-input {
-	resize: none;
-	overflow: hidden;
+	box-sizing: content-box;
+	width: auto;
+	min-height: calc(var(--_textarea-rows) * 1lh);
+	max-height: calc(var(--_textarea-max-rows) * 1lh);
+}
+
+/* field-sizing sizes both ways, so in a row that fits its content the box would widen as text is typed. Inline-size
+   containment keeps the width out of it, at the width HTML's default 20 columns give. */
+@supports (field-sizing: content) {
+	.moka-textarea--auto-resize .moka-textarea-input {
+		field-sizing: content;
+		contain: inline-size;
+		contain-intrinsic-inline-size: 20ch;
+		resize: none;
+	}
 }
 
 /* Emoji button (EmojiButton) in the bottom corner, placed on its tooltip so the tooltip's popup stays with it. */

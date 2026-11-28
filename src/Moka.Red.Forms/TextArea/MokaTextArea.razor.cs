@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Moka.Red.Core.Utilities;
 using Moka.Red.Forms.Common;
@@ -43,13 +44,24 @@ public partial class MokaTextArea
 	[Parameter]
 	public bool Mono { get; set; }
 
-	/// <summary>Number of visible text lines. Default 3.</summary>
+	/// <summary>Number of visible text lines. Default 3. With <see cref="AutoResize" /> it is the fewest lines shown.</summary>
 	[Parameter]
 	public int Rows { get; set; } = 3;
 
-	/// <summary>Whether the textarea grows with content. Default false.</summary>
+	/// <summary>
+	///     Whether the textarea grows and shrinks with its text, never below <see cref="Rows" /> lines, and drops its resize
+	///     handle. Default false. It uses the CSS <c>field-sizing</c> property, so a browser without it (Safari before 26.2,
+	///     Firefox before 152) shows <see cref="Rows" /> lines that scroll and can be resized.
+	/// </summary>
 	[Parameter]
 	public bool AutoResize { get; set; }
+
+	/// <summary>
+	///     With <see cref="AutoResize" />, the most lines the textarea grows to before its text scrolls. Never fewer than
+	///     <see cref="Rows" />. Null, the default, lets it grow without a limit.
+	/// </summary>
+	[Parameter]
+	public int? MaxRows { get; set; }
 
 	/// <summary>
 	///     Whether a smile in the bottom corner opens an emoji panel that puts the pick in at the caret, over any
@@ -112,7 +124,13 @@ public partial class MokaTextArea
 	private string? TextAreaStyle => new StyleBuilder()
 		.AddStyle("padding", ResolvedPadding)
 		.AddStyle("border-radius", ResolvedRounding)
+		.AddStyle("--_textarea-rows", MinimumRows.ToString(CultureInfo.InvariantCulture), AutoResize)
+		.AddStyle("--_textarea-max-rows", MaximumRows?.ToString(CultureInfo.InvariantCulture), AutoResize)
 		.Build();
+
+	private int MinimumRows => Math.Max(1, Rows);
+
+	private int? MaximumRows => MaxRows is { } rows ? Math.Max(rows, MinimumRows) : null;
 
 	private string TextAreaCssClass => new CssBuilder("moka-textarea-input")
 		.AddClass($"moka-textarea-input--{SizeToKebab(Size)}")

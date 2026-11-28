@@ -55,3 +55,24 @@
 		</Items>
 	</MokaDropdown>
 </DemoSection>
+
+<DemoSection Id="checked" Title="Checked items" Description="Checked makes an item an option that is on or off: a menuitemcheckbox with aria-checked, and a check in the icon's place while it is on. Off, it shows its icon or keeps the check's width, so the names line up.">
+	<MokaDropdown>
+		<ChildContent>
+			<MokaButton Variant="MokaVariant.Outlined" EndIcon="MokaIcons.Navigation.ChevronDown">View</MokaButton>
+		</ChildContent>
+		<Items>
+			<MokaDropdownItem Text="Show grid" Checked="_grid" OnClick="() => _grid = !_grid"/>
+			<MokaDropdownItem Text="Show rulers" Checked="_rulers" OnClick="() => _rulers = !_rulers"/>
+			<MokaDropdownItem Text="Pin the toolbar" Icon="MokaIcons.Toggle.Pin" Checked="_pinned" OnClick="() => _pinned = !_pinned"/>
+			<MokaDropdownItem Divider/>
+			<MokaDropdownItem Text="Reset view" Icon="MokaIcons.Action.Refresh"/>
+		</Items>
+	</MokaDropdown>
+</DemoSection>
+
+@code {
+	private bool _grid = true;
+	private bool _pinned;
+	private bool _rulers;
+}

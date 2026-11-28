@@ -8,7 +8,7 @@ namespace Moka.Red.Feedback.Dropdown;
 
 /// <summary>
 ///     An individual item within a <see cref="MokaDropdown" />.
-///     Supports text, icon, click handler, a link, disabled and danger states, and divider mode.
+///     Supports text, icon, click handler, a link, a checked state, disabled and danger states, and divider mode.
 /// </summary>
 public partial class MokaDropdownItem : MokaComponentBase
 {
@@ -69,6 +69,16 @@ public partial class MokaDropdownItem : MokaComponentBase
 	[Parameter]
 	public bool Danger { get; set; }
 
+	/// <summary>
+	///     Makes the item an option that is on or off, such as "Show grid": a <c>menuitemcheckbox</c> with
+	///     <c>aria-checked</c>, and a check in the icon's place while it is on. When it is off the item shows its
+	///     <see cref="Icon" />, or an empty space as wide as the check, so the names line up. The app keeps the state:
+	///     flip it in <see cref="OnClick" />. Null, the default, is a plain menu item. A link (<see cref="Href" />) is
+	///     never checkable, so it ignores this.
+	/// </summary>
+	[Parameter]
+	public bool? Checked { get; set; }
+
 	/// <summary>When true, renders as a horizontal divider instead of a menu item.</summary>
 	[Parameter]
 	public bool Divider { get; set; }
@@ -82,12 +92,22 @@ public partial class MokaDropdownItem : MokaComponentBase
 	protected override string CssClass => new CssBuilder(RootClass)
 		.AddClass("moka-dropdown-item--disabled", Disabled)
 		.AddClass("moka-dropdown-item--danger", Danger)
+		.AddClass("moka-dropdown-item--checked", IsCheckable && Checked == true)
 		.AddClass(Class)
 		.Build();
 
 	private string? LinkHref => string.IsNullOrEmpty(Href) ? null : UrlValues.SafeHref(Href);
 
 	private bool IsLink => LinkHref is not null;
+
+	private bool IsCheckable => Checked is not null && !IsLink;
+
+	private string? CheckedState => IsCheckable ? (Checked == true ? "true" : "false") : null;
+
+	private string CheckCssClass => new CssBuilder("moka-dropdown-item-icon")
+		.AddClass("moka-dropdown-item-check")
+		.AddClass("moka-dropdown-item-check--off", Checked != true)
+		.Build();
 
 	private bool OpensNewTab => IsLink && !Disabled && UrlValues.OpensNewTab(Target);
 

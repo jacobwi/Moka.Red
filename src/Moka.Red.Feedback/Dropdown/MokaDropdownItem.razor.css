@@ -60,6 +60,16 @@ a.moka-dropdown-item {
 	opacity: 0.7;
 }
 
+/* A checkable item's check, in the icon's place. Off, it keeps its width, so the names line up. */
+.moka-dropdown-item ::deep .moka-dropdown-item-check {
+	color: var(--moka-color-primary);
+	opacity: 1;
+}
+
+.moka-dropdown-item ::deep .moka-dropdown-item-check--off {
+	visibility: hidden;
+}
+
 .moka-dropdown-item-text {
 	flex: 1;
 	overflow: hidden;
@@ -121,4 +131,11 @@ a.moka-dropdown-item {
 .moka-gate .moka-dropdown-item--danger:hover:not(.moka-dropdown-item--disabled) ::deep .moka-dropdown-item-icon,
 .moka-gate .moka-dropdown-item--danger:focus-visible ::deep .moka-dropdown-item-icon {
 	color: var(--moka-popup-danger, var(--moka-color-error-soft));
+}
+
+.moka-gate .moka-dropdown-item ::deep .moka-dropdown-item-check { color: var(--moka-popup-accent, var(--moka-color-primary)); }
+
+.moka-gate .moka-dropdown-item:hover:not(.moka-dropdown-item--disabled) ::deep .moka-dropdown-item-check,
+.moka-gate .moka-dropdown-item:focus-visible ::deep .moka-dropdown-item-check {
+	color: var(--moka-popup-row-hover-color, var(--moka-popup-accent, var(--moka-color-primary)));
 }

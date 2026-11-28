@@ -5,6 +5,23 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaDropdownItem.Checked` (`bool?`): an item that is on or off, such as "Show grid", is a `menuitemcheckbox` with
+  `aria-checked`, and a check in the accent color takes the icon's place while it's on. Off, it shows its `Icon` or
+  keeps the check's width, so the names line up. The app keeps the state (flip it in `OnClick`). Null, the default,
+  keeps today's markup, and a link item ignores it. The arrow keys reach checkable items.
+- `MokaTextArea.MaxRows`: with `AutoResize`, the most lines the box grows to before its text scrolls, never fewer than
+  `Rows`. The docs listed it before it existed.
+
+### Fixed
+- `MokaTextArea.AutoResize` never grew: it hid the overflow and the resize handle, so long text was cut off. The box
+  now grows and shrinks with its text through the CSS `field-sizing` property, from `Rows` lines up (`Rows="1"` is one
+  line; the 60 px floor no longer applies with `AutoResize`), and keeps its width while text is typed. In a browser
+  without `field-sizing` (Safari before 26.2, Firefox before 152) it shows `Rows` lines that scroll and can be
+  resized, so nothing is cut off. `MokaSchemaForm`'s multi-line fields get the fix too.
+
 ## [0.11.4] - 2026-11-21
 
 ### Added
