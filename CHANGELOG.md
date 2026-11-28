@@ -5,6 +5,24 @@ All notable changes to Moka.Red will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `MokaTextField.Suggestions` (`IReadOnlyList<string>?`): a text field that takes any text can suggest values while
+  the person types, such as the model names a server knows. It's a WAI-ARIA editable combobox with list autocomplete:
+  the list shows the suggestions that contain the text, whatever the case (all of them while the box is empty), up to
+  `MaxSuggestions` (10). Down or Up open it and move the highlight, Alt+Down opens it in place, Enter or a click picks,
+  and Escape or Tab closes it. The value is always what's in the box, and a pick goes through the typing path. It's
+  drawn as `MokaAutoComplete` draws its suggestions, with `Look` and the hint words. Without `Suggestions` the field's
+  markup is unchanged and it loads no scripts.
+- Static font files for PDFs. `MokaThemeProvider.FontFiles` (`MokaFontFiles`): `Variable`, the default, links
+  `moka-fonts.css` as before; `Static` links the new `moka-fonts-static.css`, Inter, Space Grotesk and JetBrains Mono as
+  a file per weight from 300 to 700 (Fontsource 5.3.0, SIL OFL 1.1) under the same font names. Chromium can't embed a
+  variable font in a PDF, so a printed or saved page held its text as Type 3 glyphs; with the static files the PDF
+  embeds ordinary TrueType fonts that PDF tools, text extractors and applicant tracking systems read, and a test page
+  printed in headless Edge went from 60 KB to 20 KB. The static set adds about 570 KB to `Moka.Red.Core`; the browser
+  fetches only the files the page's text uses.
+
 ## [0.12.0] - 2026-11-28
 
 ### Changed

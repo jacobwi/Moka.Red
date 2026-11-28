@@ -100,6 +100,15 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	public bool LoadFonts { get; set; } = true;
 
 	/// <summary>
+	///     Which files of the fonts the outermost provider links while <see cref="LoadFonts" /> is on.
+	///     <see cref="MokaFontFiles.Variable" />, the default, links <c>moka-fonts.css</c>;
+	///     <see cref="MokaFontFiles.Static" /> links <c>moka-fonts-static.css</c>, a file per weight, for an app that prints
+	///     or saves pages as PDFs, since Chromium prints a variable font as Type 3 glyphs.
+	/// </summary>
+	[Parameter]
+	public MokaFontFiles FontFiles { get; set; }
+
+	/// <summary>
 	///     Whether the outermost provider links <c>moka-flags.css</c>, the Twemoji Country Flags font that draws
 	///     <c>MokaFlag</c> and the country select's flags, whatever <see cref="LoadFonts" /> says. Defaults to true. Its
 	///     <c>unicode-range</c> covers only flag characters, so the browser fetches the font the first time a flag is on
@@ -108,6 +117,10 @@ public partial class MokaThemeProvider : ComponentBase, IAsyncDisposable
 	/// </summary>
 	[Parameter]
 	public bool LoadFlagFont { get; set; } = true;
+
+	private string FontStylesheet => FontFiles == MokaFontFiles.Static
+		? "_content/Moka.Red.Core/moka-fonts-static.css"
+		: "_content/Moka.Red.Core/moka-fonts.css";
 
 	// Set when this provider sits inside another one.
 	[CascadingParameter(Name = ProviderCascadeName)]

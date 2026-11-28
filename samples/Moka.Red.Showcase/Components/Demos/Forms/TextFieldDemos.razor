@@ -26,8 +26,22 @@
 	</Playground>
 </DemoSection>
 
+<DemoSection Id="suggestions" Title="Suggestions" Description="Suggestions lists values to offer while the person types anything. The value is what's in the box: a suggestion is one way to type it, and text that matches none is kept. Down or Up opens the list, Enter or a click picks, Escape or Tab closes.">
+	<div style="display: flex; flex-direction: column; gap: var(--moka-spacing-md); max-width: 480px;">
+		<MokaTextField @bind-Value="_modelName" Label="Model" Mono Clearable="true" Suggestions="Models"
+		               HelperText="Any model the server serves. These are the ones it lists."/>
+		<span class="page-desc">Value: @(string.IsNullOrEmpty(_modelName) ? "(empty)" : _modelName)</span>
+	</div>
+</DemoSection>
+
 @code {
+	private static readonly string[] Models =
+	[
+		"gpt-5", "gpt-5-mini", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "llama-4-scout", "mistral-large"
+	];
+
 	private readonly FormModel _model = new();
+	private string _modelName = "";
 
 	private sealed class FormModel
 	{

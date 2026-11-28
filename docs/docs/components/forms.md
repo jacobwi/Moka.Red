@@ -38,7 +38,7 @@ A placeholder too long for its field ends in an ellipsis rather than mid-word, a
 | `MokaCountrySelect` | `string?` | A country's ISO code, see [Country Select](country-select.md) |
 | `MokaCurrencyInput` | `decimal` | Locale-aware currency |
 | `MokaCreditCardInput` | four `string` | Number, expiry, code, name |
-| `MokaSignaturePad` | `string` | Canvas draw → base64 PNG |
+| `MokaSignaturePad` | `string` | Drawn on a canvas, kept as a base64 PNG |
 
 ## Binding
 
@@ -324,6 +324,10 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 | `EmojiOptions` | `MokaEmojiOptions?` | - | The panel's options. It opens as a popup either way: `List` opens the list and every other shape the grid |
 | `EmojiOptionsChanged` | `EventCallback<MokaEmojiOptions>` | - | Raised with the new skin tone and frequently used list, for the app to store |
 | `EmojiButtonLabel` | `string` | `"Insert emoji"` | The button's name and tooltip |
+| `Suggestions` | `IReadOnlyList<string>?` | - | Values to suggest while the person types anything. See [Suggestions](#suggestions) |
+| `MaxSuggestions` | `int` | `10` | The most suggestions the list shows at once |
+| `Look` | `MokaListLook?` | - | How the suggestion list's rows are drawn. Null takes the theme's `WithLists`. New design only |
+| `MoveHintText`, `PickHintText`, `CloseHintText` | `string` | `"move"`, `"pick"`, `"close"` | The words after the key caps in the `Compact` look's hints |
 
 ```razor
 <MokaTextField @bind-Value="_title" Label="Title" EmojiButton @bind-EmojiOptions="_emoji" />
@@ -337,6 +341,43 @@ Up to 0.1.12 the inputs inside a field ignored all three, and so did `MokaSearch
 <MokaTextField @bind-Value="_address" Label="Address" Mono StartIcon="MokaIcons.Status.Info" />
 <MokaTextField @bind-Value="_limit" Label="Speed limit" Suffix="Mbit/s" />
 ```
+
+### Suggestions
+
+`Suggestions` gives a field that takes any text a list of values to suggest, such as the model names a server knows. The
+value is always what's in the box: a suggestion is one way to type it, and text that matches none is kept as typed.
+`MokaAutoComplete` is the one to use when the value has to be one of its items.
+
+```razor
+<MokaTextField @bind-Value="_model" Label="Model" Mono Suggestions="_models" />
+
+@code {
+    private string _model = "";
+    private IReadOnlyList<string> _models = ["gpt-5", "gpt-5-mini", "claude-opus-5-5", "claude-sonnet-5-5"];
+}
+```
+
+The list shows the suggestions that contain the text, whatever its case, up to `MaxSuggestions`, and all of them while
+the box is empty. It hides when nothing matches; there's no "no results" row, since any text is a value.
+
+| Key | What it does |
+|-----|--------------|
+| Down / Up | Opens the list on the first or last suggestion, then moves the highlight, wrapping at either end |
+| Alt+Down | Opens the list without highlighting anything |
+| Enter | Puts the highlighted suggestion in the box and closes the list. With nothing highlighted it does nothing, so a form around the field still submits |
+| Escape | Closes the list. With the list closed, Escape is the page's, so a dialog around the field closes as usual |
+| Tab | Closes the list without picking |
+
+A click on a suggestion picks it too, and focus stays in the box. A picked suggestion goes through the same path as typed
+text, so the value, `ValueChanged` and `DebounceDelay` behave as they do for typing.
+
+To screen readers the field is a combobox with a list of suggestions, following the WAI-ARIA editable combobox with list
+autocomplete: the box has `role="combobox"`, `aria-autocomplete="list"`, `aria-expanded`, and while the list shows,
+`aria-controls` naming it and `aria-activedescendant` naming the highlighted suggestion. The list is named by the field's
+`Label`, or its `aria-label` without one. The list is drawn as `MokaAutoComplete` draws its suggestions, in the top layer,
+with the theme's popup and list looks, and a mouse and the keyboard light one row between them.
+
+Without `Suggestions` the field's markup is as it was, and it loads no scripts.
 
 ## PasswordField
 

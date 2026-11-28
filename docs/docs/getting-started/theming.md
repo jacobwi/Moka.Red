@@ -30,6 +30,7 @@ By default the provider applies `MokaTheme.Default`, dark graphite with a red ac
 | `LightTheme` | `MokaTheme` | `MokaTheme.DefaultLight` | Theme used when the OS asks for light |
 | `Nonce` | `string?` | - | Content security policy nonce for the style elements the provider writes |
 | `LoadFonts` | `bool` | `true` | Link `moka-fonts.css`, which holds Inter, Space Grotesk and JetBrains Mono |
+| `FontFiles` | `MokaFontFiles` | `Variable` | Which files of those fonts to link: `Variable` (`moka-fonts.css`) or `Static`, a file per weight (`moka-fonts-static.css`), for an app that prints or saves PDFs. See [Fonts in PDFs](#fonts-in-pdfs) |
 | `LoadFlagFont` | `bool` | `true` | Link `moka-flags.css`, the flag font `MokaFlag` and `MokaCountrySelect` draw with, whatever `LoadFonts` says |
 | `ChildContent` | `RenderFragment` | - | Content to wrap |
 
@@ -48,6 +49,18 @@ Inter, Space Grotesk and JetBrains Mono ship with `Moka.Red.Core` (SIL Open Font
 ```
 
 The flag font that draws `MokaFlag` and the country select's flags is a stylesheet of its own, `moka-flags.css`, so it stays with `LoadFonts` off. The browser fetches it only once a flag is on screen. `LoadFlagFont="false"` leaves it out too, for an app that declares that font itself.
+
+### Fonts in PDFs
+
+The fonts ship as variable files, one per font and script. Chromium can't embed a variable font in a PDF, so a page it prints or saves as a PDF (the print dialog, Playwright's `page.pdf`, a headless print) holds its text as Type 3 glyphs: the text still copies, but PDF tools, text extractors and applicant tracking systems handle it worse than ordinary embedded fonts, and the file is larger. An app that makes PDFs can link static files instead, one per weight from 300 to 700, under the same font names:
+
+```razor
+<MokaThemeProvider FontFiles="MokaFontFiles.Static">
+    @Body
+</MokaThemeProvider>
+```
+
+The static set is about 570 KB in all against the variable set's 230 KB, and as before the browser fetches only the files the page's text uses, here one per weight. A weight outside 300 to 700 takes the nearest one. Use it on the pages that print, or app-wide in an app built around printed documents.
 
 ### Nested Providers
 

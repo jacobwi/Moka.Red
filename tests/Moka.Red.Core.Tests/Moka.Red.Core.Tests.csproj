@@ -42,8 +42,10 @@
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka.css" Link="Css\moka.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\Theming\MokaThemeProvider.razor.css" Link="Css\MokaThemeProvider.razor.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-fonts.css" Link="Css\moka-fonts.css" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-fonts-static.css" Link="Css\moka-fonts-static.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\moka-flags.css" Link="Css\moka-flags.css" CopyToOutputDirectory="PreserveNewest" />
 		<None Include="..\..\src\Moka.Red.Core\wwwroot\fonts\*" Link="Css\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\..\src\Moka.Red.Core\wwwroot\fonts\static\*" Link="Css\fonts\static\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>

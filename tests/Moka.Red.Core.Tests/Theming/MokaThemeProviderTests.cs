@@ -62,6 +62,26 @@ public class MokaThemeProviderTests : BunitContext
 	}
 
 	[Fact]
+	public void StaticFontFiles_LinkTheStaticStylesheetInstead()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.FontFiles, MokaFontFiles.Static));
+
+		Assert.Single(cut.FindAll("link[rel=stylesheet][href='_content/Moka.Red.Core/moka-fonts-static.css']"));
+		Assert.Empty(cut.FindAll("link[href='_content/Moka.Red.Core/moka-fonts.css']"));
+		Assert.Single(cut.FindAll("link[href='_content/Moka.Red.Core/moka-flags.css']"));
+	}
+
+	[Fact]
+	public void LoadFontsOff_LinksNeitherFontStylesheet()
+	{
+		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p
+			.Add(x => x.LoadFonts, false)
+			.Add(x => x.FontFiles, MokaFontFiles.Static));
+
+		Assert.Empty(cut.FindAll("link[href*='moka-fonts']"));
+	}
+
+	[Fact]
 	public void LoadFontsOff_LeavesTheFontsToTheApp()
 	{
 		IRenderedComponent<MokaThemeProvider> cut = Render<MokaThemeProvider>(p => p.Add(x => x.LoadFonts, false));

@@ -82,6 +82,7 @@ public partial class ThemeTokenParityTests
 
 	[Theory]
 	[InlineData("moka-fonts.css", 6)]
+	[InlineData("moka-fonts-static.css", 30)]
 	[InlineData("moka-flags.css", 1)]
 	public void TheFontStylesheets_NameOnlyFilesThatShip(string stylesheet, int count)
 	{
@@ -105,6 +106,29 @@ public partial class ThemeTokenParityTests
 		Assert.Single(FontFile().Matches(flags));
 		Assert.Contains("font-family: 'Twemoji Country Flags'", flags, StringComparison.Ordinal);
 		Assert.DoesNotContain("'Inter'", flags, StringComparison.Ordinal);
+	}
+
+	// The static set stands in for the variable one under the same names, so each family needs every weight from 300 to
+	// 700 in both scripts, over the same characters as its variable file.
+	[Theory]
+	[InlineData("Inter", "inter")]
+	[InlineData("Space Grotesk", "space-grotesk")]
+	[InlineData("JetBrains Mono", "jetbrains-mono")]
+	public void TheStaticFonts_CoverEveryWeight_OverTheVariableFilesCharacters(string family, string slug)
+	{
+		List<(string Family, string Weight, string File, string Range)> variable = Faces("moka-fonts.css");
+		List<(string Family, string Weight, string File, string Range)> fixedWeights = [.. Faces("moka-fonts-static.css").Where(face => face.Family == family)];
+
+		Assert.Equal(10, fixedWeights.Count);
+		foreach (string weight in new[] { "300", "400", "500", "600", "700" })
+		{
+			foreach (string subset in new[] { "latin", "latin-ext" })
+			{
+				(string _, string _, string _, string range) = Assert.Single(fixedWeights,
+					face => face.Weight == weight && face.File == $"fonts/static/{slug}-{subset}-{weight}-normal.woff2");
+				Assert.Equal(variable.Single(face => face.File == $"fonts/{slug}-{subset}-wght-normal.woff2").Range, range);
+			}
+		}
 	}
 
 	// The SIL Open Font License asks for its text to travel with the fonts.
@@ -137,6 +161,13 @@ public partial class ThemeTokenParityTests
 
 		Assert.Contains("unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;", block, StringComparison.Ordinal);
 	}
+
+	private static List<(string Family, string Weight, string File, string Range)> Faces(string stylesheet) =>
+		[.. FontFace().Matches(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Css", stylesheet)))
+			.Select(match => (match.Groups["family"].Value, match.Groups["weight"].Value, match.Groups["file"].Value, match.Groups["range"].Value))];
+
+	[GeneratedRegex(@"font-family: '(?<family>[^']+)';.*?font-weight: (?<weight>[^;]+);\s*src: url\('(?<file>[^']+)'\)[^;]*;\s*unicode-range: (?<range>[^;]+);", RegexOptions.Singleline)]
+	private static partial Regex FontFace();
 
 	[GeneratedRegex(@"var\((?<name>--[a-z0-9-]+)")]
 	private static partial Regex Reference();
