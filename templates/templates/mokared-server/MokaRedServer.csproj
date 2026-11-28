@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moka.Red" Version="0.12.0" />
+    <PackageReference Include="Moka.Red" Version="0.12.1" />
     <!--#if (UseWebAssembly) -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.15" />
     <!--#endif -->
